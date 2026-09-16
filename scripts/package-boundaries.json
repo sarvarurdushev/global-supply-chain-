@@ -2694,5 +2694,24 @@
       "src/sources/featureSource.js"
     ],
     "external": []
+  },
+  "supplychain-engine": {
+    "exports": [
+      "./supplychain/geo",
+      "./supplychain/provenance",
+      "./supplychain/graph",
+      "./supplychain/routing",
+      "./supplychain/centrality",
+      "./supplychain/disruption"
+    ],
+    "modules": [
+      "src/supplychain/geo.js",
+      "src/supplychain/provenance.js",
+      "src/supplychain/graph.js",
+      "src/supplychain/routing.js",
+      "src/supplychain/centrality.js",
+      "src/supplychain/disruption.js"
+    ],
+    "external": []
   }
 }

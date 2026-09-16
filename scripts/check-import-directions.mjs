@@ -31,6 +31,9 @@ const compatibilityEdge = (from, to) =>
   (from === 'src/ui.js' && to === 'src/standalone/catalog.js');
 const portableExport = (key) =>
   key.startsWith('./sources/') ||
+  // The supply-chain engine is pure computation: it must never reach Cesium,
+  // Node or browser globals, so every one of its exports is portable-checked.
+  key.startsWith('./supplychain/') ||
   /\/source$/.test(key) ||
   /^\.\/layers\/(?:flights|military|vessels)\/(?:records|ingestion)$/.test(
     key,
