@@ -34,6 +34,22 @@ inherited God's Eye View behaviour.**
 | 9 | Features public data cannot support | audit §13, availability matrix §3 |
 | 10 | Phased implementation plan | this document |
 
+## Methodology documentation (§48)
+
+| Document | State |
+| --- | --- |
+| `docs/ARCHITECTURE.md` | ✅ |
+| `docs/DATA_SOURCES.md` (supply-chain layer; root file covers inherited) | ✅ |
+| `docs/DATA_AVAILABILITY_MATRIX.md` | ✅ |
+| `docs/DATA_LICENSE_MATRIX.md` | ✅ |
+| `docs/SUPPLY_CHAIN_MODEL.md` | ✅ |
+| `docs/DISRUPTION_MODEL.md` | ✅ |
+| `docs/ROUTE_OPTIMIZATION.md` | ✅ |
+| `docs/CONFIDENCE_METHODOLOGY.md` | ✅ |
+| `docs/ML_METHODOLOGY.md` | ✅ |
+| `docs/LIMITATIONS.md` | ✅ |
+| `docs/DEMO_SCENARIOS.md` | ✅ |
+
 ## What is deliberately not built yet
 
 Phases 4, 10, 11 and 12 are UI and integration work that depends on the engine layer landing

@@ -1,3 +1,98 @@
+# 🌍 Global Supply Chain Eye
+
+**An open-data global supply-chain intelligence and simulation platform, built on
+[God's Eye View](https://github.com/bilawalsidhu/gods-eye-view).**
+
+It combines live public telemetry, historical trade data, infrastructure data, economic data,
+event data, network analysis and model-based inference — and **visibly distinguishes which is
+which**. It does not claim global supply-chain visibility. No open-data system has that.
+
+> The original God's Eye View README follows below and is preserved unchanged. This project
+> extends that base rather than replacing it: the globe, layers, tracking, director, HUD,
+> voice and provider tier are inherited intact, and the inherited test suite stays green.
+
+## Start here
+
+| Document | What it covers |
+| --- | --- |
+| [`docs/PROJECT_ARCHITECTURE_AUDIT.md`](docs/PROJECT_ARCHITECTURE_AUDIT.md) | Audit of the God's Eye View base: what is reused, extended, and built new |
+| [`docs/DATA_AVAILABILITY_MATRIX.md`](docs/DATA_AVAILABILITY_MATRIX.md) | Every source probed, with measured status codes — and 12 features marked BLOCKED or DATA-LIMITED |
+| [`docs/DATA_LICENSE_MATRIX.md`](docs/DATA_LICENSE_MATRIX.md) | Licence compliance, including two **NonCommercial** encumbrances inherited with the base |
+| [`docs/LIMITATIONS.md`](docs/LIMITATIONS.md) | **Read this one.** What the system cannot do, without hedging |
+| [`docs/DEMO_SCENARIOS.md`](docs/DEMO_SCENARIOS.md) | Reproducible results against the live APIs |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | How the pieces fit together |
+| [`docs/SUPPLY_CHAIN_MODEL.md`](docs/SUPPLY_CHAIN_MODEL.md) | Graph model and network metrics, with formulas |
+| [`docs/DISRUPTION_MODEL.md`](docs/DISRUPTION_MODEL.md) | Simulation model and its assumptions |
+| [`docs/ROUTE_OPTIMIZATION.md`](docs/ROUTE_OPTIMIZATION.md) | Routing algorithms and their error sources |
+| [`docs/CONFIDENCE_METHODOLOGY.md`](docs/CONFIDENCE_METHODOLOGY.md) | Data classes, confidence bands, evidence combination |
+| [`docs/ML_METHODOLOGY.md`](docs/ML_METHODOLOGY.md) | Forecasting, anomaly detection, clustering — and why the models are small |
+| [`docs/PHASED_PLAN.md`](docs/PHASED_PLAN.md) | What is built and what is not |
+
+## What works today
+
+The **analytical engine** is complete, tested and reproducible without a browser:
+
+```
+npm install
+npm test          # 4333 pass, 0 fail
+```
+
+| Capability | Module |
+| --- | --- |
+| Provenance and confidence framework | `src/supplychain/provenance.js` |
+| Supply-chain graph with immutable scenario overlay | `src/supplychain/graph.js` |
+| Dijkstra, A*, Yen's k-shortest paths | `src/supplychain/routing.js` |
+| Degree, weighted degree, Brandes betweenness, HHI, CRn | `src/supplychain/centrality.js` |
+| Disruption simulation and propagation | `src/supplychain/disruption.js` |
+| UN Comtrade and World Bank clients | `src/supplychain/sources/` |
+| Forecasting, anomaly detection, clustering | `src/supplychain/ml/` |
+
+A live example, run against UN Comtrade on 2026-09-16 — South Korea's 2023 integrated-circuit
+imports:
+
+```
+Other Asia, nes    $17.28B   [INFERRED -> Taiwan]
+China              $16.82B
+Japan               $5.06B
+
+HHI = 0.2872 (Highly concentrated), effective suppliers = 3.5 · CR4 = 80.4%
+```
+
+The largest single source is an aggregate code that must be *inferred* to mean Taiwan —
+Taiwan does not report to UN Comtrade, and querying it directly returns nothing. The system
+returns that as an inference with its evidence attached, never as a verified figure.
+
+## What is not built
+
+The supply-chain **interface** — trade-flow rendering, commodity selector, WHAT IF panel,
+time machine, charts, voice actions. `docs/PHASED_PLAN.md` tracks it, and
+`docs/DEMO_SCENARIOS.md` marks each step of the flagship demo as working, engine-only, or not
+built. Nothing in the interface claims otherwise, because there is no supply-chain interface
+yet.
+
+## Principles enforced in code, not convention
+
+- `createProvenance()` **throws** if trade data is classed `LIVE`. It lags 1–2 years.
+- `createNode()` and `createEdge()` **throw** without a provenance record.
+- An association cannot reach `VERIFIED` without direct documentation, however much
+  circumstantial evidence accumulates.
+- `withScenario()` returns a derived view, so a simulation cannot leak into the baseline.
+- Unknown edge distances cost `Infinity`, not zero, so data gaps cannot masquerade as
+  shortcuts.
+- `forecast()` cannot return a model without its baselines and their out-of-sample errors.
+- Every `./supplychain/*` export is portable-checked by `npm run check:boundaries`, which
+  mechanically rejects any reach into Cesium, Node or a browser global.
+
+## Licence
+
+Source code is MIT. **The MIT grant does not extend to any dataset.** The repository as
+shipped inherits two NonCommercial datasets from the God's Eye View base (TeleGeography
+CC BY-NC-SA 3.0; Bhote Koshi imagery CC BY-NC 4.0), so **it is not usable commercially as
+shipped**. See [`docs/DATA_LICENSE_MATRIX.md`](docs/DATA_LICENSE_MATRIX.md) §0 and §4.
+
+---
+---
+
 <div align="center">
 
 # 🌐 God's Eye View
