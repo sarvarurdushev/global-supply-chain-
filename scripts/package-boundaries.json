@@ -2706,7 +2706,10 @@
       "./supplychain/sources/comtrade",
       "./supplychain/sources/worldbank",
       "./supplychain/reference/areas",
-      "./supplychain/reference/commodities"
+      "./supplychain/reference/commodities",
+      "./supplychain/ml/forecast",
+      "./supplychain/ml/anomaly",
+      "./supplychain/ml/cluster"
     ],
     "modules": [
       "src/supplychain/geo.js",
@@ -2719,7 +2722,10 @@
       "src/supplychain/sources/worldbank.js",
       "src/supplychain/reference/areas.js",
       "src/supplychain/reference/commodities.js",
-      "src/supplychain/reference/comtradeAreas.js"
+      "src/supplychain/reference/comtradeAreas.js",
+      "src/supplychain/ml/forecast.js",
+      "src/supplychain/ml/anomaly.js",
+      "src/supplychain/ml/cluster.js"
     ],
     "external": []
   }
