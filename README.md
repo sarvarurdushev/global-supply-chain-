@@ -45,10 +45,12 @@ npm run dev          # http://localhost:4173   (note: 4173, not Vite's usual 517
 
 Keyless it uses the Esri World Imagery basemap and live OpenSky aircraft. Add a Google Maps
 key to `.env` for photorealistic 3D tiles, or an OpenAI key for voice — see `.env.example`
-and `npm run doctor`. **This is the God's Eye View interface; the supply-chain UI is not
-built yet.**
+and `npm run doctor`.
 
-**The supply-chain engine** — this is the new work, and it has no UI yet, so it prints:
+The supply-chain console is the right-hand rail. Pick a commodity and country, press
+INVESTIGATE, and the globe draws the trade arcs.
+
+**The supply-chain engine, headless** — the same analysis without a browser:
 
 ```bash
 npm run demo                  # all four scenarios
@@ -97,11 +99,10 @@ returns that as an inference with its evidence attached, never as a verified fig
 
 ## What is not built
 
-The supply-chain **interface** — trade-flow rendering, commodity selector, WHAT IF panel,
-time machine, charts, voice actions. `docs/PHASED_PLAN.md` tracks it, and
-`docs/DEMO_SCENARIOS.md` marks each step of the flagship demo as working, engine-only, or not
-built. Nothing in the interface claims otherwise, because there is no supply-chain interface
-yet.
+Production-region mapping, the geopolitical event layer (ACLED and EM-DAT need registered
+accounts), the country-comparison panel, and authored cinematic scene tours.
+`docs/PHASED_PLAN.md` tracks these, and `docs/DEMO_SCENARIOS.md` marks each step of the
+flagship investigation as working, inherited, data-unavailable or not built.
 
 ## Principles enforced in code, not convention
 

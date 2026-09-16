@@ -19,6 +19,7 @@ import { aisLiveProxy } from './vessels/ais-live.js';
 import { trackBackfillProxies } from './aircraft/tracks.js';
 import { openAiRealtimeProxy } from './openai.js';
 import { googlePlacesContextProxy } from './places.js';
+import { supplyChainProxy } from './supplychain.js';
 import { keySetupEndpoint } from '../standalone/key-setup.js';
 
 /** Construct the local provider plugins in their established order. */
@@ -28,6 +29,7 @@ function localProviderPlugins() {
     celestrakProxy(),
     tomtomProxy(),
     firmsProxy(),
+    supplyChainProxy(),
     rocketLaunchesProxy(),
     terrainHeightsProxy(),
     adsbdbProxy(),

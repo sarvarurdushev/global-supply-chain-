@@ -1,5 +1,9 @@
 import { createLayerCatalog } from './catalog.js';
 import { LAYER_STATE_REGISTRY } from '../data/layerState.js';
+import { createTradeFlowsLayer } from '../layers/tradeflows/index.js';
+import { createChokepointsLayer } from '../layers/chokepoints/index.js';
+import { createPortsLayer } from '../layers/ports/index.js';
+import { governorRequestRender } from '../renderGovernor.js';
 import { createMilitaryRegistry } from '../layers/aircraft/classification.js';
 import { createApplicationFlights } from './layers/flights.js';
 import { createApplicationMilitary } from './layers/militaryFlights.js';
@@ -129,6 +133,15 @@ export function createApplicationCatalog({
           installations,
         }),
         ...createInfrastructureLayers(localGeoJsonServices),
+        createTradeFlowsLayer({
+          governorRequestRender,
+        }),
+        createPortsLayer({
+          governorRequestRender,
+        }),
+        createChokepointsLayer({
+          governorRequestRender,
+        }),
         createApplicationCables({ source: sources.cables }),
         createApplicationFirms({
           surface,

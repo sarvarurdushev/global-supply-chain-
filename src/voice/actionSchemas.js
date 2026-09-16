@@ -138,6 +138,9 @@ const schemas = [
             'telegeography-submarine-cables',
             'local-firms',
             'alpr-cameras',
+            'trade-flows',
+            'supply-ports',
+            'chokepoints',
           ],
         },
         enabled: {
@@ -170,6 +173,9 @@ const schemas = [
             'telegeography-submarine-cables',
             'local-firms',
             'alpr-cameras',
+            'trade-flows',
+            'supply-ports',
+            'chokepoints',
           ],
         },
       },
@@ -858,6 +864,63 @@ const schemas = [
           maximum: 60,
         },
       },
+    },
+  },
+  {
+    name: 'show_trade_flows',
+    parameters: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        commodity: { type: 'string' },
+        country: { type: 'string' },
+        direction: { type: 'string', enum: ['imports', 'exports'] },
+        year: { type: 'integer', minimum: 2015, maximum: 2023 },
+      },
+      required: ['commodity'],
+    },
+  },
+  {
+    name: 'simulate_supply_disruption',
+    parameters: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        chokepoint: {
+          type: 'string',
+          enum: [
+            'hormuz',
+            'malacca',
+            'suez',
+            'panama',
+            'bab-el-mandeb',
+            'turkish-straits',
+            'cape-of-good-hope',
+            'danish-straits',
+            'taiwan-strait',
+          ],
+        },
+      },
+      required: ['chokepoint'],
+    },
+  },
+  {
+    name: 'set_trade_period',
+    parameters: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        year: { type: 'integer', minimum: 2015, maximum: 2023 },
+      },
+      required: ['year'],
+    },
+  },
+  {
+    name: 'explain_trade_evidence',
+    parameters: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {},
     },
   },
 ];

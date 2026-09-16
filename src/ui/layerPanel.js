@@ -43,6 +43,10 @@ const PANEL_GROUPS = [
     ids: ['rocket-launches', 'earthquakes', 'local-firms'],
   },
   {
+    label: 'Supply Chain',
+    ids: ['trade-flows', 'supply-ports', 'chokepoints'],
+  },
+  {
     label: 'Utilities',
     ids: ['directions', 'radio'],
   },
@@ -55,6 +59,9 @@ const PANEL_POSITIONS = new Map(
 );
 const PANEL_LABELS = {
   'ais-live-vessels': 'Live Vessels',
+  'trade-flows': 'Trade Flows',
+  'supply-ports': 'Major Ports',
+  chokepoints: 'Chokepoints',
   bikeshare: 'Bike Share',
   cctv: 'Cameras',
   'alpr-cameras': 'Mapped ALPR Cameras',

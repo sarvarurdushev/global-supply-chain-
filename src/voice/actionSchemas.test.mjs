@@ -19,9 +19,13 @@ test('the complete Realtime tool payload retains its pre-extraction contract and
   const digest = createHash('sha256')
     .update(JSON.stringify(stable(GEV_REALTIME_TOOLS)))
     .digest('hex');
+  // Re-pinned when the four supply-chain actions joined the inventory and the
+  // two layer enums gained trade-flows, supply-ports and chokepoints. Every
+  // other tool's wording is unchanged; src/radioMarkup.test.mjs pins those
+  // individually.
   assert.equal(
     digest,
-    '956381c3456d3644ed7c9cda72910dc68a34d9191e0b3e414ee200c348245214',
+    'e01a20d52ed1b00da791de7126966c414b3bf9e38cd66a16719fabbd179a5ee7',
   );
 });
 

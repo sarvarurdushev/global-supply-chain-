@@ -9,15 +9,15 @@ inherited God's Eye View behaviour.**
 | **1** | Audit God's Eye View; availability matrix; licence matrix | ✅ **complete** |
 | **2** | Preserve GEV: import base, verify tests/build/boundary gates | ✅ **complete** — 4136 pass / 0 fail |
 | **3** | Supply-chain data foundation: provenance model, graph model, reference data, Comtrade + World Bank clients | ✅ **complete** |
-| **4** | Trade visualization: flow rendering, commodity selector, timeline, charts | ⬜ planned |
-| **5** | Supply-chain graph: upstream/downstream traversal, dependency views, production regions | 🟡 **engine complete, UI planned** |
-| **6** | Live transport fusion with explicit LIVE/HISTORICAL/MODELLED separation | 🟡 **provenance model complete, fusion UI planned** |
+| **4** | Trade visualization: flow rendering, commodity selector, timeline, charts | ✅ **complete** |
+| **5** | Supply-chain graph: upstream/downstream traversal, dependency views | 🟡 **engine + chokepoint/port graph complete; production regions planned** |
+| **6** | Live transport fusion with explicit LIVE/HISTORICAL/MODELLED separation | 🟡 **badging shipped in the console; joint live+historical views planned** |
 | **7** | Disruption engine: node/edge closure, capacity reduction, alternative paths | ✅ **engine complete** |
 | **8** | Analytics: centrality, concentration, dependency, resilience | ✅ **complete** |
 | **9** | ML: forecasting, anomaly detection, clustering — all baseline-compared | ✅ **complete** |
-| **10** | Geopolitical / event layer | ⬜ planned |
-| **11** | Voice: supply-chain action schemas + handlers | ⬜ planned |
-| **12** | Polish: camera, HUD, transitions, performance, error states | ⬜ planned |
+| **10** | Geopolitical / event layer | ⬜ planned — blocked on ACLED/EM-DAT keys, see availability matrix §3 |
+| **11** | Voice: supply-chain action schemas + handlers | ✅ **complete** — 4 actions, layers voice-toggleable |
+| **12** | Polish: camera, HUD, transitions, performance, error states | 🟡 **camera framing, error states and data-gap rendering done; cinematic tours planned** |
 
 ## Phase-1 deliverables (the brief's FINAL COMMAND, items 1–10)
 
@@ -50,9 +50,27 @@ inherited God's Eye View behaviour.**
 | `docs/LIMITATIONS.md` | ✅ |
 | `docs/DEMO_SCENARIOS.md` | ✅ |
 
-## What is deliberately not built yet
+## The interface
 
-Phases 4, 10, 11 and 12 are UI and integration work that depends on the engine layer landing
-first. The engine (phases 3, 5, 7, 8, 9) is complete and tested because it is what the brief
-calls "proving the data foundation" — it is portable, runs under `node --test`, and its
-outputs are reproducible without a browser.
+The supply-chain console ships as a right-rail panel in the inherited God's Eye View shell
+(`src/ui/supplychain/console.js`), with three new globe layers registered in the normal
+catalog: `trade-flows`, `supply-ports` and `chokepoints`. It is driven either by hand or by
+the four voice actions in `src/voice/supplyChainActions.js`.
+
+Trade data reaches the browser through `server/providers/supplychain.js`, which caches and
+paces upstream calls — UN Comtrade 429s on back-to-back requests, so a browser talking to it
+directly would be throttled part-way through a ten-year series.
+
+## What is still not built
+
+- **Production regions** (§21): needs per-commodity production data. USGS Mineral Commodity
+  Summaries and FAOSTAT are identified but not integrated; exports are currently used as an
+  explicitly-labelled proxy.
+- **Geopolitical event layer** (§10/§15): ACLED and EM-DAT both require registered accounts
+  (availability matrix §3). GDELT is reachable but rate-limited.
+- **Country comparison UI** (§20): the clustering engine and World Bank client exist; the
+  comparison panel does not.
+- **Cinematic scene tours** for the §44 investigation: the director can do it, the scene pack
+  is not authored.
+- **Joint live + historical views** (§23): the badging is in place, but vessels and trade are
+  not yet shown in one fused view.

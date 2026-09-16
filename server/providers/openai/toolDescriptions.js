@@ -571,4 +571,20 @@ export const ACTION_DESCRIPTIONS = {
       },
     },
   },
+  show_trade_flows: {
+    description:
+      'Load bilateral trade for one commodity and draw it on the globe as arcs. Use for "show semiconductor trade", "where does Korea get its chips", "show crude oil exports". Commodity is a group key such as semiconductors, crude-oil, lithium-and-alkali, automobiles, batteries. Country is an ISO 3166-1 alpha-3 code such as KOR. The data is UN Comtrade and is HISTORICAL, lagging one to two years — never describe it as live. Report the figures this action returns; do not supply trade numbers from your own knowledge.',
+  },
+  simulate_supply_disruption: {
+    description:
+      'Close a maritime chokepoint and recompute the route. Use for "what if the Suez Canal closed", "simulate a Hormuz disruption". The result is a MODEL OUTPUT describing a scenario that did not occur, and any alternative route it reports is geographic rather than commercially validated. Say both when reporting it.',
+  },
+  set_trade_period: {
+    description:
+      'Move the trade time machine to a given year between 2015 and 2023, re-running the current query. Use for "show me 2019", "go back five years".',
+  },
+  explain_trade_evidence: {
+    description:
+      'Explain where the currently displayed trade figures come from and what caveats attach to them, including any aggregate partner code such as "Other Asia, nes". Use for "why do you think that", "what is your source", "how confident are you". Answer only from what this returns.',
+  },
 };

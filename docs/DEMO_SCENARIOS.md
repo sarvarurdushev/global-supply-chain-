@@ -169,27 +169,56 @@ composite risk score — see `docs/SUPPLY_CHAIN_MODEL.md`.
 
 ---
 
-## The full §44 investigation — NOT YET RUNNABLE
+## The full §44 investigation — RUNNABLE IN THE APP
 
-The brief's flagship demo moves WORLD → commodity → country → port → vessel → simulation →
-forecast on the globe. The **analytical half exists and is demonstrated above**. The
-**interface half does not**:
+`npm run dev`, open http://localhost:4173, dismiss the first-run card, and the supply-chain
+console is the right-hand rail.
 
-| Step | State |
-| --- | --- |
-| Select SEMICONDUCTORS, see production regions | ⬜ Phase 4/5 UI not built |
-| Trade flows rendered on the globe | ⬜ Phase 4 not built |
-| Drill to South Korea, then Busan | ⬜ Phase 4 not built |
-| Select a live vessel, see public telemetry | 🟢 inherited from God's Eye View and working |
-| Commodity association with evidence | 🟡 framework built and tested; no UI |
-| Historical trade relationship | 🟡 data client built; no timeline UI |
-| Simulate maritime disruption | 🟡 engine built and tested; no WHAT IF panel |
-| Alternative routes | 🟡 engine built and tested; no UI |
-| Countries most exposed | 🟡 `propagate()` returns `exposedCountries`; no UI |
-| Ten-year change | 🟡 `getTimeSeries()` works; no time machine UI |
-| Forecast | 🟡 built and tested; no chart |
+| Step | State | How |
+| --- | --- | --- |
+| Select SEMICONDUCTORS | 🟢 working | COMMODITY selector, 28 groups over real HS headings |
+| Pick a reporting country and direction | 🟢 working | COUNTRY / DIRECTION selectors |
+| Trade flows rendered on the globe | 🟢 working | INVESTIGATE draws great-circle arcs, width by value, and frames the reporter from orbit |
+| Aggregate partners flagged, not hidden | 🟢 working | "Other Asia, nes" renders amber (INFERRED) with its caveat and evidence |
+| Concentration analysis | 🟢 working | HHI, effective suppliers, CR4, with the formula shown |
+| Ten-year change | 🟢 working | LOAD 2015–2023 SERIES; time machine slider re-runs any year |
+| Forecast vs baselines | 🟢 working | Time-series chart with dashed forecast and shaded interval, plus the MAE table |
+| Anomaly detection | 🟢 working | Robust z on log year-on-year change |
+| Chokepoint map | 🟢 working | `chokepoints` layer; no-alternative chokepoints drawn in the critical colour |
+| Major ports | 🟢 working | `supply-ports` layer, 417 ports from WPI |
+| Simulate disruption | 🟢 working | WHAT IF panel: before/after routes, extra distance and modelled days, propagation tiers |
+| Alternative routes | 🟢 working | Listed and labelled GEOGRAPHIC ONLY |
+| Provenance panel | 🟢 working | Every result carries an expandable source/method/licence/limitations block |
+| Voice control | 🟢 working | 4 actions; see below |
+| Select a live vessel | 🟢 inherited | God's Eye View AIS layer, unchanged |
+| Per-vessel commodity association | ⚪ **DATA UNAVAILABLE** | AIS carries no cargo field. The port card says so rather than guessing |
+| Production regions | ⬜ not built | Needs production data; see `docs/PHASED_PLAN.md` |
+| Country comparison panel | ⬜ not built | Engine exists, UI does not |
 
-🟢 working · 🟡 engine only · ⬜ not built
+### Voice, verified in the running app
 
-Stating this plainly is the point. The engine is real and its outputs are reproducible
-today; the interface is Phase 4 onward and has not been written.
+Driven through `window.__godsEyeView.supplyChainActions`, which is what the Realtime runner
+calls. Actual spoken output:
+
+> **"Show semiconductor imports for Korea in 2023."**
+> Semiconductors (integrated circuits) imports for KOR in 2023. Largest: Other Asia, nes, an
+> aggregate code at $17.3B; China at $16.8B; Japan at $5.1B. Concentration is highly
+> concentrated, about 3.5 effective partners. **This is historical UN Comtrade data, not live.**
+
+> **"Show Taiwan's semiconductor trade."**
+> **Taiwan does not report trade to UN Comtrade, so I cannot show its own figures.** Its trade
+> is only visible through what its partners report.
+
+> **"Why do you think that?"**
+> These figures come from UN Comtrade, /api/supplychain/trade?reporter=410&period=2023&
+> cmd=8542&flow=M. UN Comtrade annual data lags its reference period by 1-2 years… Note also
+> that Other Asia, nes is an aggregate code. Code 490 … **is an inference, not a statement by
+> the data.**
+
+> **"Simulate a Suez Canal disruption."**
+> Simulated closure of Suez Canal. The route reroutes via Keppel (East Singapore), Cape of
+> Good Hope, adding 6,986 kilometres and about 9.2 modelled days. **This is a model result and
+> the alternative is geographic, not commercially validated.**
+
+Every answer is assembled from what the console actually loaded. The handlers never answer
+from the model's own knowledge, and when nothing is loaded they say so.

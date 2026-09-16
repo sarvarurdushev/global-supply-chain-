@@ -1,0 +1,671 @@
+/*
+ * Supply-chain console.
+ *
+ * Uses the inherited design tokens (--glass-bg, --accent, --text-primary,
+ * --font-mono, --panel-radius) so the panel reads as part of God's Eye View
+ * rather than bolted on.
+ *
+ * The data-class colours are defined once here and referenced by both the CSS
+ * and the chart module, so a badge and the bar it labels cannot drift apart.
+ */
+
+.sc-console {
+  --sc-verified: #00d4ff;
+  --sc-inferred: #ffb800;
+  --sc-simulated: #ff8a3d;
+  --sc-danger: #ff4d4f;
+  --sc-unknown: rgba(232, 234, 237, 0.4);
+
+  position: fixed;
+  /* Right rail. The left side is occupied by the inherited title bar and
+     #left-panel-stack; the right-context-rail is selection-driven and
+     transient, so the right edge is the persistent space available.
+     z-index 120 clears the full-viewport .gev-screen-whiteboard (z 90) and the
+     title bar (z 100) — a lower value leaves the panel visible but unclickable
+     — while staying below #command-dock (145) and the first-run launcher (175)
+     so neither is ever obscured. */
+  top: 76px;
+  right: 16px;
+  z-index: 120;
+  width: min(380px, calc(100vw - 32px));
+  max-height: calc(100vh - 180px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--glass-bg, rgba(12, 12, 20, 0.82));
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.08));
+  border-radius: var(--panel-radius, 16px);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  color: var(--text-primary, #e8eaed);
+  font-family: var(--font-sans, 'Inter', sans-serif);
+  font-size: 12px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55);
+}
+
+.sc-console[hidden] {
+  display: none;
+}
+
+.sc-console.sc-collapsed > *:not(.sc-head) {
+  display: none;
+}
+
+.sc-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--glass-border, rgba(255, 255, 255, 0.08));
+  flex: 0 0 auto;
+}
+
+.sc-title {
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: var(--accent, #00d4ff);
+}
+
+.sc-head-actions {
+  display: flex;
+  gap: 5px;
+}
+.sc-collapse {
+  background: transparent;
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.12));
+  border-radius: 6px;
+  color: var(--text-secondary, rgba(232, 234, 237, 0.6));
+  width: 22px;
+  height: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+.sc-collapse:hover {
+  border-color: var(--accent, #00d4ff);
+  color: var(--accent, #00d4ff);
+}
+
+/* Scroll the body, keep the header fixed. */
+.sc-controls,
+.sc-section {
+  padding: 12px 14px;
+}
+.sc-console > .sc-section {
+  overflow-y: auto;
+  border-top: 1px solid var(--glass-border, rgba(255, 255, 255, 0.06));
+}
+.sc-console > .sc-section:first-of-type {
+  flex: 1 1 auto;
+  min-height: 120px;
+}
+.sc-console > .sc-section:last-of-type {
+  flex: 0 1 auto;
+  max-height: 46%;
+}
+
+.sc-field {
+  display: block;
+  margin-bottom: 9px;
+}
+.sc-field-label {
+  display: block;
+  font-family: var(--font-mono, monospace);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: var(--text-secondary, rgba(232, 234, 237, 0.5));
+  margin-bottom: 4px;
+}
+
+.sc-select,
+.sc-range {
+  width: 100%;
+  box-sizing: border-box;
+}
+.sc-select {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
+  border-radius: 7px;
+  color: var(--text-primary, #e8eaed);
+  padding: 6px 8px;
+  font-size: 12px;
+  font-family: inherit;
+}
+.sc-select:focus-visible,
+.sc-range:focus-visible {
+  outline: 2px solid var(--accent, #00d4ff);
+  outline-offset: 1px;
+}
+.sc-range {
+  accent-color: var(--accent, #00d4ff);
+}
+.sc-year {
+  color: var(--accent, #00d4ff);
+  font-weight: 700;
+  margin-left: 4px;
+}
+
+.sc-actions {
+  display: flex;
+  gap: 7px;
+  margin-top: 11px;
+}
+.sc-run,
+.sc-secondary {
+  flex: 1;
+  padding: 8px 6px;
+  border-radius: 8px;
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  border: 1px solid var(--accent, #00d4ff);
+  background: var(--accent-dim, rgba(0, 212, 255, 0.15));
+  color: var(--accent, #00d4ff);
+  transition: background 120ms ease;
+}
+.sc-run:hover:not(:disabled) {
+  background: rgba(0, 212, 255, 0.28);
+}
+.sc-secondary {
+  border-color: var(--glass-border, rgba(255, 255, 255, 0.14));
+  background: transparent;
+  color: var(--text-secondary, rgba(232, 234, 237, 0.6));
+}
+.sc-secondary:hover:not(:disabled) {
+  border-color: var(--accent, #00d4ff);
+  color: var(--accent, #00d4ff);
+}
+.sc-run:disabled,
+.sc-secondary:disabled {
+  opacity: 0.45;
+  cursor: progress;
+}
+.sc-run-danger {
+  border-color: var(--sc-danger);
+  background: rgba(255, 77, 79, 0.14);
+  color: var(--sc-danger);
+  width: 100%;
+  margin-top: 8px;
+}
+.sc-run-danger:hover:not(:disabled) {
+  background: rgba(255, 77, 79, 0.26);
+}
+
+.sc-status {
+  margin-top: 9px;
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  color: var(--text-dim, rgba(232, 234, 237, 0.35));
+  line-height: 1.45;
+}
+.sc-status.sc-busy {
+  color: var(--accent, #00d4ff);
+}
+.sc-status.sc-ok {
+  color: rgba(120, 220, 160, 0.9);
+}
+.sc-status.sc-err {
+  color: var(--sc-danger);
+}
+
+.sc-h3 {
+  margin: 0 0 9px;
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--text-secondary, rgba(232, 234, 237, 0.55));
+}
+.sc-h4 {
+  margin: 14px 0 6px;
+  font-family: var(--font-mono, monospace);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: var(--text-dim, rgba(232, 234, 237, 0.4));
+}
+
+.sc-hint,
+.sc-footnote,
+.sc-formula,
+.sc-caption {
+  color: var(--text-secondary, rgba(232, 234, 237, 0.5));
+  line-height: 1.5;
+  margin: 7px 0;
+}
+.sc-footnote,
+.sc-formula {
+  font-size: 10px;
+}
+.sc-formula {
+  font-family: var(--font-mono, monospace);
+  color: var(--text-dim, rgba(232, 234, 237, 0.32));
+}
+
+/* Badges carry the data class. Colour alone never conveys it — the emoji and
+   the text label are always present, for colour-blind readers and for anyone
+   reading a screenshot. */
+.sc-badge {
+  display: inline-block;
+  font-family: var(--font-mono, monospace);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid currentColor;
+  white-space: nowrap;
+}
+.sc-badge-hist,
+.sc-badge-ver {
+  color: var(--sc-verified);
+}
+.sc-badge-inf {
+  color: var(--sc-inferred);
+}
+.sc-badge-sim {
+  color: var(--sc-simulated);
+}
+
+.sc-metrics {
+  display: flex;
+  gap: 8px;
+  margin: 11px 0;
+}
+.sc-metric {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.07));
+  border-radius: 8px;
+  padding: 8px 6px;
+  text-align: center;
+}
+.sc-metric-value {
+  display: block;
+  font-family: var(--font-mono, monospace);
+  font-size: 16px;
+  color: var(--accent, #00d4ff);
+}
+.sc-metric-label {
+  display: block;
+  font-size: 9px;
+  color: var(--text-secondary, rgba(232, 234, 237, 0.5));
+  margin-top: 3px;
+  line-height: 1.3;
+}
+
+/* A data gap is a first-class rendering, not an empty cell. */
+.sc-gap {
+  border: 1px dashed var(--sc-unknown);
+  border-radius: 8px;
+  padding: 9px 10px;
+  margin: 9px 0;
+  background: rgba(255, 255, 255, 0.02);
+}
+.sc-gap-label {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--text-secondary, rgba(232, 234, 237, 0.6));
+}
+.sc-gap-reason {
+  margin-top: 4px;
+  line-height: 1.45;
+}
+.sc-gap-needed {
+  margin-top: 5px;
+  font-size: 10px;
+  color: var(--text-dim, rgba(232, 234, 237, 0.35));
+}
+
+.sc-caveat {
+  border-left: 2px solid var(--sc-inferred);
+  background: rgba(255, 184, 0, 0.06);
+  padding: 8px 10px;
+  border-radius: 0 8px 8px 0;
+  margin: 10px 0;
+  line-height: 1.5;
+}
+.sc-caveat-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 5px;
+}
+.sc-caveat p {
+  margin: 0;
+  font-size: 11px;
+}
+.sc-evidence {
+  margin: 6px 0 0;
+  padding-left: 16px;
+  font-size: 10px;
+  color: var(--text-secondary, rgba(232, 234, 237, 0.5));
+}
+.sc-evidence li {
+  margin: 2px 0;
+}
+
+.sc-detail {
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
+  border-radius: 8px;
+  padding: 9px 10px;
+  margin: 10px 0;
+  background: rgba(255, 255, 255, 0.025);
+}
+.sc-detail-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.sc-detail-value {
+  font-family: var(--font-mono, monospace);
+  color: var(--accent, #00d4ff);
+}
+.sc-detail-row {
+  margin-bottom: 6px;
+}
+.sc-detail-caveat {
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.5;
+  color: var(--text-secondary, rgba(232, 234, 237, 0.55));
+}
+
+/* Charts */
+.sc-chart {
+  display: block;
+  margin: 8px 0;
+  overflow: visible;
+}
+.sc-bar-label {
+  fill: var(--text-primary, #e8eaed);
+  font-size: 10px;
+  font-family: var(--font-sans, 'Inter', sans-serif);
+}
+.sc-bar-value {
+  fill: var(--text-secondary, rgba(232, 234, 237, 0.55));
+  font-size: 10px;
+  font-family: var(--font-mono, monospace);
+}
+.sc-bar-row:focus-visible {
+  outline: 1px solid var(--accent, #00d4ff);
+}
+.sc-bar-row:hover rect {
+  opacity: 1;
+}
+.sc-chart-empty {
+  fill: var(--sc-unknown);
+  font-size: 11px;
+  font-family: var(--font-mono, monospace);
+}
+.sc-axis {
+  stroke: var(--glass-border, rgba(255, 255, 255, 0.12));
+  stroke-width: 1;
+}
+.sc-axis-label {
+  fill: var(--text-dim, rgba(232, 234, 237, 0.32));
+  font-size: 9px;
+  font-family: var(--font-mono, monospace);
+}
+.sc-series-observed {
+  fill: none;
+  stroke: var(--sc-verified);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+.sc-series-forecast {
+  fill: none;
+  stroke: var(--sc-simulated);
+  stroke-width: 2;
+  stroke-dasharray: 4 3;
+  stroke-linejoin: round;
+}
+.sc-series-dot {
+  fill: var(--sc-verified);
+}
+.sc-series-dot-forecast {
+  fill: var(--sc-simulated);
+}
+.sc-interval-band {
+  fill: var(--sc-simulated);
+  opacity: 0.16;
+}
+.sc-legend {
+  display: flex;
+  gap: 12px;
+  font-family: var(--font-mono, monospace);
+  font-size: 9px;
+  margin: 2px 0 0;
+}
+.sc-legend-obs {
+  color: var(--sc-verified);
+}
+.sc-legend-fc {
+  color: var(--sc-simulated);
+}
+.sc-ba-before {
+  fill: var(--sc-verified);
+  opacity: 0.85;
+}
+.sc-ba-after {
+  fill: var(--sc-danger);
+  opacity: 0.85;
+}
+
+.sc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 10px;
+  font-family: var(--font-mono, monospace);
+  margin: 8px 0;
+}
+.sc-table th {
+  text-align: left;
+  color: var(--text-dim, rgba(232, 234, 237, 0.35));
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  padding: 3px 0;
+  border-bottom: 1px solid var(--glass-border, rgba(255, 255, 255, 0.08));
+}
+.sc-table td {
+  padding: 3px 0;
+  color: var(--text-secondary, rgba(232, 234, 237, 0.55));
+}
+.sc-table td:last-child,
+.sc-table th:last-child {
+  text-align: right;
+}
+.sc-table tr.sc-win td {
+  color: var(--accent, #00d4ff);
+}
+.sc-verdict {
+  font-size: 11px;
+  color: var(--text-primary, #e8eaed);
+  margin: 6px 0;
+}
+
+.sc-anomalies {
+  margin: 6px 0;
+  padding-left: 16px;
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  color: var(--sc-inferred);
+}
+
+/* Provenance disclosure */
+.sc-prov {
+  margin: 11px 0 0;
+  border-top: 1px solid var(--glass-border, rgba(255, 255, 255, 0.07));
+  padding-top: 8px;
+}
+.sc-prov > summary {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  color: var(--text-secondary, rgba(232, 234, 237, 0.5));
+  list-style: none;
+}
+.sc-prov > summary::-webkit-details-marker {
+  display: none;
+}
+.sc-prov > summary::before {
+  content: '▸';
+  color: var(--text-dim, rgba(232, 234, 237, 0.3));
+}
+.sc-prov[open] > summary::before {
+  content: '▾';
+}
+.sc-prov-source {
+  color: var(--text-primary, #e8eaed);
+}
+.sc-prov-body {
+  margin: 8px 0 0;
+  font-size: 10px;
+  line-height: 1.5;
+}
+.sc-prov-body dt {
+  color: var(--text-dim, rgba(232, 234, 237, 0.32));
+  font-family: var(--font-mono, monospace);
+  letter-spacing: 0.06em;
+  margin-top: 6px;
+}
+.sc-prov-body dd {
+  margin: 2px 0 0;
+  color: var(--text-secondary, rgba(232, 234, 237, 0.55));
+  word-break: break-word;
+}
+.sc-prov-limits {
+  margin: 0;
+  padding-left: 15px;
+}
+.sc-prov-limits li {
+  margin: 3px 0;
+}
+
+/* WHAT IF */
+.sc-scenario-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0 4px;
+}
+.sc-route {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  margin: 9px 0;
+}
+.sc-route-label {
+  color: var(--text-dim, rgba(232, 234, 237, 0.32));
+  letter-spacing: 0.1em;
+  margin-top: 6px;
+}
+.sc-route-path {
+  color: var(--text-primary, #e8eaed);
+  line-height: 1.5;
+}
+.sc-severed {
+  border: 1px solid var(--sc-danger);
+  border-radius: 8px;
+  padding: 9px 10px;
+  margin: 10px 0;
+  background: rgba(255, 77, 79, 0.08);
+}
+.sc-severed-label {
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--sc-danger);
+  margin-bottom: 5px;
+}
+.sc-severed p {
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.5;
+  color: var(--text-secondary, rgba(232, 234, 237, 0.55));
+}
+.sc-alts {
+  margin: 6px 0;
+  padding-left: 15px;
+  font-size: 10px;
+}
+.sc-alts li {
+  margin: 5px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.sc-alts li > span:first-child {
+  font-family: var(--font-mono, monospace);
+  color: var(--text-primary, #e8eaed);
+}
+.sc-alts .sc-badge {
+  align-self: flex-start;
+}
+.sc-tiers {
+  font-size: 10px;
+  line-height: 1.6;
+}
+.sc-tiers > div {
+  display: flex;
+  gap: 8px;
+  margin: 3px 0;
+}
+.sc-tier-label {
+  flex: 0 0 74px;
+  font-family: var(--font-mono, monospace);
+  color: var(--text-dim, rgba(232, 234, 237, 0.32));
+  letter-spacing: 0.08em;
+}
+
+/* Launcher chip, shown when the console is dismissed. */
+.sc-launcher {
+  position: fixed;
+  top: 76px;
+  right: 16px;
+  z-index: 120;
+  padding: 7px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--accent, #00d4ff);
+  background: rgba(12, 12, 20, 0.82);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: var(--accent, #00d4ff);
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  cursor: pointer;
+}
+.sc-launcher:hover {
+  background: rgba(0, 212, 255, 0.18);
+}
+.sc-launcher[hidden] {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .sc-console {
+    top: auto;
+    bottom: 96px;
+    left: 12px;
+    right: 12px;
+    width: auto;
+    max-height: 52vh;
+  }
+  .sc-launcher {
+    top: auto;
+    bottom: 96px;
+    right: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sc-run,
+  .sc-secondary {
+    transition: none;
+  }
+}

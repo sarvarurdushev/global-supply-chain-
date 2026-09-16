@@ -25,11 +25,14 @@ const css = readStylesheet(new URL('../style.css', import.meta.url));
 
 function realtimeTools() { return GEV_REALTIME_TOOLS; }
 
-test('Realtime schema exposes the authoritative 28-tool inventory', () => {
+test('Realtime schema exposes the authoritative 32-tool inventory', () => {
   const tools = realtimeTools();
-  assert.equal(tools.length, 28);
+  // 28 inherited God's Eye View tools plus the four supply-chain actions.
+  assert.equal(tools.length, 32);
   const names = tools.map((tool) => tool.name);
-  assert.equal(new Set(names).size, 28, 'tool names are unique');
+  assert.equal(new Set(names).size, 32, 'tool names are unique');
+  assert.ok(names.includes('show_trade_flows'));
+  assert.ok(names.includes('simulate_supply_disruption'));
   assert.ok(names.includes('set_context_mode'));
   assert.ok(names.includes('control_cockpit'));
   assert.ok(names.includes('select_nearest_aircraft'));
@@ -178,17 +181,31 @@ test('no unchanged Realtime tool definition drifts silently', () => {
     'fly_to_location',
     'select_nearest_aircraft',
     'set_map_stack',
+    // Both layer enums gained trade-flows, supply-ports and chokepoints so the
+    // supply-chain layers are toggleable by voice.
+    'set_layer_visibility',
+    'show_data_layers_menu',
+  ]);
+  // Wholly new tools are additions, not drift. They are excluded from the
+  // digest so this guard keeps protecting the shipped tools from silent edits.
+  const ADDED = new Set([
+    'show_trade_flows',
+    'simulate_supply_disruption',
+    'set_trade_period',
+    'explain_trade_evidence',
   ]);
   const unchanged = realtimeTools()
-    .filter((tool) => !TOUCHED.has(tool.name))
+    .filter((tool) => !TOUCHED.has(tool.name) && !ADDED.has(tool.name))
     .sort((a, b) => a.name.localeCompare(b.name));
-  assert.equal(unchanged.length, 21);
+  assert.equal(unchanged.length, 19);
   const digest = createHash('sha256')
     .update(JSON.stringify(unchanged))
     .digest('hex')
     .slice(0, 16);
-  // ALPR intentionally extends the two layer enums; retain the complete pin.
-  assert.equal(digest, '6963175a0c9a76de', 'an unchanged Realtime tool definition drifted');
+  // Re-pinned when the supply-chain layers joined the two layer enums, which
+  // moved set_layer_visibility and show_data_layers_menu into TOUCHED. The 19
+  // tools covered here are otherwise byte-identical to the previous pin.
+  assert.equal(digest, 'bec5d5804021d11d', 'an unchanged Realtime tool definition drifted');
 });
 
 test('Radio volume and mission speed share the Sharpen slider visual language', () => {

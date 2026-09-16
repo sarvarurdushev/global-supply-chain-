@@ -21,9 +21,14 @@ export function assertNode24AllocationRuntime(version = process.versions.node) {
   return version;
 }
 
-/** Discover repository unit tests in stable path order. */
+/**
+ * Discover repository unit tests in stable path order.
+ *
+ * Both `src/` and `server/` are scanned. Scanning only `src/` left the Node
+ * provider tests orphaned — they existed and passed, but no suite ran them.
+ */
 export function discoverUnitTestFiles(root = process.cwd()) {
-  const sourceRoot = path.join(root, 'src');
+  const sourceRoots = [path.join(root, 'src'), path.join(root, 'server')];
   const files = [];
   const visit = (directory) => {
     for (const entry of readdirSync(directory, { withFileTypes: true })) {
@@ -34,7 +39,7 @@ export function discoverUnitTestFiles(root = process.cwd()) {
       }
     }
   };
-  visit(sourceRoot);
+  for (const sourceRoot of sourceRoots) visit(sourceRoot);
   return files.sort();
 }
 

@@ -1,8 +1,12 @@
+import * as Cesium from 'cesium';
 import { SceneDirector } from '../scenes/director.js';
 import { initAnnotations } from '../annotations/index.js';
 import { initDrawTool } from '../annotations/drawTool.js';
 import { initGevVoiceCommands } from '../voice/gevRealtime.js';
 import { installScopeMask, destroyScopeMask } from '../scopeMask.js';
+import { createSupplyChainConsole } from '../ui/supplychain/console.js';
+import { createTradeProxySource } from '../supplychain/sources/tradeProxy.js';
+import { createSupplyChainActions } from '../voice/supplyChainActions.js';
 import {
   installRenderGovernor,
   getRenderGovernorDiagnostics,
@@ -100,6 +104,31 @@ export function createApplicationTools({
   // loop burning behind a hidden tab. (perf wave 2 fix)
   syncVisibilitySuspension();
 
+  // Supply-chain console (§43). Mounts its own DOM rather than expanding a
+  // template marker, so it stays removable without touching the inherited
+  // shell. It owns the trade queries; the layers only render what it pushes.
+  const supplyChain = createSupplyChainConsole({
+    source: createTradeProxySource(),
+    layers: {
+      tradeFlows: dataManager.layers.get('trade-flows')?.module,
+      chokepoints: dataManager.layers.get('chokepoints')?.module,
+      ports: dataManager.layers.get('supply-ports')?.module,
+    },
+    setLayerEnabled: (layerId, enabled) =>
+      dataManager.setEnabled(layerId, enabled),
+    flyTo: ({ lat, lon, heightM = 3_000_000 }) => {
+      viewer.camera.flyTo({
+        destination: Cesium.Cartesian3.fromDegrees(lon, lat, heightM),
+        duration: 1.6,
+      });
+    },
+  });
+  defer(() => supplyChain.destroy());
+  // Voice executes structured actions against the console rather than answering
+  // from the model's own knowledge — the same discipline the inherited
+  // analyst_query already follows.
+  const supplyChainActions = createSupplyChainActions({ console: supplyChain });
+
   window.__godsEyeView = {
     viewer,
     styleManager,
@@ -113,6 +142,8 @@ export function createApplicationTools({
     getRenderGovernorDiagnostics,
     surfaceServices: operations.surface,
     requestRender: governorRequestRender,
+    supplyChain,
+    supplyChainActions,
   };
   const debug = window.__godsEyeView;
   defer(() => {

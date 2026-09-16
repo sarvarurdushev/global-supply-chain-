@@ -255,6 +255,8 @@
     "./supplychain/reference/commodities": "./src/supplychain/reference/commodities.js",
     "./supplychain/ml/forecast": "./src/supplychain/ml/forecast.js",
     "./supplychain/ml/anomaly": "./src/supplychain/ml/anomaly.js",
-    "./supplychain/ml/cluster": "./src/supplychain/ml/cluster.js"
+    "./supplychain/ml/cluster": "./src/supplychain/ml/cluster.js",
+    "./supplychain/sources/trade-proxy": "./src/supplychain/sources/tradeProxy.js",
+    "./supplychain/reference/geography": "./src/supplychain/reference/chokepoints.js"
   }
 }
