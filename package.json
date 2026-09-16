@@ -247,6 +247,10 @@
     "./supplychain/graph": "./src/supplychain/graph.js",
     "./supplychain/routing": "./src/supplychain/routing.js",
     "./supplychain/centrality": "./src/supplychain/centrality.js",
-    "./supplychain/disruption": "./src/supplychain/disruption.js"
+    "./supplychain/disruption": "./src/supplychain/disruption.js",
+    "./supplychain/sources/comtrade": "./src/supplychain/sources/comtrade.js",
+    "./supplychain/sources/worldbank": "./src/supplychain/sources/worldbank.js",
+    "./supplychain/reference/areas": "./src/supplychain/reference/areas.js",
+    "./supplychain/reference/commodities": "./src/supplychain/reference/commodities.js"
   }
 }

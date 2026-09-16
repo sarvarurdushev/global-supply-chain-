@@ -2702,7 +2702,11 @@
       "./supplychain/graph",
       "./supplychain/routing",
       "./supplychain/centrality",
-      "./supplychain/disruption"
+      "./supplychain/disruption",
+      "./supplychain/sources/comtrade",
+      "./supplychain/sources/worldbank",
+      "./supplychain/reference/areas",
+      "./supplychain/reference/commodities"
     ],
     "modules": [
       "src/supplychain/geo.js",
@@ -2710,7 +2714,12 @@
       "src/supplychain/graph.js",
       "src/supplychain/routing.js",
       "src/supplychain/centrality.js",
-      "src/supplychain/disruption.js"
+      "src/supplychain/disruption.js",
+      "src/supplychain/sources/comtrade.js",
+      "src/supplychain/sources/worldbank.js",
+      "src/supplychain/reference/areas.js",
+      "src/supplychain/reference/commodities.js",
+      "src/supplychain/reference/comtradeAreas.js"
     ],
     "external": []
   }
