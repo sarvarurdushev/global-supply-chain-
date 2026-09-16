@@ -165,7 +165,7 @@ test('a scripted shot drives the console', () => {
   const run = createTourDataRunner({ console: consoleHandle });
   assert.equal(run(shotLoaded('World Trade In One Commodity')), 'run');
   assert.deepEqual(consoleHandle.calls, [
-    ['setCommodity', '8542'],
+    ['setCommodity', 'semiconductors'],
     ['setReporter', 'KOR'],
     ['setFlow', 'M'],
     ['setYear', 2023],
@@ -344,4 +344,31 @@ test('a console without the camera hook is still driveable', () => {
   delete consoleHandle.setCameraSuspended;
   const run = createTourDataRunner({ console: consoleHandle });
   assert.equal(run(shotLoaded('Suez Under Closure')), 'simulate');
+});
+
+test('every scripted commodity is a key setCommodity would accept', async () => {
+  // setCommodity() takes a GROUP KEY and returns false for anything else. The
+  // script originally passed HS codes ("8542"), which were silently rejected —
+  // the tour then ran against whatever commodity happened to be selected and
+  // looked entirely plausible while doing it.
+  const { COMMODITY_GROUPS } = await import(
+    '../../supplychain/reference/commodities.js'
+  );
+  const keys = new Set(COMMODITY_GROUPS.map((g) => g.key));
+  for (const [title, entry] of Object.entries(TOUR_DATA_SCRIPT)) {
+    if (!entry.commodity) continue;
+    assert.ok(
+      keys.has(entry.commodity),
+      `"${title}" uses commodity "${entry.commodity}", which setCommodity() rejects`,
+    );
+  }
+});
+
+test('every scripted reporter is a country setReporter would accept', async () => {
+  const { COUNTRIES } = await import('../../supplychain/reference/countries.js');
+  const iso3 = new Set(COUNTRIES.map((c) => c.iso3));
+  for (const [title, entry] of Object.entries(TOUR_DATA_SCRIPT)) {
+    if (!entry.reporter) continue;
+    assert.ok(iso3.has(entry.reporter), `"${title}" uses unknown reporter`);
+  }
 });

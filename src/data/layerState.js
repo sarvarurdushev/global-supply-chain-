@@ -330,6 +330,11 @@ export const LAYER_STATE_REGISTRY = Object.freeze([
     optionOwner: 'cctv',
   }),
   Object.freeze({ id: 'chokepoints', token: 'l', disposition: 'enabled-only' }),
+  Object.freeze({
+    id: 'country-borders',
+    token: 'v',
+    disposition: 'enabled-only',
+  }),
   Object.freeze({ id: 'directions', token: 'n', disposition: 'enabled-only' }),
   Object.freeze({ id: 'earthquakes', token: 'e', disposition: 'enabled-only' }),
   Object.freeze({

@@ -45,6 +45,9 @@ export const CHOKEPOINT_PROVENANCE = createProvenance({
     'Positions are representative points for a strait or canal, not surveyed ' +
       'boundaries. A chokepoint is a corridor, and a single coordinate is a ' +
       'simplification of one.',
+    'The `carries` field names cargo CATEGORIES only. What kind of cargo ' +
+      'uses a route is documented; how much of it does is a volume, and ' +
+      'volumes are absent for the reason stated below.',
     'Transit volumes, container shares and vessel counts are NOT included. ' +
       'The US EIA and UNCTAD publish figures of this kind; until they are ' +
       'integrated, those fields are null and must render as DATA UNAVAILABLE.',
@@ -56,6 +59,7 @@ export const CHOKEPOINT_PROVENANCE = createProvenance({
 
 /**
  * @typedef {object} Chokepoint
+ * @property {string[]} carries cargo CATEGORIES, not volumes
  * @property {string} id
  * @property {string} name
  * @property {number} lat
@@ -86,6 +90,10 @@ export const CHOKEPOINTS = Object.freeze([
       'No maritime alternative exists. Limited overland pipeline capacity ' +
       'bypasses it (Saudi East-West, UAE Habshan-Fujairah), but pipeline ' +
       'capacity figures are not integrated here.',
+    /* Cargo CATEGORIES, which are documented qualitative facts. Tonnages
+       stay null below: naming a commodity is not the same as claiming a
+       volume, and only one of those is available. */
+    carries: Object.freeze(['Crude oil', 'Refined petroleum products', 'LNG']),
     transitVolume: null,
     sources: Object.freeze([
       'US Energy Information Administration, World Oil Transit Chokepoints',
@@ -106,6 +114,14 @@ export const CHOKEPOINTS = Object.freeze([
     detourNote:
       'Geographic alternatives exist through the Indonesian archipelago but ' +
       'add distance and have their own depth and traffic constraints.',
+    /* Cargo CATEGORIES, which are documented qualitative facts. Tonnages
+       stay null below: naming a commodity is not the same as claiming a
+       volume, and only one of those is available. */
+    carries: Object.freeze([
+      'Containerised manufactured goods',
+      'Crude oil bound for East Asia',
+      'Bulk commodities',
+    ]),
     transitVolume: null,
     sources: Object.freeze([
       'US Energy Information Administration, World Oil Transit Chokepoints',
@@ -128,6 +144,14 @@ export const CHOKEPOINTS = Object.freeze([
       '1869. It adds substantial distance on Asia-Europe voyages; the exact ' +
       'addition depends on the port pair and is computed per route by the ' +
       'routing engine rather than asserted here.',
+    /* Cargo CATEGORIES, which are documented qualitative facts. Tonnages
+       stay null below: naming a commodity is not the same as claiming a
+       volume, and only one of those is available. */
+    carries: Object.freeze([
+      'Containerised goods between Europe and Asia',
+      'Crude oil and refined products',
+      'LNG',
+    ]),
     transitVolume: null,
     sources: Object.freeze([
       'Suez Canal Authority',
@@ -149,6 +173,14 @@ export const CHOKEPOINTS = Object.freeze([
     detourNote:
       'Both alternatives are far longer. For Asia-US East Coast traffic the ' +
       'Suez routing is the practical substitute rather than South America.',
+    /* Cargo CATEGORIES, which are documented qualitative facts. Tonnages
+       stay null below: naming a commodity is not the same as claiming a
+       volume, and only one of those is available. */
+    carries: Object.freeze([
+      'Containerised goods on US East Coast\u2013Asia routes',
+      'Grain and bulk agricultural exports',
+      'LPG and refined products',
+    ]),
     transitVolume: null,
     sources: Object.freeze([
       'Panama Canal Authority (ACP)',
@@ -169,6 +201,13 @@ export const CHOKEPOINTS = Object.freeze([
     detourNote:
       'Same alternative as Suez, for the same reason: the two are serial on ' +
       'the Europe-Asia route, so either closing forces the Cape.',
+    /* Cargo CATEGORIES, which are documented qualitative facts. Tonnages
+       stay null below: naming a commodity is not the same as claiming a
+       volume, and only one of those is available. */
+    carries: Object.freeze([
+      'Everything routed through Suez',
+      'Crude oil and refined products',
+    ]),
     transitVolume: null,
     sources: Object.freeze([
       'US Energy Information Administration, World Oil Transit Chokepoints',
@@ -189,6 +228,10 @@ export const CHOKEPOINTS = Object.freeze([
     detourNote:
       'No maritime alternative exists. Overland and pipeline routes bypass ' +
       'it at much lower volume.',
+    /* Cargo CATEGORIES, which are documented qualitative facts. Tonnages
+       stay null below: naming a commodity is not the same as claiming a
+       volume, and only one of those is available. */
+    carries: Object.freeze(['Black Sea grain', 'Russian and Caspian crude']),
     transitVolume: null,
     sources: Object.freeze([
       'Montreux Convention Regarding the Regime of the Straits (1936)',
@@ -211,6 +254,12 @@ export const CHOKEPOINTS = Object.freeze([
     detourNote:
       'This IS the detour. Its constraint is distance and weather exposure in ' +
       'the Southern Ocean, not width or depth.',
+    /* Cargo CATEGORIES, which are documented qualitative facts. Tonnages
+       stay null below: naming a commodity is not the same as claiming a
+       volume, and only one of those is available. */
+    carries: Object.freeze([
+      'Whatever is rerouted when Suez or Bab el-Mandeb is avoided',
+    ]),
     transitVolume: null,
     sources: Object.freeze(['General maritime geography']),
   }),
@@ -228,6 +277,10 @@ export const CHOKEPOINTS = Object.freeze([
     detourNote:
       'The Kiel Canal shortcuts part of the passage but has lock dimension ' +
       'limits that exclude larger tankers.',
+    /* Cargo CATEGORIES, which are documented qualitative facts. Tonnages
+       stay null below: naming a commodity is not the same as claiming a
+       volume, and only one of those is available. */
+    carries: Object.freeze(['Russian and Baltic crude', 'Refined products']),
     transitVolume: null,
     sources: Object.freeze([
       'US Energy Information Administration, World Oil Transit Chokepoints',
@@ -248,6 +301,13 @@ export const CHOKEPOINTS = Object.freeze([
     detourNote:
       'An open-ocean alternative exists to the east of Taiwan and adds ' +
       'comparatively little distance. The constraint here is not geography.',
+    /* Cargo CATEGORIES, which are documented qualitative facts. Tonnages
+       stay null below: naming a commodity is not the same as claiming a
+       volume, and only one of those is available. */
+    carries: Object.freeze([
+      'Containerised electronics and components',
+      'Regional bulk and energy shipments',
+    ]),
     transitVolume: null,
     sources: Object.freeze(['General maritime geography']),
   }),

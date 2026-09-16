@@ -8,6 +8,8 @@ import { createSupplyChainConsole } from '../ui/supplychain/console.js';
 import { createTradeProxySource } from '../supplychain/sources/tradeProxy.js';
 import { createSupplyChainActions } from '../voice/supplyChainActions.js';
 import { createTourDataRunner } from '../scenes/packs/supplyChain.js';
+import { createWorkspace } from '../workspace/shell.js';
+import { createGlobeAdapter } from '../workspace/globeAdapter.js';
 import {
   installRenderGovernor,
   getRenderGovernorDiagnostics,
@@ -125,6 +127,28 @@ export function createApplicationTools({
     },
   });
   defer(() => supplyChain.destroy());
+
+  // The supply-chain workspace: navigation, analysis panel, investigations and
+  // the legend. Mounted over the globe, and it hides the inherited
+  // classification chrome while it is up — that chrome belongs to the other
+  // product, and it makes customs statistics read like intercepts.
+  const globeAdapter = createGlobeAdapter({
+    viewer,
+    dataManager,
+    requestRender: governorRequestRender,
+  });
+  defer(() => globeAdapter.destroy());
+  const workspace = createWorkspace({
+    console: supplyChain,
+    layers: {
+      get: (layerId) => dataManager.layers.get(layerId)?.module ?? null,
+      isEnabled: (layerId) => Boolean(dataManager.layers.get(layerId)?.enabled),
+      setEnabled: (layerId, enabled) =>
+        dataManager.setEnabled(layerId, enabled),
+    },
+    globe: globeAdapter,
+  });
+  defer(() => workspace.destroy());
   // Voice executes structured actions against the console rather than answering
   // from the model's own knowledge — the same discipline the inherited
   // analyst_query already follows.
@@ -159,6 +183,8 @@ export function createApplicationTools({
     requestRender: governorRequestRender,
     supplyChain,
     supplyChainActions,
+    workspace,
+    globeAdapter,
   };
   const debug = window.__godsEyeView;
   defer(() => {

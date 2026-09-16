@@ -56,7 +56,7 @@ export const READABLE_HOLD_SEC = Object.freeze({
 export const TOUR_DATA_SCRIPT = Object.freeze({
   'World Trade In One Commodity': Object.freeze({
     action: 'run',
-    commodity: '8542',
+    commodity: 'semiconductors',
     reporter: 'KOR',
     flow: 'M',
     year: 2023,
@@ -64,7 +64,7 @@ export const TOUR_DATA_SCRIPT = Object.freeze({
   }),
   'The Dependency': Object.freeze({
     action: 'run',
-    commodity: '8542',
+    commodity: 'semiconductors',
     reporter: 'KOR',
     flow: 'M',
     year: 2023,

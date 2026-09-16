@@ -216,6 +216,53 @@ export const COMMODITY_GROUPS = Object.freeze([
     stage: 'midstream',
     hsHeadings: Object.freeze(['8479']),
   },
+  /* Fertilizer is three separate supply chains that get discussed as one.
+     Nitrogen comes from natural gas, phosphate from mined rock, potash from
+     mined salts — a gas-price shock hits the first and leaves the third alone.
+     Splitting them by HS heading keeps that distinction visible instead of
+     averaging it away into a single "fertilizer" bar. */
+  {
+    key: 'fertilizer-nitrogen',
+    label: 'Fertilizer \u2014 nitrogenous',
+    sector: 'AGRICULTURE',
+    stage: 'midstream',
+    hsHeadings: Object.freeze(['3102']),
+  },
+  {
+    key: 'fertilizer-phosphate',
+    label: 'Fertilizer \u2014 phosphatic',
+    sector: 'AGRICULTURE',
+    stage: 'midstream',
+    hsHeadings: Object.freeze(['3103']),
+  },
+  {
+    key: 'fertilizer-potash',
+    label: 'Fertilizer \u2014 potassic',
+    sector: 'AGRICULTURE',
+    stage: 'midstream',
+    hsHeadings: Object.freeze(['3104']),
+  },
+  {
+    key: 'fertilizer-mixed',
+    label: 'Fertilizer \u2014 mixed (NPK)',
+    sector: 'AGRICULTURE',
+    stage: 'downstream',
+    hsHeadings: Object.freeze(['3105']),
+  },
+  {
+    key: 'natural-gas-feedstock',
+    label: 'Ammonia (fertilizer feedstock)',
+    sector: 'AGRICULTURE',
+    stage: 'upstream',
+    hsHeadings: Object.freeze(['2814']),
+  },
+  {
+    key: 'rice',
+    label: 'Rice',
+    sector: 'AGRICULTURE',
+    stage: 'upstream',
+    hsHeadings: Object.freeze(['1006']),
+  },
   {
     key: 'wheat',
     label: 'Wheat',

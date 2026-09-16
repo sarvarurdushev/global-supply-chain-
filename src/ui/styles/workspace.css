@@ -1,0 +1,1160 @@
+/**
+ * Supply-chain workspace.
+ *
+ * A deliberately different visual language from the inherited shell. The
+ * inherited look is a surveillance cockpit: pure black, one cyan accent, 9px
+ * monospace everywhere, corner brackets, classification banners. It is good at
+ * what it does and it is the wrong costume for a trade-analysis tool — it makes
+ * ordinary customs statistics look like intercepts, and it makes text unreadable
+ * in service of atmosphere.
+ *
+ * What changes here, and why:
+ *
+ *   SURFACE     deep navy-slate instead of pure black. Cards sit ON something
+ *               rather than floating in a void, which is what lets a reader
+ *               tell where one thing ends and the next begins.
+ *   ACCENT      amber as primary, teal as secondary. Cargo and sea, not radar.
+ *   TYPE        Inter at 13–14px for everything a person reads. Monospace is
+ *               reserved for what is genuinely code-like: HS codes, coordinates,
+ *               figures in tables.
+ *   SHAPE       soft 10px radii and real padding. The bracket-corner motif is
+ *               dropped entirely — it is the inherited product's signature.
+ *   SCROLL      ONE scroll region in the panel. Cards never scroll. This is the
+ *               single most important rule in the file.
+ */
+
+:root {
+  --ws-bg: #0e1420;
+  --ws-bg-raised: #151d2c;
+  --ws-bg-card: #192231;
+  --ws-bg-inset: #101825;
+  --ws-line: rgba(148, 176, 214, 0.14);
+  --ws-line-strong: rgba(148, 176, 214, 0.26);
+
+  --ws-text: #e6edf6;
+  --ws-text-dim: rgba(230, 237, 246, 0.62);
+  --ws-text-faint: rgba(230, 237, 246, 0.4);
+
+  --ws-amber: #f0a830;
+  --ws-amber-soft: rgba(240, 168, 48, 0.14);
+  --ws-teal: #2dd4bf;
+  --ws-teal-soft: rgba(45, 212, 191, 0.12);
+  --ws-red: #ef5350;
+  --ws-violet: #b07ae0;
+
+  --ws-live: #66bb6a;
+  --ws-historical: #4fc3f7;
+  --ws-inferred: #ffb74d;
+  --ws-simulated: #ba68c8;
+  --ws-gap: #78909c;
+
+  --ws-radius: 10px;
+  --ws-rail-w: 244px;
+  --ws-panel-w: 440px;
+  --ws-topbar-h: 52px;
+
+  --ws-sans: 'Inter', system-ui, sans-serif;
+  --ws-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+/* ------------------------------------------------------------------ *
+ * Root + top bar
+ * ------------------------------------------------------------------ */
+
+.ws-root {
+  position: fixed;
+  inset: 0;
+  z-index: 130;
+  font-family: var(--ws-sans);
+  color: var(--ws-text);
+  font-size: 13px;
+  line-height: 1.5;
+  /* The globe underneath must stay interactive: only the chrome takes events. */
+  pointer-events: none;
+}
+.ws-root[hidden] {
+  display: none;
+}
+.ws-root > * {
+  pointer-events: auto;
+}
+
+.ws-topbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--ws-topbar-h);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 16px;
+  background: linear-gradient(
+    180deg,
+    rgba(14, 20, 32, 0.96) 0%,
+    rgba(14, 20, 32, 0.82) 100%
+  );
+  border-bottom: 1px solid var(--ws-line);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.ws-brand {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  flex: 0 0 auto;
+}
+.ws-brand-mark {
+  font-size: 17px;
+  line-height: 1;
+  color: var(--ws-amber);
+}
+.ws-brand-name {
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+.ws-brand-sub {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ws-text-faint);
+  white-space: nowrap;
+}
+
+.ws-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  color: var(--ws-text-dim);
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.ws-breadcrumb-sep {
+  color: var(--ws-text-faint);
+}
+.ws-breadcrumb-current {
+  color: var(--ws-text);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ws-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex: 0 0 auto;
+}
+
+/* ------------------------------------------------------------------ *
+ * Left navigation rail
+ * ------------------------------------------------------------------ */
+
+.ws-rail {
+  position: absolute;
+  top: var(--ws-topbar-h);
+  bottom: 0;
+  left: 0;
+  width: var(--ws-rail-w);
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(
+    90deg,
+    rgba(14, 20, 32, 0.95) 0%,
+    rgba(14, 20, 32, 0.86) 100%
+  );
+  border-right: 1px solid var(--ws-line);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  /* The ONE scroll on this side. */
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 10px 0 24px;
+}
+.ws-root.ws-rail-hidden .ws-rail {
+  display: none;
+}
+
+.ws-nav-section {
+  margin-bottom: 4px;
+}
+.ws-nav-section-head {
+  padding: 12px 16px 5px;
+}
+.ws-nav-section-title {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--ws-amber);
+  margin: 0;
+}
+.ws-nav-section-blurb {
+  margin: 3px 0 0;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--ws-text-faint);
+}
+
+.ws-nav-item {
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  gap: 9px;
+  width: 100%;
+  padding: 8px 16px;
+  background: transparent;
+  border: 0;
+  border-left: 2px solid transparent;
+  text-align: left;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.ws-nav-item:hover {
+  background: rgba(148, 176, 214, 0.06);
+}
+.ws-nav-item:focus-visible {
+  outline: 2px solid var(--ws-amber);
+  outline-offset: -2px;
+}
+.ws-nav-item.ws-active {
+  background: var(--ws-amber-soft);
+  border-left-color: var(--ws-amber);
+}
+.ws-nav-icon {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--ws-text-dim);
+  text-align: center;
+}
+.ws-nav-item.ws-active .ws-nav-icon {
+  color: var(--ws-amber);
+}
+.ws-nav-text {
+  min-width: 0;
+}
+.ws-nav-name {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.35;
+}
+.ws-nav-summary {
+  display: block;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--ws-text-faint);
+  margin-top: 1px;
+}
+.ws-nav-badge {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+.ws-nav-badge-partial {
+  background: rgba(255, 183, 77, 0.16);
+  color: var(--ws-inferred);
+}
+.ws-nav-badge-gap {
+  background: rgba(120, 144, 156, 0.18);
+  color: var(--ws-gap);
+}
+
+/* ------------------------------------------------------------------ *
+ * Workspace panel — ONE scroll, cards inside
+ * ------------------------------------------------------------------ */
+
+.ws-panel {
+  position: absolute;
+  top: calc(var(--ws-topbar-h) + 12px);
+  right: 12px;
+  bottom: 12px;
+  width: var(--ws-panel-w);
+  max-width: calc(100vw - var(--ws-rail-w) - 36px);
+  display: flex;
+  flex-direction: column;
+  background: rgba(14, 20, 32, 0.9);
+  border: 1px solid var(--ws-line);
+  border-radius: var(--ws-radius);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+.ws-root.ws-panel-hidden .ws-panel {
+  display: none;
+}
+
+.ws-panel-head {
+  flex: 0 0 auto;
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid var(--ws-line);
+}
+.ws-panel-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.ws-panel-summary {
+  margin: 4px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ws-text-dim);
+}
+
+/*
+ * THE one scroll. Nothing inside this element may set overflow-y.
+ * `ws-card` deliberately has no overflow property; adding one reintroduces the
+ * nested-scrollbar problem this layout exists to fix.
+ */
+.ws-panel-scroll {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ------------------------------------------------------------------ *
+ * Cards
+ * ------------------------------------------------------------------ */
+
+.ws-card {
+  background: var(--ws-bg-card);
+  border: 1px solid var(--ws-line);
+  border-radius: var(--ws-radius);
+  /* No overflow. See above. */
+}
+.ws-card-accent {
+  border-color: rgba(240, 168, 48, 0.3);
+}
+.ws-card-warn {
+  border-color: rgba(239, 83, 80, 0.32);
+}
+.ws-card-gap {
+  background: var(--ws-bg-inset);
+  border-style: dashed;
+  border-color: rgba(120, 144, 156, 0.34);
+}
+
+.ws-card-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 11px 13px;
+}
+.ws-card-head-toggle {
+  cursor: pointer;
+  user-select: none;
+}
+.ws-card-head-toggle:hover .ws-card-title {
+  color: var(--ws-amber);
+}
+.ws-card-head-text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.ws-card-title {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ws-text);
+}
+.ws-card-subtitle {
+  margin: 3px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ws-text-dim);
+  text-transform: none;
+  letter-spacing: 0;
+}
+.ws-card-actions {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 5px;
+}
+.ws-card-chevron {
+  flex: 0 0 auto;
+  color: var(--ws-text-faint);
+  transition: transform 0.16s ease;
+  line-height: 1;
+  font-size: 14px;
+}
+.ws-card.ws-collapsed .ws-card-chevron {
+  transform: rotate(-90deg);
+}
+.ws-card.ws-collapsed .ws-card-body {
+  display: none;
+}
+.ws-card-body {
+  padding: 0 13px 13px;
+}
+.ws-card-head + .ws-card-body:empty {
+  padding: 0;
+}
+.ws-card > .ws-card-body:first-child {
+  padding-top: 13px;
+}
+.ws-card-body > * + * {
+  margin-top: 10px;
+}
+.ws-card-body p {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ws-text-dim);
+}
+.ws-card-body strong {
+  color: var(--ws-text);
+  font-weight: 600;
+}
+
+/* ------------------------------------------------------------------ *
+ * Why this matters
+ * ------------------------------------------------------------------ */
+
+.ws-why {
+  background: var(--ws-teal-soft);
+  border-left: 2px solid var(--ws-teal);
+  border-radius: 0 8px 8px 0;
+  padding: 10px 12px;
+}
+.ws-why-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--ws-teal);
+  margin-bottom: 5px;
+}
+.ws-why-what {
+  margin: 0;
+  font-size: 13px !important;
+  line-height: 1.5;
+  color: var(--ws-text) !important;
+}
+.ws-why-why {
+  margin: 5px 0 0;
+  font-size: 12px !important;
+  color: var(--ws-text-dim) !important;
+}
+.ws-why .ws-class-badge {
+  margin-top: 8px;
+}
+
+/* ------------------------------------------------------------------ *
+ * Data-class badges
+ * ------------------------------------------------------------------ */
+
+.ws-class-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 9px 3px 7px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--badge) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--badge) 34%, transparent);
+  white-space: nowrap;
+}
+.ws-class-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--badge);
+  flex: 0 0 auto;
+}
+.ws-class-label {
+  font-family: var(--ws-mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--badge);
+}
+.ws-class-plain {
+  font-size: 11px;
+  color: var(--ws-text-dim);
+}
+
+/* ------------------------------------------------------------------ *
+ * States
+ * ------------------------------------------------------------------ */
+
+.ws-state {
+  display: flex;
+  gap: 11px;
+  align-items: flex-start;
+  padding: 14px;
+  border-radius: 8px;
+  background: var(--ws-bg-inset);
+}
+.ws-state-text {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.ws-state-title {
+  margin: 0;
+  font-size: 13px !important;
+  font-weight: 500;
+  color: var(--ws-text) !important;
+}
+.ws-state-detail {
+  margin: 4px 0 0;
+  font-size: 12px !important;
+  color: var(--ws-text-dim) !important;
+}
+.ws-state .ws-btn {
+  margin-top: 9px;
+}
+.ws-state-icon {
+  font-size: 16px;
+  line-height: 1.3;
+  flex: 0 0 auto;
+}
+.ws-state-error {
+  background: rgba(239, 83, 80, 0.09);
+  border: 1px solid rgba(239, 83, 80, 0.26);
+}
+.ws-state-error .ws-state-icon {
+  color: var(--ws-red);
+}
+.ws-state-empty .ws-state-icon {
+  color: var(--ws-text-faint);
+}
+
+.ws-spinner {
+  width: 15px;
+  height: 15px;
+  margin-top: 2px;
+  border-radius: 50%;
+  border: 2px solid rgba(240, 168, 48, 0.24);
+  border-top-color: var(--ws-amber);
+  animation: ws-spin 0.75s linear infinite;
+  flex: 0 0 auto;
+}
+@keyframes ws-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ws-spinner {
+    animation-duration: 2.5s;
+  }
+}
+
+/* The gap state: not a malfunction, so it must not look like one. */
+.ws-state-gap {
+  display: block;
+  background: var(--ws-bg-inset);
+  border: 1px dashed rgba(120, 144, 156, 0.36);
+}
+.ws-gap-label {
+  font-family: var(--ws-mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--ws-gap);
+  margin-bottom: 6px;
+}
+.ws-gap-what {
+  margin: 0;
+  font-size: 13px !important;
+  color: var(--ws-text) !important;
+}
+.ws-gap-why,
+.ws-gap-need,
+.ws-gap-instead {
+  margin: 6px 0 0;
+  font-size: 12px !important;
+  line-height: 1.55;
+  color: var(--ws-text-dim) !important;
+}
+.ws-gap-need strong,
+.ws-gap-instead strong {
+  color: var(--ws-text-faint);
+  font-weight: 600;
+}
+
+/* ------------------------------------------------------------------ *
+ * Metrics
+ * ------------------------------------------------------------------ */
+
+.ws-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  gap: 8px;
+}
+.ws-metric {
+  background: var(--ws-bg-inset);
+  border: 1px solid var(--ws-line);
+  border-radius: 8px;
+  padding: 10px;
+  text-align: center;
+}
+.ws-metric-value {
+  display: block;
+  font-family: var(--ws-mono);
+  font-size: 19px;
+  font-weight: 600;
+  line-height: 1.1;
+  color: var(--ws-amber);
+}
+.ws-metric-warn .ws-metric-value {
+  color: var(--ws-red);
+}
+.ws-metric-good .ws-metric-value {
+  color: var(--ws-live);
+}
+.ws-metric-label {
+  display: block;
+  margin-top: 5px;
+  font-size: 10.5px;
+  line-height: 1.35;
+  color: var(--ws-text-dim);
+}
+
+/* ------------------------------------------------------------------ *
+ * Controls
+ * ------------------------------------------------------------------ */
+
+.ws-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 13px;
+  border-radius: 7px;
+  border: 1px solid var(--ws-line-strong);
+  background: var(--ws-bg-raised);
+  color: var(--ws-text);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.ws-btn:hover:not(:disabled) {
+  border-color: var(--ws-amber);
+  color: var(--ws-amber);
+}
+.ws-btn:focus-visible {
+  outline: 2px solid var(--ws-amber);
+  outline-offset: 1px;
+}
+.ws-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.ws-btn-primary {
+  background: var(--ws-amber);
+  border-color: var(--ws-amber);
+  color: #17202e;
+  font-weight: 600;
+}
+.ws-btn-primary:hover:not(:disabled) {
+  background: #ffbd4d;
+  border-color: #ffbd4d;
+  color: #17202e;
+}
+.ws-btn-danger {
+  border-color: rgba(239, 83, 80, 0.5);
+  color: #ff8a85;
+}
+.ws-btn-danger:hover:not(:disabled) {
+  background: rgba(239, 83, 80, 0.14);
+  border-color: var(--ws-red);
+  color: #ff8a85;
+}
+.ws-btn-small {
+  padding: 5px 10px;
+  font-size: 11px;
+}
+.ws-btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--ws-text-dim);
+}
+.ws-btn-ghost:hover:not(:disabled) {
+  background: rgba(148, 176, 214, 0.08);
+}
+.ws-btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.ws-field {
+  display: block;
+}
+.ws-field-label {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ws-text-faint);
+  margin-bottom: 5px;
+}
+.ws-field-hint {
+  margin: 4px 0 0;
+  font-size: 11px !important;
+  color: var(--ws-text-faint) !important;
+}
+.ws-select,
+.ws-input {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 7px;
+  border: 1px solid var(--ws-line-strong);
+  background: var(--ws-bg-inset);
+  color: var(--ws-text);
+  font-family: inherit;
+  font-size: 13px;
+}
+.ws-select:focus,
+.ws-input:focus {
+  outline: none;
+  border-color: var(--ws-amber);
+}
+
+/* ------------------------------------------------------------------ *
+ * Glossary terms
+ * ------------------------------------------------------------------ */
+
+.ws-term {
+  text-decoration: none;
+  border-bottom: 1px dotted var(--ws-teal);
+  cursor: help;
+  color: inherit;
+}
+.ws-term:focus-visible {
+  outline: 2px solid var(--ws-teal);
+  outline-offset: 2px;
+}
+
+/* ------------------------------------------------------------------ *
+ * Next steps
+ * ------------------------------------------------------------------ */
+
+.ws-next {
+  border-top: 1px solid var(--ws-line);
+  padding-top: 11px;
+}
+.ws-next-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--ws-text-faint);
+  margin-bottom: 7px;
+}
+.ws-next-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.ws-next-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 11px;
+  border-radius: 7px;
+  border: 1px solid var(--ws-line);
+  background: var(--ws-bg-inset);
+  color: var(--ws-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.ws-next-item:hover {
+  border-color: var(--ws-amber);
+}
+.ws-next-q {
+  font-size: 12.5px;
+}
+.ws-next-dest {
+  font-size: 10.5px;
+  color: var(--ws-text-faint);
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------------------------ *
+ * Provenance
+ * ------------------------------------------------------------------ */
+
+.ws-prov {
+  border: 1px solid var(--ws-line);
+  border-radius: 8px;
+  background: var(--ws-bg-inset);
+}
+.ws-prov-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 11px;
+  cursor: pointer;
+  list-style: none;
+  flex-wrap: wrap;
+}
+.ws-prov-summary::-webkit-details-marker {
+  display: none;
+}
+.ws-prov-source {
+  font-size: 11.5px;
+  color: var(--ws-text-dim);
+}
+.ws-prov-hint {
+  margin-left: auto;
+  font-size: 10.5px;
+  color: var(--ws-text-faint);
+}
+.ws-prov-body {
+  display: grid;
+  grid-template-columns: 76px 1fr;
+  gap: 4px 10px;
+  margin: 0;
+  padding: 0 11px 10px;
+  font-size: 11px;
+}
+.ws-prov-body dt {
+  color: var(--ws-text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-size: 9.5px;
+  padding-top: 1px;
+}
+.ws-prov-body dd {
+  margin: 0;
+  color: var(--ws-text-dim);
+  word-break: break-word;
+}
+.ws-prov-limits {
+  padding: 0 11px 11px;
+}
+.ws-prov-limits-label {
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ws-text-faint);
+  margin-bottom: 4px;
+}
+.ws-prov-limits ul {
+  margin: 0;
+  padding-left: 16px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--ws-text-dim);
+}
+.ws-prov-limits li + li {
+  margin-top: 4px;
+}
+
+/* ------------------------------------------------------------------ *
+ * Playback strip
+ * ------------------------------------------------------------------ */
+
+.ws-playback {
+  position: absolute;
+  left: calc(var(--ws-rail-w) + 16px);
+  right: calc(var(--ws-panel-w) + 24px);
+  bottom: 16px;
+  padding: 12px 16px;
+  background: rgba(14, 20, 32, 0.94);
+  border: 1px solid var(--ws-line-strong);
+  border-radius: var(--ws-radius);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.55);
+}
+.ws-playback[hidden] {
+  display: none;
+}
+.ws-playback-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 9px;
+  flex-wrap: wrap;
+}
+.ws-playback-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ws-amber);
+}
+.ws-playback-step {
+  font-size: 12.5px;
+  color: var(--ws-text);
+}
+.ws-playback-count {
+  margin-left: auto;
+  font-family: var(--ws-mono);
+  font-size: 11px;
+  color: var(--ws-text-faint);
+}
+.ws-playback-claim {
+  margin: 0 0 10px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ws-text-dim);
+}
+.ws-progress {
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(148, 176, 214, 0.16);
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+.ws-progress-fill {
+  height: 100%;
+  background: var(--ws-amber);
+  transition: width 0.3s ease;
+}
+.ws-playback-controls {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+/* ------------------------------------------------------------------ *
+ * Legend
+ * ------------------------------------------------------------------ */
+
+.ws-legend {
+  position: absolute;
+  left: calc(var(--ws-rail-w) + 16px);
+  top: calc(var(--ws-topbar-h) + 12px);
+  width: 250px;
+  max-height: calc(100vh - var(--ws-topbar-h) - 100px);
+  overflow-y: auto;
+  padding: 13px;
+  background: rgba(14, 20, 32, 0.95);
+  border: 1px solid var(--ws-line-strong);
+  border-radius: var(--ws-radius);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+.ws-legend[hidden] {
+  display: none;
+}
+.ws-legend-title {
+  margin: 0 0 9px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--ws-amber);
+}
+.ws-legend-group + .ws-legend-group {
+  margin-top: 11px;
+}
+.ws-legend-group-title {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ws-text-faint);
+  margin-bottom: 5px;
+}
+.ws-legend-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 0;
+  font-size: 11.5px;
+  color: var(--ws-text-dim);
+}
+.ws-legend-mark {
+  width: 16px;
+  text-align: center;
+  flex: 0 0 auto;
+}
+
+/* ------------------------------------------------------------------ *
+ * Selection callout — what the user clicked on the globe
+ * ------------------------------------------------------------------ */
+
+.ws-selection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ws-selection-kind {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--ws-teal);
+}
+.ws-selection-name {
+  margin: 0;
+  font-size: 16px !important;
+  font-weight: 600;
+  color: var(--ws-text) !important;
+}
+.ws-kv {
+  display: grid;
+  grid-template-columns: 104px 1fr;
+  gap: 5px 10px;
+  margin: 0;
+  font-size: 12px;
+}
+.ws-kv dt {
+  color: var(--ws-text-faint);
+  font-size: 11px;
+}
+.ws-kv dd {
+  margin: 0;
+  color: var(--ws-text-dim);
+}
+.ws-kv dd.ws-mono {
+  font-family: var(--ws-mono);
+  font-size: 11.5px;
+}
+
+/* ------------------------------------------------------------------ *
+ * Lists and tables inside cards
+ * ------------------------------------------------------------------ */
+
+.ws-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.ws-list-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 9px;
+  border-radius: 6px;
+  background: var(--ws-bg-inset);
+  font-size: 12px;
+}
+.ws-list-row.ws-clickable {
+  cursor: pointer;
+  border: 1px solid transparent;
+  width: 100%;
+  text-align: left;
+  color: inherit;
+  font: inherit;
+}
+.ws-list-row.ws-clickable:hover {
+  border-color: var(--ws-amber);
+}
+.ws-list-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ws-list-value {
+  font-family: var(--ws-mono);
+  font-size: 11.5px;
+  color: var(--ws-amber);
+  flex: 0 0 auto;
+}
+.ws-list-note {
+  display: block;
+  font-size: 10.5px;
+  color: var(--ws-text-faint);
+  margin-top: 1px;
+}
+
+/* A proportion bar, for shares. Cheaper to read than a number alone. */
+.ws-bar {
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(148, 176, 214, 0.14);
+  overflow: hidden;
+  margin-top: 5px;
+}
+.ws-bar-fill {
+  height: 100%;
+  background: var(--ws-teal);
+}
+.ws-bar-fill.ws-bar-inferred {
+  background: var(--ws-inferred);
+}
+
+/* ------------------------------------------------------------------ *
+ * Responsive — desktop-first, but never illegible
+ * ------------------------------------------------------------------ */
+
+@media (max-width: 1280px) {
+  :root {
+    --ws-panel-w: 380px;
+    --ws-rail-w: 216px;
+  }
+}
+
+@media (max-width: 1020px) {
+  /* Below this the two chrome columns cannot both be readable over a globe.
+     The panel wins — it is where the analysis is — and the rail becomes a
+     drawer opened from the top bar. */
+  .ws-rail {
+    width: 260px;
+    z-index: 2;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  }
+  .ws-root:not(.ws-rail-open) .ws-rail {
+    display: none;
+  }
+  .ws-panel {
+    left: 12px;
+    width: auto;
+    max-width: none;
+  }
+  .ws-playback,
+  .ws-legend {
+    left: 12px;
+    right: 12px;
+    width: auto;
+  }
+  .ws-legend {
+    max-height: 40vh;
+  }
+}
+
+@media (max-width: 620px) {
+  .ws-brand-sub,
+  .ws-breadcrumb {
+    display: none;
+  }
+  .ws-panel {
+    top: calc(var(--ws-topbar-h) + 8px);
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+  }
+}
+
+/* The rail toggle only has a job at narrow widths. */
+.ws-rail-toggle {
+  display: none;
+}
+@media (max-width: 1020px) {
+  .ws-rail-toggle {
+    display: inline-flex;
+  }
+}

@@ -4,6 +4,7 @@ import { createTradeFlowsLayer } from '../layers/tradeflows/index.js';
 import { createChokepointsLayer } from '../layers/chokepoints/index.js';
 import { createPortsLayer } from '../layers/ports/index.js';
 import { createEventsLayer } from '../layers/events/index.js';
+import { createBordersLayer } from '../layers/borders/index.js';
 import { createTradeProxySource } from '../supplychain/sources/tradeProxy.js';
 import { governorRequestRender } from '../renderGovernor.js';
 import { createMilitaryRegistry } from '../layers/aircraft/classification.js';
@@ -144,6 +145,7 @@ export function createApplicationCatalog({
         createChokepointsLayer({
           governorRequestRender,
         }),
+        createBordersLayer({ governorRequestRender }),
         createEventsLayer({
           // Must go through the dev/preview proxy: gdacs.org sends no CORS
           // headers, so a direct browser fetch is blocked outright.

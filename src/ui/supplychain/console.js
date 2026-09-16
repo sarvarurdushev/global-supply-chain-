@@ -55,6 +55,7 @@ import {
   EdgeType,
   TransportMode,
 } from '../../supplychain/graph.js';
+import { shortestPath } from '../../supplychain/routing.js';
 import { DataClass, createProvenance } from '../../supplychain/provenance.js';
 import {
   closeNode,
@@ -197,11 +198,33 @@ function buildScenarioGraph() {
     ],
   });
 
+  /*
+   * The demonstration network's ports.
+   *
+   * Started as four (Busan, Shanghai, Singapore, Rotterdam), which wired only
+   * Malacca, Bab el-Mandeb, Suez and the Cape. The other five chokepoints were
+   * nodes with no edges at all — Hormuz, Panama, the Turkish and Danish Straits
+   * and the Taiwan Strait were in the list, drawn on the globe, and closing any
+   * of them changed nothing. The scenario reported "+0 km" and it was right:
+   * nothing routed through them because nothing could.
+   *
+   * These ports exist to put every chokepoint on at least one lane. They are
+   * real WPI ports at real positions, chosen for geography rather than for
+   * throughput — the network's own provenance already says it is a
+   * demonstration graph and not a derived global shipping model.
+   */
   const wanted = [
     ['BUSAN', 'KRPUS'],
     ['SHANGHAI', 'CNSGH'],
     ['SINGAPORE', 'SGKEP'],
     ['ROTTERDAM', 'NLRTM'],
+    ['RAS_TANNURAH', 'SARTA'], // Persian Gulf, inside Hormuz
+    ['YOKOHAMA', 'JPYOK'], // North Pacific
+    ['LOS_ANGELES', 'USLAX'], // US West Coast
+    ['NEW_YORK', 'USNYC'], // US East Coast, for Panama
+    ['ODESA', 'UAODS'], // Black Sea, inside the Turkish Straits
+    ['GDANSK', 'PLGDN'], // Baltic, inside the Danish Straits
+    ['HONG_KONG', 'HKHKG'], // South China Sea, for the Taiwan Strait
   ];
   const nodes = [];
   const byKey = new Map();
@@ -242,22 +265,46 @@ function buildScenarioGraph() {
       provenance,
     });
 
+  // Every leg is (id, from, to). A leg is added only when both endpoints
+  // resolved, so a missing WPI record degrades the network rather than
+  // throwing. Ordered by the chokepoint each leg exists to serve.
+  const wantedLegs = [
+    // East Asia feeder
+    ['busan-sing', 'BUSAN', 'SINGAPORE'],
+    ['shanghai-sing', 'SHANGHAI', 'SINGAPORE'],
+    ['busan-yok', 'BUSAN', 'YOKOHAMA'],
+    // Malacca / Bab el-Mandeb / Suez — the Asia-Europe spine
+    ['sing-malacca', 'SINGAPORE', 'malacca'],
+    ['malacca-bab', 'malacca', 'bab-el-mandeb'],
+    ['bab-suez', 'bab-el-mandeb', 'suez'],
+    ['suez-rot', 'suez', 'ROTTERDAM'],
+    // Cape of Good Hope — the standing alternative to that spine
+    ['sing-cape', 'SINGAPORE', 'cape-of-good-hope'],
+    ['cape-rot', 'cape-of-good-hope', 'ROTTERDAM'],
+    // Hormuz — the Gulf's only sea exit, joining the Asia-Europe spine
+    ['gulf-hormuz', 'RAS_TANNURAH', 'hormuz'],
+    ['hormuz-bab', 'hormuz', 'bab-el-mandeb'],
+    ['hormuz-malacca', 'hormuz', 'malacca'],
+    // Taiwan Strait — the direct East Asian seaboard run
+    ['hk-taiwan', 'HONG_KONG', 'taiwan-strait'],
+    ['taiwan-shanghai', 'taiwan-strait', 'SHANGHAI'],
+    ['hk-sing', 'HONG_KONG', 'SINGAPORE'],
+    // Panama — US East Coast to the Pacific
+    ['nyc-panama', 'NEW_YORK', 'panama'],
+    ['panama-la', 'panama', 'LOS_ANGELES'],
+    ['la-yok', 'LOS_ANGELES', 'YOKOHAMA'],
+    // Turkish Straits — the Black Sea's only sea exit
+    ['odesa-turkish', 'ODESA', 'turkish-straits'],
+    ['turkish-suez', 'turkish-straits', 'suez'],
+    // Danish Straits — the Baltic's exit
+    ['gdansk-danish', 'GDANSK', 'danish-straits'],
+    ['danish-rot', 'danish-straits', 'ROTTERDAM'],
+  ];
   const edges = [];
-  if (byKey.has('BUSAN') && byKey.has('SINGAPORE')) {
-    edges.push(leg('busan-sing', 'BUSAN', 'SINGAPORE'));
-  }
-  if (byKey.has('SHANGHAI') && byKey.has('SINGAPORE')) {
-    edges.push(leg('shanghai-sing', 'SHANGHAI', 'SINGAPORE'));
-  }
-  if (byKey.has('SINGAPORE')) {
-    edges.push(leg('sing-malacca', 'SINGAPORE', 'malacca'));
-    edges.push(leg('malacca-bab', 'malacca', 'bab-el-mandeb'));
-    edges.push(leg('bab-suez', 'bab-el-mandeb', 'suez'));
-    edges.push(leg('sing-cape', 'SINGAPORE', 'cape-of-good-hope'));
-  }
-  if (byKey.has('ROTTERDAM')) {
-    edges.push(leg('suez-rot', 'suez', 'ROTTERDAM'));
-    edges.push(leg('cape-rot', 'cape-of-good-hope', 'ROTTERDAM'));
+  for (const [id, from, to] of wantedLegs) {
+    const fromOk = byKey.has(from) || CHOKEPOINTS.some((c) => c.id === from);
+    const toOk = byKey.has(to) || CHOKEPOINTS.some((c) => c.id === to);
+    if (fromOk && toOk) edges.push(leg(id, from, to));
   }
   return { graph: createGraph({ nodes, edges }), provenance };
 }
@@ -1723,6 +1770,33 @@ export function createSupplyChainConsole({
     }
   }
 
+  /**
+   * Pick an origin/destination pair whose normal route crosses a chokepoint.
+   *
+   * Every scenario used to run Busan to Rotterdam regardless of what was being
+   * closed. That route does not touch Hormuz, so closing Hormuz reported "+0 km"
+   * — arithmetically correct and completely uninformative, and it read as the
+   * feature being broken.
+   *
+   * This searches the network for a pair whose SHORTEST PATH actually includes
+   * the node, so the comparison is about something. It is a search over a
+   * handful of ports, done once per scenario.
+   *
+   * Returns null when no pair routes through the chokepoint, which is a real
+   * answer: in this demonstration network that passage carries nothing, and the
+   * caller says so rather than showing a zero.
+   */
+  function laneThrough(graph, nodeId, portIds) {
+    for (const from of portIds) {
+      for (const to of portIds) {
+        if (from === to) continue;
+        const route = shortestPath(graph, from, to);
+        if (route?.path?.includes(nodeId)) return { from, to };
+      }
+    }
+    return null;
+  }
+
   function simulate(chokepointId) {
     const point = CHOKEPOINTS.find((c) => c.id === chokepointId);
     if (!point) return null;
@@ -1732,14 +1806,34 @@ export function createSupplyChainConsole({
     const { graph, provenance: graphProvenance } = buildScenarioGraph();
     if (!graph.hasNode(point.id)) return null;
 
+    const portIds = graph
+      .nodes()
+      .filter((node) => node.type === NodeType.PORT)
+      .map((node) => node.id);
+    const lane = laneThrough(graph, point.id, portIds);
+    if (!lane) {
+      state.scenario = {
+        result: null,
+        reach: null,
+        point,
+        graphProvenance,
+        noLane: true,
+      };
+      layers.chokepoints?.setDisrupted([point.id]);
+      moveCamera({ lat: point.lat, lon: point.lon, heightM: 2_500_000 });
+      renderWhatIf();
+      notify();
+      return state.scenario;
+    }
+
     const disruption = closeNode(point.id, {
       kind: DisruptionKind.STRAIT_DISRUPTION,
       label: `${point.name} unavailable`,
     });
-    const result = simulateDisruption(graph, disruption, 'BUSAN', 'ROTTERDAM');
+    const result = simulateDisruption(graph, disruption, lane.from, lane.to);
     const reach = propagate(graph, disruption);
 
-    state.scenario = { result, reach, point, graphProvenance };
+    state.scenario = { result, reach, point, graphProvenance, lane };
     layers.chokepoints?.setDisrupted([point.id]);
     moveCamera({ lat: point.lat, lon: point.lon, heightM: 2_500_000 });
     renderWhatIf();
@@ -1878,6 +1972,32 @@ export function createSupplyChainConsole({
     loadProduction,
     loadComparison,
     loadEvents,
+    /**
+     * The loaded results themselves, for a view that renders its own layout.
+     *
+     * `getState()` returns flags — enough to drive a button's disabled state
+     * and nothing more. The workspace views need the actual rows, so this
+     * exposes them. Returned as-is rather than cloned: every result object the
+     * engine produces is already frozen, so a caller cannot corrupt one.
+     *
+     * @returns {object}
+     */
+    getData() {
+      return {
+        result: state.result,
+        series: state.series,
+        scenario: state.scenario,
+        production: state.production,
+        comparison: state.comparison,
+        events: state.events,
+        error: state.error,
+        commodity: state.commodity,
+        reporter: state.reporter,
+        flow: state.flow,
+        year: state.year,
+        loading: state.loading,
+      };
+    },
     /**
      * Suspend or restore this console's own camera moves.
      *

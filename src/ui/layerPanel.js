@@ -44,7 +44,13 @@ const PANEL_GROUPS = [
   },
   {
     label: 'Supply Chain',
-    ids: ['trade-flows', 'supply-ports', 'chokepoints', 'supply-events'],
+    ids: [
+      'country-borders',
+      'trade-flows',
+      'supply-ports',
+      'chokepoints',
+      'supply-events',
+    ],
   },
   {
     label: 'Utilities',
@@ -63,6 +69,7 @@ const PANEL_LABELS = {
   'supply-ports': 'Major Ports',
   chokepoints: 'Chokepoints',
   'supply-events': 'Supply Chain Events',
+  'country-borders': 'Country Borders',
   bikeshare: 'Bike Share',
   cctv: 'Cameras',
   'alpr-cameras': 'Mapped ALPR Cameras',
