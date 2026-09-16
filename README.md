@@ -28,14 +28,47 @@ which**. It does not claim global supply-chain visibility. No open-data system h
 | [`docs/ML_METHODOLOGY.md`](docs/ML_METHODOLOGY.md) | Forecasting, anomaly detection, clustering — and why the models are small |
 | [`docs/PHASED_PLAN.md`](docs/PHASED_PLAN.md) | What is built and what is not |
 
+## Running it locally
+
+```bash
+git clone https://github.com/sarvarurdushev/global-supply-chain-.git
+cd global-supply-chain-
+git checkout claude/supply-chain-intelligence-platform-5u3va2
+npm install
+```
+
+**The 3D globe** — inherited God's Eye View, works with no API key:
+
+```bash
+npm run dev          # http://localhost:4173   (note: 4173, not Vite's usual 5173)
+```
+
+Keyless it uses the Esri World Imagery basemap and live OpenSky aircraft. Add a Google Maps
+key to `.env` for photorealistic 3D tiles, or an OpenAI key for voice — see `.env.example`
+and `npm run doctor`. **This is the God's Eye View interface; the supply-chain UI is not
+built yet.**
+
+**The supply-chain engine** — this is the new work, and it has no UI yet, so it prints:
+
+```bash
+npm run demo                  # all four scenarios
+npm run demo disruption       # offline, instant, no network
+npm run demo concentration    # live UN Comtrade
+npm run demo forecast         # live, ~15 s (one API call per year)
+npm run demo economy          # live World Bank
+```
+
+No API keys needed for any of it. Verify the whole thing:
+
+```bash
+npm test                 # 4333 pass, 0 fail
+npm run build
+npm run check:boundaries
+```
+
 ## What works today
 
 The **analytical engine** is complete, tested and reproducible without a browser:
-
-```
-npm install
-npm test          # 4333 pass, 0 fail
-```
 
 | Capability | Module |
 | --- | --- |
