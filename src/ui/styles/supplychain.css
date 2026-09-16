@@ -209,6 +209,10 @@
 .sc-status.sc-err {
   color: var(--sc-danger);
 }
+/* A result that arrived but is known to be partial: not an error, not clean. */
+.sc-status.sc-warn {
+  color: var(--sc-inferred);
+}
 
 .sc-h3 {
   margin: 0 0 9px;
@@ -668,4 +672,75 @@
   .sc-secondary {
     transition: none;
   }
+}
+
+/* ── Production, comparison and events ─────────────────────────────── */
+
+.sc-block {
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.sc-badge-live {
+  color: #52c41a;
+}
+
+.sc-structure {
+  margin: 6px 0;
+  padding-left: 15px;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.sc-structure li {
+  margin: 7px 0;
+}
+.sc-structure .sc-footnote {
+  margin: 2px 0 0;
+  display: block;
+}
+
+.sc-events {
+  list-style: none;
+  margin: 9px 0;
+  padding: 0;
+}
+.sc-event {
+  border-left: 2px solid var(--sc-unknown);
+  padding: 6px 0 6px 9px;
+  margin: 7px 0;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 0 6px 6px 0;
+}
+/* Alert level is GDACS's own colour convention, kept so the panel and the
+   globe markers agree at a glance. */
+.sc-event.sc-alert-red {
+  border-left-color: var(--sc-danger);
+}
+.sc-event.sc-alert-orange {
+  border-left-color: var(--sc-inferred);
+}
+.sc-event.sc-alert-green {
+  border-left-color: #52c41a;
+}
+.sc-event-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 11px;
+  margin-bottom: 2px;
+}
+.sc-event-head span {
+  color: var(--text-secondary, rgba(232, 234, 237, 0.5));
+}
+.sc-event .sc-footnote {
+  margin: 2px 0;
+}
+
+/* A multi-select needs room to be usable without dominating the rail. */
+.sc-select[multiple] {
+  padding: 4px;
+  min-height: 108px;
+}
+.sc-select[multiple] option {
+  padding: 2px 4px;
 }

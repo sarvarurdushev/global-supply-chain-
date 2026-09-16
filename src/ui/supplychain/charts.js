@@ -39,6 +39,54 @@ export function formatUsd(value) {
 }
 
 /**
+ * Format a plain magnitude compactly — no currency symbol.
+ *
+ * Needed because not every bar chart shows money. A container count and a
+ * percentage rendered with a dollar sign are simply wrong, and the reader has
+ * no way to tell the label is lying.
+ *
+ * @param {number} value
+ * @returns {string}
+ */
+export function formatCount(value) {
+  if (!Number.isFinite(value)) return 'n/a';
+  const abs = Math.abs(value);
+  if (abs >= 1e12) return `${(value / 1e12).toFixed(2)}T`;
+  if (abs >= 1e9) return `${(value / 1e9).toFixed(1)}B`;
+  if (abs >= 1e6) return `${(value / 1e6).toFixed(1)}M`;
+  if (abs >= 1e3) return `${(value / 1e3).toFixed(1)}K`;
+  return `${value.toFixed(abs < 10 ? 1 : 0)}`;
+}
+
+/**
+ * Format a percentage.
+ *
+ * @param {number} value
+ * @returns {string}
+ */
+export function formatPercent(value) {
+  if (!Number.isFinite(value)) return 'n/a';
+  return `${value.toFixed(1)}%`;
+}
+
+/**
+ * The formatter a unit string calls for.
+ *
+ * The comparison panel mixes currency, percentages and container counts in one
+ * list of bar charts. Rendering all three as dollars — which is what a single
+ * hardcoded formatter does — states something false about two of them.
+ *
+ * @param {string} unit the indicator's unit, as published
+ * @returns {(value:number)=>string}
+ */
+export function formatterForUnit(unit) {
+  if (typeof unit !== 'string') return formatCount;
+  if (unit.trim().startsWith('%')) return formatPercent;
+  if (/US\$|USD/i.test(unit)) return formatUsd;
+  return formatCount;
+}
+
+/**
  * Horizontal bar chart of ranked values.
  *
  * Bars are linearly scaled here, unlike the globe arcs: in a ranked list the
@@ -50,6 +98,7 @@ export function formatUsd(value) {
  * @param {number} [input.width]
  * @param {number} [input.rowHeight]
  * @param {(row:object, index:number)=>void} [input.onSelect]
+ * @param {(value:number)=>string} [input.format] value formatter; defaults to USD
  * @returns {SVGElement}
  */
 export function barChart({
@@ -57,6 +106,7 @@ export function barChart({
   width = 320,
   rowHeight = 26,
   onSelect = null,
+  format = formatUsd,
 }) {
   const height = Math.max(rowHeight, rows.length * rowHeight) + 4;
   const svg = el('svg', {
@@ -119,7 +169,7 @@ export function barChart({
           class: 'sc-bar-value',
           'text-anchor': 'end',
         },
-        formatUsd(row.value),
+        format(row.value),
       ),
     );
     if (onSelect) {

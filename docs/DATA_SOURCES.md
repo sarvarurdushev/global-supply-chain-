@@ -105,6 +105,36 @@ inferred from a 1%-populated field.
 
 ---
 
+## GDACS — Global Disaster Alert and Coordination System
+
+| | |
+| --- | --- |
+| **Used for** | The `supply-events` layer and the EVENTS AFFECTING SUPPLY CHAINS panel |
+| **Endpoint** | `https://www.gdacs.org/gdacsapi/api/events/geteventlist/EVENTS4APP` |
+| **Key** | **None.** Verified 2026-09-16: HTTP 200, 135 KB, 100 events |
+| **Licence** | GDACS terms of use — free public access, attribution expected |
+| **Attribution** | "Source: GDACS — Global Disaster Alert and Coordination System (European Commission / UN)" |
+| **Data class** | 🟢 **LIVE**. The only supply-chain layer in this project that legitimately carries a LIVE badge |
+| **Proxied** | Yes — `/api/supplychain/events`, 5-minute TTL. gdacs.org sends no CORS headers, so a direct browser fetch is blocked |
+
+**What it covers**: earthquakes, tropical cyclones, floods, volcanoes, droughts, wildfires.
+
+**What it does not cover**: strikes, port closures, sanctions, trade restrictions, conflict.
+Those are the human-caused disruptions §15 of the brief also asks for, and GDACS does not
+carry them. The layer states this rather than letting an empty map imply that nothing
+happened. See `docs/DATA_AVAILABILITY_MATRIX.md` §3 item 12.
+
+**Alert level is not a hazard measurement.** Green/Orange/Red is GDACS's own modelled estimate
+of likely humanitarian impact. A Green earthquake can still be a large earthquake in an
+unpopulated area, and nothing in this project treats the alert level as a supply-chain impact
+score.
+
+**Proximity is not impact.** `linkEventsToNodes()` reports the ports and chokepoints within
+500 km of an event and attaches a caveat saying so verbatim. A cyclone 200 km from a port may
+close it for a week or miss it entirely, and this data cannot tell the difference.
+
+---
+
 ## Natural Earth
 
 | | |
@@ -137,7 +167,7 @@ panel can show where the geometry or the event claim came from. They are `HISTOR
 | --- | --- |
 | WTO Timeseries API | Returned **401** — requires a subscription key this project does not hold |
 | UNCTADstat | Probed endpoint returned 400; API shape undocumented for our use |
-| ACLED | Requires a registered account; academic licence with redistribution limits |
+| ACLED | Requires a registered account; academic licence with redistribution limits. GDACS is used for natural hazards instead, and covers nothing human-caused |
 | EM-DAT | Requires an account; academic licence |
 | Lloyd's List / Drewry / Alphaliner | Commercial, paywalled — port throughput |
 | SEMI / TechInsights | Commercial, paywalled — fab capacity |

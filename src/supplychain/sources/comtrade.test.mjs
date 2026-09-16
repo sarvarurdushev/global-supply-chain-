@@ -3,12 +3,15 @@ import assert from 'node:assert/strict';
 import {
   FlowCode,
   ComtradeError,
+  isCanonicalTotal,
+  canonicalRows,
   buildPreviewQuery,
   normalizeRow,
   normalizeResponse,
   comtradeProvenance,
   comtradeLimitations,
   createComtradeSource,
+  PREVIEW_ROW_LIMIT,
 } from './comtrade.js';
 import { DataClass } from '../provenance.js';
 
@@ -345,4 +348,157 @@ test('an abort signal propagates and is not swallowed as a period failure', asyn
       ),
     (error) => error.name === 'AbortError',
   );
+});
+
+/* ---------------- breakdown rows ----------------
+ *
+ * A multi-reporter query returns the same reporter/partner/commodity several
+ * times, split by secondary partner, customs procedure and mode of transport.
+ * Measured on a live 40-reporter query: 174 rows for 26 reporters, with
+ * Azerbaijan alone accounting for 63. Summing them multiplied its total by
+ * eight.
+ */
+
+const BREAKDOWN = {
+  ...LIVE_ROW,
+  reporterCode: 31,
+  partnerCode: 0,
+  partner2Code: 268,
+  customsCode: 'C03',
+  motCode: 9200,
+  primaryValue: 6747.28,
+};
+const TOTAL = {
+  ...LIVE_ROW,
+  reporterCode: 31,
+  partnerCode: 0,
+  partner2Code: 0,
+  customsCode: 'C00',
+  motCode: 0,
+  primaryValue: 94271.76,
+};
+
+test('isCanonicalTotal recognises the all-dimensions row', () => {
+  assert.equal(isCanonicalTotal(TOTAL), true);
+  assert.equal(isCanonicalTotal(BREAKDOWN), false);
+  // Split on any single dimension is still a breakdown.
+  assert.equal(isCanonicalTotal({ ...TOTAL, partner2Code: 528 }), false);
+  assert.equal(isCanonicalTotal({ ...TOTAL, customsCode: 'C06' }), false);
+  assert.equal(isCanonicalTotal({ ...TOTAL, motCode: 1000 }), false);
+});
+
+test('rows without breakdown fields are treated as canonical', () => {
+  // Single-reporter queries omit these fields entirely; there is nothing to
+  // disaggregate, so they must not be filtered away.
+  assert.equal(isCanonicalTotal(LIVE_ROW), true);
+  assert.equal(normalizeRow(LIVE_ROW).isCanonicalTotal, true);
+});
+
+test('canonicalRows drops breakdown slices and keeps the total', () => {
+  const { rows } = normalizeResponse({
+    count: 3,
+    error: '',
+    data: [BREAKDOWN, TOTAL, { ...BREAKDOWN, partner2Code: 276 }],
+  });
+  assert.equal(rows.length, 3, 'all three normalize');
+  const canonical = canonicalRows(rows);
+  assert.equal(canonical.length, 1);
+  assert.equal(canonical[0].valueUsd, 94271.76);
+  // The naive sum is the bug this prevents.
+  const naive = rows.reduce((sum, r) => sum + r.valueUsd, 0);
+  assert.ok(naive > canonical[0].valueUsd, 'summing breakdowns overcounts');
+});
+
+test('canonicalRows leaves an unsplit result untouched', () => {
+  const { rows } = normalizeResponse({ count: 1, error: '', data: [LIVE_ROW] });
+  assert.deepEqual(canonicalRows(rows), rows);
+  assert.throws(() => canonicalRows('nope'), TypeError);
+});
+
+test('normalizeRow carries the breakdown dimensions for inspection', () => {
+  const row = normalizeRow(BREAKDOWN);
+  assert.equal(row.partner2Code, 268);
+  assert.equal(row.customsCode, 'C03');
+  assert.equal(row.motCode, 9200);
+  assert.equal(row.isCanonicalTotal, false);
+});
+
+/* ---------------- truncation ----------------
+ *
+ * Measured against the live preview endpoint on 2026-09-16: a request for 40
+ * reporters of cmdCode=TOTAL returns count=500 with exactly 500 rows, while the
+ * same request for one HS heading returns 144. The cap is real and the response
+ * carries no flag for it.
+ */
+
+test('a full page is reported as truncated', () => {
+  const payload = {
+    count: PREVIEW_ROW_LIMIT,
+    data: Array.from({ length: PREVIEW_ROW_LIMIT }, (_, i) => ({
+      reporterCode: 410,
+      reporterISO: 'KOR',
+      partnerCode: i,
+      partnerISO: 'W00',
+      period: 2023,
+      refYear: 2023,
+      cmdCode: '8542',
+      flowCode: 'X',
+      primaryValue: 1000,
+      isReported: 1,
+    })),
+  };
+  const result = normalizeResponse(payload);
+  assert.equal(result.truncated, true);
+  assert.equal(result.rows.length, PREVIEW_ROW_LIMIT);
+});
+
+test('a short page is not reported as truncated', () => {
+  const result = normalizeResponse({ count: 3, data: [] });
+  assert.equal(result.truncated, false);
+});
+
+test('truncation is measured on the raw page, not on surviving rows', () => {
+  // One row is malformed and gets dropped. If truncation were measured after
+  // validation the page would read as 499 rows — complete — which is the exact
+  // failure this guards.
+  const good = {
+    reporterCode: 410,
+    reporterISO: 'KOR',
+    partnerCode: 0,
+    partnerISO: 'W00',
+    period: 2023,
+    refYear: 2023,
+    cmdCode: '8542',
+    flowCode: 'X',
+    primaryValue: 1000,
+    isReported: 1,
+  };
+  const data = Array.from({ length: PREVIEW_ROW_LIMIT - 1 }, () => ({
+    ...good,
+  }));
+  data.push({ ...good, reporterCode: null });
+  const result = normalizeResponse({ count: PREVIEW_ROW_LIMIT, data });
+  assert.equal(result.rejected, 1);
+  assert.equal(result.rows.length, PREVIEW_ROW_LIMIT - 1);
+  assert.equal(result.truncated, true, 'the page was capped regardless');
+});
+
+test('a truncated result says so in its limitations', () => {
+  const provenance = comtradeProvenance({
+    dataset: 'test',
+    retrievedAt: '2026-09-16T00:00:00Z',
+    truncated: true,
+  });
+  assert.ok(
+    provenance.limitations.some((l) => l.startsWith('INCOMPLETE:')),
+    'a capped page must be labelled incomplete, not presented as whole',
+  );
+});
+
+test('an untruncated result carries no incompleteness claim', () => {
+  const provenance = comtradeProvenance({
+    dataset: 'test',
+    retrievedAt: '2026-09-16T00:00:00Z',
+  });
+  assert.ok(!provenance.limitations.some((l) => l.startsWith('INCOMPLETE:')));
 });

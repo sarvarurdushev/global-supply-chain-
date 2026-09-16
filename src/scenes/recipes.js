@@ -962,6 +962,146 @@ const PUBLIC_SCENE_RECIPES = [
       },
     ],
   },
+  {
+    /**
+     * GLOBAL SUPPLY CHAIN EYE — the §44 semiconductor investigation as a tour.
+     *
+     * Shot titles are load-bearing: `TOUR_DATA_SCRIPT` in
+     * `src/scenes/packs/supplyChain.js` keys the per-shot data requirement off
+     * them, and the composition wiring performs those calls as each shot loads.
+     * Renaming a shot here without renaming it there leaves that shot flying
+     * over a globe with no data on it. A test holds the two in agreement.
+     *
+     * The camera path is authored, not generated: each beat is a real place
+     * this project has data for, in the order the investigation actually runs.
+     * The Taiwan beat holds on an absence and is the reason the sequence
+     * exists — see the pack's header.
+     */
+    id: 'supply-chain-eye-semiconductors',
+    title: 'Supply Chain Eye \u2014 Semiconductors',
+    durationSec: 58,
+    style: 'normal',
+    ui: { hidePanels: false, hudMode: 'full', safeFrame: '16:9' },
+    layers: {
+      'trade-flows': true,
+      chokepoints: true,
+      'supply-ports': false,
+      'supply-events': false,
+    },
+    post: {
+      bloom: 34,
+      sharpen: true,
+      detectionMode: 'OFF',
+      mapStack: 'esri-imagery',
+    },
+    cameraPath: [
+      {
+        // Whole planet, straight down: every arc in frame before the eye is
+        // told where to look.
+        title: 'World Trade In One Commodity',
+        layers: { 'trade-flows': true, chokepoints: false },
+        lat: 18.0,
+        lon: 80.0,
+        alt: 24000000,
+        heading: 0,
+        pitch: -88,
+        roll: 0,
+        duration: 7,
+        hold: 6,
+      },
+      {
+        // Korea: the reporter the arcs converge on.
+        title: 'The Dependency',
+        layers: { 'trade-flows': true, chokepoints: false },
+        lat: 36.5,
+        lon: 127.8,
+        alt: 5200000,
+        heading: 12,
+        pitch: -62,
+        roll: 0,
+        duration: 6,
+        hold: 7,
+      },
+      {
+        // The strait itself, held on an empty map. Taiwan does not report to
+        // UN Comtrade, so there is nothing to draw and the tour says so.
+        title: 'The Gap Where Taiwan Should Be',
+        layers: { 'trade-flows': true, chokepoints: true },
+        lat: 24.5,
+        lon: 119.5,
+        alt: 1400000,
+        heading: 35,
+        pitch: -48,
+        roll: 0,
+        duration: 5,
+        hold: 5,
+      },
+      {
+        // First chokepoint: almost everything on those arcs passes through it.
+        title: 'Malacca',
+        layers: {
+          'trade-flows': false,
+          chokepoints: true,
+          'supply-ports': true,
+        },
+        lat: 2.5,
+        lon: 101.0,
+        alt: 900000,
+        heading: 320,
+        pitch: -45,
+        roll: 0,
+        duration: 5,
+        hold: 4,
+      },
+      {
+        title: 'Suez Under Closure',
+        layers: { 'trade-flows': false, chokepoints: true },
+        lat: 30.0,
+        lon: 32.35,
+        alt: 700000,
+        heading: 0,
+        pitch: -55,
+        roll: 0,
+        duration: 5,
+        hold: 8,
+      },
+      {
+        // Where the modelled reroute goes, and the 6,986 km it costs.
+        title: 'The Cape Reroute',
+        layers: {
+          'trade-flows': false,
+          chokepoints: true,
+          'supply-ports': true,
+        },
+        lat: -34.36,
+        lon: 18.47,
+        alt: 3200000,
+        heading: 300,
+        pitch: -50,
+        roll: 0,
+        duration: 6,
+        hold: 5,
+      },
+      {
+        // Out to the only live layer in the sequence.
+        title: 'What Is Happening Right Now',
+        layers: {
+          'trade-flows': false,
+          chokepoints: false,
+          'supply-ports': true,
+          'supply-events': true,
+        },
+        lat: 8.0,
+        lon: 60.0,
+        alt: 20000000,
+        heading: 0,
+        pitch: -84,
+        roll: 0,
+        duration: 6,
+        hold: 5,
+      },
+    ],
+  },
 ];
 
 /** Build the recipe list without mutating stored user-authored projects. */

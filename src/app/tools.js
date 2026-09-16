@@ -7,6 +7,7 @@ import { installScopeMask, destroyScopeMask } from '../scopeMask.js';
 import { createSupplyChainConsole } from '../ui/supplychain/console.js';
 import { createTradeProxySource } from '../supplychain/sources/tradeProxy.js';
 import { createSupplyChainActions } from '../voice/supplyChainActions.js';
+import { createTourDataRunner } from '../scenes/packs/supplyChain.js';
 import {
   installRenderGovernor,
   getRenderGovernorDiagnostics,
@@ -128,6 +129,20 @@ export function createApplicationTools({
   // from the model's own knowledge — the same discipline the inherited
   // analyst_query already follows.
   const supplyChainActions = createSupplyChainActions({ console: supplyChain });
+
+  // The authored tour's data script (§44). The trade layer draws only what the
+  // console loaded, so the camera path alone would fly over an empty globe;
+  // this performs each shot's query as the director reaches it. Subscribing
+  // here rather than inside the director keeps the coupling at composition
+  // time, where every other cross-feature wire in this file already lives.
+  const runTourData = createTourDataRunner({
+    console: supplyChain,
+    onError: (error) =>
+      console.warn('[supply-chain tour] data step failed', error),
+  });
+  defer(
+    sceneDirector.subscribe(runTourData, { emitCurrent: false }) ?? (() => {}),
+  );
 
   window.__godsEyeView = {
     viewer,

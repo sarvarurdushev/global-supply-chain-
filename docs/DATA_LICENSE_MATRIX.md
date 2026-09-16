@@ -81,6 +81,7 @@ redistributing them silently. Anyone taking this repository commercially must ac
 | --- | --- | --- | --- | --- | --- | --- |
 | **UN Comtrade** (public preview API) | Bilateral trade by HS commodity, value + net weight | UN Comtrade terms of use — free public access; attribution expected; **bulk redistribution restricted** | ✅ with attribution | **Cache only, do not republish bulk extracts** | **No** | "Source: UN Comtrade (comtradeplus.un.org)" |
 | **World Bank Indicators API v2** | GDP, population, trade indicators, LPI | **CC BY 4.0** | ✅ | ✅ with attribution | **No** | "Source: World Bank — data.worldbank.org (CC BY 4.0)" |
+| **GDACS** (Global Disaster Alert and Coordination System) | Live natural-hazard events: earthquakes, cyclones, floods, volcanoes, droughts, wildfires | GDACS terms of use — free public access, attribution expected | Attribution | **Query and cache; do not mirror the feed** | **No** | "Source: GDACS — Global Disaster Alert and Coordination System (European Commission / UN)" |
 | **NGA World Port Index** | Port identity, location, harbour type/size, depths, UN/LOCODE | **US Government public domain** (17 U.S.C. §105) | ✅ | ✅ unrestricted | **No** | "Source: National Geospatial-Intelligence Agency, World Port Index" (courtesy) |
 | **IMF DataMapper** | Macro indicators and forecasts | IMF terms — free access, attribution required, redistribution restricted | Attribution | **Query, do not mirror** | No | "Source: International Monetary Fund" |
 | **OECD SDMX** | Structural/trade statistics | OECD terms — free reuse with attribution; some datasets restricted | Attribution | Per dataset | No | "Source: OECD" |
@@ -93,7 +94,7 @@ redistributing them silently. Anyone taking this repository commercially must ac
 | Source | Reason |
 | --- | --- |
 | WTO Timeseries API | Returned **401** — requires a subscription key this project does not hold. |
-| ACLED | Requires a registered account; academic licence with redistribution limits. |
+| ACLED | Requires a registered account; academic licence with redistribution limits. Its conflict/strike coverage is therefore absent, and GDACS does not substitute for it. |
 | EM-DAT | Requires an account; academic licence. |
 | Lloyd's List / Drewry / Alphaliner (port throughput) | Commercial, paywalled. |
 | SEMI / TechInsights (fab capacity) | Commercial, paywalled. |

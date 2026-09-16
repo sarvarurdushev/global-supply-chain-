@@ -46,6 +46,8 @@ const REGISTERED = new Set([
   'cctv', 'radio', 'bikeshare', 'ais-live-vessels', 'military-installations',
   'military-awareness', 'local-datacenters', 'local-dams',
   'telegeography-submarine-cables', 'local-firms',
+  // Supply-chain layers, registered in src/app/constructCatalog.js.
+  'trade-flows', 'chokepoints', 'supply-ports', 'supply-events',
 ]);
 
 test('a shot only reconciles the layers it declares', () => {

@@ -17,6 +17,7 @@
  * Routes:
  *   GET /api/supplychain/trade?reporter=&period=&cmd=&flow=&partner=
  *   GET /api/supplychain/indicator?iso3=&indicator=&start=&end=
+ *   GET /api/supplychain/events
  *   GET /api/supplychain/status
  *
  * The cache is a performance cache with a TTL, not a redistribution mirror —
@@ -25,13 +26,20 @@
 
 const COMTRADE_BASE = 'https://comtradeapi.un.org/public/v1/preview';
 const WORLD_BANK_BASE = 'https://api.worldbank.org/v2';
+const GDACS_BASE = 'https://www.gdacs.org/gdacsapi/api';
 
 /** Comtrade data is annual and revised rarely; an hour is conservative. */
 const TRADE_TTL_MS = 60 * 60_000;
 /** World Bank indicators are annual. */
 const INDICATOR_TTL_MS = 6 * 60 * 60_000;
+/** GDACS is a live hazard feed; 5 minutes keeps it current without hammering it. */
+const EVENT_TTL_MS = 5 * 60_000;
 /** Minimum gap between upstream Comtrade calls, from the observed 429 behaviour. */
 const COMTRADE_MIN_INTERVAL_MS = 1200;
+/** Wait before the single 429 retry when the upstream sends no Retry-After. */
+const RETRY_WAIT_MS = 2000;
+/** Ceiling on a Retry-After the upstream asks for, so a bad header cannot stall us. */
+const MAX_RETRY_WAIT_MS = 10_000;
 /** Hard ceiling on an upstream body. The largest legitimate trade page is ~200 KB. */
 const MAX_BYTES = 8 * 1024 * 1024;
 /** Bound the cache so a long session cannot grow it without limit. */
@@ -127,11 +135,18 @@ function createCache(ttlMs) {
   };
 }
 
+/** Promise-based delay. */
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 /**
  * Serialise upstream calls behind a minimum interval.
  *
- * Comtrade's limiter is short-window, so spacing calls avoids 429 entirely
- * rather than reacting to it.
+ * Comtrade's limiter is short-window, so spacing calls avoids most 429s rather
+ * than reacting to them. It does not avoid all of them: the production ranking
+ * issues eight batched calls and still tripped the limiter at 1200 ms spacing,
+ * which is why callUpstream carries one retry as well.
  */
 function createPacer(minIntervalMs) {
   let tail = Promise.resolve();
@@ -139,7 +154,7 @@ function createPacer(minIntervalMs) {
   return function pace(task) {
     const run = tail.then(async () => {
       const wait = lastAt + minIntervalMs - Date.now();
-      if (wait > 0) await new Promise((resolve) => setTimeout(resolve, wait));
+      if (wait > 0) await sleep(wait);
       lastAt = Date.now();
       return task();
     });
@@ -249,23 +264,53 @@ export function supplyChainProxy({
   fetchImpl = (...args) => globalThis.fetch(...args),
   comtradeBase = COMTRADE_BASE,
   worldBankBase = WORLD_BANK_BASE,
+  gdacsBase = GDACS_BASE,
   minIntervalMs = COMTRADE_MIN_INTERVAL_MS,
 } = {}) {
   const tradeCache = createCache(TRADE_TTL_MS);
   const indicatorCache = createCache(INDICATOR_TTL_MS);
+  const eventCache = createCache(EVENT_TTL_MS);
   const pace = createPacer(minIntervalMs);
   const stats = {
     tradeRequests: 0,
     indicatorRequests: 0,
+    eventRequests: 0,
     upstreamCalls: 0,
+    throttleRetries: 0,
     errors: 0,
   };
 
-  async function callUpstream(url) {
+  async function fetchOnce(url) {
     stats.upstreamCalls += 1;
-    const response = await fetchImpl(url, {
-      headers: { accept: 'application/json' },
-    });
+    return fetchImpl(url, { headers: { accept: 'application/json' } });
+  }
+
+  /**
+   * Seconds to wait after a 429, from the response's own Retry-After when it
+   * sends one. Capped so a hostile or mistaken header cannot stall the server.
+   */
+  function retryAfterMs(response) {
+    const header = response.headers?.get?.('retry-after');
+    const seconds = Number(header);
+    if (Number.isFinite(seconds) && seconds > 0) {
+      return Math.min(seconds * 1000, MAX_RETRY_WAIT_MS);
+    }
+    return RETRY_WAIT_MS;
+  }
+
+  async function callUpstream(url) {
+    let response = await fetchOnce(url);
+    // One retry, and only for 429. A batched query (the production ranking
+    // issues eight) trips Comtrade's burst limit even at 1200 ms spacing, and
+    // failing the whole ranking for one throttled call wastes the other seven.
+    // Retrying anything else would multiply load on an upstream already in
+    // trouble, so it does not.
+    if (response.status === 429) {
+      const wait = retryAfterMs(response);
+      stats.throttleRetries += 1;
+      await sleep(wait);
+      response = await fetchOnce(url);
+    }
     if (!response.ok) {
       const error = new Error(`upstream HTTP ${response.status}`);
       error.status = response.status;
@@ -295,8 +340,12 @@ export function supplyChainProxy({
       let key;
       try {
         const params = new URL(req.url, 'http://localhost').searchParams;
+        // 60 reporters per call is measured to work against the preview
+        // endpoint (the URL stays short and the response returns in ~2s). It is
+        // NOT a guarantee of completeness: the endpoint caps every page at 500
+        // rows regardless, which the client detects — see PREVIEW_ROW_LIMIT.
         const reporter = codeList(params.get('reporter'), {
-          max: 10,
+          max: 60,
           label: 'reporter',
         });
         if (!reporter) throw new Error('reporter is required');
@@ -388,13 +437,47 @@ export function supplyChainProxy({
       }
     });
 
+    server.middlewares.use('/api/supplychain/events', async (req, res) => {
+      stats.eventRequests += 1;
+      // No query parameters: the feed takes none, so there is nothing a
+      // request could steer.
+      const url = `${gdacsBase}/events/geteventlist/EVENTS4APP`;
+      // Deliberately not paced: the pacer exists for Comtrade's 429 behaviour,
+      // and GDACS is a different host. Sharing the queue would make a slow
+      // trade call delay a hazard refresh for no benefit.
+      try {
+        const { value, cached, ageMs } = await eventCache.resolve(url, () =>
+          callUpstream(url),
+        );
+        sendJson(res, 200, {
+          upstream: 'GDACS',
+          attribution:
+            'Source: GDACS — Global Disaster Alert and Coordination System ' +
+            '(European Commission / UN)',
+          cached,
+          ageMs,
+          retrievedAt: new Date(Date.now() - ageMs).toISOString(),
+          payload: value,
+        });
+      } catch (error) {
+        stats.errors += 1;
+        sendJson(res, 502, {
+          error: 'upstream_failed',
+          detail: error.message,
+          retryable: Boolean(error.retryable),
+        });
+      }
+    });
+
     server.middlewares.use('/api/supplychain/status', (req, res) => {
       sendJson(res, 200, {
         ...stats,
         tradeCacheEntries: tradeCache.size,
         indicatorCacheEntries: indicatorCache.size,
+        eventCacheEntries: eventCache.size,
         tradeTtlMs: TRADE_TTL_MS,
         indicatorTtlMs: INDICATOR_TTL_MS,
+        eventTtlMs: EVENT_TTL_MS,
         minUpstreamIntervalMs: minIntervalMs,
       });
     });

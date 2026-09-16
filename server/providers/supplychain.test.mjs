@@ -219,6 +219,159 @@ test('the trade route rejects an unknown flow code', async () => {
   assert.match(JSON.parse(res.body).detail, /flow/);
 });
 
+test('the trade route accepts a production-sized reporter batch', async () => {
+  // Measured against the live preview endpoint: 60 reporters returns in ~2s
+  // with a short URL. The console batches at 30 and halves on truncation, so
+  // this cap only has to be comfortably above that.
+  let requested = null;
+  const plugin = supplyChainProxy({
+    fetchImpl: async (url) => {
+      requested = url;
+      return okResponse({ count: 0, data: [] });
+    },
+  });
+  const handlers = new Map();
+  plugin.configureServer({
+    middlewares: { use: (path, handler) => handlers.set(path, handler) },
+  });
+  const reporters = Array.from({ length: 60 }, (_, i) => 100 + i).join(',');
+  const res = captureResponse();
+  await handlers.get('/api/supplychain/trade')(
+    { url: `/?reporter=${reporters}&period=2023&cmd=8542&flow=X&partner=0` },
+    res,
+  );
+  assert.equal(res.statusCode, 200);
+  assert.match(requested, /reporterCode=100%2C101/);
+
+  // 61 is still refused: the cap is a real bound, not a suggestion.
+  const tooMany = captureResponse();
+  await handlers.get('/api/supplychain/trade')(
+    { url: `/?reporter=${reporters},999&period=2023&cmd=8542&flow=X` },
+    tooMany,
+  );
+  assert.equal(tooMany.statusCode, 400);
+  assert.match(JSON.parse(tooMany.body).detail, /at most 60 values/);
+});
+
+test('the events route serves the GDACS feed and caches it', async () => {
+  let calls = 0;
+  const plugin = supplyChainProxy({
+    gdacsBase: 'https://example.test/api',
+    fetchImpl: async (url) => {
+      calls += 1;
+      assert.equal(url, 'https://example.test/api/events/geteventlist/EVENTS4APP');
+      return okResponse({ type: 'FeatureCollection', features: [] });
+    },
+  });
+  const handlers = new Map();
+  plugin.configureServer({
+    middlewares: { use: (path, handler) => handlers.set(path, handler) },
+  });
+
+  const first = captureResponse();
+  await handlers.get('/api/supplychain/events')({ url: '/' }, first);
+  assert.equal(first.statusCode, 200);
+  const body = JSON.parse(first.body);
+  assert.equal(body.upstream, 'GDACS');
+  assert.match(body.attribution, /GDACS/);
+  assert.equal(body.cached, false);
+  assert.deepEqual(body.payload.features, []);
+
+  const second = captureResponse();
+  await handlers.get('/api/supplychain/events')({ url: '/' }, second);
+  assert.equal(JSON.parse(second.body).cached, true);
+  assert.equal(calls, 1, 'a cache hit must not re-fetch the feed');
+});
+
+test('the events route reports an upstream failure rather than inventing a feed', async () => {
+  const plugin = supplyChainProxy({
+    fetchImpl: async () => ({ ok: false, status: 503 }),
+  });
+  const handlers = new Map();
+  plugin.configureServer({
+    middlewares: { use: (path, handler) => handlers.set(path, handler) },
+  });
+  const res = captureResponse();
+  await handlers.get('/api/supplychain/events')({ url: '/' }, res);
+  assert.equal(res.statusCode, 502);
+  const body = JSON.parse(res.body);
+  assert.equal(body.error, 'upstream_failed');
+  assert.equal(body.retryable, true, '503 is worth retrying');
+});
+
+test('a throttled call is retried once, then succeeds', async () => {
+  // Measured: the production ranking issues eight batched calls and trips
+  // Comtrade's burst limiter even at 1200 ms spacing. Failing the whole ranking
+  // for one throttled call throws away the other seven.
+  let attempts = 0;
+  const plugin = supplyChainProxy({
+    minIntervalMs: 0,
+    fetchImpl: async () => {
+      attempts += 1;
+      if (attempts === 1) {
+        return { ok: false, status: 429, headers: new Map([['retry-after', '0.01']]) };
+      }
+      return okResponse({ count: 1, data: [] });
+    },
+  });
+  const handlers = new Map();
+  plugin.configureServer({
+    middlewares: { use: (path, handler) => handlers.set(path, handler) },
+  });
+  const res = captureResponse();
+  await handlers.get('/api/supplychain/trade')(
+    { url: '/?reporter=410&period=2023&cmd=8542&flow=X' },
+    res,
+  );
+  assert.equal(res.statusCode, 200);
+  assert.equal(attempts, 2, 'exactly one retry');
+});
+
+test('a persistently throttled call fails rather than retrying forever', async () => {
+  let attempts = 0;
+  const plugin = supplyChainProxy({
+    minIntervalMs: 0,
+    fetchImpl: async () => {
+      attempts += 1;
+      return { ok: false, status: 429, headers: new Map([['retry-after', '0.01']]) };
+    },
+  });
+  const handlers = new Map();
+  plugin.configureServer({
+    middlewares: { use: (path, handler) => handlers.set(path, handler) },
+  });
+  const res = captureResponse();
+  await handlers.get('/api/supplychain/trade')(
+    { url: '/?reporter=410&period=2023&cmd=8542&flow=X' },
+    res,
+  );
+  assert.equal(attempts, 2, 'one retry, not a loop');
+  assert.equal(res.statusCode, 429);
+  assert.equal(JSON.parse(res.body).retryable, true);
+});
+
+test('a 500 is not retried — retrying multiplies load on a failing upstream', async () => {
+  let attempts = 0;
+  const plugin = supplyChainProxy({
+    minIntervalMs: 0,
+    fetchImpl: async () => {
+      attempts += 1;
+      return { ok: false, status: 500, headers: new Map() };
+    },
+  });
+  const handlers = new Map();
+  plugin.configureServer({
+    middlewares: { use: (path, handler) => handlers.set(path, handler) },
+  });
+  const res = captureResponse();
+  await handlers.get('/api/supplychain/trade')(
+    { url: '/?reporter=410&period=2023&cmd=8542&flow=X' },
+    res,
+  );
+  assert.equal(attempts, 1);
+  assert.equal(res.statusCode, 502);
+});
+
 test('the status route reports cache and throttle configuration', async () => {
   const plugin = supplyChainProxy({ minIntervalMs: 1234 });
   const handlers = new Map();
@@ -230,8 +383,23 @@ test('the status route reports cache and throttle configuration', async () => {
   const body = JSON.parse(res.body);
   assert.equal(body.minUpstreamIntervalMs, 1234);
   assert.equal(body.tradeCacheEntries, 0);
+  assert.equal(body.eventCacheEntries, 0);
   assert.ok(body.tradeTtlMs > 0);
+  // GDACS is a live feed, so its cache must expire far sooner than trade data.
+  assert.ok(body.eventTtlMs > 0);
+  assert.ok(body.eventTtlMs < body.tradeTtlMs);
 });
+
+function okResponse(payload) {
+  const text = JSON.stringify(payload);
+  return {
+    ok: true,
+    status: 200,
+    headers: new Map([['content-length', String(text.length)]]),
+    text: async () => text,
+    body: null,
+  };
+}
 
 function captureResponse() {
   return {

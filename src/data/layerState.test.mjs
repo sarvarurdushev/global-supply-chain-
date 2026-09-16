@@ -158,9 +158,10 @@ function encode(state) {
 
 test('production registry is exact, canonical, and rejects incomplete contracts', async () => {
   assert.equal(validateLayerStateRegistry(), true);
-  // 21 inherited layers plus trade-flows, supply-ports and chokepoints.
-  assert.equal(REGISTERED_LAYER_IDS.length, 24);
-  assert.equal(new Set(REGISTERED_LAYER_IDS).size, 24);
+  // 21 inherited layers plus trade-flows, supply-ports, chokepoints and
+  // supply-events.
+  assert.equal(REGISTERED_LAYER_IDS.length, 25);
+  assert.equal(new Set(REGISTERED_LAYER_IDS).size, 25);
   assert.ok(REGISTERED_LAYER_IDS.includes('transit'));
   assert.deepEqual(REGISTERED_LAYER_IDS, [...REGISTERED_LAYER_IDS].sort());
   assert.throws(

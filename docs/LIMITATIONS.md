@@ -136,14 +136,16 @@ gate question it fails:
 | Per-vessel cargo | AIS carries no cargo field |
 | Global real-time truck/rail freight | No open global source |
 | Factory / fab-level capacity | Company-confidential |
-| Port container throughput (TEU) | Commercial (Lloyd's List, Drewry) |
+| Port-level container throughput (TEU) | Commercial (Lloyd's List, Drewry). **Country-level** totals ARE available from World Bank `IS.SHP.GOOD.TU` and are used in COMPARE COUNTRIES; they cannot rank one port against another |
 | Port commodity specialization | WPI fields ~1% populated |
 | Real-time trade flows | Comtrade lags 1–2 years |
 | Operationally validated alternatives | Carrier data is commercial |
 | Historical telemetry replay | AIS/ADS-B archives are commercial |
 | Quantified economic impact | Needs I-O/CGE modelling |
 | Tariff and NTM analysis | WTO API returned 401; needs a subscription key |
-| Conflict and disaster event feeds | ACLED and EM-DAT require registered accounts |
+| Conflict events, strikes, port closures | ACLED and EM-DAT require registered accounts. GDACS covers **natural hazards only** and drives the event layer; nothing human-caused is in it |
+| Per-commodity production | Firm-level output is confidential; USGS is PDF-only and FAOSTAT needs a key. The production map ranks **exports**, labelled as a proxy |
+| Complete world rankings for broad commodities | The Comtrade preview endpoint caps responses at 500 rows. Detected and reported, never silently dropped |
 | Commercial feasibility of new infrastructure | Needs engineering and cost studies |
 
 Infrastructure siting output is labelled **NETWORK-BASED CANDIDATE LOCATION**, never a
@@ -169,11 +171,46 @@ From God's Eye View (see `docs/PROJECT_ARCHITECTURE_AUDIT.md` §9):
 
 ## 13. Scope of what has been built
 
-Phases 1, 2, 3, 7, 8 and 9 are complete and tested: the audit, the preserved God's Eye View
-base, the provenance and graph model, the routing and disruption engines, the network
-analytics, the trade and economic data clients, and the ML layer.
+Built and tested: the audit; the preserved God's Eye View base; the provenance and graph
+model; the routing and disruption engines; the network analytics; the trade, economic and
+hazard data clients; the ML layer; the supply-chain console with its five sections (trade
+dependency, production proxy, country comparison, events, what-if); four globe layers; four
+voice actions; and the authored seven-shot tour.
 
-Phases 4, 5 (UI), 6 (UI), 10, 11 and 12 — trade visualization, the supply-chain graph UI,
-live/historical fusion in the interface, the event layer, voice actions and polish — are
-**not built**. `docs/PHASED_PLAN.md` tracks this. Nothing in the interface claims otherwise,
-because there is no supply-chain interface yet.
+Still not built, and tracked in `docs/PHASED_PLAN.md`: joint live+historical fused views
+(§23 — the badging is in place, the fused view is not), and anything requiring the data in
+§11 above. The interface does not claim otherwise: where a feature would need data this
+project does not have, the panel renders `DATA UNAVAILABLE` with what would be needed.
+
+## 14. The upstream row cap, and how a truncated page is handled
+
+The UN Comtrade **public preview** endpoint returns at most 500 rows and gives no flag saying
+it truncated. `count` simply equals the cap, so a truncated page is byte-for-byte
+indistinguishable from a complete one unless you know the number.
+
+Measured 2026-09-16:
+
+| Query | `count` | Rows |
+| --- | --- | --- |
+| 40 reporters, `cmdCode=TOTAL`, exports to World | **500** | 500 (capped) |
+| 40 reporters, `cmdCode=2709` | 144 | 144 |
+| 60 reporters, `cmdCode=8542` | 253 | 253 |
+| 216 reporters, `cmdCode=8542` | **500** | 500 (capped) |
+
+Two consequences the code acts on:
+
+1. **Truncation is detected, never assumed away.** `normalizeResponse()` sets `truncated` by
+   comparing the RAW page length against the cap — before validation drops any malformed row,
+   because dropping one would otherwise make a capped page read as complete.
+
+2. **Truncation alone is not treated as data loss.** Most of a page is breakdown slices
+   (`partner2Code`, `motCode`, `customsCode`) that canonical filtering discards anyway.
+   Turkey's 2023 HS 8542 exports fill all 500 rows across 133 partner2 values, and the single
+   canonical total — $33,969,993 — is still in there. Warning on truncation alone reported
+   that exact figure as understated. The production loader instead checks whether every
+   requested reporter came back with a canonical total, halves the batch when one did not,
+   and declares any reporter it still cannot resolve as **INCOMPLETE** in the panel.
+
+A reporter missing from an *untruncated* page is a different thing again: it did not report
+that commodity. That is an absence in the source, and the panel does not convert it into a
+zero.

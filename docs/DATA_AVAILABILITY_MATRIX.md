@@ -44,6 +44,7 @@ Status vocabulary:
 | **Wikidata SPARQL** | `query.wikidata.org/sparql` | **400** | 7 KB | Probe query malformed; service itself reachable. Deferred. |
 | **ACLED** | `api.acleddata.com/acled/read` | *(no status)* | — | Requires registration + key. Not used. |
 | **EM-DAT** | `api.emdat.be/v1` | **500** | 96 B | Requires account. Not used. |
+| **GDACS** | `gdacs.org/gdacsapi/api/events/geteventlist/EVENTS4APP` | **200** | 135 KB | No key. 100 events. **In use** — natural hazards only. |
 | **GLEIF** | `api.gleif.org/api/v1/lei-records` | *(no status)* | — | Deferred. |
 
 ### 1.1 UN Comtrade — measured constraints
@@ -153,7 +154,7 @@ Columns follow §32 of the brief.
 | Port physical capacity proxy | `chDepth`, `anDepth`, `harborSize` | NGA | 87–99% | — | No | Free | Public domain | **Coarse ordinal** | REST | **READY (as proxy only)** |
 | Port rail connection | `cmRail` | NGA | 48% `Y`, 50% `U` | — | No | Free | Public domain | **Partial** | REST | **DATA-LIMITED** |
 | **Port commodity specialization** | `loContainer` etc. | NGA | **~1%** | — | — | Free | Public domain | **Unusable** | REST | **DATA-LIMITED** |
-| **Port container throughput (TEU)** | — | — | — | — | — | — | — | — | — | **DATA-LIMITED** — see §3 |
+| Port container throughput (TEU) | — | — | — | — | — | — | — | — | — | **DATA-LIMITED** — country-level only, see §3 |
 | Maritime chokepoints | curated | (this project) | 8 chokepoints | — | No | Free | see licence matrix | Geometry authored from public sources, each cited | bundled | **READY** |
 | Submarine cables | TeleGeography | *(inherited)* | Global | No | No | Free | **CC BY-NC-SA 3.0** | Good | bundled | **READY (inherited, NC)** |
 | Datacenters / dams | OSM extracts | *(inherited)* | Global | No | No | Free | ODbL 1.0 | Good | bundled | **READY (inherited)** |
@@ -171,6 +172,7 @@ Columns follow §32 of the brief.
 | Weather | Forecast | Open-Meteo | Global | Archive available | Yes | Free | CC BY 4.0 | Good | REST | **READY (inherited)** |
 | Curated disruption timeline | curated | (this project) | Major documented events | Yes | No | Free | per-citation | Each entry carries a source URL | bundled | **PLANNED** |
 | Sanctions lists | — | OFAC/EU/UN | — | — | — | Free | Public | — | REST | **PLANNED** |
+| **Natural hazard events** | GDACS `geteventlist/EVENTS4APP` | EC / UN | Global | current only | continuous | **None** | GDACS terms of use | High | REST (GeoJSON) | ✅ **AVAILABLE — in use** (verified: 100 events, 2026-09-16) |
 | Conflict events | ACLED | ACLED | Global | 1997– | Weekly | **Registration required** | Academic licence | High | REST | **BLOCKED (no key)** |
 | Disaster impacts | EM-DAT | CRED | Global | 1900– | No | **Account required** | Academic licence | High | REST | **BLOCKED (no key)** |
 | Strikes / port closures | — | — | — | — | — | — | — | — | — | **DATA-LIMITED** — news-derived only |
@@ -198,16 +200,17 @@ state what would be needed.
 | --- | --- | --- | --- |
 | 1 | **Per-vessel cargo contents** | "Does it contain enough information?" — **NO** | AIS carries position, COG/SOG, nav status, self-declared destination, vessel type. **Cargo is never broadcast.** Needs commercial bill-of-lading data (Panjiva, ImportGenius) or customs manifests. Maximum honest output: an **INFERRED commodity association** with its evidence exposed. |
 | 2 | **Taiwan trade statistics** | "Does it cover the geography?" — **NO** | Taiwan is not a UN Comtrade reporter (verified: `reporterCode=158` returns no rows). Only partner-side **mirror statistics** are available, and they must be labelled as mirror data with the reporting partner named. A critical gap precisely where semiconductors matter most. |
-| 3 | **Port container throughput (TEU)** | "Is it accessible?" — **NO** | Authoritative rankings are commercial (Lloyd's List, Drewry, Alphaliner). World Bank CPPI is a *performance index*, not throughput. Some port authorities publish, in inconsistent formats, without an API. Currently DATA-LIMITED: we use WPI `harborSize`/`chDepth` as an explicitly-labelled **physical scale proxy**, never as throughput. |
+| 3 | **Port-level container throughput (TEU)** | "Is it accessible?" — **NO at port level, YES at country level** | Per-port rankings are commercial (Lloyd's List, Drewry, Alphaliner), and World Bank CPPI is a *performance index*, not throughput. **Re-probed and revised:** World Bank `IS.SHP.GOOD.TU` publishes **country-level** container throughput with no key, and the COMPARE COUNTRIES panel uses it (China 278.8M TEU, Korea 30.0M, 2023). That is a national total, not a port figure — it cannot rank Rotterdam against Shanghai. For per-port scale we still use WPI `harborSize`/`chDepth` as an explicitly-labelled **physical scale proxy**, never as throughput. |
 | 4 | **Port commodity specialization** | "Does it contain enough information?" — **NO** | WPI cargo flags are ~1% populated (measured). Needs per-authority terminal data. Until then, port→commodity association is **UNKNOWN**, not guessed. |
 | 5 | **Real-time trade flows** | "Is it sufficiently current?" — **NO** | Comtrade annual lags 1–2 years. Trade is **HISTORICAL** and must never carry a LIVE badge. |
 | 6 | **Operationally validated alternative routes** | "Does it contain enough information?" — **NO** | Needs carrier schedules, slot capacity, freight rates — all commercial. We compute **geographic alternatives** only, and label them as such (§13 of the brief). |
 | 7 | **Global real-time freight (truck/rail)** | "Does the dataset exist?" — **NO** | No open global source. Only jurisdiction-specific congestion feeds. |
-| 8 | **Factory / fab-level capacity** | "Does the dataset exist?" — **NO** | Company-confidential. Public data reaches country×commodity. |
+| 8 | **Factory / fab-level capacity** | "Does the dataset exist?" — **NO** | Company-confidential. Public data reaches country×commodity. The WHERE IS PRODUCTION? map therefore ranks **export value**, labelled `EXPORT PROXY` on every view, with re-export hubs individually flagged and the three distortions (entrepôts, invisible domestic consumption, value≠volume) stated next to the chart. National production data would need USGS Mineral Commodity Summaries (PDF and spreadsheets, no API) or FAOSTAT (key plus a 34 MB bulk archive); neither is integrated. |
 | 9 | **Historical live-telemetry replay** | "Does it cover the required historical period?" — **NO** | GEV retains only short recent tracks. Historical AIS/ADS-B archives are commercial. The Time Machine scrubs **historical trade data**, not historical telemetry — and the UI must say so. |
 | 10 | **Quantified economic impact of a disruption** | "Does it contain enough information?" — **NO** | Needs input-output/CGE models and elasticities. We report **network-topological exposure** only, explicitly not GDP impact. |
 | 11 | **Tariff / NTM analysis** | "Can we legally use it?" — **NO KEY** | WTO Timeseries API returned **401**; requires a subscription key not held by this project. |
-| 12 | **Conflict + disaster event feeds** | "Is it accessible?" — **NO KEY** | ACLED and EM-DAT both require registered accounts. Until a key exists, the event layer is news-derived (GDELT) plus a cited curated timeline. |
+| 12 | **Conflict events, strikes, port closures** | "Does the dataset exist (openly)?" — **NO** | ACLED and EM-DAT both require registered accounts. **Re-probed and partially resolved:** GDACS (European Commission / UN) publishes a live GeoJSON event feed with **no key**, and it now drives the event layer — but it covers **natural hazards only**: earthquakes, cyclones, floods, volcanoes, droughts, wildfires. It carries nothing human-caused. Strikes, port closures, sanctions, trade restrictions and conflict remain unavailable, and the layer states that the absence of a marker is not evidence that nothing happened. |
+| 13 | **Complete world rankings for broad commodities** | "Does it contain enough information?" — **PARTIALLY** | The Comtrade preview endpoint caps every response at **500 rows** and signals it only by returning exactly that many (measured 2026-09-16: 40 reporters of `cmdCode=TOTAL` → `count: 500`; the same query for one HS heading → 144). The client detects the cap, and the production loader halves its batch until every requested reporter's canonical total is accounted for. A single reporter whose own page is capped with no total in it is reported as **INCOMPLETE** in the panel, never silently dropped or inferred. |
 
 ---
 

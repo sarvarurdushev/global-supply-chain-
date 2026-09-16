@@ -47,8 +47,19 @@ Keyless it uses the Esri World Imagery basemap and live OpenSky aircraft. Add a 
 key to `.env` for photorealistic 3D tiles, or an OpenAI key for voice — see `.env.example`
 and `npm run doctor`.
 
-The supply-chain console is the right-hand rail. Pick a commodity and country, press
-INVESTIGATE, and the globe draws the trade arcs.
+The supply-chain console is the right-hand rail, with five sections:
+
+| Section | What it does |
+| --- | --- |
+| **TRADE DEPENDENCY** | Pick a commodity and country, press INVESTIGATE, and the globe draws the trade arcs. Concentration, aggregate-partner flags, ten-year series, forecast vs baselines |
+| **WHERE IS PRODUCTION?** | Ranks every reporting exporter worldwide. Labelled `EXPORT PROXY` — this project has no production data |
+| **COMPARE COUNTRIES** | World Bank structural indicators plus k-means clustering with a silhouette score |
+| **EVENTS AFFECTING SUPPLY CHAINS** | Live GDACS hazards, linked to the ports and chokepoints within 500 km |
+| **WHAT IF?** | Close a chokepoint and see the modelled reroute, extra distance and propagation |
+
+For the authored version, open **SCENES** and play **Supply Chain Eye — Semiconductors**:
+seven shots that drive the console as they go, ending on the live hazard feed. Shot 3 holds
+on the Taiwan Strait with an empty map, because Taiwan does not report to UN Comtrade.
 
 **The supply-chain engine, headless** — the same analysis without a browser:
 
@@ -63,7 +74,7 @@ npm run demo economy          # live World Bank
 No API keys needed for any of it. Verify the whole thing:
 
 ```bash
-npm test                 # 4333 pass, 0 fail
+npm test                 # 4475 pass, 0 fail, 1 skipped (Node-24-only benchmark)
 npm run build
 npm run check:boundaries
 ```
@@ -79,8 +90,9 @@ The **analytical engine** is complete, tested and reproducible without a browser
 | Dijkstra, A*, Yen's k-shortest paths | `src/supplychain/routing.js` |
 | Degree, weighted degree, Brandes betweenness, HHI, CRn | `src/supplychain/centrality.js` |
 | Disruption simulation and propagation | `src/supplychain/disruption.js` |
-| UN Comtrade and World Bank clients | `src/supplychain/sources/` |
+| UN Comtrade, World Bank and GDACS clients | `src/supplychain/sources/` |
 | Forecasting, anomaly detection, clustering | `src/supplychain/ml/` |
+| Production concentration from the export proxy | `src/supplychain/production.js` |
 
 A live example, run against UN Comtrade on 2026-09-16 — South Korea's 2023 integrated-circuit
 imports:
@@ -97,12 +109,18 @@ The largest single source is an aggregate code that must be *inferred* to mean T
 Taiwan does not report to UN Comtrade, and querying it directly returns nothing. The system
 returns that as an inference with its evidence attached, never as a verified figure.
 
-## What is not built
+## What is not built, and why
 
-Production-region mapping, the geopolitical event layer (ACLED and EM-DAT need registered
-accounts), the country-comparison panel, and authored cinematic scene tours.
-`docs/PHASED_PLAN.md` tracks these, and `docs/DEMO_SCENARIOS.md` marks each step of the
-flagship investigation as working, inherited, data-unavailable or not built.
+| Gap | The blocking reality |
+| --- | --- |
+| **Per-commodity production data** | Firm-level output is confidential; USGS Mineral Commodity Summaries are PDF-only and FAOSTAT needs a key. The production map ranks **exports** and says so on every view. Re-export hubs — Rotterdam, Singapore, Hong Kong — are flagged individually rather than corrected, because there is no basis for a correction |
+| **Conflict, strikes, port closures** | GDACS covers natural hazards only and drives the event layer with no key. ACLED and EM-DAT still need registered accounts. The layer states that an absent marker is not evidence that nothing happened |
+| **Port-level container throughput** | Commercial. **Country-level** TEU is available from the World Bank and is used in COMPARE COUNTRIES; it cannot rank one port against another |
+| **Joint live + historical fused views** | The badging is in place; the fused view is not |
+
+`docs/PHASED_PLAN.md` tracks these, `docs/LIMITATIONS.md` states them in full, and
+`docs/DEMO_SCENARIOS.md` marks each step of the flagship investigation as working, inherited
+or data-unavailable.
 
 ## Principles enforced in code, not convention
 
@@ -114,6 +132,9 @@ flagship investigation as working, inherited, data-unavailable or not built.
 - Unknown edge distances cost `Infinity`, not zero, so data gaps cannot masquerade as
   shortcuts.
 - `forecast()` cannot return a model without its baselines and their out-of-sample errors.
+- A truncated upstream page is detected (the preview API caps at 500 rows and does not say
+  so) and reported as `INCOMPLETE`, never silently treated as a complete world ranking.
+- A country missing from a result is an absent measurement, never rendered as a zero.
 - Every `./supplychain/*` export is portable-checked by `npm run check:boundaries`, which
   mechanically rejects any reach into Cesium, Node or a browser global.
 

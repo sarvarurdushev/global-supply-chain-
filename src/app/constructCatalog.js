@@ -3,6 +3,8 @@ import { LAYER_STATE_REGISTRY } from '../data/layerState.js';
 import { createTradeFlowsLayer } from '../layers/tradeflows/index.js';
 import { createChokepointsLayer } from '../layers/chokepoints/index.js';
 import { createPortsLayer } from '../layers/ports/index.js';
+import { createEventsLayer } from '../layers/events/index.js';
+import { createTradeProxySource } from '../supplychain/sources/tradeProxy.js';
 import { governorRequestRender } from '../renderGovernor.js';
 import { createMilitaryRegistry } from '../layers/aircraft/classification.js';
 import { createApplicationFlights } from './layers/flights.js';
@@ -140,6 +142,12 @@ export function createApplicationCatalog({
           governorRequestRender,
         }),
         createChokepointsLayer({
+          governorRequestRender,
+        }),
+        createEventsLayer({
+          // Must go through the dev/preview proxy: gdacs.org sends no CORS
+          // headers, so a direct browser fetch is blocked outright.
+          source: createTradeProxySource(),
           governorRequestRender,
         }),
         createApplicationCables({ source: sources.cables }),

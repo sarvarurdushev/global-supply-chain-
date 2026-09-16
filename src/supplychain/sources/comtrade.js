@@ -196,14 +196,80 @@ export function normalizeRow(row) {
     isReported: row.isReported === true,
     isAggregate: row.isAggregate === true,
     legacyEstimationFlag: row.legacyEstimationFlag ?? null,
+    /**
+     * Breakdown dimensions. A query can return SEVERAL rows for the same
+     * reporter/partner/commodity, split by secondary partner, customs
+     * procedure, mode of transport or mode of supply. Measured: a multi-reporter
+     * query for HS 8542 returned 63 rows for Azerbaijan alone.
+     *
+     * Summing those naively multiplies the total several times over, so the
+     * dimensions are carried and `isCanonicalTotal` marks the single
+     * all-dimensions row.
+     */
+    partner2Code: strictNumber(row.partner2Code) ?? 0,
+    customsCode: row.customsCode ?? null,
+    motCode: strictNumber(row.motCode) ?? 0,
+    mosCode: row.mosCode ?? null,
+    isCanonicalTotal: isCanonicalTotal(row),
   });
 }
+
+/**
+ * Whether a raw row is the all-dimensions total rather than a breakdown slice.
+ *
+ * C00 is "all customs procedures", motCode 0 is "all modes of transport" and
+ * partner2Code 0 is "all secondary partners". A row that is not canonical is a
+ * component of one that is.
+ *
+ * Rows that omit these fields entirely — which is what single-reporter queries
+ * return — are treated as canonical, since there is nothing to disaggregate.
+ *
+ * @param {object} row raw Comtrade row
+ * @returns {boolean}
+ */
+export function isCanonicalTotal(row) {
+  const partner2 = strictNumber(row?.partner2Code);
+  const mot = strictNumber(row?.motCode);
+  const customs = row?.customsCode;
+  return (
+    (partner2 === null || partner2 === 0) &&
+    (mot === null || mot === 0) &&
+    (customs === null || customs === undefined || customs === 'C00')
+  );
+}
+
+/**
+ * Keep only all-dimensions total rows.
+ *
+ * Call this before summing or ranking anything. Returns the rows unchanged when
+ * no breakdown is present, so it is safe on every query shape.
+ *
+ * @param {Array<object>} rows normalized rows
+ * @returns {Array<object>}
+ */
+export function canonicalRows(rows) {
+  if (!Array.isArray(rows)) throw new TypeError('rows must be an array');
+  return rows.filter((row) => row.isCanonicalTotal);
+}
+
+/**
+ * The preview endpoint's hard row cap, measured rather than documented.
+ *
+ * A request for 40 reporters of cmdCode=TOTAL returns `count: 500` with exactly
+ * 500 rows; the same request for a single HS heading returns 144. The endpoint
+ * is silently truncating, and the response carries no flag saying so — `count`
+ * simply equals the cap. Detecting it is the whole reason this constant exists:
+ * a truncated page looks exactly like a complete one, and a caller that treats
+ * it as complete publishes a ranking with countries missing for no stated
+ * reason.
+ */
+export const PREVIEW_ROW_LIMIT = 500;
 
 /**
  * Validate and normalize a full Comtrade response.
  *
  * @param {object} payload
- * @returns {{rows:Array<object>, rejected:number, count:number}}
+ * @returns {{rows:Array<object>, rejected:number, count:number, truncated:boolean}}
  */
 export function normalizeResponse(payload) {
   if (!payload || typeof payload !== 'object') {
@@ -232,6 +298,9 @@ export function normalizeResponse(payload) {
     count: Number.isFinite(Number(payload.count))
       ? Number(payload.count)
       : rows.length,
+    // Compared against the RAW page length, not the validated rows: dropping a
+    // malformed row would otherwise hide the fact that the page was capped.
+    truncated: payload.data.length >= PREVIEW_ROW_LIMIT,
   };
 }
 
@@ -246,6 +315,7 @@ export function normalizeResponse(payload) {
  * @param {number|null} [input.refYear]
  * @param {number} [input.rejected]
  * @param {boolean} [input.anyAggregate]
+ * @param {boolean} [input.truncated]
  * @returns {object}
  */
 export function comtradeProvenance({
@@ -254,6 +324,7 @@ export function comtradeProvenance({
   refYear = null,
   rejected = 0,
   anyAggregate = false,
+  truncated = false,
   method = 'Direct read of the public preview API, validated and normalized.',
   extraLimitations = [],
 }) {
@@ -269,6 +340,7 @@ export function comtradeProvenance({
     limitations: comtradeLimitations({
       rejected,
       anyAggregate,
+      truncated,
       extraLimitations,
     }),
   });
@@ -281,12 +353,14 @@ export function comtradeProvenance({
  * @param {object} [input]
  * @param {number} [input.rejected]
  * @param {boolean} [input.anyAggregate]
+ * @param {boolean} [input.truncated]
  * @param {string[]} [input.extraLimitations]
  * @returns {string[]}
  */
 export function comtradeLimitations({
   rejected = 0,
   anyAggregate = false,
+  truncated = false,
   extraLimitations = [],
 } = {}) {
   const limitations = [
@@ -307,6 +381,13 @@ export function comtradeLimitations({
   if (rejected > 0) {
     limitations.push(
       `${rejected} row(s) failed validation and were discarded.`,
+    );
+  }
+  if (truncated) {
+    limitations.push(
+      `INCOMPLETE: the preview endpoint returned its ${PREVIEW_ROW_LIMIT}-row ` +
+        'cap, so this result is a truncated page. Rows beyond the cap are ' +
+        'missing and the response does not say which. Narrow the query.',
     );
   }
   return [...limitations, ...extraLimitations];
@@ -354,17 +435,19 @@ export function createComtradeSource({
      */
     async getTradeFlows(query, { signal } = {}) {
       const { url, payload } = await request(query, { signal });
-      const { rows, rejected, count } = normalizeResponse(payload);
+      const { rows, rejected, count, truncated } = normalizeResponse(payload);
       return {
         rows,
         rejected,
         count,
+        truncated,
         provenance: comtradeProvenance({
           dataset: url,
           retrievedAt: now(),
           refYear: rows[0]?.refYear ?? null,
           rejected,
           anyAggregate: rows.some((r) => !r.isReported),
+          truncated,
         }),
       };
     },

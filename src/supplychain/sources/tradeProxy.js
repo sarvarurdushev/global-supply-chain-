@@ -13,8 +13,13 @@
  * Portable: no Cesium, no Node, no browser globals.
  */
 
-import { normalizeResponse, comtradeProvenance } from './comtrade.js';
+import {
+  normalizeResponse,
+  comtradeProvenance,
+  canonicalRows,
+} from './comtrade.js';
 import { normalizeIndicatorResponse } from './worldbank.js';
+import { normalizeEventFeed, gdacsProvenance } from './gdacs.js';
 import { DataClass, createProvenance } from '../provenance.js';
 
 /** Raised when the proxy itself fails, as distinct from an upstream failure. */
@@ -91,11 +96,24 @@ export function createTradeProxySource({
       };
       if (partner !== null) params.partner = [].concat(partner).join(',');
       const body = await call('/trade', params, options);
-      const { rows, rejected, count } = normalizeResponse(body.payload);
-      return {
-        rows,
+      const {
+        rows: raw,
         rejected,
         count,
+        truncated,
+      } = normalizeResponse(body.payload);
+      // A multi-reporter query returns breakdown slices as well as totals.
+      // Summing both would multiply-count, so only all-dimensions totals reach
+      // a caller. See canonicalRows() for the measured example.
+      const rows = canonicalRows(raw);
+      return {
+        rows,
+        breakdownRowsDiscarded: raw.length - rows.length,
+        rejected,
+        count,
+        // Truncation is detected on the RAW page, before canonical filtering:
+        // the cap applies to what the endpoint sent, not to what survives here.
+        truncated,
         cached: Boolean(body.cached),
         provenance: comtradeProvenance({
           dataset: `${basePath}/trade?${new URLSearchParams(params)}`,
@@ -103,6 +121,7 @@ export function createTradeProxySource({
           refYear: rows[0]?.refYear ?? null,
           rejected,
           anyAggregate: rows.some((r) => !r.isReported),
+          truncated,
           method:
             "Read through this application's cached proxy, then validated and " +
             'normalized with the same code path used server-side.',
@@ -160,6 +179,27 @@ export function createTradeProxySource({
             'One cached proxy request per period; the upstream permits only ' +
             'one period per call.',
           extraLimitations,
+        }),
+      };
+    },
+
+    /**
+     * Current GDACS hazard events.
+     *
+     * @param {object} [options]
+     * @param {AbortSignal} [options.signal]
+     */
+    async getEvents(options = {}) {
+      const body = await call('/events', {}, options);
+      const { events, rejected } = normalizeEventFeed(body.payload);
+      return {
+        events,
+        rejected,
+        cached: Boolean(body.cached),
+        provenance: gdacsProvenance({
+          dataset: `${basePath}/events`,
+          retrievedAt: body.retrievedAt ?? now(),
+          rejected,
         }),
       };
     },

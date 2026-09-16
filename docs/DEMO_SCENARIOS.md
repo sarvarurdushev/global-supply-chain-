@@ -192,8 +192,12 @@ console is the right-hand rail.
 | Voice control | 🟢 working | 4 actions; see below |
 | Select a live vessel | 🟢 inherited | God's Eye View AIS layer, unchanged |
 | Per-vessel commodity association | ⚪ **DATA UNAVAILABLE** | AIS carries no cargo field. The port card says so rather than guessing |
-| Production regions | ⬜ not built | Needs production data; see `docs/PHASED_PLAN.md` |
-| Country comparison panel | ⬜ not built | Engine exists, UI does not |
+| Where is production? | 🟡 **export proxy** | MAP WORLD PRODUCTION ranks every reporting exporter. Verified live: 141 exporters for HS 8542 in 2023, Hong Kong and Singapore flagged as re-export hubs. Labelled EXPORT PROXY throughout — see below |
+| Country comparison | 🟢 working | COMPARE COUNTRIES: World Bank structural indicators plus k-means clustering with a silhouette score. Each indicator renders in its own unit |
+| Events affecting supply chains | 🟢 working | LOAD CURRENT EVENTS: live GDACS hazards, linked to ports and chokepoints within 500 km. Verified live: 100 events, 18–19 exposed |
+| Authored cinematic tour | 🟢 working | SCENES → "Supply Chain Eye — Semiconductors", 7 shots. The tour drives the console as it plays |
+| Per-commodity production data | ⚪ **DATA UNAVAILABLE** | USGS is PDF-only, FAOSTAT needs a key. The map says EXPORTS, NOT PRODUCTION rather than implying otherwise |
+| Conflict, strikes, port closures | ⚪ **DATA UNAVAILABLE** | GDACS is natural hazards only; ACLED and EM-DAT need accounts. The layer states that an absent marker is not evidence of absence |
 
 ### Voice, verified in the running app
 
@@ -222,3 +226,37 @@ calls. Actual spoken output:
 
 Every answer is assembled from what the console actually loaded. The handlers never answer
 from the model's own knowledge, and when nothing is loaded they say so.
+
+---
+
+## Scenario 6 — The authored tour (RUNNABLE NOW)
+
+`npm run dev`, open the **SCENES** panel, pick **Supply Chain Eye — Semiconductors**, press
+play. Seven shots, about 58 seconds.
+
+| # | Shot | What is on screen | Data class |
+| --- | --- | --- | --- |
+| 1 | World Trade In One Commodity | The whole planet, every partner arc for HS 8542 | 🟡 HISTORICAL |
+| 2 | The Dependency | Korea, the reporter the arcs converge on | 🟡 HISTORICAL |
+| 3 | The Gap Where Taiwan Should Be | The strait, held on an empty map | ⚪ **DATA UNAVAILABLE** |
+| 4 | Malacca | Chokepoint and the ports around it | ⚫ REFERENCE |
+| 5 | Suez Under Closure | The disruption simulation running | 🔵 SIMULATED |
+| 6 | The Cape Reroute | Where the modelled path goes instead | 🔵 SIMULATED |
+| 7 | What Is Happening Right Now | Live GDACS hazards over the port network | 🟢 LIVE |
+
+Shot 3 is the point of the sequence, not an aside. Taiwan does not report to UN Comtrade, so
+the tour flies to the strait and holds on nothing — it does not substitute a mirror estimate
+and present it as Taiwan's own figure.
+
+The tour drives the console as it plays: `src/scenes/packs/supplyChain.js` maps each shot
+title to the console call that shot's frame needs, and `src/app/tools.js` subscribes the
+runner to the director. The trade layer draws only what the console loaded, by design, so a
+camera path on its own would fly over an empty globe.
+
+While a scripted call runs, the console's own camera moves are suspended — the director owns
+the camera during an authored scene. Without that, the Suez beat authored at 700 km landed at
+2,500 km because the scenario fly-to overrode it.
+
+**Verified in the running app**: all seven shots reached their authored camera position, with
+the right layers enabled and the scripted data loaded (105 partners / 50 arcs on shots 1–3,
+scenario present from shot 5, 100 GDACS events on shot 7). No console errors.

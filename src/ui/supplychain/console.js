@@ -31,11 +31,20 @@ import {
   partitionPartners,
 } from '../../supplychain/reference/areas.js';
 import { buildFlows } from '../../supplychain/sources/tradeProxy.js';
+import { linkEventsToNodes } from '../../supplychain/sources/gdacs.js';
+import { haversineKm } from '../../supplychain/geo.js';
 import {
   herfindahlIndex,
   concentrationRatio,
 } from '../../supplychain/centrality.js';
 import { forecast } from '../../supplychain/ml/forecast.js';
+import { clusterCountries } from '../../supplychain/ml/cluster.js';
+import {
+  productionProxy,
+  PRODUCTION_INDICATORS,
+  classifyStructure,
+  reportersAtRisk,
+} from '../../supplychain/production.js';
 import { detectAnomalies } from '../../supplychain/ml/anomaly.js';
 import { AssociationClass } from '../../supplychain/provenance.js';
 import {
@@ -58,6 +67,7 @@ import {
   timeSeriesChart,
   beforeAfterChart,
   formatUsd,
+  formatterForUnit,
 } from './charts.js';
 
 /** Years offered by the time machine. Comtrade lags, so the newest is not this year. */
@@ -273,6 +283,23 @@ export function createSupplyChainConsole({
     throw new TypeError('The supply-chain console requires a trade source');
   }
 
+  /**
+   * Whether this console may move the camera.
+   *
+   * The console flies to what it loads, which is the right behaviour when a
+   * person clicks INVESTIGATE or a bar in a chart. It is the wrong behaviour
+   * during an authored scene: the director owns the camera there, and a
+   * console fly-to lands the shot somewhere its author did not frame. Measured:
+   * the tour's Suez beat is authored at 700 km, and the scenario fly-to left it
+   * at 2,500 km. The scene runner suspends this around each scripted call.
+   */
+  let cameraSuspended = false;
+  const moveCamera = (target) => {
+    if (cameraSuspended || !flyTo) return false;
+    flyTo(target);
+    return true;
+  };
+
   const state = {
     commodity: 'semiconductors',
     reporter: 'KOR',
@@ -282,6 +309,10 @@ export function createSupplyChainConsole({
     result: null,
     series: null,
     scenario: null,
+    production: null,
+    comparison: null,
+    events: null,
+    compareSelection: null,
     error: null,
   };
 
@@ -291,6 +322,9 @@ export function createSupplyChainConsole({
   /* ---------------- DOM skeleton ---------------- */
 
   const resultsBody = h('div', { class: 'sc-body' });
+  const productionBody = h('div', { class: 'sc-body' });
+  const compareBody = h('div', { class: 'sc-body' });
+  const eventsBody = h('div', { class: 'sc-body' });
   const whatIfBody = h('div', { class: 'sc-body' });
   const statusLine = h('div', { class: 'sc-status', text: 'Ready.' });
 
@@ -405,6 +439,18 @@ export function createSupplyChainConsole({
         resultsBody,
       ]),
       h('section', { class: 'sc-section' }, [
+        h('h3', { class: 'sc-h3', text: 'WHERE IS PRODUCTION?' }),
+        productionBody,
+      ]),
+      h('section', { class: 'sc-section' }, [
+        h('h3', { class: 'sc-h3', text: 'COMPARE COUNTRIES' }),
+        compareBody,
+      ]),
+      h('section', { class: 'sc-section' }, [
+        h('h3', { class: 'sc-h3', text: 'EVENTS AFFECTING SUPPLY CHAINS' }),
+        eventsBody,
+      ]),
+      h('section', { class: 'sc-section' }, [
         h('h3', { class: 'sc-h3', text: 'WHAT IF?' }),
         whatIfBody,
       ]),
@@ -474,8 +520,12 @@ export function createSupplyChainConsole({
         onSelect: (row) => {
           if (!row.area) return;
           const country = COUNTRIES.find((c) => c.m49 === row.area.code);
-          if (country && flyTo) {
-            flyTo({ lat: country.lat, lon: country.lon, heightM: 4_000_000 });
+          if (country) {
+            moveCamera({
+              lat: country.lat,
+              lon: country.lon,
+              heightM: 4_000_000,
+            });
           }
           showPartnerDetail(row.area, row.value);
         },
@@ -731,6 +781,630 @@ export function createSupplyChainConsole({
     if (provenance) parent.appendChild(provenanceBlock(provenance));
   }
 
+  /* ---------------- production (§21) ---------------- */
+
+  function renderProduction() {
+    productionBody.replaceChildren();
+    const button = h('button', {
+      class: 'sc-secondary sc-block',
+      type: 'button',
+      text: 'MAP WORLD PRODUCTION',
+      onClick: loadProduction,
+    });
+    productionBody.appendChild(button);
+
+    if (!state.production) {
+      productionBody.appendChild(
+        h('p', {
+          class: 'sc-hint',
+          text:
+            'Ranks exporters of the selected commodity worldwide. Exports are ' +
+            'a proxy for production — this project has no production data.',
+        }),
+      );
+      return;
+    }
+
+    const p = state.production;
+    // The proxy warning is not tucked into the provenance drawer; it is the
+    // first thing above the map, because the map is wrong without it.
+    productionBody.appendChild(
+      h('div', { class: 'sc-caveat' }, [
+        h('div', { class: 'sc-caveat-head' }, [
+          h('span', {
+            class: 'sc-badge sc-badge-inf',
+            text: '🟡 EXPORT PROXY',
+          }),
+          h('strong', { text: 'This is exports, not production.' }),
+        ]),
+        h('p', {
+          text:
+            'No open production dataset is integrated. Re-export hubs appear ' +
+            'as producers, domestic consumption is invisible, and value is ' +
+            'not volume.',
+        }),
+      ]),
+    );
+
+    if (p.producers.length === 0) {
+      productionBody.appendChild(
+        dataGapBlock(
+          'No exporter reported this commodity for the selected year.',
+          'A year in which reporters filed this HS heading',
+        ),
+      );
+      return;
+    }
+
+    productionBody.appendChild(
+      barChart({
+        rows: p.producers.slice(0, 10).map((row) => ({
+          label: row.name,
+          value: row.valueUsd,
+          accent: row.reexportHub ? 'var(--sc-inferred)' : 'var(--sc-verified)',
+          note:
+            row.reexportHub ??
+            `${((row.share ?? 0) * 100).toFixed(1)}% of reported exports`,
+          row,
+        })),
+        onSelect: (entry) => {
+          const row = entry.row;
+          if (row?.lat !== null && row?.lon !== null) {
+            moveCamera({ lat: row.lat, lon: row.lon, heightM: 6_000_000 });
+          }
+        },
+      }),
+    );
+
+    const hhi = p.concentration.hhi;
+    if (hhi.value !== null) {
+      productionBody.appendChild(
+        h('div', { class: 'sc-metrics' }, [
+          h('div', { class: 'sc-metric' }, [
+            h('span', { class: 'sc-metric-value', text: hhi.value.toFixed(3) }),
+            h('span', {
+              class: 'sc-metric-label',
+              text: `HHI · ${hhi.interpretation}`,
+            }),
+          ]),
+          h('div', { class: 'sc-metric' }, [
+            h('span', {
+              class: 'sc-metric-value',
+              text: hhi.effectiveCount.toFixed(1),
+            }),
+            h('span', {
+              class: 'sc-metric-label',
+              text: 'effective producers',
+            }),
+          ]),
+        ]),
+      );
+    }
+
+    for (const flag of p.reexportFlags) {
+      productionBody.appendChild(
+        h('p', { class: 'sc-footnote' }, [
+          h('strong', { text: `${flag.name}: ` }),
+          flag.note,
+        ]),
+      );
+    }
+    if (p.unretrievedReporterCount > 0) {
+      productionBody.appendChild(
+        dataGapBlock(
+          `${p.unretrievedReporterCount} reporter(s) could not be retrieved ` +
+            'from the upstream and are missing from this ranking entirely.',
+          'A successful response from UN Comtrade for those reporters',
+        ),
+      );
+    }
+    if (p.incompleteReporters.length > 0) {
+      // A capped upstream page is a gap in the ranking, so it is shown as one
+      // rather than left to the provenance drawer.
+      productionBody.appendChild(
+        dataGapBlock(
+          `${p.incompleteReporters.length} reporter(s) returned a truncated ` +
+            `page and may be understated: ${p.incompleteReporters.join(', ')}.`,
+          'An upstream query narrow enough to stay under the row cap',
+        ),
+      );
+    }
+    productionBody.appendChild(provenanceBlock(p.provenance));
+  }
+
+  /** Reporters per proxy call. The proxy caps a request at 60. */
+  const PRODUCTION_BATCH = 30;
+
+  async function loadProduction() {
+    const group = COMMODITY_GROUPS.find((g) => g.key === state.commodity);
+    if (!group) return;
+    setStatus('Ranking world exporters…', 'sc-busy');
+    try {
+      const reporters = COUNTRIES.filter((c) => c.m49 !== null).map(
+        (c) => c.m49,
+      );
+      const rows = [];
+      const incomplete = [];
+      const failed = [];
+      let provenance = null;
+      let done = 0;
+
+      /**
+       * Fetch one batch, splitting it only if the cap actually cost us a total.
+       *
+       * The preview endpoint caps every response at 500 rows and says so only
+       * by returning exactly that many. Truncation alone is not proof of loss,
+       * though: a page is mostly partner2/mode-of-transport breakdown slices,
+       * which canonical filtering discards anyway. Turkey's 2023 HS 8542
+       * exports fill all 500 rows with 133 partner2 values — and the one
+       * canonical total is still in there. Warning on truncation alone flagged
+       * Turkey as understated when its figure was exact.
+       *
+       * So the test is what came back, not how full the page was: a requested
+       * reporter with no canonical total on a TRUNCATED page may have been cut
+       * off, and that batch is halved to find out. The same reporter missing
+       * from an UNTRUNCATED page simply did not report this commodity, which is
+       * an absence in the source rather than one this code caused.
+       */
+      async function fetchBatch(batch) {
+        let result;
+        try {
+          result = await source.getTradeFlows({
+            reporter: batch,
+            period: state.year,
+            cmd: group.hsHeadings[0],
+            flow: 'X',
+            partner: 0,
+          });
+        } catch (error) {
+          // One throttled or failed batch must not void the other seven. The
+          // reporters in it are recorded as missing and the panel says so,
+          // which is the same discipline getTradeSeries applies to a period
+          // that fails mid-series.
+          failed.push(...batch);
+          done += batch.length;
+          throw Object.assign(new Error(error.message), { batchFailed: true });
+        }
+        provenance = result.provenance;
+        const atRisk = reportersAtRisk({
+          requested: batch,
+          returned: result.rows.map((row) => row.reporterCode),
+          truncated: result.truncated,
+        });
+
+        if (atRisk.length === 0) {
+          rows.push(...result.rows);
+          done += batch.length;
+          setStatus(
+            `Ranking world exporters… ${done}/${reporters.length}`,
+            'sc-busy',
+          );
+          return;
+        }
+        if (batch.length === 1) {
+          // A single reporter whose own page is capped with no total in it. We
+          // cannot narrow the query further from here, so it is declared.
+          rows.push(...result.rows);
+          incomplete.push(batch[0]);
+          done += 1;
+          return;
+        }
+        const mid = Math.ceil(batch.length / 2);
+        await fetchBatch(batch.slice(0, mid));
+        await fetchBatch(batch.slice(mid));
+      }
+
+      for (let i = 0; i < reporters.length; i += PRODUCTION_BATCH) {
+        try {
+          await fetchBatch(reporters.slice(i, i + PRODUCTION_BATCH));
+        } catch (error) {
+          if (!error.batchFailed) throw error;
+        }
+      }
+      if (rows.length === 0) {
+        setStatus(
+          'Production ranking failed: no batch returned data.',
+          'sc-err',
+        );
+        return;
+      }
+
+      state.production = productionProxy({
+        rows,
+        interpret: interpretArea,
+        resolve: (code) => COUNTRIES.find((c) => c.m49 === code) ?? null,
+        commodityLabel: group.label,
+        period: state.year,
+        retrievedAt: provenance.retrievedAt,
+        incompleteReporters: incomplete.map(
+          (code) => COUNTRIES.find((c) => c.m49 === code)?.name ?? String(code),
+        ),
+        unretrievedReporterCount: failed.length,
+      });
+      const caveats = [];
+      if (incomplete.length)
+        caveats.push(`${incomplete.length} truncated page(s)`);
+      if (failed.length)
+        caveats.push(`${failed.length} reporter(s) not retrieved`);
+      setStatus(
+        `${state.production.producers.length} exporters ranked (export proxy).` +
+          (caveats.length ? ` ${caveats.join('; ')}.` : ''),
+        caveats.length ? 'sc-warn' : 'sc-ok',
+      );
+      renderProduction();
+      notify();
+    } catch (error) {
+      setStatus(`Production ranking failed: ${error.message}`, 'sc-err');
+    }
+  }
+
+  /* ---------------- country comparison (§20) ---------------- */
+
+  const COMPARE_DEFAULT = ['KOR', 'CHN', 'JPN', 'VNM', 'DEU'];
+
+  function renderCompare() {
+    compareBody.replaceChildren();
+    const select = h(
+      'select',
+      {
+        class: 'sc-select',
+        multiple: '',
+        size: '6',
+        'aria-label': 'Countries to compare',
+      },
+      FEATURED_REPORTERS.map((iso3) => {
+        const country = COUNTRIES.find((c) => c.iso3 === iso3);
+        const option = h('option', {
+          value: iso3,
+          text: country?.name ?? iso3,
+        });
+        if ((state.compareSelection ?? COMPARE_DEFAULT).includes(iso3)) {
+          option.selected = true;
+        }
+        return option;
+      }),
+    );
+    compareBody.appendChild(
+      h('label', { class: 'sc-field' }, [
+        h('span', { class: 'sc-field-label', text: 'SELECT TWO OR MORE' }),
+        select,
+      ]),
+    );
+    compareBody.appendChild(
+      h('button', {
+        class: 'sc-secondary sc-block',
+        type: 'button',
+        text: 'COMPARE',
+        onClick: () => {
+          state.compareSelection = [...select.selectedOptions].map(
+            (o) => o.value,
+          );
+          loadComparison();
+        },
+      }),
+    );
+
+    if (!state.comparison) {
+      compareBody.appendChild(
+        h('p', {
+          class: 'sc-hint',
+          text: 'World Bank indicators, plus a clustering of trade structure.',
+        }),
+      );
+      return;
+    }
+    renderComparison(compareBody, state.comparison);
+  }
+
+  function renderComparison(parent, comparison) {
+    const { economies, indicators, clustering, provenance } = comparison;
+
+    for (const indicator of indicators) {
+      parent.appendChild(
+        h('h4', {
+          class: 'sc-h4',
+          text: `${indicator.label} (${indicator.unit})`,
+        }),
+      );
+      const rows = economies
+        .map((economy) => ({
+          label: economy.name,
+          value: economy.values[indicator.code],
+        }))
+        .filter((r) => typeof r.value === 'number' && r.value > 0);
+      if (rows.length === 0) {
+        // A missing indicator is a gap, not an empty chart.
+        parent.appendChild(
+          dataGapBlock(
+            `No economy in this selection reports ${indicator.label}.`,
+            'A year and economy the World Bank covers for this indicator',
+          ),
+        );
+        continue;
+      }
+      parent.appendChild(
+        barChart({
+          rows: rows.sort((a, b) => b.value - a.value),
+          rowHeight: 22,
+          format: formatterForUnit(indicator.unit),
+        }),
+      );
+      parent.appendChild(
+        h('p', { class: 'sc-footnote', text: indicator.reads }),
+      );
+    }
+
+    parent.appendChild(
+      h('h4', { class: 'sc-h4', text: 'PRODUCTIVE STRUCTURE' }),
+    );
+    parent.appendChild(
+      h(
+        'ul',
+        { class: 'sc-structure' },
+        economies.map((economy) =>
+          h('li', {}, [
+            h('strong', { text: `${economy.name}: ` }),
+            h('span', {
+              text: economy.structure.structure
+                .replace(/_/g, ' ')
+                .toLowerCase(),
+            }),
+            h('br'),
+            h('span', { class: 'sc-footnote', text: economy.structure.basis }),
+            economy.structure.confident
+              ? null
+              : h('span', {
+                  class: 'sc-footnote',
+                  text: ' (residual classification — a weaker claim)',
+                }),
+          ]),
+        ),
+      ),
+    );
+
+    parent.appendChild(h('h4', { class: 'sc-h4', text: 'CLUSTERING' }));
+    if (!clustering.assessable) {
+      parent.appendChild(
+        dataGapBlock(
+          clustering.reason,
+          'More economies with complete indicators',
+        ),
+      );
+    } else {
+      for (const cluster of clustering.clusters) {
+        if (cluster.size === 0) continue;
+        parent.appendChild(
+          h('p', { class: 'sc-footnote' }, [
+            h('strong', { text: `Cluster ${cluster.label + 1}: ` }),
+            cluster.members.map((m) => m.name).join(', '),
+          ]),
+        );
+      }
+      parent.appendChild(
+        h('p', {
+          class: 'sc-verdict',
+          text: `Silhouette ${clustering.silhouette === null ? 'n/a' : clustering.silhouette.toFixed(3)} — ${clustering.silhouetteInterpretation}`,
+        }),
+      );
+      parent.appendChild(provenanceBlock(clustering.provenance));
+    }
+    parent.appendChild(provenanceBlock(provenance));
+  }
+
+  async function loadComparison() {
+    const selection = state.compareSelection ?? COMPARE_DEFAULT;
+    if (selection.length < 2) {
+      setStatus('Select at least two countries to compare.', 'sc-err');
+      return;
+    }
+    setStatus('Loading World Bank indicators…', 'sc-busy');
+    try {
+      const indicators = PRODUCTION_INDICATORS.concat([
+        {
+          code: 'NY.GDP.MKTP.CD',
+          label: 'GDP',
+          unit: 'current US$',
+          reads: 'Economy size.',
+        },
+        {
+          code: 'IS.SHP.GOOD.TU',
+          label: 'Container port traffic',
+          unit: 'TEU',
+          reads:
+            'Country-level container throughput. Port-level throughput is ' +
+            'commercial; this national figure is the free substitute.',
+        },
+      ]);
+      const values = new Map(selection.map((iso3) => [iso3, {}]));
+      let lastProvenance = null;
+      for (const indicator of indicators) {
+        const result = await source.getIndicator({
+          iso3: selection,
+          indicator: indicator.code,
+          start: state.year - 4,
+          end: state.year,
+        });
+        lastProvenance = result.provenance;
+        // Latest available observation per economy: indicators lag unevenly,
+        // so pinning one year would drop economies that simply reported later.
+        for (const iso3 of selection) {
+          const series = result.observations.filter((o) => o.iso3 === iso3);
+          values.get(iso3)[indicator.code] =
+            series.length > 0 ? series[series.length - 1].value : null;
+        }
+      }
+
+      const economies = selection.map((iso3) => {
+        const country = COUNTRIES.find((c) => c.iso3 === iso3);
+        return {
+          iso3,
+          name: country?.name ?? iso3,
+          values: values.get(iso3),
+          structure: classifyStructure(values.get(iso3)),
+        };
+      });
+
+      // Cluster on the indicators every selected economy actually reports;
+      // imputing a missing value would invent the structure being measured.
+      const usable = indicators.filter((indicator) =>
+        economies.every((e) => typeof e.values[indicator.code] === 'number'),
+      );
+      const clustering =
+        usable.length >= 2 && economies.length >= 2
+          ? clusterCountries({
+              observations: economies.map((e) => ({
+                id: e.iso3,
+                name: e.name,
+                features: usable.map((i) => e.values[i.code]),
+              })),
+              featureNames: usable.map((i) => i.label),
+              k: Math.min(3, economies.length),
+            })
+          : {
+              assessable: false,
+              reason:
+                'Fewer than two indicators are reported by every selected ' +
+                'economy, so there is nothing common to cluster on.',
+              clusters: [],
+            };
+
+      state.comparison = {
+        economies,
+        indicators,
+        clustering,
+        provenance: lastProvenance,
+      };
+      setStatus(`Compared ${economies.length} economies.`, 'sc-ok');
+      renderCompare();
+      notify();
+    } catch (error) {
+      setStatus(`Comparison failed: ${error.message}`, 'sc-err');
+    }
+  }
+
+  /* ---------------- events (§15) ---------------- */
+
+  function renderEvents() {
+    eventsBody.replaceChildren();
+    eventsBody.appendChild(
+      h('button', {
+        class: 'sc-secondary sc-block',
+        type: 'button',
+        text: 'LOAD CURRENT EVENTS',
+        onClick: loadEvents,
+      }),
+    );
+
+    if (!state.events) {
+      eventsBody.appendChild(
+        h('p', {
+          class: 'sc-hint',
+          text:
+            'Live natural hazards from GDACS, matched to ports and chokepoints ' +
+            'within 500 km.',
+        }),
+      );
+      return;
+    }
+
+    const { events, exposed, provenance } = state.events;
+    eventsBody.appendChild(
+      h('p', { class: 'sc-caption' }, [
+        h('span', { class: 'sc-badge sc-badge-live', text: '🟢 LIVE' }),
+        ` ${events.length} current events · ${exposed.length} within 500 km of tracked infrastructure`,
+      ]),
+    );
+
+    if (exposed.length === 0) {
+      eventsBody.appendChild(
+        h('p', {
+          class: 'sc-footnote',
+          text:
+            'No current hazard is near a tracked port or chokepoint. That is ' +
+            'not the same as no disruption: GDACS carries natural hazards ' +
+            'only, not strikes, closures or sanctions.',
+        }),
+      );
+    } else {
+      eventsBody.appendChild(
+        h(
+          'ul',
+          { class: 'sc-events' },
+          exposed.slice(0, 8).map((event) =>
+            h(
+              'li',
+              {
+                class: `sc-event sc-alert-${(event.alertLevel ?? 'none').toLowerCase()}`,
+              },
+              [
+                h('div', { class: 'sc-event-head' }, [
+                  h('strong', { text: event.eventLabel }),
+                  h('span', { text: event.country ?? '' }),
+                ]),
+                h('div', {
+                  class: 'sc-footnote',
+                  text: event.severityText ?? 'Severity not reported',
+                }),
+                h('div', { class: 'sc-footnote' }, [
+                  'Near: ',
+                  event.nearby
+                    .map((n) => `${n.name} (${Math.round(n.distanceKm)} km)`)
+                    .join(', '),
+                ]),
+              ],
+            ),
+          ),
+        ),
+      );
+      eventsBody.appendChild(
+        h('p', {
+          class: 'sc-footnote',
+          text: exposed[0].proximityCaveat,
+        }),
+      );
+    }
+    eventsBody.appendChild(provenanceBlock(provenance));
+  }
+
+  async function loadEvents() {
+    setStatus('Loading GDACS events…', 'sc-busy');
+    try {
+      const { events, provenance } = await source.getEvents();
+      const linked = linkEventsToNodes({
+        events,
+        nodes: [
+          ...MAJOR_PORTS.map((p) => ({
+            id: p.id,
+            name: p.name,
+            lat: p.lat,
+            lon: p.lon,
+            kind: 'port',
+          })),
+          ...CHOKEPOINTS.map((c) => ({
+            id: c.id,
+            name: c.name,
+            lat: c.lat,
+            lon: c.lon,
+            kind: 'chokepoint',
+          })),
+        ],
+        distanceKm: haversineKm,
+        radiusKm: 500,
+      });
+      state.events = {
+        events: linked,
+        exposed: linked.filter((e) => e.nearbyCount > 0),
+        provenance,
+      };
+      await setLayerEnabled?.('supply-events', true);
+      setStatus(`${linked.length} events loaded.`, 'sc-ok');
+      renderEvents();
+      notify();
+    } catch (error) {
+      setStatus(`Events failed: ${error.message}`, 'sc-err');
+    }
+  }
+
   /* ---------------- WHAT IF ---------------- */
 
   function renderWhatIf() {
@@ -969,8 +1643,12 @@ export function createSupplyChainConsole({
       // Trade arcs are global. The inherited app starts at street level, where
       // none of them are on screen, so framing the reporter from orbit is part
       // of rendering the answer rather than a courtesy.
-      if (flyTo && flows.length > 0) {
-        flyTo({ lat: country.lat, lon: country.lon, heightM: 18_000_000 });
+      if (flows.length > 0) {
+        moveCamera({
+          lat: country.lat,
+          lon: country.lon,
+          heightM: 18_000_000,
+        });
       }
 
       setStatus(
@@ -1063,7 +1741,7 @@ export function createSupplyChainConsole({
 
     state.scenario = { result, reach, point, graphProvenance };
     layers.chokepoints?.setDisrupted([point.id]);
-    if (flyTo) flyTo({ lat: point.lat, lon: point.lon, heightM: 2_500_000 });
+    moveCamera({ lat: point.lat, lon: point.lon, heightM: 2_500_000 });
     renderWhatIf();
     notify();
     return state.scenario;
@@ -1079,6 +1757,9 @@ export function createSupplyChainConsole({
       hasResult: state.result !== null,
       hasSeries: state.series !== null,
       hasScenario: state.scenario !== null,
+      hasProduction: state.production !== null,
+      hasComparison: state.comparison !== null,
+      hasEvents: state.events !== null,
       error: state.error,
     });
   }
@@ -1129,6 +1810,9 @@ export function createSupplyChainConsole({
   }
 
   renderResults();
+  renderProduction();
+  renderCompare();
+  renderEvents();
   renderWhatIf();
   container.appendChild(panel);
   container.appendChild(launcher);
@@ -1191,6 +1875,23 @@ export function createSupplyChainConsole({
     getState,
     describeResult,
     describeEvidence,
+    loadProduction,
+    loadComparison,
+    loadEvents,
+    /**
+     * Suspend or restore this console's own camera moves.
+     *
+     * Used by the authored tour so the director keeps the camera it framed.
+     * Returns the previous value so a caller can restore rather than guess.
+     *
+     * @param {boolean} suspended
+     * @returns {boolean} the previous setting
+     */
+    setCameraSuspended(suspended) {
+      const previous = cameraSuspended;
+      cameraSuspended = Boolean(suspended);
+      return previous;
+    },
     subscribe(listener) {
       listeners.add(listener);
       listener(getState());
