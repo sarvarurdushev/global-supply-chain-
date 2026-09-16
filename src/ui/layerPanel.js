@@ -46,6 +46,7 @@ const PANEL_GROUPS = [
     label: 'Supply Chain',
     ids: [
       'country-borders',
+      'supply-chain',
       'trade-flows',
       'supply-ports',
       'chokepoints',
@@ -70,6 +71,7 @@ const PANEL_LABELS = {
   chokepoints: 'Chokepoints',
   'supply-events': 'Supply Chain Events',
   'country-borders': 'Country Borders',
+  'supply-chain': 'Supply Chain Route',
   bikeshare: 'Bike Share',
   cctv: 'Cameras',
   'alpr-cameras': 'Mapped ALPR Cameras',

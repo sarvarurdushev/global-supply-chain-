@@ -39,10 +39,10 @@ test('catalogs construct distinct layers and classification from their supplied 
     signal: b.signal,
     surface: fixtureSurface(b.signal),
   });
-  // 21 inherited God's Eye View layers plus trade-flows, supply-ports,
-  // chokepoints, supply-events and country-borders.
-  assert.equal(first.layers.length, 26);
+  // 21 inherited God's Eye View layers plus the six supply-chain layers.
+  assert.equal(first.layers.length, 27);
   assert.ok(first.get('country-borders'));
+  assert.ok(first.get('supply-chain'));
   assert.ok(first.get('transit'));
   const order = first.layers.map(({ id }) => id);
   assert.deepEqual(

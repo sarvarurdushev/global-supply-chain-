@@ -7,7 +7,11 @@ import {
   navItem,
   nextSteps,
 } from './navigation.js';
+import { NEXT_STEPS } from './navigation.js';
 import { INVESTIGATIONS, investigation } from './investigations.js';
+
+/** Views that declare suggestions at all. */
+const NEXT_STEPS_VIEWS = new Set(Object.keys(NEXT_STEPS));
 import { LAYER_NAMES } from './taxonomy.js';
 
 test('every nav item says what it is and why it matters', () => {
@@ -135,4 +139,33 @@ test('every suggested next step resolves to a real nav item', () => {
 test('an unknown view suggests nothing rather than throwing', () => {
   assert.deepEqual(nextSteps('nowhere'), []);
   assert.deepEqual(nextSteps(undefined), []);
+});
+
+test('no nav item suggests itself as the next step', () => {
+  // The risk view inherited `nextFrom: 'resource'` and so offered
+  // "Environmental Risk" as the thing to do after Environmental Risk.
+  //
+  // Compared by ITEM, not by view: Ships and Major Logistics Hubs share the
+  // track renderer and are different destinations, so "which ports are near
+  // it?" from a vessel is a real next step rather than a loop.
+  for (const item of NAV_ITEMS) {
+    for (const step of nextSteps(item.view, item.id)) {
+      assert.notEqual(
+        step.item.id,
+        item.id,
+        `${item.id} suggests itself: "${step.question}"`,
+      );
+    }
+  }
+});
+
+test('excluding the current item still leaves somewhere to go', () => {
+  // Filtering must not empty the list — a view with one suggestion that
+  // happens to be itself would leave the user at a dead end.
+  for (const item of NAV_ITEMS) {
+    const steps = nextSteps(item.view, item.id);
+    if (NEXT_STEPS_VIEWS.has(item.view)) {
+      assert.ok(steps.length > 0, `${item.id} has nowhere to go`);
+    }
+  }
 });

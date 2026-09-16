@@ -16,9 +16,13 @@
  * supplies both, and leaves the picking to the code that already owns it.
  *
  * The one thing it does own is `resetView()`, because nothing did.
+ *
+ * The mapping from a published record to what the panel shows lives in
+ * `selection.js`, which is portable and carries the tests.
  */
 
 import * as Cesium from 'cesium';
+import { TRACKING_PARAMS, describeSelection } from './selection.js';
 
 /** Where the globe starts, and where Reset View returns to. */
 export const HOME_VIEW = Object.freeze({
@@ -26,101 +30,6 @@ export const HOME_VIEW = Object.freeze({
   lon: 40,
   altKm: 24000,
 });
-
-/** Tracking layers, and the param each uses to name its followed subject. */
-const TRACKING_PARAMS = Object.freeze([
-  ['flights', 'selectedFlightsTrackingId'],
-  ['military', 'selectedMilitaryTrackingId'],
-  ['satellites', 'selectedSatTrackingId'],
-]);
-
-/**
- * Human-readable kind for a selection, from the layer that published it.
- *
- * Falls back to the raw layer id rather than guessing a friendly word: a wrong
- * noun on a selection card is worse than an unfamiliar one.
- */
-const KIND_BY_LAYER = Object.freeze({
-  flights: 'Aircraft',
-  military: 'Military aircraft',
-  'ais-live-vessels': 'Vessel',
-  satellites: 'Satellite',
-  'supply-ports': 'Port',
-  chokepoints: 'Chokepoint',
-  'supply-events': 'Hazard event',
-  'trade-flows': 'Trade flow',
-  transit: 'Transit vehicle',
-  earthquakes: 'Earthquake',
-});
-
-/** The workspace nav item a selection should switch the panel to. */
-const NAV_BY_LAYER = Object.freeze({
-  flights: 'aircraft',
-  military: 'aircraft',
-  'ais-live-vessels': 'ships',
-  satellites: 'satellites',
-  transit: 'trains',
-  'supply-ports': 'hubs',
-  chokepoints: 'chokepoints',
-  'supply-events': 'events',
-});
-
-/**
- * Cargo is the question every vessel selection provokes, and AIS cannot answer
- * it. Saying so on the card is cheaper than letting a user conclude the app
- * simply failed to load it.
- */
-const CAVEAT_BY_LAYER = Object.freeze({
-  'ais-live-vessels':
-    'AIS carries no cargo field. Vessel type narrows the category; it is not a manifest.',
-  flights:
-    'ADS-B carries no payload information. Route is from the flight plan where one is broadcast.',
-  'supply-events': 'Proximity to infrastructure is exposure, not impact.',
-});
-
-/**
- * Turn a context record into what the panel shows.
- *
- * Whitelists the fields worth surfacing instead of dumping the record: these
- * objects carry internal bookkeeping (`entity`, `updatedAt`, `__gevContextId`)
- * that means nothing to a reader.
- */
-export function describeSelection(record) {
-  if (!record?.id) return null;
-  const layerId = record.layerId ?? null;
-  const facts = {};
-  const put = (label, value) => {
-    if (value === null || value === undefined || value === '') return;
-    facts[label] = String(value);
-  };
-  put('ID', record.id);
-  put('Source', record.dataSource);
-  put('Type', record.vesselType ?? record.category ?? record.type);
-  put('Flag', record.flag ?? record.country);
-  put('Origin', record.origin ?? record.departure);
-  put('Destination', record.destination ?? record.arrival);
-  put('Speed', record.speedKnots ? `${record.speedKnots} kn` : null);
-  put(
-    'Altitude',
-    record.altitudeM ? `${Math.round(record.altitudeM)} m` : null,
-  );
-  put(
-    'Position',
-    Number.isFinite(record.lat) && Number.isFinite(record.lon)
-      ? `${record.lat.toFixed(3)}, ${record.lon.toFixed(3)}`
-      : null,
-  );
-
-  return Object.freeze({
-    id: String(record.id),
-    layerId,
-    kind: KIND_BY_LAYER[layerId] ?? layerId ?? 'Selection',
-    label: record.label ?? record.name ?? record.callsign ?? String(record.id),
-    facts,
-    caveat: CAVEAT_BY_LAYER[layerId] ?? null,
-    navId: NAV_BY_LAYER[layerId] ?? null,
-  });
-}
 
 /**
  * Create the adapter.

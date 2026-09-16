@@ -223,3 +223,26 @@ test('an unknown data class degrades to UNAVAILABLE, never to a guess', () => {
   assert.equal(dataClassPresentation(undefined).label, 'UNAVAILABLE');
   assert.equal(dataClassPresentation('LIVE').label, 'LIVE');
 });
+
+test('the chain layer’s stop colours match this presentation table', async () => {
+  // src/layers/chain/index.js defines its own copy, because a Cesium layer
+  // importing the UI's vocabulary is the wrong dependency direction and the
+  // boundary checker rejects it. Two copies can drift, so this pins them
+  // together. The layer imports Cesium and cannot be loaded here, so the values
+  // are read out of its source.
+  const { readFileSync } = await import('node:fs');
+  const source = readFileSync(
+    new URL('../layers/chain/index.js', import.meta.url),
+    'utf8',
+  );
+  const block = source.slice(
+    source.indexOf('const STOP_COLOURS'),
+    source.indexOf('/** The colour for a stage'),
+  );
+  for (const [key, presentation] of Object.entries(DATA_CLASS_PRESENTATION)) {
+    assert.ok(
+      block.includes(presentation.colour),
+      `the chain layer is missing the ${key} colour ${presentation.colour}`,
+    );
+  }
+});

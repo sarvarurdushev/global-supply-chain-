@@ -205,6 +205,17 @@ export const LAYER_NAMES = Object.freeze([
   }),
   // --- trade ---
   Object.freeze({
+    id: 'supply-chain',
+    name: 'Supply Chain Route',
+    group: 'Trade',
+    summary:
+      'One product\u2019s journey between two countries, stage by stage.',
+    icon: '\u26d3',
+    available: true,
+    caveat:
+      'Five of its ten stages have no open data source and are shown as gaps. Ports are the nearest major port to each country, which is geometry rather than a shipping record.',
+  }),
+  Object.freeze({
     id: 'trade-flows',
     name: 'Trade Flows',
     group: 'Trade',
@@ -495,10 +506,14 @@ export const DATA_CLASS_PRESENTATION = Object.freeze({
   },
   HISTORICAL: {
     label: 'HISTORICAL',
-    plain: '1–2 years old',
+    // Deliberately not "1-2 years old": that is the Comtrade lag, and this
+    // class also covers World Bank series that stop in 2009 and standing
+    // geographic facts that do not age at all. The actual lag belongs in each
+    // result's own provenance, where it can be specific.
+    plain: 'A past measurement',
     colour: '#4fc3f7',
     means:
-      'Official customs statistics, published with a lag. Accurate for its year, not for today.',
+      'Recorded at a stated time in the past and accurate for then, not for today. How far back varies by source — the provenance says.',
   },
   INFERRED: {
     label: 'INFERRED',

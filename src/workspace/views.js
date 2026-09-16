@@ -44,6 +44,12 @@ import { MAJOR_PORTS } from '../supplychain/reference/ports.js';
 import { COMMODITY_GROUPS } from '../supplychain/reference/commodities.js';
 import { COUNTRIES } from '../supplychain/reference/countries.js';
 import { interpretArea } from '../supplychain/reference/areas.js';
+import {
+  buildSupplyChain,
+  transportMode,
+  STAGE_KINDS,
+} from '../supplychain/chain.js';
+import { RISK_INDICATORS } from '../supplychain/environment.js';
 
 /* ------------------------------------------------------------------ *
  * Shared helpers
@@ -1846,81 +1852,454 @@ function layersView(ctx) {
  * ------------------------------------------------------------------ */
 
 function routeView(ctx) {
-  const ports = MAJOR_PORTS.slice(0, 40);
-  const fromId = ctx.state.routeFrom ?? ports[0]?.id;
-  const toId = ctx.state.routeTo ?? ports[10]?.id;
+  const data = ctx.console.getData();
+  const group = COMMODITY_GROUPS.find((g) => g.key === data.commodity);
+  const reporters = COUNTRIES.filter((c) => c.m49 !== null)
+    .slice()
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  const fromIso = ctx.state.chainFrom ?? 'KOR';
+  const toIso = ctx.state.chainTo ?? 'NLD';
+  const origin = COUNTRIES.find((c) => c.iso3 === fromIso);
+  const destination = COUNTRIES.find((c) => c.iso3 === toIso);
+
+  // Transit nodes come from a scenario if one has been run, so the chain shows
+  // the passages the routing engine actually crossed rather than a guess.
+  const scenarioPath = data.scenario?.result?.before?.nodeNames ?? [];
+  const transitNodes = CHOKEPOINTS.filter((point) =>
+    scenarioPath.includes(point.name),
+  ).map((point) => ({ name: point.name, lat: point.lat, lon: point.lon }));
+
+  const chain =
+    origin && destination
+      ? buildSupplyChain({
+          origin,
+          destination,
+          commodityLabel: group?.label ?? 'Selected product',
+          ports: MAJOR_PORTS,
+          transitNodes,
+          retrievedAt: new Date().toISOString(),
+        })
+      : null;
 
   const cards = [
     card({
       children: [
         whyThisMatters({
-          what: 'The shortest sea path between two ports, over the real chokepoint network.',
-          why: 'This is what changes when a passage closes — and the difference between the two numbers is the whole cost of a disruption, in the only unit this project can honestly report.',
-          dataClass: 'SIMULATED',
+          what: 'The physical stages a product passes through between two countries.',
+          why: 'It is the only view that shows the whole shape of a supply chain — including the five stages no open data can fill, which are the ones that matter when something breaks.',
+          dataClass: 'INFERRED',
         }),
       ],
     }),
     card({
-      title: 'Pick two ports',
+      title: 'Pick a pair',
       children: [
         field({
-          label: 'From',
+          label: 'Product',
           control: select({
-            options: ports.map((p) => [p.id, p.name]),
-            value: fromId,
-            ariaLabel: 'Origin port',
+            options: COMMODITY_GROUPS.map((g) => [g.key, g.label]),
+            value: data.commodity,
+            ariaLabel: 'Product',
             onChange: (value) => {
-              ctx.state.routeFrom = value;
+              ctx.console.setCommodity(value);
               ctx.refresh();
             },
           }),
         }),
         field({
-          label: 'To',
+          label: 'From (exporter)',
           control: select({
-            options: ports.map((p) => [p.id, p.name]),
-            value: toId,
-            ariaLabel: 'Destination port',
+            options: reporters.map((c) => [c.iso3, c.name]),
+            value: fromIso,
+            ariaLabel: 'Exporting country',
             onChange: (value) => {
-              ctx.state.routeTo = value;
+              ctx.state.chainFrom = value;
+              ctx.refresh();
+            },
+          }),
+        }),
+        field({
+          label: 'To (importer)',
+          control: select({
+            options: reporters.map((c) => [c.iso3, c.name]),
+            value: toIso,
+            ariaLabel: 'Importing country',
+            onChange: (value) => {
+              ctx.state.chainTo = value;
               ctx.refresh();
             },
           }),
         }),
         button({
-          label: 'Show both on the globe',
-          onClick: () => {
-            const from = MAJOR_PORTS.find((p) => p.id === fromId);
-            if (from)
-              ctx.globe.flyTo({ lat: from.lat, lon: from.lon, altKm: 3000 });
-            ctx.layers.setEnabled('supply-ports', true);
-            ctx.layers.setEnabled('chokepoints', true);
-          },
-        }),
-      ],
-    }),
-    card({
-      title: 'To compare a normal and a disrupted route',
-      children: [
-        h('p', {}, [
-          'Use ',
-          h('strong', { text: 'Disruption' }),
-          '. It computes the baseline path, removes a chokepoint, recomputes, and reports the difference.',
-        ]),
-        button({
-          label: 'Go to Disruption',
+          label: 'Draw this chain on the globe',
           tone: 'primary',
-          onClick: () => ctx.navigate('disruption'),
+          onClick: () => {
+            // Enable first: the layer manager initialises a layer lazily, and
+            // pushing a chain into an uninitialised layer used to lose it.
+            // The layer now tolerates either order, and this is the clearer one.
+            ctx.layers.setEnabled('supply-chain', true);
+            ctx.layers.get('supply-chain')?.setChain(chain);
+            ctx.layers.setEnabled('country-borders', true);
+            if (origin) {
+              ctx.globe.flyTo({
+                lat: (origin.lat + destination.lat) / 2,
+                lon: (origin.lon + destination.lon) / 2,
+                altKm: 14000,
+              });
+            }
+            ctx.refresh();
+          },
         }),
       ],
     }),
   ];
 
+  if (!chain) {
+    cards.push(
+      card({
+        children: [
+          emptyState({
+            what: 'countries selected',
+            suggestion: 'Choose an exporter and an importer above.',
+          }),
+        ],
+      }),
+    );
+    return { title: 'Trade Route', summary: '', cards, nextFrom: 'routes' };
+  }
+
+  cards.push(
+    card({
+      title: 'What this data can and cannot see',
+      tone: 'accent',
+      children: [
+        metricRow([
+          metric({
+            value: `${chain.stagesMissing}/${STAGE_KINDS.length}`,
+            label: 'stages with no data at all',
+            tone: 'warn',
+          }),
+          metric({ value: km(chain.totalKm), label: 'total distance' }),
+          metric({ value: km(chain.seaKm), label: 'of it by sea' }),
+        ]),
+        h('p', {}, [
+          'Distances are great-circle and therefore lower bounds. This chain describes a ',
+          h('strong', { text: 'country pair' }),
+          ', not a shipment — it does not mean any particular cargo took this path.',
+        ]),
+      ],
+    }),
+  );
+
+  cards.push(
+    card({
+      title: 'The chain, stage by stage',
+      subtitle:
+        'Every stage in order. The greyed ones have no open data source.',
+      children: [
+        h(
+          'div',
+          { class: 'ws-list' },
+          chain.stages.map((stage, index) =>
+            stage.available
+              ? rankRow({
+                  label: h('span', {}, [
+                    h('strong', {
+                      text: `${index + 1}. ${stage.name}`,
+                    }),
+                    h('span', {
+                      class: 'ws-list-note',
+                      text: `${stage.kind.replace(/_/g, ' ').toLowerCase()} — ${stage.basis ?? ''}`,
+                    }),
+                  ]),
+                  value: stage.dataClass,
+                  onClick: () =>
+                    ctx.globe.flyTo({
+                      lat: stage.lat,
+                      lon: stage.lon,
+                      altKm: 2000,
+                    }),
+                })
+              : rankRow({
+                  label: h('span', {}, [
+                    h('strong', { text: `${index + 1}. ${stage.name}` }),
+                    h('span', { class: 'ws-list-note', text: stage.because }),
+                  ]),
+                  value: 'no data',
+                }),
+          ),
+        ),
+      ],
+    }),
+  );
+
+  cards.push(
+    card({
+      title: 'How each leg travels',
+      children: [
+        h(
+          'div',
+          { class: 'ws-list' },
+          chain.legs.map((leg) => {
+            const mode = transportMode(leg.mode);
+            return rankRow({
+              label: h('span', {}, [
+                h('strong', { text: `${leg.from.name} → ${leg.to.name}` }),
+                h('span', { class: 'ws-list-note', text: mode.note }),
+              ]),
+              value: `${mode.label} · ${km(leg.distanceKm)}`,
+            });
+          }),
+        ),
+        h('p', {}, [
+          'On the globe: ',
+          h('strong', { text: 'solid' }),
+          ' is sea, ',
+          h('strong', { text: 'dashed' }),
+          ' is land, ',
+          h('strong', { text: 'dotted' }),
+          ' is air. Dash pattern carries the distinction so it survives greyscale.',
+        ]),
+      ],
+    }),
+  );
+
+  if (transitNodes.length === 0) {
+    cards.push(
+      card({
+        tone: 'gap',
+        children: [
+          unavailableState({
+            what: 'Which passages the sea leg crosses.',
+            because:
+              'No maritime route has been computed for this pair yet, so the sea stage is a single hop rather than a path.',
+            wouldNeed: 'A routing run over the port and chokepoint network.',
+            instead: 'Run a disruption scenario and its path appears here.',
+          }),
+          button({
+            label: 'Go to Disruption',
+            onClick: () => ctx.navigate('disruption'),
+          }),
+        ],
+      }),
+    );
+  }
+
+  cards.push(card({ children: [provenanceBlock(chain.provenance)] }));
+
   return {
     title: 'Trade Route',
-    summary: 'One shipping path, port by port.',
+    summary: `${origin.name} → ${destination.name}, ${group?.label ?? ''}`,
     cards,
     nextFrom: 'routes',
+  };
+}
+
+/* ------------------------------------------------------------------ *
+ * 14. Environmental risk
+ * ------------------------------------------------------------------ */
+
+function riskView(ctx) {
+  const data = ctx.console.getData();
+  const iso3 = ctx.state.riskIso3 ?? data.reporter;
+  const country = COUNTRIES.find((c) => c.iso3 === iso3);
+  const risk = data.environment;
+  const loaded = risk?.country?.iso3 === iso3 ? risk : null;
+
+  const cards = [
+    card({
+      children: [
+        whyThisMatters({
+          what: 'Physical conditions that could interrupt what a country produces.',
+          why: 'Water, drought and flood reach trade through one route: they hit the farmland and the infrastructure, and what a country cannot grow it cannot export.',
+          dataClass: 'HISTORICAL',
+        }),
+      ],
+    }),
+    card({
+      title: 'Choose a country',
+      children: [
+        field({
+          label: 'Country',
+          control: select({
+            options: COUNTRIES.filter((c) => c.m49 !== null)
+              .slice()
+              .sort((a, b) => a.name.localeCompare(b.name))
+              .map((c) => [c.iso3, c.name]),
+            value: iso3,
+            ariaLabel: 'Country',
+            onChange: (value) => {
+              ctx.state.riskIso3 = value;
+              ctx.refresh();
+            },
+          }),
+        }),
+        button({
+          label: 'Load indicators',
+          tone: 'primary',
+          onClick: async () => {
+            await ctx.console.loadEnvironment(iso3);
+            if (country) {
+              ctx.layers.setEnabled('country-borders', true);
+              ctx.globe.flyTo({
+                lat: country.lat,
+                lon: country.lon,
+                altKm: 5000,
+              });
+            }
+            ctx.refresh();
+          },
+        }),
+      ],
+    }),
+  ];
+
+  if (!loaded) {
+    cards.push(
+      card({
+        children: [
+          emptyState({
+            what: 'indicators loaded yet',
+            suggestion: 'Press "Load indicators" above.',
+          }),
+        ],
+      }),
+    );
+    return {
+      title: 'Environmental Risk',
+      summary: country ? country.name : '',
+      cards,
+    };
+  }
+
+  // The §22 requirement: the mechanism comes FIRST, before any number.
+  cards.push(
+    card({
+      title: 'How this reaches the supply chain',
+      tone: loaded.mechanism ? 'accent' : 'gap',
+      children: loaded.mechanism
+        ? [
+            h(
+              'ul',
+              { class: 'ws-prov-limits' },
+              loaded.mechanism.map((clause) => h('li', { text: clause })),
+            ),
+          ]
+        : [
+            unavailableState({
+              what: 'A supply-chain mechanism for this country.',
+              because: loaded.unlinkedReason,
+              instead:
+                'The indicators below are real measurements and stand on their own.',
+            }),
+          ],
+    }),
+  );
+
+  if (loaded.waterStress || loaded.waterAvailability) {
+    cards.push(
+      card({
+        title: 'Water',
+        children: [
+          metricRow(
+            [
+              loaded.waterStress
+                ? metric({
+                    value: loaded.waterStress.label,
+                    label: 'withdrawal vs renewal',
+                    tone: ['HIGH', 'VERY_HIGH', 'BEYOND_RENEWABLE'].includes(
+                      loaded.waterStress.level,
+                    )
+                      ? 'warn'
+                      : 'default',
+                  })
+                : null,
+              loaded.waterAvailability
+                ? metric({
+                    value: loaded.waterAvailability.label,
+                    label: 'water per person',
+                    tone:
+                      loaded.waterAvailability.level === 'SUFFICIENT'
+                        ? 'good'
+                        : 'warn',
+                  })
+                : null,
+            ].filter(Boolean),
+          ),
+          loaded.waterStress
+            ? h('p', { text: loaded.waterStress.basis })
+            : null,
+          loaded.waterAvailability
+            ? h('p', { text: loaded.waterAvailability.basis })
+            : null,
+        ],
+      }),
+    );
+  }
+
+  cards.push(
+    card({
+      title: 'The indicators',
+      subtitle: 'Each one with how it reaches trade.',
+      children: [
+        h(
+          'div',
+          { class: 'ws-list' },
+          loaded.readings.map((reading) =>
+            rankRow({
+              label: h('span', {}, [
+                h('strong', { text: reading.label }),
+                h('span', {
+                  class: 'ws-list-note',
+                  text: reading.affectsSupplyChain,
+                }),
+              ]),
+              value: reading.available
+                ? `${reading.value.toLocaleString(undefined, { maximumFractionDigits: 1 })}`
+                : 'no data',
+              note: reading.available ? reading.unit : null,
+            }),
+          ),
+        ),
+        loaded.readings.some((r) => !r.available)
+          ? h('p', {}, [
+              'A "no data" row means the World Bank has no observation for this ',
+              'country on that series. It does not mean zero.',
+            ])
+          : null,
+      ],
+    }),
+  );
+
+  cards.push(
+    card({
+      title: 'Why a national figure can mislead',
+      tone: 'gap',
+      children: [
+        unavailableState({
+          what: 'Water stress at the resolution that actually matters — the river basin.',
+          because:
+            'These are national averages. China\u2019s figure averages the water-rich south with the water-scarce north, and the north is where the wheat is.',
+          wouldNeed:
+            'WRI Aqueduct basin-level data, which is a bulk download rather than an API.',
+          instead:
+            'Live hazard events are in Global Events, at the location they actually occurred.',
+        }),
+        button({
+          label: 'See live hazards instead',
+          onClick: () => ctx.navigate('events'),
+        }),
+      ],
+    }),
+  );
+
+  cards.push(card({ children: [provenanceBlock(loaded.provenance)] }));
+
+  return {
+    title: 'Environmental Risk',
+    summary: `${loaded.country.name} — water, drought and flood exposure`,
+    cards,
   };
 }
 
@@ -2049,6 +2428,7 @@ const VIEWS = Object.freeze({
   resource: resourceView,
   route: routeView,
   disruption: disruptionView,
+  risk: riskView,
   track: trackView,
   layers: layersView,
   investigation: investigationView,
@@ -2090,7 +2470,7 @@ export function renderView(view, ctx) {
   }
   try {
     const result = render(ctx);
-    const steps = nextSteps(result.nextFrom ?? view);
+    const steps = nextSteps(result.nextFrom ?? view, ctx.state?.navId);
     if (steps.length) {
       result.cards.push(
         card({ children: [nextStepsBlock(steps, (id) => ctx.navigate(id))] }),

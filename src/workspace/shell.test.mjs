@@ -419,3 +419,35 @@ test('the shell refuses to build without its dependencies', () => {
 });
 
 test.after(() => dom.restore());
+
+test('selecting an aircraft switches the panel to aircraft, not just the rail', () => {
+  // The track view renders whichever layer `trackItem` names. Only navigate()
+  // was setting it, so selecting an aircraft moved the rail to Aircraft while
+  // the panel still described ships.
+  const h = build();
+  h.workspace.navigate('ships');
+  h.select({
+    id: 'a835af',
+    kind: 'Aircraft',
+    label: 'UAL779',
+    facts: { Callsign: 'UAL779' },
+    navId: 'aircraft',
+  });
+  assert.equal(h.workspace.getState().navId, 'aircraft');
+  const text = h.root().querySelector('.ws-panel-scroll').textContent;
+  assert.match(text, /One aircraft at a time/);
+  assert.ok(
+    !/One vessel at a time/.test(text),
+    'the panel must not still be describing ships',
+  );
+  assert.equal(h.root().querySelector('.ws-panel-title').textContent, 'Aircraft');
+  h.cleanup();
+});
+
+test('a selection from a layer with no track view leaves the view alone', () => {
+  const h = build();
+  h.workspace.navigate('chokepoints');
+  h.select({ id: 'x', kind: 'Trade flow', label: 'A→B', facts: {}, navId: null });
+  assert.equal(h.workspace.getState().navId, 'chokepoints');
+  h.cleanup();
+});

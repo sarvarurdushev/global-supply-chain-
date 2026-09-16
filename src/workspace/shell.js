@@ -592,7 +592,14 @@ export function createWorkspace({
    */
   function handleSelection(selection) {
     state.selection = selection ?? null;
-    if (selection?.navId) state.navId = selection.navId;
+    if (selection?.navId) {
+      state.navId = selection.navId;
+      // The track view renders whichever layer `trackItem` names, and only
+      // navigate() was setting it. Selecting an aircraft therefore moved the
+      // rail to Aircraft while the panel still described ships.
+      const item = navItem(selection.navId);
+      if (item?.view === 'track') state.trackItem = item;
+    }
     render();
   }
 

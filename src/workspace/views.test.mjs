@@ -380,7 +380,7 @@ test('whyThisMatters requires the what, and shows the data class when given', ()
   assert.match(text, /WHY THIS MATTERS/);
   assert.match(text, /These arcs are trade/);
   assert.match(text, /HISTORICAL/);
-  assert.match(text, /1–2 years old/);
+  assert.match(text, /A past measurement/);
 });
 
 test.after(() => dom.restore());

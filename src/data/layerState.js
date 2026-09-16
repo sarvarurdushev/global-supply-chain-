@@ -384,6 +384,11 @@ export const LAYER_STATE_REGISTRY = Object.freeze([
     optionOwner: 'satellites',
   }),
   Object.freeze({
+    id: 'supply-chain',
+    token: '1',
+    disposition: 'enabled-only',
+  }),
+  Object.freeze({
     id: 'supply-events',
     token: 'y',
     disposition: 'enabled-only',

@@ -45,6 +45,10 @@ import {
   classifyStructure,
   reportersAtRisk,
 } from '../../supplychain/production.js';
+import {
+  RISK_INDICATORS,
+  environmentalRisk,
+} from '../../supplychain/environment.js';
 import { detectAnomalies } from '../../supplychain/ml/anomaly.js';
 import { AssociationClass } from '../../supplychain/provenance.js';
 import {
@@ -358,6 +362,7 @@ export function createSupplyChainConsole({
     scenario: null,
     production: null,
     comparison: null,
+    environment: null,
     events: null,
     compareSelection: null,
     error: null,
@@ -1329,6 +1334,56 @@ export function createSupplyChainConsole({
     }
   }
 
+  /**
+   * Environmental risk for one country (§22).
+   *
+   * Loaded separately from the comparison panel because the question is
+   * different: comparison asks "how do these economies differ", and this asks
+   * "what could physically interrupt this one".
+   */
+  async function loadEnvironment(iso3) {
+    const country = COUNTRIES.find((c) => c.iso3 === iso3);
+    if (!country) return null;
+    setStatus(
+      `Loading environmental indicators for ${country.name}…`,
+      'sc-busy',
+    );
+    try {
+      const values = {};
+      let provenance = null;
+      for (const indicator of RISK_INDICATORS) {
+        const result = await source.getIndicator({
+          iso3,
+          indicator: indicator.code,
+          // These series lag unevenly and some stop in 2009, so the window is
+          // wide and the latest observation wins.
+          start: 1990,
+          end: state.year,
+        });
+        provenance = result.provenance;
+        const series = result.observations.filter((o) => o.iso3 === iso3);
+        values[indicator.code] =
+          series.length > 0 ? series[series.length - 1].value : null;
+      }
+      state.environment = environmentalRisk({
+        country,
+        values,
+        retrievedAt: provenance?.retrievedAt ?? new Date().toISOString(),
+      });
+      setStatus(
+        `Environmental indicators loaded for ${country.name}.`,
+        'sc-ok',
+      );
+      notify();
+      return state.environment;
+    } catch (error) {
+      state.environment = null;
+      setStatus(`Environmental indicators failed: ${error.message}`, 'sc-err');
+      notify();
+      return null;
+    }
+  }
+
   /* ---------------- events (§15) ---------------- */
 
   function renderEvents() {
@@ -1853,6 +1908,7 @@ export function createSupplyChainConsole({
       hasScenario: state.scenario !== null,
       hasProduction: state.production !== null,
       hasComparison: state.comparison !== null,
+      hasEnvironment: state.environment !== null,
       hasEvents: state.events !== null,
       error: state.error,
     });
@@ -1971,6 +2027,7 @@ export function createSupplyChainConsole({
     describeEvidence,
     loadProduction,
     loadComparison,
+    loadEnvironment,
     loadEvents,
     /**
      * The loaded results themselves, for a view that renders its own layout.
@@ -1989,6 +2046,7 @@ export function createSupplyChainConsole({
         scenario: state.scenario,
         production: state.production,
         comparison: state.comparison,
+        environment: state.environment,
         events: state.events,
         error: state.error,
         commodity: state.commodity,

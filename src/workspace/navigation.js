@@ -120,6 +120,15 @@ export const NAV_SECTIONS = Object.freeze([
         view: 'disruption',
         status: 'ready',
       }),
+      Object.freeze({
+        id: 'risk',
+        name: 'Environmental Risk',
+        icon: '◍',
+        summary: 'Water, drought and flood exposure, and how it reaches trade.',
+        view: 'risk',
+        status: 'partial',
+        note: 'National averages. Water stress is a river-basin property, and basin data is a bulk download rather than an API.',
+      }),
     ]),
   }),
   Object.freeze({
@@ -294,7 +303,12 @@ export const NEXT_STEPS = Object.freeze({
   ]),
   resource: Object.freeze([
     { id: 'commodity', question: 'See the trade flows for it' },
+    { id: 'risk', question: 'Could the climate interrupt it?' },
     { id: 'inv-fertilizer', question: 'Follow fertilizer end to end' },
+  ]),
+  risk: Object.freeze([
+    { id: 'events', question: 'Is a hazard happening there now?' },
+    { id: 'commodity', question: 'What does it export?' },
   ]),
   routes: Object.freeze([
     { id: 'chokepoints', question: 'Which passages do these cross?' },
@@ -325,15 +339,21 @@ export const NEXT_STEPS = Object.freeze({
 /**
  * Resolve the suggested next steps for a view into full nav items.
  *
- * @param {string} viewOrItemId
+ * Several nav items share a renderer — Ships, Aircraft and Major Logistics Hubs
+ * are all the `track` view — so suggestions are keyed by view and then filtered
+ * against where the user actually is. Without `currentItemId`, the Hubs page
+ * offered "which ports are near it?" and pointed back at Hubs.
+ *
+ * @param {string} viewOrItemId the view whose suggestions to look up
+ * @param {string} [currentItemId] the nav item in view, excluded from results
  * @returns {Array<{question:string, item:object}>}
  */
-export function nextSteps(viewOrItemId) {
+export function nextSteps(viewOrItemId, currentItemId = null) {
   const suggestions = NEXT_STEPS[viewOrItemId] ?? [];
   return suggestions
     .map((suggestion) => ({
       question: suggestion.question,
       item: navItem(suggestion.id),
     }))
-    .filter((entry) => entry.item !== null);
+    .filter((entry) => entry.item !== null && entry.item.id !== currentItemId);
 }
