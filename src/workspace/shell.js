@@ -144,16 +144,20 @@ export function createWorkspace({
   });
 
   /** The edge tab that brings a collapsed dock back. */
-  const reopenTab = h('button', {
-    class: 'ws-reopen',
-    type: 'button',
-    hidden: true,
-    title: 'Open the supply-chain panel',
-    onClick: () => setVisible(true),
-  }, [
-    h('span', { class: 'ws-reopen-mark', text: '◈' }),
-    h('span', { class: 'ws-reopen-text', text: 'Supply Chain' }),
-  ]);
+  const reopenTab = h(
+    'button',
+    {
+      class: 'ws-reopen',
+      type: 'button',
+      hidden: true,
+      title: 'Open the supply-chain panel',
+      onClick: () => setVisible(true),
+    },
+    [
+      h('span', { class: 'ws-reopen-mark', text: '◈' }),
+      h('span', { class: 'ws-reopen-text', text: 'Supply Chain' }),
+    ],
+  );
 
   const dock = h('div', { class: 'ws-dock' }, [topbar, panel, rail, legend]);
 

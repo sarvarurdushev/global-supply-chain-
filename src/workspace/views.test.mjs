@@ -222,8 +222,35 @@ test('the events view states what the feed does not carry', () => {
 test('the layers view lists the gaps instead of hiding them', () => {
   const view = renderView('layers', makeCtx());
   const text = textOf(view);
+  /*
+   * The remaining gap is THROUGHPUT, not existence.
+   *
+   * This test used to assert "No open global freight-rail dataset", which is
+   * what the layer list said before the inland-freight layers were built. The
+   * corridors are drawn from OpenStreetMap now; what is still missing is how
+   * much moves on them, and that is what the gap section has to say.
+   */
   assert.match(text, /Freight Rail Corridors/);
-  assert.match(text, /No open global freight-rail dataset/i);
+  assert.match(text, /Freight Volumes & Capacity/);
+  assert.match(text, /tonne-kilometres/i);
+  assert.match(text, /Facility-Level Production Output/);
+});
+
+test('the inland-freight layers are listed as built, with their real limits', () => {
+  const text = textOf(renderView('layers', makeCtx()));
+  for (const name of [
+    'Freight Rail Corridors',
+    'Road Freight Corridors',
+    'Oil & Gas Pipelines',
+    'Mines, Quarries & Refineries',
+    'Air Freight Gateways',
+  ]) {
+    assert.match(text, new RegExp(name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  }
+  // Each one has to carry the split between what it shows and what it cannot.
+  assert.match(text, /no tonne-kilometres, train counts or capacity/i);
+  assert.match(text, /NOT a cargo ranking/);
+  assert.match(text, /no output, reserves or whether the site is currently working/i);
 });
 
 /* ------------------------------------------------------------------ *

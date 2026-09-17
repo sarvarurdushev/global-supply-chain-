@@ -232,3 +232,17 @@ body {
   color: var(--accent);
   letter-spacing: 0.12em;
 }
+
+/*
+ * The supply-chain console's own chip.
+ *
+ * It sits at top-right, which is where the workspace dock's header now is, so
+ * while the dock is up the chip moves inboard to sit beside it. Both are
+ * reachable; neither is hidden.
+ */
+body.ws-docked .sc-launcher {
+  right: var(--ws-dock-reserve);
+}
+body.ws-docked .sc-console {
+  right: var(--ws-dock-reserve);
+}

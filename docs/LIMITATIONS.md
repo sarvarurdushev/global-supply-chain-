@@ -146,9 +146,9 @@ gate question it fails:
 | Conflict events, strikes, port closures | ACLED and EM-DAT require registered accounts. GDACS covers **natural hazards only** and drives the event layer; nothing human-caused is in it |
 | Per-commodity production | Firm-level output is confidential; USGS is PDF-only and FAOSTAT needs a key. The production map ranks **exports**, labelled as a proxy |
 | Complete world rankings for broad commodities | The Comtrade preview endpoint caps responses at 500 rows. Detected and reported, never silently dropped |
-| Freight rail, road freight, air-cargo hubs, pipelines | No open global dataset. City transit and city road traffic are available and are not the same thing |
-| Extraction, processing, manufacture, inland distribution, final consumer | Five of the ten supply-chain stages. Facility-level data is company-confidential and inland freight is unmapped. Shown as explicit gaps in `Analyze → Trade Route` |
-| Basin-level water stress | National averages hide the distribution that matters. WRI Aqueduct publishes by basin and is a bulk download rather than an API |
+| Freight **throughput** on rail, road, pipelines and at airports | The infrastructure itself IS drawn, from OpenStreetMap and OurAirports. What no open global source publishes is how much moves: tonne-kilometres, heavy-goods counts, pipeline flow rates, airport cargo tonnage. Each exists per operator or regulator, in its own units. Declared as explicit nulls on every record |
+| Facility **output**, and the inland-distribution and final-consumer stages | Mines, quarries, works and refineries have real positions now (OpenStreetMap, with `resource`/`product` tags where a surveyor added them), so the extraction and processing stages can be placed. Annual output, reserves and whether a site is working are company-reported in annual PDFs that do not reconcile to OSM ids. Inland distribution and the final consumer remain entirely absent and are still drawn as explicit gaps in `Analyze → Trade Route` |
+| Aqueduct's own modelling limits (basin water stress IS integrated) | WRI Aqueduct 4.0 is read by basin from the Esri Living Atlas feature service, so the national-average limitation no longer applies. What remains: it is a **modelled long-run baseline**, not a reading for today, and its withdrawal and supply terms come from a hydrological model rather than gauges in every river |
 | Commercial feasibility of new infrastructure | Needs engineering and cost studies |
 
 Infrastructure siting output is labelled **NETWORK-BASED CANDIDATE LOCATION**, never a

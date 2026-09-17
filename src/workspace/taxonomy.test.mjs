@@ -118,14 +118,49 @@ test('every layer entry has a name, a summary and an availability flag', () => {
 });
 
 test('an unavailable layer explains what is missing', () => {
-  // Requirement 42: never imply a gap is an oversight, and never fake past it.
+  /*
+   * Requirement 42: never imply a gap is an oversight, and never fake past it.
+   *
+   * The threshold used to be four gaps, because five of the six things the
+   * audit called unavailable were listed here. Four of those five are built
+   * now — the rail, road, pipeline and production layers draw real
+   * OpenStreetMap geometry — so the list is shorter and more specific: what
+   * remains missing is throughput and facility-level output, not the
+   * infrastructure. A shorter list is the point, so long as every entry on it
+   * still says why.
+   */
   const gaps = LAYER_NAMES.filter((entry) => !entry.available);
-  assert.ok(gaps.length >= 4, 'the known gaps should be listed, not hidden');
+  assert.ok(gaps.length >= 2, 'the known gaps should be listed, not hidden');
   for (const entry of gaps) {
     assert.ok(
       entry.missing?.length > 30,
       `${entry.id} is unavailable but does not say why`,
     );
+  }
+});
+
+test('a built layer whose data stops short of its name says where', () => {
+  /*
+   * The rule that replaced "not available" for the inland-freight layers.
+   *
+   * Each one ships real surveyed positions and no volume figure at all, so
+   * each one has to say so on its own row — otherwise "Freight Rail
+   * Corridors" reads as a claim about freight, which is the reading the data
+   * cannot support.
+   */
+  assert.match(layerName('freight-rail').caveat, /no tonne-kilometres/i);
+  assert.match(layerName('freight-roads').caveat, /no freight volume/i);
+  assert.match(layerName('pipelines').caveat, /no flow rate/i);
+  assert.match(layerName('production-sites').caveat, /no output/i);
+  assert.match(layerName('air-cargo-hubs').caveat, /NOT a cargo ranking/);
+  for (const id of [
+    'freight-rail',
+    'freight-roads',
+    'pipelines',
+    'production-sites',
+    'air-cargo-hubs',
+  ]) {
+    assert.equal(layerName(id).available, true, `${id} should be built now`);
   }
 });
 

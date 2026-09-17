@@ -152,6 +152,98 @@ export const LAYER_NAMES = Object.freeze([
     available: true,
     caveat: 'City-scale only. There is no global road-freight feed here.',
   }),
+  /*
+   * The inherited layers that are not supply chain.
+   *
+   * They are in the tray, so they are tabs a reader has to understand, and
+   * "MAPPED ALPR CAMERAS" or "SPACE MISSIONS (30d)" told them nothing about
+   * what would appear or where it came from. They are named and described here
+   * for the same reason as everything else: the tray reads its labels out of
+   * this file, so a layer absent from it is a row with no description.
+   *
+   * Several carry caveats because their names promise more than their coverage
+   * delivers — which is the specific complaint the renaming work was for.
+   */
+  Object.freeze({
+    id: 'military',
+    name: 'Military Flights',
+    group: 'What Moves',
+    summary:
+      'Aircraft whose broadcast identity matches a known military operator.',
+    icon: '\u2708',
+    available: true,
+    caveat:
+      'Only aircraft that choose to broadcast. Anything operating dark is absent, so an empty map is not evidence of an empty sky.',
+  }),
+  Object.freeze({
+    id: 'bikeshare',
+    name: 'Bike Share',
+    group: 'Places',
+    summary: 'Public bike-share docks and how many bikes are free.',
+    icon: '\u{1f6b2}',
+    available: true,
+    caveat:
+      'City-scale and only where an operator publishes a GBFS feed. Nothing to do with freight.',
+  }),
+  Object.freeze({
+    id: 'cctv',
+    name: 'Traffic Cameras',
+    group: 'Places',
+    summary:
+      'Public road cameras, with the latest frame where an agency publishes one.',
+    icon: '\u{1f4f7}',
+    available: true,
+    caveat:
+      'Public highway and city cameras only. Inherited from God\u2019s Eye View and unrelated to trade data.',
+  }),
+  Object.freeze({
+    id: 'alpr-cameras',
+    name: 'Mapped ALPR Cameras',
+    group: 'Places',
+    summary:
+      'Locations of automated number-plate readers, as mapped by researchers.',
+    icon: '\u25ce',
+    available: true,
+    caveat:
+      'Reported locations of surveillance equipment, not a live feed and not readings from it. Inherited, and unrelated to supply chains.',
+  }),
+  Object.freeze({
+    id: 'military-installations',
+    name: 'Mapped Installations',
+    group: 'Places',
+    summary: 'Military sites recorded in open mapping data.',
+    icon: '\u25a3',
+    available: true,
+    caveat:
+      'Open-source map records of fixed sites. No activity, no status, and nothing about any shipment.',
+  }),
+  Object.freeze({
+    id: 'rocket-launches',
+    name: 'Space Launches (30 days)',
+    group: 'Places',
+    summary: 'Recent and upcoming orbital launches and their sites.',
+    icon: '\u{1f680}',
+    available: true,
+  }),
+  Object.freeze({
+    id: 'directions',
+    name: 'Route Planner',
+    group: 'Places',
+    summary: 'Point-to-point driving directions on the globe.',
+    icon: '\u27a4',
+    available: true,
+    caveat:
+      'A road route between two points you pick. Not a freight route and not costed.',
+  }),
+  Object.freeze({
+    id: 'radio',
+    name: 'Live Radio',
+    group: 'Places',
+    summary:
+      'Public internet radio stations, placed where they broadcast from.',
+    icon: '\u{1f4fa}',
+    available: true,
+  }),
   // --- fixed infrastructure ---
   Object.freeze({
     id: 'country-borders',
@@ -251,56 +343,91 @@ export const LAYER_NAMES = Object.freeze([
     icon: '▲',
     available: true,
   }),
+  // --- inland freight infrastructure ---
+  /*
+   * These five were listed under "Not Available" with a note about what would
+   * be needed. That was too quick a verdict, and it conflated two questions:
+   * where the infrastructure IS, and how much moves through it. The first is
+   * mapped worldwide under a licence that permits this use; only the second is
+   * closed. Each entry below ships the position and states the missing half in
+   * its caveat, rather than declaring the whole thing absent.
+   */
+  Object.freeze({
+    id: 'freight-rail',
+    name: 'Freight Rail Corridors',
+    group: 'Inland Freight',
+    summary:
+      'Main-line railway in the current view, surveyed by OpenStreetMap.',
+    icon: '\u{1f6e4}',
+    available: true,
+    caveat:
+      'Routes only \u2014 no tonne-kilometres, train counts or capacity, because OpenStreetMap records none. Loads what is in view, so zoom in to a region first.',
+  }),
+  Object.freeze({
+    id: 'freight-roads',
+    name: 'Road Freight Corridors',
+    group: 'Inland Freight',
+    summary:
+      'Motorway and trunk road in the current view, surveyed by OpenStreetMap.',
+    icon: '\u{1f6e3}',
+    available: true,
+    caveat:
+      'Routes only \u2014 no freight volume or axle loads. Live congestion is the separate Road Traffic layer, and only in covered cities.',
+  }),
+  Object.freeze({
+    id: 'pipelines',
+    name: 'Oil & Gas Pipelines',
+    group: 'Inland Freight',
+    summary:
+      'Oil, gas and fuel pipeline routes in the current view, surveyed by OpenStreetMap.',
+    icon: '\u26fd',
+    available: true,
+    caveat:
+      'Routes only \u2014 no flow rate, direction or capacity, and no way to tell whether a mapped pipeline is still in service.',
+  }),
+  Object.freeze({
+    id: 'production-sites',
+    name: 'Mines, Quarries & Refineries',
+    group: 'Inland Freight',
+    summary:
+      'Extraction and processing sites in the current view, with what they dig up where it is tagged.',
+    icon: '\u26cf',
+    available: true,
+    caveat:
+      'Positions and commodity tags only \u2014 no output, reserves or whether the site is currently working. A mapped mine may be disused.',
+  }),
+  Object.freeze({
+    id: 'air-cargo-hubs',
+    name: 'Air Freight Gateways',
+    group: 'Inland Freight',
+    summary:
+      '1,152 large airports with scheduled service, where air freight can move.',
+    icon: '\u{1f6ec}',
+    available: true,
+    caveat:
+      'NOT a cargo ranking. No open source publishes airport freight tonnage, so every marker is the same size and none is marked busier than another.',
+  }),
   // --- gaps, shown rather than hidden ---
   Object.freeze({
-    id: 'gap:railways',
-    name: 'Freight Rail Corridors',
+    id: 'gap:freight-volume',
+    name: 'Freight Volumes & Capacity',
     group: 'Not Available',
-    summary: 'Global rail freight corridors and their capacity.',
-    icon: '🚆',
+    summary:
+      'How much actually moves on a rail corridor, a road, a pipeline or through an airport.',
+    icon: '\u2696',
     available: false,
     missing:
-      'No open global freight-rail dataset exists. Corridors are published per-operator, in incompatible formats, mostly without an API. City transit is available and is a different thing.',
+      'This is the honest remaining gap, and it is narrower than "no inland freight data". The infrastructure is mapped and drawn. What no open global source publishes is throughput: tonne-kilometres by corridor, heavy-goods counts by road, pipeline flow rates, airport cargo tonnage. Each exists per operator, per regulator or per national statistics office, on its own schedule and in its own units, and several are sold rather than published.',
   }),
   Object.freeze({
-    id: 'gap:roads',
-    name: 'Road Freight Corridors',
+    id: 'gap:facility-output',
+    name: 'Facility-Level Production Output',
     group: 'Not Available',
-    summary: 'Long-haul trucking corridors and border queues.',
-    icon: '🚚',
+    summary: 'Annual tonnes or units from a named mine, refinery or factory.',
+    icon: '\u2699',
     available: false,
     missing:
-      'No open global road-freight feed exists. Only jurisdiction-specific congestion feeds, which cover cities rather than corridors.',
-  }),
-  Object.freeze({
-    id: 'gap:airports',
-    name: 'Air Cargo Hubs',
-    group: 'Not Available',
-    summary: 'Airport-level cargo tonnage and hub ranking.',
-    icon: '🛫',
-    available: false,
-    missing:
-      'Airport cargo tonnage is published by individual authorities and by IATA under licence. Live aircraft positions ARE available — see Aircraft.',
-  }),
-  Object.freeze({
-    id: 'gap:production',
-    name: 'Production Sites',
-    group: 'Not Available',
-    summary: 'Mines, refineries, fabs and factories with their output.',
-    icon: '⚙',
-    available: false,
-    missing:
-      'Facility-level output is company-confidential. Export value is used as a labelled proxy in Analyze → Resource, and a proxy is not a measurement.',
-  }),
-  Object.freeze({
-    id: 'gap:pipelines',
-    name: 'Pipelines',
-    group: 'Not Available',
-    summary: 'Oil and gas pipeline routes and throughput.',
-    icon: '═',
-    available: false,
-    missing:
-      'Route geometry is partly mappable from OpenStreetMap, but throughput is commercial and is the part that would matter. Not integrated.',
+      'Mines, quarries, works and refineries are mapped and drawn, with their commodity where a surveyor tagged it. Output per site is company-reported in annual PDFs (USGS Mineral Yearbooks, company filings) that do not reconcile to OpenStreetMap ids. Export value is used as a labelled proxy in Analyze \u2192 Resource, and a proxy is not a measurement.',
   }),
 ]);
 

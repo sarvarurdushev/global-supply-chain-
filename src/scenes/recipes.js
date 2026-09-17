@@ -23,7 +23,10 @@ const BHOTE_KOSHI_NEPAL_BASE_RECIPE = Object.freeze({
   },
   legacySceneBootstrap: {
     // Both the current title and the one browsers saved before the renames.
-    targetSceneTitles: ['Nepal Flood — Corridor Disruption', 'Nepal Flood Incident'],
+    targetSceneTitles: [
+      'Nepal Flood — Corridor Disruption',
+      'Nepal Flood Incident',
+    ],
     fromShotTitles: ['Shot 1', 'Shot 2', 'Shot 3'],
     cameraPath: [
       {

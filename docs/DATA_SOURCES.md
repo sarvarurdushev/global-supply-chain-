@@ -233,3 +233,94 @@ degraded in the UI rather than faked.
 3. Rate limits are licence terms, not performance advice.
 4. ODbL share-alike propagates to derived databases, including graph edges whose geometry
    derives from OSM/Overpass.
+
+---
+
+## Inland freight infrastructure (added 2026-09-17)
+
+These five sources close four of the six items the rebuild audit had marked
+unavailable. They were marked unavailable because "no open global dataset for
+inland freight" was accepted without probing it, and the probes below took
+minutes.
+
+### OpenStreetMap, via the app's own `/api/overpass` proxy
+
+| Layer | Tag query | Measured on the live API |
+|---|---|---|
+| `freight-rail` | `way["railway"="rail"]["usage"="main"]` | 19,027 ways / 26 MB across the Rhine-Ruhr with `usage` relaxed to `main\|branch`; `main` alone is what ships |
+| `freight-roads` | `way["highway"~"^(motorway\|trunk)$"]` | Same shape the inherited traffic layer already used |
+| `pipelines` | `way["man_made"="pipeline"]["substance"~"^(oil\|gas\|…)$"]` | 2.8 MB of geometry across Iraq/Kuwait |
+| `production-sites` | `nwr["landuse"="quarry"]`, `nwr["man_made"="mineshaft"]`, `nwr["man_made"="works"]` | 92 sites in the Atacama, 63 named, most tagged `resource=copper` |
+
+**Licence:** ODbL 1.0. `© OpenStreetMap contributors`, with share-alike
+obligations on any derived database.
+
+**Why they go through the proxy and not to overpass-api.de.** Three reasons, all
+load-bearing. The proxy validates every query against
+`server/providers/overpass/query.js`, which requires each selector to be
+individually spatially bounded and rejects world-sized boxes — a layer talking
+to the API directly would bypass that. It caches on disk, rotates across
+mirrors and rate-limits, and a camera-driven layer is exactly the shape of
+client the public API bans. And it sets a real `User-Agent`: measured directly,
+overpass-api.de answers **HTTP 406** to a request without one.
+
+**Why they are viewport-bounded.** The proxy caps a query at 12° of span
+(`OVERPASS_MAX_BBOX_DEG`), and a continental rail query returns tens of
+thousands of ways regardless. `clampBbox()` narrows a wider view to its middle
+12° and flags it, and above 3,000 km of camera height the layer refuses
+outright and says why — a thin band across the middle of the screen reads as
+"this is all the railway there is".
+
+**Coverage is uneven and that is part of the data.** OSM is volunteer-surveyed:
+Western Europe's rail network is near-complete, parts of central Africa are near
+empty. An empty result is reported as "nobody has mapped this here", never as
+"there is nothing here". Features are also rarely removed when they close, so a
+mapped site may be disused.
+
+### OurAirports
+
+`https://davidmegginson.github.io/ourairports-data/airports.csv` — 86,084
+records, HTTP 200, **public domain**. Filtered to `type=large_airport` AND
+`scheduled_service=yes` → **1,152 gateways**, bundled by
+`scripts/build-air-gateways.mjs` into `src/supplychain/reference/airGateways.js`
+(188 KB) rather than fetched, because the source CSV is about 12 MB and an
+airport does not move.
+
+**It is not a cargo ranking.** OurAirports records position, identity and
+service status, not freight tonnage, and no open global source publishes that —
+ACI's cargo rankings are a paid publication. So every marker is drawn the same
+size. A size scale would be a claim about volume made from no volume data.
+
+### WRI Aqueduct 4.0, via the Esri Living Atlas
+
+`https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/aqueduct_water_risk/FeatureServer/1/query`
+— layer 1 is Baseline Annual, by Pfafstetter basin. Keyless, **CC BY 4.0**
+("Aqueduct 4.0, World Resources Institute (WRI)"), and it sends
+`access-control-allow-origin: *`, so the browser reads it directly rather than
+through a proxy.
+
+Measured 2026-09-17:
+
+| | Withdrawal as % of renewable supply |
+|---|---|
+| China, national (World Bank `ER.H2O.FWTL.ZS`) | 20.2% |
+| Guangzhou basin, Pearl River | 1.6% — Low |
+| Beijing basin | 93.7% — Extremely High |
+| Hebei basin (`pfaf_id` 431648) | 1,969% — Extremely High |
+
+**Three traps, all handled in `src/supplychain/waterBasins.js` and tested:**
+
+1. **Sentinels.** `bws_raw` is `9999` for "arid and low water use" and `-9999`
+   for "no data", in every `*_raw` field. Rendered as a percentage the first
+   reads "999,900% water stress". Coded rows report a classification and no
+   number.
+2. **Above 100% is real.** Hebei withdraws nearly twenty times its renewable
+   supply by mining groundwater. Clamping would hide the most important thing
+   the dataset says about the North China Plain.
+3. **Basins repeat per province.** A basin crossing a provincial border is
+   returned once per `name_1` with identical figures, so rows are deduplicated
+   by `pfaf_id` — without it a top-ten list is the same basin three times.
+
+`bws_raw` is a fraction, not a percentage: 0.937 is 93.7%. Bands come from
+Aqueduct's own `bws_label` rather than being recomputed, so the project reports
+their classification instead of inventing a parallel one.

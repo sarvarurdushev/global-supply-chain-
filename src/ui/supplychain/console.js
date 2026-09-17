@@ -24,6 +24,12 @@ import {
   HS_HEADINGS,
 } from '../../supplychain/reference/commodities.js';
 import { COUNTRIES } from '../../supplychain/reference/countries.js';
+import {
+  basinProvenance,
+  nationalAverageGap,
+  readBasins,
+  stressedBasinsUrl,
+} from '../../supplychain/waterBasins.js';
 import { CHOKEPOINTS } from '../../supplychain/reference/chokepoints.js';
 import { MAJOR_PORTS } from '../../supplychain/reference/ports.js';
 import {
@@ -363,6 +369,8 @@ export function createSupplyChainConsole({
     production: null,
     comparison: null,
     environment: null,
+    /** Basin-level water stress, from Aqueduct. Loaded with `environment`. */
+    basins: null,
     events: null,
     compareSelection: null,
     error: null,
@@ -436,7 +444,13 @@ export function createSupplyChainConsole({
 
   const panel = h(
     'aside',
-    { class: 'sc-console', 'aria-label': 'Supply chain console' },
+    {
+      class: 'sc-console',
+      'aria-label': 'Supply chain console',
+      // Collapsed on mount; the `.sc-launcher` chip below opens it. See the
+      // comment on that chip for why.
+      hidden: '',
+    },
     [
       h('header', { class: 'sc-head' }, [
         h('div', { class: 'sc-title', text: 'GLOBAL SUPPLY CHAIN EYE' }),
@@ -1341,6 +1355,51 @@ export function createSupplyChainConsole({
    * different: comparison asks "how do these economies differ", and this asks
    * "what could physically interrupt this one".
    */
+  /**
+   * Basin-level water stress for one country, from WRI Aqueduct 4.0.
+   *
+   * Returns null on any failure — including a country Aqueduct names
+   * differently from this project's reference list, which is a real and
+   * unfixable mismatch rather than a bug. Null means the panel keeps the
+   * national reading and says the basin detail is unavailable, which is true.
+   *
+   * Fetched directly rather than through the proxy: the Esri Living Atlas
+   * service sends `access-control-allow-origin: *`, so a browser can read it,
+   * and routing it through the app's Overpass-shaped proxy would buy nothing.
+   */
+  async function loadBasins(country) {
+    const url = stressedBasinsUrl({ countryName: country.name, limit: 60 });
+    if (!url) return null;
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const payload = await response.json();
+      const basins = readBasins(payload, 8);
+      if (basins.length === 0) return null;
+      const retrievedAt = new Date().toISOString();
+      return Object.freeze({
+        country: country.name,
+        basins,
+        gap: nationalAverageGap({
+          // The same World Bank indicator the national card shows, so the two
+          // numbers in the finding are the two numbers on screen.
+          nationalPercent: state.environment?.readings?.find(
+            (reading) => reading.code === 'ER.H2O.FWTL.ZS',
+          )?.value,
+          basins,
+          countryName: country.name,
+        }),
+        provenance: basinProvenance({
+          scope: country.name,
+          count: basins.length,
+          retrievedAt,
+        }),
+      });
+    } catch {
+      return null;
+    }
+  }
+
   async function loadEnvironment(iso3) {
     const country = COUNTRIES.find((c) => c.iso3 === iso3);
     if (!country) return null;
@@ -1370,6 +1429,21 @@ export function createSupplyChainConsole({
         values,
         retrievedAt: provenance?.retrievedAt ?? new Date().toISOString(),
       });
+      /*
+       * Then the basins, which are the point.
+       *
+       * The World Bank figures above are national averages, and
+       * environment.js has always said in its own limitations that water
+       * stress is a river-basin property and a national average is the wrong
+       * resolution. WRI Aqueduct publishes it by basin and is reachable, so
+       * both are loaded and shown together.
+       *
+       * Deliberately AFTER the national indicators and in its own try: a
+       * basin lookup that fails must not lose the country reading that already
+       * succeeded. Aqueduct is a third-party service this project does not
+       * control.
+       */
+      state.basins = await loadBasins(country);
       setStatus(
         `Environmental indicators loaded for ${country.name}.`,
         'sc-ok',
@@ -1378,6 +1452,7 @@ export function createSupplyChainConsole({
       return state.environment;
     } catch (error) {
       state.environment = null;
+      state.basins = null;
       setStatus(`Environmental indicators failed: ${error.message}`, 'sc-err');
       notify();
       return null;
@@ -1942,13 +2017,25 @@ export function createSupplyChainConsole({
   runButton.addEventListener('click', run);
   seriesButton.addEventListener('click', loadSeries);
 
-  // A dismissable panel needs a way back. The chip occupies the same corner so
-  // the console cannot be lost.
+  /*
+   * A dismissable panel needs a way back. The chip occupies the same corner so
+   * the console cannot be lost.
+   *
+   * IT STARTS DISMISSED, and its chip starts visible. This console and the
+   * workspace dock both occupy the right-hand column, so mounting both open
+   * stacks one directly on top of the other — which is what a real browser run
+   * showed: the console at 1284,76 sitting under a dock at 1262,104.
+   *
+   * Starting collapsed behind its own chip is how every inherited panel
+   * already ships (`#data-panel` and `#scene-panel` both carry `collapsed`),
+   * it removes nothing, and it is one click from open. The alternative the
+   * workspace used to take — reaching in and hiding this console — was the
+   * wrong fix for the same problem, because it left no chip and no way back.
+   */
   const launcher = h('button', {
     class: 'sc-launcher',
     type: 'button',
     text: 'SUPPLY CHAIN',
-    hidden: '',
     'aria-label': 'Open supply chain console',
     onClick: () => setVisible(true),
   });
@@ -2047,6 +2134,7 @@ export function createSupplyChainConsole({
         production: state.production,
         comparison: state.comparison,
         environment: state.environment,
+        basins: state.basins,
         events: state.events,
         error: state.error,
         commodity: state.commodity,

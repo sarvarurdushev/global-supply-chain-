@@ -158,13 +158,26 @@ function encode(state) {
 
 test('production registry is exact, canonical, and rejects incomplete contracts', async () => {
   assert.equal(validateLayerStateRegistry(), true);
-  // 21 inherited layers plus the six supply-chain layers: trade-flows,
-  // supply-ports, chokepoints, supply-events, country-borders, supply-chain.
-  assert.equal(REGISTERED_LAYER_IDS.length, 27);
-  assert.equal(new Set(REGISTERED_LAYER_IDS).size, 27);
+  // 21 inherited layers, the six supply-chain layers (trade-flows,
+  // supply-ports, chokepoints, supply-events, country-borders, supply-chain)
+  // and the five inland-freight layers (freight-rail, freight-roads,
+  // pipelines, production-sites, air-cargo-hubs).
+  assert.equal(REGISTERED_LAYER_IDS.length, 32);
+  assert.equal(new Set(REGISTERED_LAYER_IDS).size, 32);
   assert.ok(REGISTERED_LAYER_IDS.includes('country-borders'));
   assert.ok(REGISTERED_LAYER_IDS.includes('supply-chain'));
   assert.ok(REGISTERED_LAYER_IDS.includes('transit'));
+  // A share link has to be able to restore the inland-freight networks too,
+  // or a link to "the rail corridors behind Rotterdam" reopens on a bare globe.
+  for (const id of [
+    'freight-rail',
+    'freight-roads',
+    'pipelines',
+    'production-sites',
+    'air-cargo-hubs',
+  ]) {
+    assert.ok(REGISTERED_LAYER_IDS.includes(id), `${id} is not shareable`);
+  }
   assert.deepEqual(REGISTERED_LAYER_IDS, [...REGISTERED_LAYER_IDS].sort());
   assert.throws(
     () => validateLayerStateRegistry([...LAYER_STATE_REGISTRY, LAYER_STATE_REGISTRY[0]]),

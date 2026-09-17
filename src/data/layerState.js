@@ -302,6 +302,21 @@ export const SHARE_TRACKING_RESTORE_POLICIES = Object.freeze({
  * owns stable URL ordering.
  */
 export const LAYER_STATE_REGISTRY = Object.freeze([
+  /*
+   * Inland freight. Numeric tokens because the alphabet is spent —
+   * 'supply-chain' already took '1' for the same reason.
+   *
+   * `enabled-only` is right even though these fetch by viewport: what a share
+   * link restores is which layers are ON, and the camera is carried
+   * separately, so a shared link reopens the same view with the same networks
+   * drawn over it. Each entry sits in its alphabetical slot because the
+   * registry's order is asserted and the canonical encoding depends on it.
+   */
+  Object.freeze({
+    id: 'air-cargo-hubs',
+    token: '6',
+    disposition: 'enabled-only',
+  }),
   Object.freeze({
     id: 'ais-live-vessels',
     token: 'a',
@@ -343,6 +358,16 @@ export const LAYER_STATE_REGISTRY = Object.freeze([
     disposition: 'enabled+options',
     optionOwner: 'flights',
   }),
+  Object.freeze({
+    id: 'freight-rail',
+    token: '2',
+    disposition: 'enabled-only',
+  }),
+  Object.freeze({
+    id: 'freight-roads',
+    token: '3',
+    disposition: 'enabled-only',
+  }),
   Object.freeze({ id: 'local-dams', token: 'q', disposition: 'enabled-only' }),
   Object.freeze({
     id: 'local-datacenters',
@@ -364,6 +389,12 @@ export const LAYER_STATE_REGISTRY = Object.freeze([
   Object.freeze({
     id: 'military-installations',
     token: 'i',
+    disposition: 'enabled-only',
+  }),
+  Object.freeze({ id: 'pipelines', token: '4', disposition: 'enabled-only' }),
+  Object.freeze({
+    id: 'production-sites',
+    token: '5',
     disposition: 'enabled-only',
   }),
   Object.freeze({

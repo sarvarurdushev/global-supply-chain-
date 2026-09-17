@@ -157,11 +157,28 @@ export class IntelHUD {
       }
     };
 
-    // Session-consistent pseudorandom identifiers (generated once at construction)
-    this._missionId = `KH11-${4000 + Math.floor(Math.random() * 200)}`;
-    this._sensorId = `OPS-${4100 + Math.floor(Math.random() * 100)}`;
-    this._orbitNum = 47000 + Math.floor(Math.random() * 1000);
-    this._passNum = 100 + Math.floor(Math.random() * 200);
+    /*
+     * Session labels.
+     *
+     * These were `KH11-4180`, `OPS-4152`, `ORB: 47098 PASS: DESC-206` — random
+     * numbers dressed as a reconnaissance satellite's mission, sensor and orbit,
+     * under a `TOP SECRET // SI-TK // NOFORN` banner. Atmospheric, and invented:
+     * there is no KH-11, no pass, no classification. Over annual customs
+     * statistics it is worse than decoration, because it makes a public trade
+     * total look like an intercept — and §31 of the brief is that data which
+     * does not exist must not be invented.
+     *
+     * The HUD keeps every slot, every corner bracket and every readout it had.
+     * What goes in these three is now true: what this session is, where its data
+     * comes from, and a session id that is honestly a session id.
+     */
+    this._missionId = 'SUPPLY CHAIN EYE';
+    this._sensorId = `SESSION ${new Date()
+      .toISOString()
+      .slice(11, 19)
+      .replace(/:/g, '')}`;
+    this._classification =
+      'OPEN DATA \u00b7 PUBLIC SOURCES \u00b7 NOT CLASSIFIED';
 
     this._buildDOM();
     this.viewer.camera.moveEnd.addEventListener(this._onCameraMoveEnd);
@@ -179,7 +196,7 @@ export class IntelHUD {
 
     this._el.innerHTML = `
       <div class="hud-top-bar">
-        <span class="hud-top-bar-left">TOP SECRET // SI-TK // NOFORN</span>
+        <span class="hud-top-bar-left">${this._classification}</span>
         <span class="hud-top-bar-center">${this._missionId}</span>
         <span class="hud-top-bar-right">PAGE 1/1</span>
       </div>
@@ -187,7 +204,7 @@ export class IntelHUD {
       <div class="hud-corner hud-top-left">
         <div class="hud-bracket">┌</div>
         <div class="hud-content">
-          <div class="hud-classification">TOP SECRET // SI-TK // NOFORN</div>
+          <div class="hud-classification">${this._classification}</div>
           <div class="hud-system">${this._missionId}  ${this._sensorId}</div>
           <div class="hud-mode" id="hud-mode">NORMAL</div>
           <div class="hud-summary-wrap">
@@ -199,8 +216,8 @@ export class IntelHUD {
 
       <div class="hud-corner hud-top-right">
         <div class="hud-content" style="text-align:right">
-          <div class="hud-rec"><span id="hud-rec-dot">●</span> REC  <span id="hud-timestamp">2026-01-01 00:00:00Z</span></div>
-          <div class="hud-orbital">ORB: ${this._orbitNum}  PASS: DESC-${this._passNum}</div>
+          <div class="hud-rec"><span id="hud-rec-dot">●</span> UTC  <span id="hud-timestamp">2026-01-01 00:00:00Z</span></div>
+          <div class="hud-orbital">VIEW ONLY \u00b7 NOT RECORDING</div>
         </div>
         <div class="hud-bracket">┐</div>
       </div>
@@ -228,9 +245,9 @@ export class IntelHUD {
       </div>
 
       <div class="hud-edge hud-right-edge">
-        <div>BAND: PAN</div>
-        <div>BITS: 11</div>
-        <div>LVL: 1A</div>
+        <div>LIVE</div>
+        <div>HISTORICAL</div>
+        <div>INFERRED</div>
       </div>
 
       <div class="hud-bottom-bar">

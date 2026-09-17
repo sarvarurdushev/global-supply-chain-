@@ -55,6 +55,20 @@ const PANEL_GROUPS = [
     ],
   },
   {
+    // The inland half of a chain: how cargo gets to and from a port, and where
+    // it came out of the ground. Its own group because all five load what is
+    // in the current view rather than a fixed global set, which is a different
+    // thing to expect of a toggle.
+    label: 'Inland Freight',
+    ids: [
+      'freight-rail',
+      'freight-roads',
+      'pipelines',
+      'production-sites',
+      'air-cargo-hubs',
+    ],
+  },
+  {
     label: 'Utilities',
     ids: ['directions', 'radio'],
   },

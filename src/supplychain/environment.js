@@ -14,9 +14,18 @@
  * the wrong resolution for most of the questions people want to ask. Water
  * stress is a river-basin property, not a country property: China's national
  * figure averages the water-rich south with the water-scarce north, and the
- * north is where the wheat is. WRI Aqueduct publishes it by basin and is a bulk
- * download rather than an API, so it is not integrated. The limitation is
- * stated on every result rather than left for the reader to discover.
+ * north is where the wheat is.
+ *
+ * That limitation used to end "WRI Aqueduct publishes it by basin and is a bulk
+ * download rather than an API, so it is not integrated." The last clause was
+ * wrong. Esri's Living Atlas serves Aqueduct 4.0 as a queryable feature
+ * service, keyless and CC BY 4.0, and `waterBasins.js` reads it. Both
+ * resolutions are shown together now, and the difference between them is the
+ * finding: China withdraws 20.2% of its renewable water nationally, and 1,969%
+ * in the Hebei basin. This module still produces the national reading, because
+ * a national figure is the right answer to a national question — it is simply
+ * no longer the only figure available, and the limitation says where to look
+ * for the other one.
  *
  * Portable: no Cesium, no Node, no browser globals.
  */
@@ -256,10 +265,10 @@ export function environmentalRisk({
       limitations: [
         'NATIONAL AVERAGES. Water stress is a river-basin property, not a ' +
           'country property. China’s figure averages the water-rich south ' +
-          'with the water-scarce north, and the north is where the wheat is.',
-        'WRI Aqueduct publishes water stress by basin, which is the right ' +
-          'resolution, and is a bulk download rather than an API. It is not ' +
-          'integrated here.',
+          'with the water-scarce north, and the north is where the wheat is. ' +
+          'The basin card on the same panel reads WRI Aqueduct 4.0 by river ' +
+          'basin for exactly this reason; the two are meant to be read ' +
+          'together.',
         'The disaster series is a 1990–2009 average. It is a record of what ' +
           'happened, not a forecast of what will.',
         'Withdrawal above 100% of internal renewable resources is real, not an ' +

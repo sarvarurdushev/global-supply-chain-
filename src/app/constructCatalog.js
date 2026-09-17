@@ -6,6 +6,9 @@ import { createPortsLayer } from '../layers/ports/index.js';
 import { createEventsLayer } from '../layers/events/index.js';
 import { createBordersLayer } from '../layers/borders/index.js';
 import { createChainLayer } from '../layers/chain/index.js';
+import { createFreightLayer } from '../layers/freight/index.js';
+import { createAirGatewayLayer } from '../layers/airGateways/index.js';
+import { createOverpassFreightSource } from '../supplychain/sources/overpassFreight.js';
 import { createTradeProxySource } from '../supplychain/sources/tradeProxy.js';
 import { governorRequestRender } from '../renderGovernor.js';
 import { createMilitaryRegistry } from '../layers/aircraft/classification.js';
@@ -110,6 +113,7 @@ export function createApplicationCatalog({
     const satellites = createApplicationSatellites({
       source: sources.satellites,
     });
+    const overpassFreight = createOverpassFreightSource();
     const catalog = createLayerCatalog(
       [
         createBhoteKoshiEventLayer(),
@@ -148,6 +152,20 @@ export function createApplicationCatalog({
         }),
         createBordersLayer({ governorRequestRender }),
         createChainLayer({ governorRequestRender }),
+        /*
+         * Inland freight infrastructure, the five stages the route could not
+         * place. All four share one Overpass transport: it goes through the
+         * app's own proxy, which validates the query, caches, rotates mirrors
+         * and sets the User-Agent the public API requires.
+         */
+        ...['rail', 'roads', 'pipelines', 'production'].map((network) =>
+          createFreightLayer({
+            network,
+            fetchOverpass: overpassFreight,
+            governorRequestRender,
+          }),
+        ),
+        createAirGatewayLayer({ governorRequestRender }),
         createEventsLayer({
           // Must go through the dev/preview proxy: gdacs.org sends no CORS
           // headers, so a direct browser fetch is blocked outright.

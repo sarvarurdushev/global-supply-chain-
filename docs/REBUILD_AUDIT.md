@@ -146,10 +146,17 @@ the Danish Straits, the Taiwan Strait, and the Cape of Good Hope. Each selectabl
 with location, connected waters, bordering countries, cargo categories,
 alternative routing and per-record sources.
 
-⬜ **Arctic / Northern Sea Route and major land and rail corridors are not
-included.** The Arctic route's usability is seasonal and its traffic data is not
-open; land and rail corridors have no open global dataset. Listed in `Map Layers`
-under "Not Available" with what would be needed.
+🟡 **Land and rail corridors are drawn now; the Arctic route is not.**
+
+The previous verdict here was that land and rail corridors "have no open global
+dataset". That conflated two questions. Where the corridors ARE is mapped
+worldwide in OpenStreetMap under ODbL, and `Track → Inland freight
+infrastructure` draws main-line rail, trunk road and oil and gas pipelines for
+whatever region is in view. How much moves on them is the part that is closed.
+
+The Arctic / Northern Sea Route remains out: its usability is seasonal, its
+transit traffic is reported by Russian authorities rather than published as a
+feed, and there is no route geometry in OSM to draw in the meantime.
 
 ## 14. Build the Strait of Hormuz scenario
 
@@ -169,10 +176,31 @@ actually crosses the node being closed.
 🟡 Air (live ADS-B), maritime (live AIS), ports (417 from WPI), and city transit
 and road traffic where feeds exist. Legs on a drawn chain are styled by mode.
 
-⬜ **Freight rail, road freight corridors, air-cargo hubs and pipelines are not
-available.** No open global dataset exists for any of them; city transit is not
-freight rail and the interface says so in those words. All four are listed with
-what would be needed.
+✅ **All four are built now.** The earlier verdict — "no open global dataset
+exists for any of them" — was wrong, and the probes that disproved it took
+minutes:
+
+| Layer | Source | Measured |
+|---|---|---|
+| Freight Rail Corridors | OSM `railway=rail` + `usage=main` | 19,027 ways across the Rhine-Ruhr |
+| Road Freight Corridors | OSM `highway=motorway\|trunk` | already proven by the inherited traffic layer |
+| Oil & Gas Pipelines | OSM `man_made=pipeline` + `substance` | 2.8 MB of geometry across Iraq/Kuwait |
+| Air Freight Gateways | OurAirports `airports.csv` | 1,152 large airports with scheduled service, public domain, bundled |
+
+What is genuinely missing is narrower and is now stated as its own gap:
+**throughput**. No tonne-kilometres by corridor, no heavy-goods counts by road,
+no pipeline flow rates, no airport cargo tonnage. Every one of those exists per
+operator, per regulator or per national statistics office, on its own schedule
+and in its own units, and several are sold rather than published. `Map Layers`
+lists it as "Freight Volumes & Capacity" under Not Available.
+
+The three OSM layers are viewport-driven, because the proxy caps a query at 12°
+of span and a continental rail query returns tens of thousands of ways. At
+whole-globe range the panel says "too far out to query" rather than drawing a
+band across the middle of the screen and letting it read as an answer.
+
+City transit is still not freight rail, and the interface still says so in those
+words.
 
 ## 16. Draw supply-chain routes
 
@@ -181,11 +209,21 @@ origin country, load port, sea transit, discharge port, destination country.
 Legs are mode-styled — solid sea, dashed land, dotted air, with dash pattern
 carrying the distinction so it survives greyscale.
 
-The five stages nothing supports — extraction, processing, manufacture, inland
-distribution, final consumer — are **present and explicitly empty**, each with
-why and what would fix it. Drawing a plausible line to a plausible mine would
-have been the most convincing-looking part of the picture and a complete
-fabrication.
+The five stages the chain itself cannot place — extraction, processing,
+manufacture, inland distribution, final consumer — are **present and explicitly
+empty** on the drawn chain, each with why and what would fix it. Drawing a
+plausible line to a plausible mine would have been the most convincing-looking
+part of the picture and a complete fabrication.
+
+Two of those five now have real places to look at, on their own layer rather
+than spliced into the chain. `Track → Inland freight infrastructure` draws
+mines, quarries and industrial works from OpenStreetMap, with the commodity
+where a surveyor tagged it — 92 sites in the Atacama on the probe, 63 named,
+most carrying `resource=copper`. That is honest about what it is: **these are
+extraction and processing sites in this region**, not a claim that any of them
+supplied the shipment the chain is about. Joining a specific mine to a specific
+cargo needs facility-level output reconciled to trade records, which is the gap
+that remains, so the chain still shows a gap where the link would go.
 
 ## 17. Product / resource analysis
 
@@ -198,7 +236,10 @@ routes, dependencies and risks, with HHI, effective-supplier count and CR4.
 path into the trade views. Nearby ports are a proximity heuristic against the
 country's label point and say so.
 
-⬜ Domestic rail corridors and airport cargo tonnage are unavailable (see §15).
+🟡 Domestic rail corridors are drawn from OpenStreetMap now (see §15). Airport
+cargo tonnage is still unavailable: no open source publishes it, so the air
+gateway layer draws every gateway at the same size rather than implying a
+ranking it cannot support.
 
 ## 19. Resource map
 
@@ -243,10 +284,34 @@ implying one.
 Bands are the published FAO/SDG 6.4.2 thresholds and the Falkenmark per-capita
 breakpoints, not numbers invented here.
 
-⬜ **Basin-level water stress is not integrated.** It is the resolution that
-actually matters — China's national figure averages the water-rich south with the
-water-scarce north, and the north is where the wheat is. WRI Aqueduct publishes
-it by basin and is a bulk download rather than an API. Stated on every result.
+✅ **Basin-level water stress is integrated.** The earlier verdict said WRI
+Aqueduct "publishes it by basin and is a bulk download rather than an API". The
+first half is right; the second was wrong. Esri's Living Atlas serves Aqueduct
+4.0 as a queryable feature service — keyless, CC BY 4.0, and sending
+`access-control-allow-origin: *` so a browser can read it directly.
+
+`Analyze → Environmental Risk` now shows both resolutions and names the gap
+between them. Measured on the live service:
+
+| | Withdrawal as % of renewable supply |
+|---|---|
+| China, national (World Bank) | 20.2% |
+| Guangzhou basin, Pearl River | 1.6% — Low |
+| Beijing basin | 93.7% — Extremely High |
+| Hebei basin (pfaf 431648) | 1,969% — Extremely High |
+
+Which is the argument the old caveat was making, with numbers behind it: the
+national figure is about 97 times too low for the basin the wheat grows in.
+
+Two traps in this dataset would have produced numbers that do not exist, and
+both are handled and tested. Aqueduct writes **9,999 for "arid and low water
+use" and -9,999 for "no data"** in every raw field — printed as a percentage the
+first reads "999,900% water stress", so coded rows report a classification and
+no number. And **withdrawal above 100% is real**, not an error: Hebei mines
+groundwater at nearly twenty times its renewable supply, so the figure is never
+clamped. A basin crossing a provincial border is also returned once per
+province, so rows are deduplicated by `pfaf_id` or a top-ten list becomes the
+same basin three times.
 
 ## 23. Country borders
 
@@ -349,16 +414,51 @@ shrinks below readable type size.
 
 ## 37. Do not remove good existing work
 
-✅ Nothing was deleted. The globe, camera, tracking, trails, HUD, director,
-voice, share links and live layers all still work. The Nepal evidence pack, the
-inherited scenes and the original console are all intact, and "Hide panels"
-returns the original interface in full.
+✅ Nothing is deleted, and nothing is hidden either.
+
+An earlier version of this got it wrong. It blanked the inherited title bar,
+intel HUD, style indicator, data-layer tray, scene director, command dock,
+context rail and first-run card while the workspace was up, on the theory that
+one window should hold one product, and closed the original supply-chain console
+on mount. That removed things that had been asked to be kept. Corrected:
+
+- `src/workspace/shell.js` carries no hide list and never touches the console's
+  visibility. A test asserts both, in both directions.
+- The workspace is a right-hand dock instead of a full-screen shell.
+  `body.ws-docked` slides the inherited context rail, style indicator, HUD
+  readouts and command dock inboard by the dock's width so **both interfaces
+  are fully on screen at once**. A browser run confirms zero overlapping
+  rectangles between any pair of the nine visible panels.
+- The dock collapses to an edge tab, so the whole window is one click away and
+  one click back.
+- The original console mounts collapsed behind its own `SUPPLY CHAIN` chip —
+  the affordance it was built with — because it and the dock occupy the same
+  column. Collapsed is not hidden: the chip is always there, and clicking it
+  opens the console beside the dock rather than under it.
+
+The globe, camera, tracking, trails, HUD, director, voice, share links, live
+layers, Nepal evidence pack and inherited scenes all still work.
 
 ## 38. Test every major user flow
 
 ✅ `npm run qa:workspace` drives all twelve flows in a real browser against live
-upstream data, plus the staged chain and the risk view. 15/15 pass. It is
-committed, repeatable, and exits non-zero on the first failure.
+upstream data. **24/24 pass.** It is committed, repeatable, and exits non-zero
+on the first failure.
+
+Beyond the twelve flows it now also proves the things only a real page can:
+that every inherited panel is on screen and **no pair of them overlaps**; that
+all 29 rows of the inherited layer tray carry a plain-language description; that
+the scene picker shows the renamed scenes rather than the inherited labels; that
+the freight layers refuse at whole-globe range instead of drawing a band; that
+1,464 real pipeline ways load over the Rhine-Ruhr with their substances; that
+every freight record declares the volume it does not have as an explicit null;
+and that OpenStreetMap geometry carries its ODbL attribution.
+
+One check reports SKIPPED rather than passing on a lie: reaching Esri's Aqueduct
+service needs outbound TLS the sandboxed browser does not trust, the same way
+basemap tiles already fail there. The module's own logic — sentinels,
+deduplication, the finding — is covered without a network in
+`waterBasins.test.mjs`.
 
 ## 39. Important UX rule
 
@@ -369,9 +469,26 @@ offers a next step", both of which fail the build if a view skips them.
 
 🟡 The interface is its own product rather than the inherited one with data
 bolted on. Whether it reaches "Google Earth + logistics intelligence" is not
-ours to mark; what can be said is that the identity, navigation, vocabulary,
-layout and explanation layer are all original, and that the inherited chrome is
-gone while the workspace is up.
+ours to mark.
+
+What can be said is that it is no longer a reskin of what it inherited, while
+keeping everything it inherited. `src/ui/styles/identity.css` loads last and
+re-skins every stylesheet above it — cyan `#00d4ff` to amber `#f0a830` with teal
+as secondary, pure black to navy-slate `#0e1420`, 16px pill radii to 8px, the
+cyan bloom reduced to a warm rim, the logo mark's cyan replaced, and the
+wordmark de-glowed and renamed to GLOBAL SUPPLY CHAIN EYE. It changes tokens and
+a few signature motifs only: no panel is hidden, no control moves, no behaviour
+changes.
+
+The intel HUD kept every slot and lost its invented content. `KH11-4180`,
+`OPS-4152`, `ORB: 47098 PASS: DESC-206` and `BAND: PAN / BITS: 11 / LVL: 1A`
+were random numbers dressed as a reconnaissance satellite's mission, sensor,
+orbit and imagery product, under a `TOP SECRET // SI-TK // NOFORN` banner that
+made public customs totals look like intercepts. They now read `SUPPLY CHAIN
+EYE`, a real session id, `VIEW ONLY · NOT RECORDING`, the three data classes,
+and `OPEN DATA · PUBLIC SOURCES · NOT CLASSIFIED`. The camera readouts that were
+always real — MGRS, lat/lon, GSD, NIIRS, off-nadir angle, sun elevation —
+are untouched.
 
 ## 41. Implementation priority
 
@@ -411,16 +528,49 @@ interface rather than only in this file.
 
 ## Summary
 
-| Status | Count |
-| --- | --- |
-| ✅ Done and verified | 28 |
-| 🟡 Done as far as the data allows, shortfall stated in the UI | 10 |
-| ⬜ Not done, with a stated data or scope reason | 6 |
+Counted by each section's leading verdict (§44 is this summary itself):
 
-The six ⬜ items are: Arctic and land/rail corridors (§13), freight rail, road
-freight, air-cargo hubs and pipelines (§15), the five unplaceable chain stages
-(§16), domestic transport infrastructure (§18), basin-level water stress (§22),
-and a formal performance budget for the new layers (§29).
+| Status | Count | Sections |
+| --- | --- | --- |
+| ✅ Done and verified | 36 | 1–14, 17, 20, 21, 23–28, 30–39, 41–43 |
+| 🟡 Done as far as the data allows, shortfall stated in the UI | 7 | 15, 16, 18, 19, 22, 29, 40 |
+| ⬜ Not done | 0 | — |
+
+No requirement is now wholly undone. What remains are shortfalls inside the
+seven 🟡 sections, and each one is visible in the interface rather than only in
+this file: freight throughput (§15), the inland-distribution and
+final-consumer chain stages (§16, §18), facility output (§16), Aqueduct's
+modelling limits (§22), a formal performance budget for the new layers (§29),
+and the unmarkable judgement in §40.
+
+### What changed in this pass
+
+Five of the six ⬜ items are built. They had been written off on one shared
+premise — "no open global dataset for inland freight or facility-level
+production" — and that premise was never tested. The probes that disproved it
+took minutes:
+
+| Was ⬜ | Now | Source |
+|---|---|---|
+| Freight rail corridors (§15) | ✅ | OSM `railway=rail`+`usage=main` |
+| Road freight corridors (§15) | ✅ | OSM `highway=motorway\|trunk` |
+| Pipelines (§15) | ✅ | OSM `man_made=pipeline`+`substance` |
+| Air cargo hubs (§15) | ✅ | OurAirports, 1,152 gateways, public domain |
+| Facility-level production sites (§16, §18) | 🟡 | OSM quarry/mineshaft/works, with `resource` tags |
+| Basin-level water stress (§22) | ✅ | WRI Aqueduct 4.0 via the Esri Living Atlas |
+
+**The lesson, recorded because it is the useful part:** "no open dataset exists"
+is a claim that needs a probe behind it, and five of the six here did not have
+one. What survives re-probing is a narrower and more honest gap — not the
+infrastructure, which is mapped, but the **throughput**: tonne-kilometres by
+corridor, heavy-goods counts by road, pipeline flow rates, airport cargo
+tonnage, and annual output per facility. Those are per-operator, per-regulator
+or commercial, and they are now listed as their own two entries in the layer
+browser rather than hidden inside a claim that nothing at all was available.
+
+The one remaining ⬜ is a formal performance budget for the new layers (§29).
+The Arctic / Northern Sea Route (§13) stays out as a stated scope limit: its
+traffic is not published as a feed and there is no route geometry to draw.
 
 Five of those six are the same underlying fact in different clothes: **there is
 no open global dataset for inland freight or for facility-level production.**

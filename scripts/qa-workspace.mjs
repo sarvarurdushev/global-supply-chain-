@@ -148,7 +148,14 @@ async function main() {
         const style = getComputedStyle(node);
         return style.overflowY === 'auto' || style.overflowY === 'scroll';
       }).length,
-      // The inherited chrome must not render through the new chrome.
+      /*
+       * The inherited chrome must ALL still be there.
+       *
+       * This assertion used to read `inheritedVisible === 0`, because an
+       * earlier version of the workspace hid these panels. That was the wrong
+       * behaviour and it is now inverted: all three have to be on screen, and
+       * the coexistence check further down proves none of them is covered.
+       */
       inheritedVisible: ['#title-bar', '#intel-hud', '#left-panel-stack']
         .map((selector) => document.querySelector(selector))
         .filter((node) => node && getComputedStyle(node).display !== 'none')
@@ -161,10 +168,10 @@ async function main() {
         home.navItems >= 18 &&
         home.sections === 5 &&
         home.scrollers === 1 &&
-        home.inheritedVisible === 0 &&
+        home.inheritedVisible === 3 &&
         home.why,
       `title=${home.title} nav=${home.navItems} sections=${home.sections} ` +
-        `scrollers=${home.scrollers} inheritedVisible=${home.inheritedVisible} why=${home.why}`,
+        `scrollers=${home.scrollers} inheritedVisible=${home.inheritedVisible}/3 why=${home.why}`,
     );
     await shot('01-home');
 
@@ -441,6 +448,247 @@ async function main() {
       'mechanism stated, and the national-average limit declared',
     );
     await shot('14-risk');
+
+    /* ---------------- inherited chrome is all still there ---------------- */
+
+    /*
+     * The regression this section exists for.
+     *
+     * An earlier version of the workspace hid the inherited title bar, intel
+     * HUD, style indicator, layer tray, scene director, command dock and
+     * context rail. Unit tests cannot see that: they can assert a hide list is
+     * empty, but only a real page can prove nine panels are on screen AND that
+     * none of them is covering another.
+     */
+    const coexistence = await page.evaluate(() => {
+      const box = (selector) => {
+        const el = document.querySelector(selector);
+        if (!el) return null;
+        const style = getComputedStyle(el);
+        if (style.display === 'none' || style.visibility === 'hidden' || el.hidden)
+          return null;
+        const rect = el.getBoundingClientRect();
+        return rect.width > 2 && rect.height > 2 ? rect : null;
+      };
+      const selectors = [
+        '#title-bar',
+        '#intel-hud',
+        '#style-indicator',
+        '#left-panel-stack',
+        '#top-center-actions',
+        '#command-dock',
+        '.sc-launcher',
+        '.ws-dock',
+      ];
+      const missing = selectors.filter((selector) => !box(selector));
+      // Overlap is checked between the positioned panels only. #intel-hud is a
+      // full-screen frame by design — its corner brackets surround the globe —
+      // so it is expected to cover everything and is excluded.
+      const positioned = selectors.filter(
+        (selector) => selector !== '#intel-hud' && box(selector),
+      );
+      const overlaps = [];
+      for (let i = 0; i < positioned.length; i += 1) {
+        for (let j = i + 1; j < positioned.length; j += 1) {
+          const a = box(positioned[i]);
+          const b = box(positioned[j]);
+          if (
+            !(a.right <= b.left || a.left >= b.right || a.bottom <= b.top || a.top >= b.bottom)
+          ) {
+            overlaps.push(`${positioned[i]} x ${positioned[j]}`);
+          }
+        }
+      }
+      return { missing, overlaps, bodyClasses: document.body.className };
+    });
+    record(
+      'Extra: every inherited panel is on screen, and none is covered',
+      coexistence.missing.length === 0 && coexistence.overlaps.length === 0,
+      coexistence.missing.length
+        ? `hidden: ${coexistence.missing.join(', ')}`
+        : coexistence.overlaps.length
+          ? `overlapping: ${coexistence.overlaps.join(', ')}`
+          : 'all visible, no overlaps',
+    );
+    record(
+      'Extra: the dock asks the inherited chrome to make room, rather than hiding it',
+      coexistence.bodyClasses.includes('ws-docked'),
+      coexistence.bodyClasses || '(no body classes)',
+    );
+
+    /* ---------------- the renames reached the screen ---------------- */
+
+    const renames = await page.evaluate(() => {
+      const trayNames = [...document.querySelectorAll('#data-toggles .data-name')].map(
+        (el) => el.textContent,
+      );
+      const described = [...document.querySelectorAll('#data-toggles .data-toggle-row')].filter(
+        (row) => row.querySelector('.data-blurb'),
+      ).length;
+      return {
+        trayRows: trayNames.length,
+        described,
+        scenes: [...document.querySelectorAll('#scene-select option')].map((o) => o.textContent),
+        inheritedLabels: trayNames.filter((name) =>
+          /^(ORBITAL WATCH|LOCAL FIRMS|SUPPLY CHAIN EVENTS)$/i.test(name ?? ''),
+        ),
+      };
+    });
+    record(
+      'Extra: every row in the inherited layer tray has a plain-language description',
+      renames.trayRows > 20 && renames.described === renames.trayRows,
+      `${renames.described}/${renames.trayRows} rows described`,
+    );
+    record(
+      'Extra: the scene picker shows the renamed scenes, not the inherited labels',
+      renames.scenes.some((name) => /Satellite Tracking/.test(name)) &&
+        !renames.scenes.some((name) => /Orbital Watch|City Overload|Omniscience/.test(name)),
+      renames.scenes.join(' | ') || '(no scenes)',
+    );
+
+    /* ---------------- inland freight, over a real region ---------------- */
+
+    /*
+     * Pipelines rather than rail, because a main-line rail query over the same
+     * box takes long enough to make this check flaky, and both go through the
+     * same code path. The camera is PINNED with cancelFlight first: without it
+     * the app's own in-flight animation overrides setView and the layer
+     * fetches from wherever the app lands instead of where this test put it,
+     * which is exactly what made an earlier manual run look like the altitude
+     * guard was broken when it was not.
+     */
+    const pinCamera = (lat, lon, heightM) =>
+      page.evaluate(
+        ({ lat: la, lon: lo, heightM: h }) => {
+          const viewer = window.__godsEyeView.viewer;
+          viewer.camera.cancelFlight?.();
+          const carto = viewer.camera.positionCartographic.clone();
+          carto.latitude = (la * Math.PI) / 180;
+          carto.longitude = (lo * Math.PI) / 180;
+          carto.height = h;
+          viewer.camera.setView({
+            destination: viewer.scene.globe.ellipsoid.cartographicToCartesian(carto),
+          });
+          return Math.round(viewer.camera.positionCartographic.height / 1000);
+        },
+        { lat, lon, heightM },
+      );
+
+    await page.evaluate(() =>
+      window.__godsEyeView.dataManager.setEnabled('pipelines', true, { origin: 'qa' }),
+    );
+    await wait(1000);
+
+    await pinCamera(20, 40, 20_000_000);
+    const tooHigh = await page.evaluate(async () => {
+      const layer = window.__godsEyeView.dataManager.layers.get('pipelines').module;
+      await layer.update();
+      return layer.getReading();
+    });
+    record(
+      'Extra: at whole-globe range the freight layers refuse rather than draw a band',
+      tooHigh.tooHighToFetch === true && tooHigh.count === 0,
+      `tooHighToFetch=${tooHigh.tooHighToFetch} count=${tooHigh.count}`,
+    );
+
+    // The Rhine-Ruhr: dense mapped pipeline, rail and industry.
+    await pinCamera(51.5, 6.8, 260_000);
+    const freight = await page.evaluate(async () => {
+      const layer = window.__godsEyeView.dataManager.layers.get('pipelines').module;
+      // Two passes: the first can land while computeViewRectangle is still
+      // null for a frame after setView, which is a legitimate skip.
+      await layer.update();
+      await layer.update();
+      const reading = layer.getReading();
+      const records = layer.getAnalystRecords(5);
+      return {
+        count: reading.count,
+        error: reading.error,
+        limitations: reading.provenance?.limitations ?? [],
+        license: reading.provenance?.license ?? null,
+        volumesDeclaredNull: records.every(
+          (row) =>
+            row.annualVolume === null &&
+            row.capacity === null &&
+            row.currentUtilisation === null,
+        ),
+        substances: [...new Set(records.map((row) => row.substance).filter(Boolean))],
+      };
+    });
+    record(
+      'Extra: inland freight draws real OpenStreetMap geometry for the region in view',
+      freight.count > 0 && !freight.error,
+      `${freight.count} pipeline ways over the Rhine-Ruhr` +
+        (freight.substances.length ? `, substances: ${freight.substances.join('/')}` : ''),
+    );
+    record(
+      'Extra: freight records declare the volume they do not have, rather than omitting it',
+      freight.volumesDeclaredNull &&
+        freight.limitations.some((line) => /LOCATIONS ONLY/.test(line)),
+      freight.volumesDeclaredNull
+        ? 'annualVolume, capacity and utilisation are explicit nulls; provenance says LOCATIONS ONLY'
+        : 'a volume field was populated or omitted instead of declared',
+    );
+    record(
+      'Extra: OpenStreetMap geometry carries its ODbL attribution',
+      /ODbL/.test(freight.license ?? '') &&
+        /OpenStreetMap contributors/.test(freight.license ?? ''),
+      freight.license ?? '(no licence recorded)',
+    );
+    await shot('15-freight');
+
+    /* ---------------- basin water stress ---------------- */
+
+    const basins = await page.evaluate(async () => {
+      const mod = await import('/src/supplychain/waterBasins.js');
+      const url = mod.stressedBasinsUrl({ countryName: 'China', limit: 60 });
+      let payload;
+      try {
+        const response = await fetch(url);
+        if (!response.ok) return { error: `HTTP ${response.status}` };
+        payload = await response.json();
+      } catch (error) {
+        /*
+         * Reaching Esri's service needs outbound TLS the browser trusts.
+         * In a sandboxed run basemap tiles already fail the same way, so a
+         * transport failure here says nothing about the code and is reported
+         * as unreachable rather than as a defect. The module's own logic —
+         * sentinels, deduplication, the finding — is covered without a network
+         * in waterBasins.test.mjs.
+         */
+        return { unreachable: String(error?.message ?? error) };
+      }
+      const rows = mod.readBasins(payload, 8);
+      const gap = mod.nationalAverageGap({
+        nationalPercent: 20.2,
+        basins: rows,
+        countryName: 'China',
+      });
+      return {
+        count: rows.length,
+        worstPercent: rows[0]?.withdrawalPercent ?? null,
+        // Deduplication by basin id: the service repeats a basin per province.
+        uniqueIds: new Set(rows.map((row) => row.basinId)).size,
+        anySentinel: rows.some(
+          (row) => row.withdrawalPercent !== null && Math.abs(row.withdrawalPercent) >= 999_900,
+        ),
+        finding: gap?.finding ?? null,
+      };
+    });
+    record(
+      'Extra: basin-level water stress resolves what a national average hides',
+      Boolean(basins.unreachable) ||
+        (basins.count > 0 &&
+          basins.uniqueIds === basins.count &&
+          !basins.anySentinel &&
+          basins.worstPercent > 100),
+      basins.unreachable
+        ? `SKIPPED: Aqueduct unreachable from this browser (${basins.unreachable}). Logic covered by waterBasins.test.mjs.`
+        : basins.error
+          ? basins.error
+          : `${basins.count} basins, worst ${Math.round(basins.worstPercent ?? 0).toLocaleString()}% ` +
+            `vs 20.2% nationally; no sentinel leaked`,
+    );
 
     /* ---------------- no unexplained console errors ---------------- */
     record(

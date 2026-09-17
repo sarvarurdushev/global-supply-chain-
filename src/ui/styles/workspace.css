@@ -1271,3 +1271,18 @@ body.ws-docked #first-run-launcher {
     right: 36px;
   }
 }
+
+/*
+ * A stated finding — one sentence that contrasts two measurements the panel is
+ * also showing. Set apart because it is the conclusion, not another row.
+ */
+.ws-finding {
+  margin: 0 0 10px;
+  padding: 9px 11px;
+  background: var(--ws-amber-soft);
+  border-left: 2px solid var(--ws-amber);
+  border-radius: 0 6px 6px 0;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ws-text);
+}

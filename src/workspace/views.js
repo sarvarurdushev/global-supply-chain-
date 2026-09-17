@@ -347,6 +347,95 @@ function transportView(ctx) {
     );
   }
 
+  /*
+   * The inland half of the picture.
+   *
+   * Grouped separately from the live feeds above because it behaves
+   * differently in a way the reader has to know: these load what is in the
+   * current view rather than a fixed global set, and they are a survey rather
+   * than a live broadcast. Putting them in the same list as Ships and Aircraft
+   * would suggest they update the same way.
+   */
+  const inland = LAYER_NAMES.filter((l) => l.group === 'Inland Freight');
+  if (inland.length > 0) {
+    cards.push(
+      card({
+        title: 'Inland freight infrastructure',
+        subtitle:
+          'How cargo moves once it leaves the ship, and where it came out of the ground.',
+        children: [
+          h('p', { class: 'ws-field-hint' }, [
+            'These read OpenStreetMap for the area you are looking at, so ',
+            h('strong', { text: 'zoom in to a region first' }),
+            '. At whole-globe range the panel says so instead of drawing a ',
+            'band across the middle of the screen.',
+          ]),
+          ...inland.map((entry) => {
+            const enabled = ctx.layers.isEnabled(entry.id);
+            const layer = ctx.layers.get(entry.id);
+            const stats = layer?.getStats?.() ?? {};
+            const reading = layer?.getReading?.() ?? null;
+            return h('div', { class: 'ws-card-sub' }, [
+              rankRow({
+                label: h('span', {}, [
+                  h('strong', { text: `${entry.icon} ${entry.name}` }),
+                  h('span', { class: 'ws-list-note', text: entry.summary }),
+                ]),
+                value: enabled
+                  ? stats.loading
+                    ? '…'
+                    : (stats.count ?? 0).toLocaleString()
+                  : 'OFF',
+                onClick: () => {
+                  ctx.layers.setEnabled(entry.id, !enabled);
+                  ctx.refresh();
+                },
+              }),
+              entry.caveat
+                ? h('p', { class: 'ws-field-hint', text: `⚠ ${entry.caveat}` })
+                : null,
+              // The two states that are neither an error nor data: the camera
+              // is too far out to ask, and nobody has mapped this area.
+              enabled && reading?.tooHighToFetch
+                ? h('p', { class: 'ws-field-hint' }, [
+                    'Too far out to query. Zoom in to a region and this will load.',
+                  ])
+                : null,
+              enabled &&
+              !reading?.tooHighToFetch &&
+              !stats.loading &&
+              !stats.error &&
+              stats.count === 0
+                ? h('p', { class: 'ws-field-hint' }, [
+                    'Nothing mapped in this view. OpenStreetMap is surveyed by ',
+                    'volunteers, so that means nobody has recorded it here — ',
+                    'not that there is nothing here.',
+                  ])
+                : null,
+              enabled && reading?.viewTruncated
+                ? h('p', { class: 'ws-field-hint' }, [
+                    'The view is wider than one query allows, so only its ',
+                    'middle band was requested.',
+                  ])
+                : null,
+              enabled && stats.error
+                ? errorState({
+                    what: entry.name.toLowerCase(),
+                    detail: stats.error,
+                    onRetry: () => {
+                      ctx.layers.setEnabled(entry.id, false);
+                      ctx.layers.setEnabled(entry.id, true);
+                      ctx.refresh();
+                    },
+                  })
+                : null,
+            ]);
+          }),
+        ],
+      }),
+    );
+  }
+
   cards.push(
     card({
       title: 'How to follow one',
@@ -356,7 +445,7 @@ function transportView(ctx) {
           h('strong', { text: 'one click, not a menu' }),
           '. Use ',
           h('strong', { text: 'Stop Following' }),
-          ' in the top bar to release it.',
+          ' in the panel header to release it.',
         ]),
       ],
     }),
@@ -2272,27 +2361,109 @@ function riskView(ctx) {
     }),
   );
 
-  cards.push(
-    card({
-      title: 'Why a national figure can mislead',
-      tone: 'gap',
-      children: [
-        unavailableState({
-          what: 'Water stress at the resolution that actually matters — the river basin.',
-          because:
-            'These are national averages. China\u2019s figure averages the water-rich south with the water-scarce north, and the north is where the wheat is.',
-          wouldNeed:
-            'WRI Aqueduct basin-level data, which is a bulk download rather than an API.',
-          instead:
-            'Live hazard events are in Global Events, at the location they actually occurred.',
-        }),
-        button({
-          label: 'See live hazards instead',
-          onClick: () => ctx.navigate('events'),
-        }),
-      ],
-    }),
-  );
+  /*
+   * The basin card.
+   *
+   * This used to be an `unavailableState` headed "Why a national figure can
+   * mislead", which said basin-level water stress was a bulk download rather
+   * than an API. That was wrong: WRI Aqueduct 4.0 is served as a queryable
+   * feature service, keyless, CC BY 4.0. The card states the same argument
+   * now and then proves it with the numbers.
+   */
+  const basinData =
+    data.basins?.country === loaded.country.name ? data.basins : null;
+  if (basinData) {
+    cards.push(
+      card({
+        title: 'The same country, by river basin',
+        subtitle:
+          'Water stress is a basin property. A national average can hide the basin the crop actually grows in.',
+        tone: 'accent',
+        children: [
+          basinData.gap
+            ? h('p', { class: 'ws-finding', text: basinData.gap.finding })
+            : null,
+          h(
+            'div',
+            { class: 'ws-list' },
+            basinData.basins.map((basin) =>
+              rankRow({
+                label: h('span', {}, [
+                  h('strong', {
+                    text:
+                      basin.provinces.length > 0
+                        ? basin.provinces.slice(0, 3).join(' / ')
+                        : `Basin ${basin.basinId}`,
+                  }),
+                  h('span', {
+                    class: 'ws-list-note',
+                    // Every indicator Aqueduct gives for this basin, as its own
+                    // published labels rather than a number recomputed here.
+                    text: [
+                      basin.groundwaterDecline
+                        ? `Groundwater: ${basin.groundwaterDecline}`
+                        : null,
+                      basin.droughtRisk
+                        ? `Drought: ${basin.droughtRisk}`
+                        : null,
+                    ]
+                      .filter(Boolean)
+                      .join(' · '),
+                  }),
+                ]),
+                /*
+                 * A coded basin shows its classification, never a number.
+                 * Aqueduct writes 9,999 for "arid and low water use" and
+                 * -9,999 for "no data", and printing those as percentages
+                 * would put "999,900%" on screen.
+                 */
+                value:
+                  basin.withdrawalPercent === null
+                    ? basin.plainLabel
+                    : `${
+                        basin.withdrawalPercent >= 100
+                          ? Math.round(basin.withdrawalPercent).toLocaleString()
+                          : basin.withdrawalPercent.toFixed(1)
+                      }%`,
+                note:
+                  basin.withdrawalPercent === null
+                    ? 'no ratio'
+                    : basin.plainLabel,
+              }),
+            ),
+          ),
+          h('p', {}, [
+            'Above 100% is not an error: it means the basin withdraws more ',
+            'than its rivers and rainfall renew, by pumping groundwater or ',
+            'by living on water that falls somewhere else.',
+          ]),
+          provenanceBlock(basinData.provenance),
+        ].filter(Boolean),
+      }),
+    );
+  } else {
+    cards.push(
+      card({
+        title: 'By river basin',
+        tone: 'gap',
+        children: [
+          unavailableState({
+            what: `Basin-level water stress for ${loaded.country.name}.`,
+            because:
+              'WRI Aqueduct names countries in its own way, and either it has no rows under this country\u2019s name or its service did not answer. The national figures above are unaffected.',
+            wouldNeed:
+              'A name match between this project\u2019s country list and Aqueduct\u2019s own name_0 field, or the service to come back.',
+            instead:
+              'The national indicators above are real measurements. Live hazard events are in Global Events, at the location they actually occurred.',
+          }),
+          button({
+            label: 'See live hazards instead',
+            onClick: () => ctx.navigate('events'),
+          }),
+        ],
+      }),
+    );
+  }
 
   cards.push(card({ children: [provenanceBlock(loaded.provenance)] }));
 

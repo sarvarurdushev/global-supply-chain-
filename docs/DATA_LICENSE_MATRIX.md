@@ -62,6 +62,9 @@ redistributing them silently. Anyone taking this repository commercially must ac
 | USGS | **US public domain** | ✅ | No | "Data courtesy of the U.S. Geological Survey" |
 | NASA FIRMS | **CC0** / US public domain | ✅ | No | Citation requested |
 | OSM Overpass | **ODbL 1.0** | ✅ | No | "© OpenStreetMap contributors" |
+| OSM Overpass — freight rail, trunk road, pipelines, production sites | **ODbL 1.0** | ✅ | No | "© OpenStreetMap contributors" + share-alike on any derived database |
+| **OurAirports** (`airports.csv`, bundled as `src/supplychain/reference/airGateways.js`) | **Public domain** | ✅ | No | None required; "OurAirports — ourairports.com" given anyway |
+| **WRI Aqueduct 4.0** (via the Esri Living Atlas feature service) | **CC BY 4.0** | ✅ | No | "Aqueduct 4.0, World Resources Institute (WRI)" — hosted by Esri |
 | TomTom Traffic | TomTom for Developers (proprietary) | Own key | **Yes** | "Traffic flow data © TomTom" |
 | Photon (komoot) | Service: fair use, no bulk. Data: **ODbL 1.0** | Fair use only | No | "Photon (komoot)" + "© OpenStreetMap contributors" |
 | Nominatim | ODbL 1.0 + usage policy: **max 1 req/s**, cache, identifying UA | Policy-bound | No | "© OpenStreetMap contributors" |
