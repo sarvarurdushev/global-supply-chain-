@@ -641,13 +641,21 @@ export function readCityExposureXml(xml, sourceUrl) {
      * that shook at MMI 7.89" — the §6 requirement at city resolution.
      */
     const pop = body.match(/<measure\s+type="population"\s+value="(\d+)"/);
+    /*
+     * An explicit zero is a placeholder, not a measurement. Bhaktapur appears
+     * in this product with `value="0"` and has roughly eighty thousand
+     * residents: a place listed as EXPOSED cannot have no inhabitants, so a
+     * zero here means the source carried no figure. Reported as null so the
+     * panel says "not recorded" rather than printing a population of nobody.
+     */
+    const population = pop ? Number(pop[1]) : null;
     cities.push(
       Object.freeze({
         name,
         mmi,
         latitude: pos ? Number(pos[1]) : null,
         longitude: pos ? Number(pos[2]) : null,
-        population: pop ? Number(pop[1]) : null,
+        population: population && population > 0 ? population : null,
       }),
     );
   }

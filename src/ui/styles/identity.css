@@ -118,11 +118,11 @@ body {
 }
 
 body::before {
-  /* 40px technical grid. */
+  /* 40px technical grid. Behind all content; see the note below. */
   content: '';
   position: fixed;
   inset: 0;
-  z-index: 0;
+  z-index: -1;
   pointer-events: none;
   background-image:
     linear-gradient(rgba(34, 217, 127, 0.035) 1px, transparent 1px),
@@ -136,7 +136,7 @@ body::after {
   content: '';
   position: fixed;
   inset: 0;
-  z-index: 0;
+  z-index: -1;
   pointer-events: none;
   background: repeating-linear-gradient(
     180deg,
@@ -163,27 +163,28 @@ body::after {
   }
 }
 
-/* The globe and every panel must sit above the texture. */
-#cesiumContainer,
-#world-overlay-root,
-.ws-root,
-#intel-hud,
-#title-bar,
-#style-indicator,
-#top-center-actions,
-#left-panel-stack,
-#right-context-rail,
-#command-dock,
-.sc-console,
-.sc-launcher,
-#first-run-launcher,
-#toast {
-  position: relative;
-  z-index: 1;
-}
-#cesiumContainer {
-  z-index: 0;
-}
+/*
+ * WHY THE TEXTURE USES z-index: -1 AND NOTHING ELSE IS TOUCHED.
+ *
+ * The first version of this file pushed the texture behind content by giving
+ * `#cesiumContainer` and every panel `position: relative; z-index: 1`. Two real
+ * defects, one of which a test caught:
+ *
+ *   1. `position: relative` plus a z-index makes `#cesiumContainer` a STACKING
+ *      CONTEXT, and the world overlay's detection surface blends with `screen`
+ *      against the WebGL canvas. An isolating ancestor silently discards that
+ *      blend, so the overlay would have stopped compositing against the scene
+ *      — invisible to any assertion that checks the blend string, which never
+ *      changed. `worldOverlay.test.mjs` walks the real ancestor chain against
+ *      the shipped stylesheet and fails on exactly this.
+ *   2. `#intel-hud`, `#title-bar` and the rest are `position: fixed` in their
+ *      own stylesheets. Overriding them to `relative` would have dropped them
+ *      back into normal flow and moved every one of them.
+ *
+ * A negative z-index on body's own pseudo-elements achieves the same thing
+ * with no side effects: they paint behind all in-flow content and above the
+ * root background, and no other element's stacking or position is altered.
+ */
 
 /* ------------------------------------------------------------------ *
  * The wordmark
