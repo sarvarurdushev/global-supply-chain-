@@ -1,143 +1,248 @@
 /**
- * Visual identity.
+ * Visual identity — geospatial disaster intelligence.
  *
- * Loaded LAST, after every inherited stylesheet, so it re-skins the whole
- * application rather than only the supply-chain dock.
+ * Loaded LAST, after every other stylesheet, so it re-skins the whole
+ * application rather than only one panel.
  *
- * WHY THIS FILE EXISTS. Keeping God's Eye View's panels and adopting its palette
- * unchanged would make this a reskin of someone else's product wearing a new
- * title. Keeping the panels and changing the palette makes it a different
- * product that happens to share an engine — which is what was asked for: bring
- * the tabs back, and stop looking like a copy.
+ * WHAT THIS IS. A disaster-response command centre: satellite monitoring, a
+ * geospatial investigation system, a serious platform built by an advanced
+ * technology company. Very dark base, green as the single dominant accent,
+ * glowing edges, technical grid, scanlines, terminal type where a number is
+ * genuinely machine-read.
  *
- * WHAT CHANGES. Only tokens and a handful of signature motifs. No panel is
- * hidden, no control is moved, no behaviour is altered. Every rule here is a
- * colour, a radius, a weight or a glow.
+ * WHAT THIS IS NOT, and the line is worth stating because it is easy to cross:
+ * a cheap "hacker website". The difference is discipline, not restraint about
+ * colour:
  *
- *   ACCENT      cyan #00d4ff  ->  amber #f0a830, with teal #2dd4bf as the
- *               secondary. Cyan-on-black is the inherited signature and it is
- *               also radar's colour; amber reads as cargo, manifests and
- *               warnings, which is what this product is about.
- *   SURFACE     pure black #0a0a0f  ->  navy-slate #0e1420. Panels sit ON
- *               something instead of floating in a void, so a reader can tell
- *               where one ends and the next begins.
- *   GEOMETRY    16px pill radii  ->  8px. Squarer corners read as instrument
- *               panel rather than consumer app, and they stop the inherited
- *               panels and the new dock from looking like two different kits.
- *   GLOW        the cyan bloom around every border is reduced to a thin warm
- *               rim. The inherited look spends a lot of light on atmosphere;
- *               this one spends it on edges you need to find.
- *   TITLE       the wordmark's letter-spacing and glow come down, because a
- *               glowing 4px-tracked headline is the single most recognisable
- *               thing about the interface this one inherits from.
+ *   - Green carries MEANING, not decoration. Emerald is the interface; neon is
+ *     reserved for what is live or selected; amber and red are hazard states
+ *     and are never green, because an alert that matches the chrome is not an
+ *     alert.
+ *   - Glow is a 1px rim plus a low-alpha spread, never a blur halo. Text never
+ *     glows. Anything a person reads as language is plain.
+ *   - Body copy is Inter at 13px and near-white, not green monospace. Green
+ *     monospace on black is unreadable at paragraph length and it is the single
+ *     clearest tell of the aesthetic this file is avoiding.
+ *   - Scanlines and grid sit at 2–4% alpha on backgrounds only, behind
+ *     content, and both respect prefers-reduced-motion.
+ *
+ * SEMANTIC SCALE. Three greens and three hazard colours, each with one job:
+ *
+ *   --gx-neon      #00ff9c   live, selected, active now
+ *   --gx-green     #22d97f   the interface: borders, labels, controls
+ *   --gx-emerald   #0f9d58   fills, secondary text, inactive
+ *   --gx-amber     #ffb020   warning, degraded, estimated
+ *   --gx-red       #ff4d4d   destroyed, blocked, fatal
+ *   --gx-violet    #a78bfa   modelled or simulated, never observed
  */
 
 :root {
-  /* Surfaces */
-  --bg-dark: #0e1420;
-  --glass-bg: rgba(19, 27, 42, 0.74);
-  --glass-border: rgba(148, 176, 214, 0.14);
-  --glass-border-hover: rgba(240, 168, 48, 0.42);
+  /* ---- surfaces: very dark, slightly green-shifted so it reads as one kit -- */
+  --gx-void: #04070a;
+  --gx-bg: #060b0e;
+  --gx-panel: #081410;
+  --gx-panel-raised: #0b1a15;
+  --gx-inset: #050d0a;
 
-  /* Accents */
-  --accent: #f0a830;
-  --accent-dim: rgba(240, 168, 48, 0.14);
-  --accent-glow: rgba(240, 168, 48, 0.3);
-  --accent-secondary: #2dd4bf;
+  /* ---- greens ---- */
+  --gx-neon: #00ff9c;
+  --gx-green: #22d97f;
+  --gx-emerald: #0f9d58;
+  --gx-green-dim: rgba(34, 217, 127, 0.55);
+  --gx-green-soft: rgba(34, 217, 127, 0.1);
+  --gx-green-softer: rgba(34, 217, 127, 0.045);
 
-  /* Type */
-  --text-primary: #e6edf6;
-  --text-secondary: rgba(230, 237, 246, 0.58);
-  --text-dim: rgba(230, 237, 246, 0.34);
+  /* ---- edges. A rim and a spread, never a blur halo. ---- */
+  --gx-line: rgba(34, 217, 127, 0.2);
+  --gx-line-strong: rgba(34, 217, 127, 0.42);
+  --gx-glow: 0 0 0 1px rgba(34, 217, 127, 0.28), 0 0 18px rgba(34, 217, 127, 0.07);
+  --gx-glow-strong: 0 0 0 1px rgba(0, 255, 156, 0.5), 0 0 26px rgba(0, 255, 156, 0.14);
 
-  /* Geometry — squarer than the inherited pill radii. */
-  --panel-radius: 8px;
-  --btn-radius: 6px;
+  /* ---- hazard states. Deliberately NOT green. ---- */
+  --gx-amber: #ffb020;
+  --gx-red: #ff4d4d;
+  --gx-violet: #a78bfa;
+  --gx-cyan: #4dd8ff;
+
+  /* ---- type. Near-white for language, green for labels only. ---- */
+  --gx-text: #e4f5ec;
+  --gx-text-dim: rgba(228, 245, 236, 0.64);
+  --gx-text-faint: rgba(228, 245, 236, 0.38);
+
+  /* ---- remap the inherited tokens so every old stylesheet follows ---- */
+  --bg-dark: var(--gx-bg);
+  --glass-bg: rgba(8, 20, 16, 0.76);
+  --glass-border: var(--gx-line);
+  --glass-border-hover: var(--gx-line-strong);
+  --accent: var(--gx-green);
+  --accent-dim: var(--gx-green-soft);
+  --accent-glow: rgba(34, 217, 127, 0.32);
+  --accent-secondary: var(--gx-neon);
+  --text-primary: var(--gx-text);
+  --text-secondary: var(--gx-text-dim);
+  --text-dim: var(--gx-text-faint);
+  --panel-radius: 4px;
+  --btn-radius: 3px;
+
+  /* ---- and the workspace tokens ---- */
+  --ws-bg: var(--gx-bg);
+  --ws-bg-raised: var(--gx-panel);
+  --ws-bg-card: var(--gx-panel);
+  --ws-bg-inset: var(--gx-inset);
+  --ws-line: var(--gx-line);
+  --ws-line-strong: var(--gx-line-strong);
+  --ws-text: var(--gx-text);
+  --ws-text-dim: var(--gx-text-dim);
+  --ws-text-faint: var(--gx-text-faint);
+  --ws-amber: var(--gx-green);
+  --ws-amber-soft: var(--gx-green-soft);
+  --ws-teal: var(--gx-neon);
+  --ws-teal-soft: rgba(0, 255, 156, 0.1);
+  --ws-red: var(--gx-red);
+  --ws-violet: var(--gx-violet);
+  --ws-radius: 4px;
 }
 
+/* ------------------------------------------------------------------ *
+ * The technical ground
+ *
+ * A grid and a scanline field, both on ::before/::after of <body> so they sit
+ * BEHIND every panel and take no pointer events. This is the "satellite
+ * monitoring" texture, and it is kept at 2-4% alpha: at any more it competes
+ * with the map, which is the thing the user is actually reading.
+ * ------------------------------------------------------------------ */
+
 body {
-  background: var(--bg-dark);
+  background: var(--gx-bg);
+  color: var(--gx-text);
+}
+
+body::before {
+  /* 40px technical grid. */
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(34, 217, 127, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(34, 217, 127, 0.035) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+body::after {
+  /* Scanlines, drifting slowly. Information-free by design: this one is
+     texture, and it is the only purely decorative rule in the file. */
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(0, 255, 156, 0.022) 0px,
+    rgba(0, 255, 156, 0.022) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  animation: gx-scan 12s linear infinite;
+}
+
+@keyframes gx-scan {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(3px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body::after {
+    animation: none;
+  }
+}
+
+/* The globe and every panel must sit above the texture. */
+#cesiumContainer,
+#world-overlay-root,
+.ws-root,
+#intel-hud,
+#title-bar,
+#style-indicator,
+#top-center-actions,
+#left-panel-stack,
+#right-context-rail,
+#command-dock,
+.sc-console,
+.sc-launcher,
+#first-run-launcher,
+#toast {
+  position: relative;
+  z-index: 1;
+}
+#cesiumContainer {
+  z-index: 0;
 }
 
 /* ------------------------------------------------------------------ *
  * The wordmark
- *
- * Renamed and de-glowed. The inherited title is a wide-tracked glowing
- * all-caps headline with a radial bloom behind it; that silhouette is the most
- * recognisable thing about it, so it is the first thing to change.
  * ------------------------------------------------------------------ */
 
 #title-bar h1 {
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   text-shadow: none;
 }
 #title-bar .title-accent {
-  color: var(--accent);
+  color: var(--gx-neon);
   text-shadow: none;
 }
 #title-bar .title-glow {
-  opacity: 0.25;
-  filter: saturate(0.5);
+  opacity: 0.2;
+  filter: hue-rotate(90deg) saturate(0.7);
 }
 #title-bar .subtitle {
-  letter-spacing: 0.22em;
-  color: var(--text-dim);
+  letter-spacing: 0.24em;
+  color: var(--gx-green-dim);
+  font-family: var(--font-mono, monospace);
+  font-size: 9.5px;
 }
 
 /* ------------------------------------------------------------------ *
- * Panels
- *
- * The inherited panels keep their positions, their collapse behaviour and
- * their contents. What changes is that they read as one kit with the dock: the
- * same border colour, the same radius, and a left accent rule instead of an
- * all-round cyan bloom.
+ * Panels — squarer, rimmed rather than bloomed
  * ------------------------------------------------------------------ */
 
 .panel-collapsible,
 #command-dock,
 #location-bar,
 #control-panel,
-#provider-settings-panel {
+#provider-settings-panel,
+.ws-panel,
+.ws-topbar,
+.ws-rail {
   border-radius: var(--panel-radius);
 }
 
 .panel-collapsible .panel-glow {
-  opacity: 0.18;
-  filter: saturate(0.4);
+  opacity: 0.14;
+  filter: hue-rotate(90deg) saturate(0.6);
 }
 
-.panel-title {
-  color: var(--accent);
-  letter-spacing: 0.1em;
+.panel-title,
+.data-layer-group-heading,
+.ws-nav-section-title,
+.ws-card-title,
+.ws-legend-title {
+  color: var(--gx-green);
+  letter-spacing: 0.12em;
 }
 
-.panel-collapsible.active {
+.panel-collapsible.active,
+.ws-panel,
+.ws-topbar {
   box-shadow:
-    inset 2px 0 0 var(--accent),
-    0 16px 44px rgba(0, 0, 0, 0.5);
-}
-
-/* ------------------------------------------------------------------ *
- * The classification motif
- *
- * The inherited HUD frames the globe in corner brackets and a red
- * classification strip. Both are costume from a different genre, and on customs
- * statistics they are actively misleading: they make an annual trade total look
- * like an intercept. The brackets stay as a faint frame; the strip loses its
- * alarm colour and becomes an ordinary caption.
- * ------------------------------------------------------------------ */
-
-#intel-hud .hud-corner,
-#intel-hud .hud-frame {
-  opacity: 0.32;
-}
-#intel-hud .hud-classification,
-#intel-hud .hud-class,
-.hud-classification {
-  color: var(--text-dim);
-  border-color: var(--glass-border);
-  background: transparent;
-  letter-spacing: 0.14em;
+    inset 2px 0 0 var(--gx-green),
+    var(--gx-glow);
 }
 
 /* ------------------------------------------------------------------ *
@@ -147,69 +252,158 @@ body {
 .scene-btn,
 #top-center-actions button,
 .dock-btn,
-.control-btn {
+.control-btn,
+.ws-btn {
   border-radius: var(--btn-radius);
 }
 .scene-btn:hover,
 #top-center-actions button:hover,
-.control-btn:hover {
-  border-color: var(--accent);
-  color: var(--accent);
+.control-btn:hover,
+.ws-btn:hover:not(:disabled) {
+  border-color: var(--gx-neon);
+  color: var(--gx-neon);
+  box-shadow: var(--gx-glow-strong);
 }
 
-/* The data-layer tray's on-state. Amber for "this is drawing", teal for the
-   trade layers, so the supply-chain group is visibly its own family. */
-.data-toggle.active,
-.data-toggle[aria-pressed='true'] {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-.data-toggle[data-layer-id='trade-flows'].active,
-.data-toggle[data-layer-id='supply-chain'].active,
-.data-toggle[data-layer-id='supply-ports'].active,
-.data-toggle[data-layer-id='chokepoints'].active,
-.data-toggle[data-layer-id='freight-rail'].active,
-.data-toggle[data-layer-id='freight-roads'].active,
-.data-toggle[data-layer-id='pipelines'].active,
-.data-toggle[data-layer-id='air-cargo-hubs'].active,
-.data-toggle[data-layer-id='production-sites'].active {
-  border-color: var(--accent-secondary);
-  color: var(--accent-secondary);
+.ws-btn-primary {
+  background: var(--gx-green-soft);
+  border-color: var(--gx-line-strong);
+  color: var(--gx-neon);
 }
 
-/*
- * The one-line description under each inherited layer toggle.
+/* A live/selected control gets the neon and a slow pulse — the only place
+   animation marks state rather than transition. */
+.data-toggle-btn.active,
+.ws-nav-item.ws-active,
+.ws-btn.ws-active {
+  border-color: var(--gx-neon);
+  color: var(--gx-neon);
+  box-shadow: var(--gx-glow-strong);
+}
+
+/* ------------------------------------------------------------------ *
+ * Hazard states must never be green
  *
- * "SUPPLY CHAIN EVENTS" told a reader nothing about what it would draw or where
- * the numbers came from. The label is the taxonomy's plain-language name now
- * and this is the sentence under it.
- */
-.data-blurb {
-  display: block;
-  margin-top: 2px;
-  font-family: var(--font-sans);
-  font-size: 10.5px;
-  line-height: 1.35;
-  font-weight: 400;
-  letter-spacing: 0;
-  text-transform: none;
-  color: var(--text-secondary);
+ * An alert the same colour as the chrome is not an alert. These four are the
+ * only non-green accents in the interface, and each one means one thing.
+ * ------------------------------------------------------------------ */
+
+.gx-state-destroyed,
+.gx-state-blocked,
+.gx-state-fatal,
+.ws-btn-danger,
+.ws-card-warn .ws-card-title {
+  color: var(--gx-red) !important;
+  border-color: rgba(255, 77, 77, 0.45);
 }
-.data-caveat {
-  display: block;
-  margin-top: 2px;
-  font-family: var(--font-sans);
-  font-size: 10.5px;
-  line-height: 1.35;
-  letter-spacing: 0;
-  text-transform: none;
-  color: #ffb74d;
+.gx-state-degraded,
+.gx-state-estimated,
+.gx-state-warning {
+  color: var(--gx-amber) !important;
+  border-color: rgba(255, 176, 32, 0.45);
+}
+.gx-state-modelled,
+.gx-state-simulated {
+  color: var(--gx-violet) !important;
+  border-color: rgba(167, 139, 250, 0.45);
+}
+.gx-state-operational,
+.gx-state-observed {
+  color: var(--gx-neon);
 }
 
-/*
- * The name now sits over its description, so the row's left side is a column
- * and the icon aligns to the first line rather than the middle of the block.
- */
+/* ------------------------------------------------------------------ *
+ * The intel HUD — a monitoring frame rather than a classification banner
+ * ------------------------------------------------------------------ */
+
+#intel-hud .hud-corner,
+#intel-hud .hud-frame {
+  opacity: 0.4;
+}
+#intel-hud .hud-classification,
+#intel-hud .hud-top-bar-left,
+.hud-classification {
+  color: var(--gx-green-dim);
+  border-color: var(--gx-line);
+  background: transparent;
+  letter-spacing: 0.16em;
+}
+
+/* ------------------------------------------------------------------ *
+ * Terminal type, but only where a value is genuinely machine-read
+ *
+ * Coordinates, magnitudes, MMI values, timestamps, IDs. Never a sentence.
+ * ------------------------------------------------------------------ */
+
+.gx-mono,
+.ws-metric-value,
+.ws-playback-count,
+#hud-mgrs,
+#hud-latlon,
+#hud-timestamp,
+.data-count {
+  font-family: var(--font-mono, 'JetBrains Mono', ui-monospace, monospace);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+/* Body copy stays plain and near-white. This rule is the guard against the
+   whole interface drifting into green monospace. */
+.ws-card-body p,
+.ws-panel-summary,
+.ws-nav-summary,
+.data-blurb,
+.gx-prose {
+  font-family: var(--ws-sans, 'Inter', system-ui, sans-serif);
+  color: var(--gx-text-dim);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* ------------------------------------------------------------------ *
+ * Loading — a radar sweep rather than a spinner
+ * ------------------------------------------------------------------ */
+
+.ws-spinner {
+  border-color: var(--gx-green-soft);
+  border-top-color: var(--gx-neon);
+}
+
+.gx-sweep {
+  position: relative;
+  overflow: hidden;
+}
+.gx-sweep::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(0, 255, 156, 0.14) 50%,
+    transparent 100%
+  );
+  animation: gx-sweep-move 1.6s ease-in-out infinite;
+}
+@keyframes gx-sweep-move {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gx-sweep::after {
+    animation: none;
+    opacity: 0.5;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * The inherited layer tray
+ * ------------------------------------------------------------------ */
+
 .data-toggle-left {
   align-items: flex-start;
 }
@@ -221,28 +415,29 @@ body {
   flex-direction: column;
   min-width: 0;
 }
-
-/*
- * Group headings in the inherited tray.
- *
- * Same amber, same tracking and same weight as the dock's section headings, so
- * moving between the two does not feel like moving between two applications.
- */
-.data-layer-group-heading {
-  color: var(--accent);
-  letter-spacing: 0.12em;
+.data-blurb {
+  display: block;
+  margin-top: 2px;
+  font-size: 10.5px;
+  line-height: 1.35;
+  font-weight: 400;
+}
+.data-caveat {
+  display: block;
+  margin-top: 2px;
+  font-family: var(--ws-sans, 'Inter', system-ui, sans-serif);
+  font-size: 10.5px;
+  line-height: 1.35;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--gx-amber);
 }
 
 /*
- * The supply-chain console's own chip.
- *
- * It sits at top-right, which is where the workspace dock's header now is, so
- * while the dock is up the chip moves inboard to sit beside it. Both are
- * reachable; neither is hidden.
+ * The supply-chain console's own chip and panel, moved clear of the dock.
+ * Both stay reachable; neither is hidden.
  */
-body.ws-docked .sc-launcher {
-  right: var(--ws-dock-reserve);
-}
+body.ws-docked .sc-launcher,
 body.ws-docked .sc-console {
   right: var(--ws-dock-reserve);
 }
