@@ -18,6 +18,7 @@
  * rather than an empty panel.
  */
 
+import { DISASTER_VIEWS } from '../disaster/views.js';
 import {
   h,
   card,
@@ -2588,7 +2589,14 @@ function investigationView(ctx) {
  * Registry
  * ------------------------------------------------------------------ */
 
+/*
+ * The disaster views are merged in rather than replacing the originals: §8
+ * requires the supply-chain capability to stay, reframed as a consequence of
+ * the event, so both sets of views are live and the navigation decides which
+ * section a user reaches them through.
+ */
 const VIEWS = Object.freeze({
+  ...DISASTER_VIEWS,
   home: homeView,
   transport: transportView,
   routes: routesView,

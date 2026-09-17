@@ -42,6 +42,8 @@ import { NAV_SECTIONS, navItem, DEFAULT_NAV_ID } from './navigation.js';
 import { LEGEND, controlName } from './taxonomy.js';
 import { investigation, createPlayback } from './investigations.js';
 import { renderView } from './views.js';
+import { createDisasterContext } from '../disaster/context.js';
+import { setRefreshHook } from '../disaster/views.js';
 
 /**
  * Create the workspace shell.
@@ -92,7 +94,7 @@ export function createWorkspace({
 
   const brand = h('div', { class: 'ws-brand' }, [
     h('span', { class: 'ws-brand-mark', text: '◈' }),
-    h('span', { class: 'ws-brand-name', text: 'Supply Chain' }),
+    h('span', { class: 'ws-brand-name', text: 'Disaster Intel' }),
   ]);
 
   const breadcrumb = h('nav', {
@@ -181,11 +183,26 @@ export function createWorkspace({
 
   /* ---------------- context handed to views ---------------- */
 
+  /*
+   * The disaster context, built once and handed to every view.
+   *
+   * Created here rather than in each view because the whole platform is one
+   * investigation (§27): if each view built its own, the timeline view and the
+   * impact view would hold different sessions and disagree about what loaded.
+   */
+  const disaster = createDisasterContext({
+    layers,
+    globe,
+    refresh: () => render(),
+    hazardLayer: layers.get?.('hazard-geometry') ?? null,
+  });
+
   const ctx = {
     state,
     console: consoleHandle,
     layers,
     globe,
+    disaster,
     get playback() {
       return playback;
     },
@@ -648,6 +665,7 @@ export function createWorkspace({
     if (state.visible) renderTopbar();
   }
 
+  setRefreshHook(() => render());
   render();
   renderLegend();
 
@@ -677,6 +695,8 @@ export function createWorkspace({
     destroy() {
       stopInvestigation({ silent: true });
       detachSelect?.();
+      disaster.close();
+      setRefreshHook(null);
       setDocked(false);
       root.remove();
     },

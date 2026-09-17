@@ -381,6 +381,17 @@ export function createFreightLayer({
     },
 
     /**
+     * The decoded segments, for analysis that needs the geometry itself.
+     *
+     * The disaster platform routes rescue and evacuation over this network, so
+     * it needs the coordinates rather than the analyst summary. Returned as-is
+     * because every record is already frozen.
+     */
+    getSegments() {
+      return definition.kind === 'line' ? _records : [];
+    },
+
+    /**
      * Everything the panel needs to explain itself.
      *
      * Including the two states that are not errors and not data: the camera is

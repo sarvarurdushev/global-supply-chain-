@@ -8,6 +8,7 @@ import { createBordersLayer } from '../layers/borders/index.js';
 import { createChainLayer } from '../layers/chain/index.js';
 import { createFreightLayer } from '../layers/freight/index.js';
 import { createAirGatewayLayer } from '../layers/airGateways/index.js';
+import { createHazardLayer } from '../layers/hazard/index.js';
 import { createOverpassFreightSource } from '../supplychain/sources/overpassFreight.js';
 import { createTradeProxySource } from '../supplychain/sources/tradeProxy.js';
 import { governorRequestRender } from '../renderGovernor.js';
@@ -166,6 +167,13 @@ export function createApplicationCatalog({
           }),
         ),
         createAirGatewayLayer({ governorRequestRender }),
+        /*
+         * The hazard geometry layer. It renders whatever the open
+         * investigation pushes into it, switching on geometry kind rather
+         * than disaster type, so a new hazard type in the registry becomes
+         * drawable without touching the renderer.
+         */
+        createHazardLayer({ governorRequestRender }),
         createEventsLayer({
           // Must go through the dev/preview proxy: gdacs.org sends no CORS
           // headers, so a direct browser fetch is blocked outright.

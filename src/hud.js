@@ -172,7 +172,7 @@ export class IntelHUD {
      * What goes in these three is now true: what this session is, where its data
      * comes from, and a session id that is honestly a session id.
      */
-    this._missionId = 'SUPPLY CHAIN EYE';
+    this._missionId = 'DISASTER INTELLIGENCE';
     this._sensorId = `SESSION ${new Date()
       .toISOString()
       .slice(11, 19)

@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { installTestDom } from './testDom.mjs';
+import { NAV_SECTIONS } from './navigation.js';
 
 const dom = installTestDom();
 const { createWorkspace } = await import('./shell.js');
@@ -142,11 +143,39 @@ test('the panel has exactly one scroll region', () => {
 });
 
 test('the rail renders every section and item', () => {
+  /*
+   * Eleven sections after the disaster pivot: Events, Investigate, Impact,
+   * Consequences, Response, Baseline, Analyze, Track, Map Layers, Sources and
+   * Guided Investigations. Asserted against the navigation model rather than a
+   * literal, so adding a section does not fail this test for the wrong reason
+   * — what it is actually pinning down is that the rail renders ALL of them.
+   */
   const h = build();
   const root = h.root();
-  assert.equal(root.querySelectorAll('.ws-nav-section').length, 5);
-  assert.ok(root.querySelectorAll('.ws-nav-item').length >= 18);
+  assert.equal(
+    root.querySelectorAll('.ws-nav-section').length,
+    NAV_SECTIONS.length,
+  );
+  assert.equal(
+    root.querySelectorAll('.ws-nav-item').length,
+    NAV_SECTIONS.reduce((sum, section) => sum + section.items.length, 0),
+  );
   h.cleanup();
+});
+
+test('the investigation sections lead, and each names one of the three questions', () => {
+  // §17 and §22: the sections are the stages of an investigation, in order.
+  assert.deepEqual(
+    NAV_SECTIONS.slice(0, 5).map((section) => section.id),
+    ['events', 'investigate', 'impact', 'consequences', 'response'],
+  );
+  for (const id of ['events', 'investigate', 'impact', 'consequences', 'response']) {
+    const section = NAV_SECTIONS.find((item) => item.id === id);
+    assert.ok(
+      ['what-happened', 'why-it-mattered', 'what-now'].includes(section.question),
+      `${id} does not name one of the three questions`,
+    );
+  }
 });
 
 test('a nav item carries its name and its one-line summary', () => {

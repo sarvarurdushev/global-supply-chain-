@@ -368,6 +368,16 @@ export const LAYER_STATE_REGISTRY = Object.freeze([
     token: '3',
     disposition: 'enabled-only',
   }),
+  /*
+   * The hazard geometry layer. `enabled-only` because what a share link
+   * restores is that the layer is on; which geometry it holds comes from the
+   * open investigation, which the case carries separately.
+   */
+  Object.freeze({
+    id: 'hazard-geometry',
+    token: '7',
+    disposition: 'enabled-only',
+  }),
   Object.freeze({ id: 'local-dams', token: 'q', disposition: 'enabled-only' }),
   Object.freeze({
     id: 'local-datacenters',

@@ -159,11 +159,11 @@ function encode(state) {
 test('production registry is exact, canonical, and rejects incomplete contracts', async () => {
   assert.equal(validateLayerStateRegistry(), true);
   // 21 inherited layers, the six supply-chain layers (trade-flows,
-  // supply-ports, chokepoints, supply-events, country-borders, supply-chain)
-  // and the five inland-freight layers (freight-rail, freight-roads,
-  // pipelines, production-sites, air-cargo-hubs).
-  assert.equal(REGISTERED_LAYER_IDS.length, 32);
-  assert.equal(new Set(REGISTERED_LAYER_IDS).size, 32);
+  // supply-ports, chokepoints, supply-events, country-borders, supply-chain),
+  // the five inland-freight layers (freight-rail, freight-roads, pipelines,
+  // production-sites, air-cargo-hubs) and the hazard geometry layer.
+  assert.equal(REGISTERED_LAYER_IDS.length, 33);
+  assert.equal(new Set(REGISTERED_LAYER_IDS).size, 33);
   assert.ok(REGISTERED_LAYER_IDS.includes('country-borders'));
   assert.ok(REGISTERED_LAYER_IDS.includes('supply-chain'));
   assert.ok(REGISTERED_LAYER_IDS.includes('transit'));

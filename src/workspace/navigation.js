@@ -1,5 +1,5 @@
 /**
- * The workspace navigation model.
+ * The navigation model.
  *
  * One flat, declarative tree. Every entry carries the three things a user needs
  * before clicking — a name that says what it is, a sentence that says why it
@@ -7,8 +7,30 @@
  * so the navigation itself does the explaining instead of deferring it to a
  * panel the user has to open first.
  *
- * `view` names the workspace view that renders the entry. `status` is the
- * honesty field:
+ * RESTRUCTURED AROUND THE INVESTIGATION (§22). The sections are the stages of
+ * one continuous investigation rather than a menu of features:
+ *
+ *   EVENTS          which disaster (LEVEL 0)
+ *   INVESTIGATE     descend into it, and step its timeline
+ *   IMPACT          who and what it reached
+ *   CONSEQUENCES    infrastructure, supply chain, economy
+ *   RESPONSE        rescue, evacuation, humanitarian logistics
+ *   MAP LAYERS      what can be drawn
+ *   SOURCES         where every figure came from
+ *
+ * §17's three questions run across those sections rather than being a section:
+ * EVENTS and INVESTIGATE answer WHAT HAPPENED, IMPACT and CONSEQUENCES answer
+ * WHY IT MATTERED, RESPONSE answers WHAT NOW. The `question` field on each
+ * section names which one it serves, so the interface can say so without the
+ * user having to pick a mode.
+ *
+ * THE SUPPLY-CHAIN VIEWS ARE KEPT, DELIBERATELY. §8: "Do not abandon the
+ * supply-chain capabilities from the previous version. Instead, make
+ * supply-chain analysis a major consequence of natural disasters." They moved
+ * from being the product to being the CONSEQUENCES section, with the same
+ * engines behind them.
+ *
+ * `view` names the view that renders the entry. `status` is the honesty field:
  *
  *   'ready'     real data, works now
  *   'partial'   works, but the data is a labelled proxy or covers less than
@@ -27,9 +49,197 @@
 
 export const NAV_SECTIONS = Object.freeze([
   Object.freeze({
+    id: 'events',
+    title: 'Events',
+    blurb: 'Start here. Every disaster the platform can investigate.',
+    question: 'what-happened',
+    items: Object.freeze([
+      Object.freeze({
+        id: 'case-explorer',
+        name: 'Disaster Explorer',
+        icon: '◎',
+        summary:
+          'Live alerts and documented cases, with what each one can prove.',
+        view: 'cases',
+        status: 'ready',
+      }),
+      Object.freeze({
+        id: 'live-hazards',
+        name: 'Live Hazards',
+        icon: '⚠',
+        summary: 'What is happening right now, from the GDACS alert feed.',
+        view: 'events',
+        status: 'partial',
+        note: 'Natural hazards only. No conflict, strikes or closures — an empty map is not evidence that nothing happened.',
+      }),
+    ]),
+  }),
+  Object.freeze({
+    id: 'investigate',
+    title: 'Investigate',
+    blurb: 'Descend into one event, and move through its timeline.',
+    question: 'what-happened',
+    items: Object.freeze([
+      Object.freeze({
+        id: 'descent',
+        name: 'Geographic Descent',
+        icon: '⤓',
+        summary: 'World to region to country to district to the site itself.',
+        view: 'descent',
+        status: 'ready',
+      }),
+      Object.freeze({
+        id: 'timeline',
+        name: 'Event Timeline',
+        icon: '⧗',
+        summary: 'T-0 to T+30d, with the map changing as you move.',
+        view: 'timeline',
+        status: 'partial',
+        note: 'Aftershocks are timestamped and genuinely accumulate. Hour-by-hour casualty counts do not exist for any disaster and are declared rather than invented.',
+      }),
+      Object.freeze({
+        id: 'hazard-layers',
+        name: 'Hazard Geometry',
+        icon: '◈',
+        summary:
+          'The intensity field, the rupture, the perimeter — per hazard type.',
+        view: 'hazard',
+        status: 'ready',
+      }),
+      Object.freeze({
+        id: 'evidence',
+        name: 'Visual Evidence',
+        icon: '▣',
+        summary:
+          'Satellite, photographs, video and official products, in place.',
+        view: 'evidence',
+        status: 'partial',
+        note: 'Imagery depends on what the agencies published for the event. Some cases have before/after satellite pairs; others have only field media.',
+      }),
+    ]),
+  }),
+  Object.freeze({
+    id: 'impact',
+    title: 'Impact',
+    blurb: 'Who and what the event reached, shown geographically.',
+    question: 'why-it-mattered',
+    items: Object.freeze([
+      Object.freeze({
+        id: 'human-impact',
+        name: 'Human Impact',
+        icon: '◍',
+        summary: 'Population by shaking intensity, and the cities inside it.',
+        view: 'human',
+        status: 'partial',
+        note: 'Exposure, not casualties. Who experienced the hazard, not who was hurt.',
+      }),
+      Object.freeze({
+        id: 'infrastructure',
+        name: 'Infrastructure',
+        icon: '⌗',
+        summary: 'Roads, bridges, airports and hospitals against the hazard.',
+        view: 'infrastructure',
+        status: 'partial',
+        note: 'Exposure computed from real geometry and a published hazard model. Observed damage assessments are not open data for past disasters.',
+      }),
+      Object.freeze({
+        id: 'economic',
+        name: 'Economic Damage',
+        icon: '◱',
+        summary:
+          'A cited national total, distributed across the affected area.',
+        view: 'economic',
+        status: 'partial',
+        note: 'The total is cited; its distribution is this project’s apportionment, labelled as such.',
+      }),
+    ]),
+  }),
+  Object.freeze({
+    id: 'consequences',
+    title: 'Consequences',
+    blurb:
+      'What the event broke beyond the damage: the system that connects people to goods.',
+    question: 'why-it-mattered',
+    items: Object.freeze([
+      Object.freeze({
+        id: 'supply-disruption',
+        name: 'Supply-Chain Disruption',
+        icon: '⛓',
+        summary: 'Which routes the event cut, and what has to travel instead.',
+        view: 'disruption',
+        status: 'ready',
+      }),
+      Object.freeze({
+        id: 'affected-route',
+        name: 'Affected Supply Route',
+        icon: '▣',
+        summary:
+          'One product’s journey, stage by stage, through the affected area.',
+        view: 'route',
+        status: 'partial',
+        note: 'Five of ten stages have no open source and are drawn as gaps.',
+      }),
+      Object.freeze({
+        id: 'event-chokepoints',
+        name: 'Strategic Chokepoints',
+        icon: '◈',
+        summary: 'The narrow places world trade squeezes through.',
+        view: 'chokepoints',
+        status: 'ready',
+      }),
+      Object.freeze({
+        id: 'product-dependencies',
+        name: 'Product Dependencies',
+        icon: '◫',
+        summary: 'Who supplies the affected region, and who depends on it.',
+        view: 'commodity',
+        status: 'partial',
+        note: 'Annual customs data, one to two years behind. Never live.',
+      }),
+    ]),
+  }),
+  Object.freeze({
+    id: 'response',
+    title: 'Response',
+    blurb: 'What can be done, drawn on the map rather than described.',
+    question: 'what-now',
+    items: Object.freeze([
+      Object.freeze({
+        id: 'rescue',
+        name: 'Rescue Access',
+        icon: '✚',
+        summary:
+          'Which routes reach the affected area, and what the detour costs.',
+        view: 'rescue',
+        status: 'partial',
+        note: 'Routes are solved over the real road network; which segments are impassable is modelled exposure, not a reported closure.',
+      }),
+      Object.freeze({
+        id: 'evacuation',
+        name: 'Evacuation Scenarios',
+        icon: '⇥',
+        summary: 'How the feasible answer changes as roads close.',
+        view: 'evacuation',
+        status: 'partial',
+        note: 'Safe zones are real mapped facilities. Capacity is shown only where a surveyor recorded one.',
+      }),
+      Object.freeze({
+        id: 'humanitarian',
+        name: 'Humanitarian Logistics',
+        icon: '◈',
+        summary:
+          'Need to supply to route to destination, solved per demand point.',
+        view: 'humanitarian',
+        status: 'partial',
+        note: 'Tonnage required is not published for any event and is not estimated here.',
+      }),
+    ]),
+  }),
+  Object.freeze({
     id: 'overview',
-    title: 'Global Overview',
-    blurb: 'Start here. The world as a single system of moving goods.',
+    title: 'Baseline',
+    blurb: 'The undisrupted world, for comparison against the event.',
+    question: 'why-it-mattered',
     items: Object.freeze([
       Object.freeze({
         id: 'home',
@@ -200,8 +410,24 @@ export const NAV_SECTIONS = Object.freeze([
     ]),
   }),
   Object.freeze({
+    id: 'sources',
+    title: 'Sources',
+    blurb: 'Where every figure came from, and what is not connected yet.',
+    question: 'what-happened',
+    items: Object.freeze([
+      Object.freeze({
+        id: 'provenance',
+        name: 'Data Provenance',
+        icon: '⌘',
+        summary: 'Every adapter, what it provides, and whether it is wired.',
+        view: 'sources',
+        status: 'ready',
+      }),
+    ]),
+  }),
+  Object.freeze({
     id: 'investigations',
-    title: 'Investigations',
+    title: 'Guided Investigations',
     blurb: 'Guided sequences that follow one question end to end.',
     items: Object.freeze([
       Object.freeze({
@@ -275,6 +501,62 @@ export const DEFAULT_NAV_ID = 'home';
  * "Chokepoints" but "what would interrupt this?".
  */
 export const NEXT_STEPS = Object.freeze({
+  /*
+   * The investigation sequence. Unlike the supply-chain views, where the next
+   * question depends on what the reader is curious about, these have a real
+   * order: you cannot read impact before you know where you are, and response
+   * only means something once you know what broke.
+   */
+  cases: Object.freeze([
+    { id: 'descent', question: 'Descend into the one you picked' },
+    { id: 'live-hazards', question: 'What is happening right now?' },
+  ]),
+  descent: Object.freeze([
+    { id: 'timeline', question: 'Now watch it unfold' },
+    { id: 'hazard-layers', question: 'What can be drawn here?' },
+  ]),
+  timeline: Object.freeze([
+    { id: 'human-impact', question: 'Who was inside this?' },
+    { id: 'infrastructure', question: 'What stopped working?' },
+  ]),
+  hazard: Object.freeze([
+    { id: 'human-impact', question: 'Who was inside the affected area?' },
+    { id: 'evidence', question: 'Show me the imagery' },
+  ]),
+  human: Object.freeze([
+    { id: 'infrastructure', question: 'What did it cut?' },
+    { id: 'economic', question: 'What did it cost?' },
+  ]),
+  infrastructure: Object.freeze([
+    { id: 'supply-disruption', question: 'What did that do to supply?' },
+    { id: 'rescue', question: 'Can rescuers still get in?' },
+  ]),
+  economic: Object.freeze([
+    { id: 'supply-disruption', question: 'Which routes carried that value?' },
+    {
+      id: 'product-dependencies',
+      question: 'Who else depends on this region?',
+    },
+  ]),
+  rescue: Object.freeze([
+    { id: 'evacuation', question: 'Where can people go?' },
+    { id: 'humanitarian', question: 'Where do supplies go?' },
+  ]),
+  evacuation: Object.freeze([
+    { id: 'humanitarian', question: 'And how does aid reach them?' },
+    { id: 'infrastructure', question: 'Why are those roads closed?' },
+  ]),
+  humanitarian: Object.freeze([
+    { id: 'supply-disruption', question: 'What does this do to normal trade?' },
+    { id: 'provenance', question: 'Where did all this come from?' },
+  ]),
+  evidence: Object.freeze([
+    { id: 'provenance', question: 'What else is published for this event?' },
+    { id: 'timeline', question: 'Put it back on the timeline' },
+  ]),
+  sources: Object.freeze([
+    { id: 'case-explorer', question: 'Pick another event to investigate' },
+  ]),
   home: Object.freeze([
     { id: 'commodity', question: 'Where does one product come from?' },
     { id: 'chokepoints', question: 'What could interrupt all of this?' },

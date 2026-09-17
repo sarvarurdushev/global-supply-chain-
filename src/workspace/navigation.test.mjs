@@ -53,13 +53,26 @@ test('nav item ids are unique', () => {
 });
 
 test('the sections the requirements asked for are all present', () => {
+  /*
+   * §22's sections, plus the supply-chain ones the pivot kept.
+   *
+   * "Global Overview" became "Baseline" when the platform pivoted to disaster
+   * investigation: it is no longer where a user starts, it is the undisrupted
+   * world they compare the event against. The supply-chain sections are all
+   * still here, because §8 requires the capability to stay.
+   */
   const titles = NAV_SECTIONS.map((s) => s.title);
   for (const expected of [
-    'Global Overview',
+    'Events',
+    'Investigate',
+    'Impact',
+    'Consequences',
+    'Response',
+    'Sources',
+    'Baseline',
     'Analyze',
     'Track',
     'Map Layers',
-    'Investigations',
   ]) {
     assert.ok(titles.includes(expected), `missing section: ${expected}`);
   }

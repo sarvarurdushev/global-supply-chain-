@@ -41,7 +41,7 @@ test('catalogs construct distinct layers and classification from their supplied 
   });
   // 21 inherited God's Eye View layers, the six supply-chain layers and the
   // five inland-freight layers.
-  assert.equal(first.layers.length, 32);
+  assert.equal(first.layers.length, 33);
   assert.ok(first.get('country-borders'));
   assert.ok(first.get('supply-chain'));
   assert.ok(first.get('transit'));
