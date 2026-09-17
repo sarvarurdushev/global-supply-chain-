@@ -146,6 +146,9 @@ gate question it fails:
 | Conflict events, strikes, port closures | ACLED and EM-DAT require registered accounts. GDACS covers **natural hazards only** and drives the event layer; nothing human-caused is in it |
 | Per-commodity production | Firm-level output is confidential; USGS is PDF-only and FAOSTAT needs a key. The production map ranks **exports**, labelled as a proxy |
 | Complete world rankings for broad commodities | The Comtrade preview endpoint caps responses at 500 rows. Detected and reported, never silently dropped |
+| Freight rail, road freight, air-cargo hubs, pipelines | No open global dataset. City transit and city road traffic are available and are not the same thing |
+| Extraction, processing, manufacture, inland distribution, final consumer | Five of the ten supply-chain stages. Facility-level data is company-confidential and inland freight is unmapped. Shown as explicit gaps in `Analyze → Trade Route` |
+| Basin-level water stress | National averages hide the distribution that matters. WRI Aqueduct publishes by basin and is a bulk download rather than an API |
 | Commercial feasibility of new infrastructure | Needs engineering and cost studies |
 
 Infrastructure siting output is labelled **NETWORK-BASED CANDIDATE LOCATION**, never a
@@ -176,6 +179,12 @@ model; the routing and disruption engines; the network analytics; the trade, eco
 hazard data clients; the ML layer; the supply-chain console with its five sections (trade
 dependency, production proxy, country comparison, events, what-if); four globe layers; four
 voice actions; and the authored seven-shot tour.
+
+The interface was rebuilt as its own product in a later pass: a left navigation
+rail, one scroll region in the analysis panel, plain-language terminology, a
+glossary, a data legend, four investigations with real playback controls, country
+borders, staged supply-chain routes and environmental risk. All 44 requirements
+of that rebuild are audited in `docs/REBUILD_AUDIT.md`.
 
 Still not built, and tracked in `docs/PHASED_PLAN.md`: joint live+historical fused views
 (§23 — the badging is in place, the fused view is not), and anything requiring the data in
@@ -214,3 +223,62 @@ Two consequences the code acts on:
 A reporter missing from an *untruncated* page is a different thing again: it did not report
 that commodity. That is an absence in the source, and the panel does not convert it into a
 zero.
+
+## 15. Five of the ten supply-chain stages cannot be placed
+
+`Analyze → Trade Route` draws the shape the brief asked for —
+Mine → Processing → Factory → Port → Ship → Port → Distribution → Consumer —
+expanded to ten stages. It can place five:
+
+| Stage | Status | Basis |
+| --- | --- | --- |
+| Extraction or cultivation | ○ unavailable | Mine, well and farm locations with output are not open data at global scale |
+| Processing | ○ unavailable | Refineries and smelters are company assets; locations are partly mappable, throughput is not |
+| Manufacture | ○ unavailable | Facility-level output is confidential. Public data reaches country × commodity |
+| Origin country | ● historical | UN Comtrade customs statistics |
+| Load port | ◐ inferred | **Nearest** major port to the country's label point — geometry, not a shipping record |
+| Sea transit | ◐ simulated | Shortest path over the port and chokepoint network, where one has been computed |
+| Discharge port | ◐ inferred | As the load port, with the same warning |
+| Destination country | ● historical | UN Comtrade customs statistics |
+| Inland distribution | ○ unavailable | No open global road or rail freight network exists |
+| Final consumer | ○ unavailable | Trade data stops at the border |
+
+The five unavailable stages are **present in the drawing and explicitly empty**,
+each with why and what would fix it. Omitting them would make the chain look
+complete when half of it is unknown, and drawing a plausible line to a plausible
+mine would be the most convincing-looking part of the image.
+
+Two further warnings the interface repeats every time:
+
+- **The ports are a geometric guess.** "Nearest major port to the country's label
+  point" is not a shipping fact. Rotterdam is nearest to a great many European
+  label points and handles cargo for none of them in any predictable share. A
+  landlocked country gets whichever coastal port is closest, which may be in
+  another country and on the wrong sea.
+- **A chain describes a COUNTRY PAIR, not a shipment.** It does not mean any
+  particular cargo took that path.
+
+## 16. Environmental risk is national, and the distribution is what matters
+
+`Analyze → Environmental Risk` uses five keyless World Bank series and states
+the mechanism by which each reaches trade before showing any number.
+
+The limitation that matters most: **water stress is a river-basin property, not a
+country property.** China's national withdrawal figure averages the water-rich
+south with the water-scarce north, and the north is where the wheat is. A
+national average can therefore read "medium" for a country with a severe regional
+problem. WRI Aqueduct publishes water stress by basin, which is the right
+resolution, and is a bulk download rather than an API. It is not integrated.
+
+Two readings that look like errors and are not:
+
+- **Withdrawal above 100%** of internal renewable resources is real. Egypt's
+  7,750% means it lives on a river that rises outside its borders. Clamping or
+  rejecting that figure would discard the most important fact about its water.
+- **A genuine zero** is kept as zero. Egypt's 1990–2009 disaster-exposure figure
+  is 0.0, which is a measurement, not a missing value — and the interface
+  distinguishes the two.
+
+No causal claim is made anywhere in this view. The indicators describe exposure.
+Whether a given harvest or shipment actually fails depends on weather, storage
+and policy this project does not model.

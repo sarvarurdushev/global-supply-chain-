@@ -190,6 +190,11 @@ console is the right-hand rail.
 | Alternative routes | 🟢 working | Listed and labelled GEOGRAPHIC ONLY |
 | Provenance panel | 🟢 working | Every result carries an expandable source/method/licence/limitations block |
 | Voice control | 🟢 working | 4 actions; see below |
+| Staged supply-chain route | 🟡 **5 of 10 stages** | `Analyze → Trade Route`. The other five are shown as explicit gaps with why and what would fix them |
+| Environmental risk | 🟡 **national resolution** | `Analyze → Environmental Risk`. The mechanism is stated above the numbers; basin-level data is a bulk download and not integrated |
+| Country borders | 🟢 working | 174 countries, Natural Earth 110m. An orientation aid, not an authority |
+| One-click tracking | 🟢 working | Click any vessel, aircraft, satellite or transit vehicle. **Stop Following** in the top bar |
+| Reset View | 🟢 working | Always in the top bar. Stops playback, releases the camera, drops the selection, returns home |
 | Select a live vessel | 🟢 inherited | God's Eye View AIS layer, unchanged |
 | Per-vessel commodity association | ⚪ **DATA UNAVAILABLE** | AIS carries no cargo field. The port card says so rather than guessing |
 | Where is production? | 🟡 **export proxy** | MAP WORLD PRODUCTION ranks every reporting exporter. Verified live: 141 exporters for HS 8542 in 2023, Hong Kong and Singapore flagged as re-export hubs. Labelled EXPORT PROXY throughout — see below |
@@ -226,6 +231,40 @@ calls. Actual spoken output:
 
 Every answer is assembled from what the console actually loaded. The handlers never answer
 from the model's own knowledge, and when nothing is loaded they say so.
+
+---
+
+## Scenario 7 — The rebuilt interface (RUNNABLE NOW)
+
+`npm run dev`, open http://localhost:4173. No first-run card to dismiss — the
+home view **is** the orientation.
+
+| Flow | What to do | What proves it |
+| --- | --- | --- |
+| 1 | Read the home view | "This is a system for seeing how the world moves goods", the six-stage chain as clickable stages, live layer counts |
+| 2 | Analyze → Country | Trade paths, nearby ports, and what is not there |
+| 3 | Analyze → Product Supply Chain → Semiconductors | 105 partners; "Other Asia, nes" at $17.3B labelled as an aggregate code read as Taiwan, which is an inference |
+| 4 | Change product to Fertilizer — potassic | Canada first at $8.6B, HHI 0.460 |
+| 5 | Global Overview → Strategic Chokepoints → Hormuz | Why it matters / what passes through / what happens if it closes, with transit volume as DATA UNAVAILABLE |
+| 6 | Press "Run the closure scenario", then close it | The Gulf pair is **severed** — no maritime alternative, which is the real answer |
+| 7 | Click any vessel on the globe | Selected and followed in one click, facts shown, cargo declared unavailable |
+| 8 | Click any aircraft | Same, and the panel switches to Aircraft rather than staying on Ships |
+| 9 | Track → Trains | City transit offered, freight rail declared absent in those words |
+| 10 | Investigations → Nepal Flood, then play / pause / next / prev / stop | The flood is step 1 of 6, and you can stop at any moment |
+| 11 | Press Reset View | Camera back to 24,000 km, selection dropped, playback stopped, panel home |
+| 12 | Set country to Taiwan and press Show Trade Flows | It explains that Taiwan does not report, and offers a Retry |
+
+All twelve are driven in a real browser by `npm run qa:workspace`, which is
+committed and exits non-zero on the first failure. 15/15 checks pass.
+
+Two more worth running:
+
+- **Analyze → Trade Route**, then "Draw this chain on the globe". Korea to the
+  Netherlands: 6 of 10 stages with no data at all, 8,787 km total of which 8,602
+  km by sea, solid lines for sea and dashed for land.
+- **Analyze → Environmental Risk**, country India, "Load indicators". 44.8%
+  freshwater withdrawal with 44% of farmland irrigated, and the mechanism stated
+  above the numbers. Try Egypt for 7,750% — real, not an error.
 
 ---
 

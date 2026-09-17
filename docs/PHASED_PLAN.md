@@ -18,6 +18,7 @@ inherited God's Eye View behaviour.**
 | **10** | Geopolitical / event layer | 🟡 **natural hazards shipped via GDACS (live, no key); conflict and strikes still blocked** — availability matrix §3 |
 | **11** | Voice: supply-chain action schemas + handlers | ✅ **complete** — 4 actions, layers voice-toggleable |
 | **12** | Polish: camera, HUD, transitions, performance, error states | ✅ **complete** — camera framing, error states, data-gap rendering, and the authored 7-shot tour |
+| **13** | Interface rebuild: own identity, navigation, vocabulary, layout, explanation layer | ✅ **complete** — see `docs/REBUILD_AUDIT.md` for all 44 requirements |
 
 ## Phase-1 deliverables (the brief's FINAL COMMAND, items 1–10)
 
@@ -68,6 +69,20 @@ directly would be throttled part-way through a ten-year series.
   USGS Mineral Commodity Summaries (PDF and spreadsheets, no API) or FAOSTAT (key plus a
   34 MB bulk archive). Neither is integrated. Re-export hubs are individually flagged rather
   than corrected, because there is no basis for a correction.
+- **Inland freight of any kind**: no open global dataset exists for freight rail,
+  road-freight corridors, airport cargo tonnage or pipeline throughput. All four
+  are listed in `Map Layers` under "Not Available" with what would be needed,
+  because hiding them is how a user concludes the app forgot rather than that the
+  data does not exist. City transit and road traffic ARE available at city scale
+  and are a different thing, which the interface says in those words.
+- **Five of the ten supply-chain stages** (§16): extraction, processing,
+  manufacture, inland distribution and the final consumer. `Analyze → Trade
+  Route` shows all ten and places five, with the other five present and
+  explicitly empty. Drawing a plausible line to a plausible mine would have been
+  the most convincing part of the picture and a complete fabrication.
+- **Basin-level water stress** (§22): the resolution that actually matters, since
+  a national figure averages a country's wet and dry halves. WRI Aqueduct
+  publishes it by basin and is a bulk download rather than an API.
 - **Conflict, strikes and port closures** (§15): GDACS covers natural hazards only and now
   drives the event layer with no key. It carries nothing human-caused — no strikes, port
   closures, sanctions or conflict — so the absence of a marker is not evidence that nothing
@@ -79,6 +94,28 @@ directly would be throttled part-way through a ten-year series.
   response at 500 rows without flagging it. The production loader detects the cap and halves
   its batch until every reporter's total is accounted for, but a single reporter whose own
   page is capped without a total in it is reported as incomplete rather than guessed at.
+
+## The interface rebuild
+
+Tracked requirement by requirement in `docs/REBUILD_AUDIT.md`: 28 done and
+verified, 10 done as far as the data allows with the shortfall stated in the
+interface, 6 not done with a stated data or scope reason.
+
+The headline items:
+
+- A left navigation rail with five sections and 21 entries, each carrying a
+  plain-language name, a one-line description, and a badge when its data is
+  partial or absent.
+- **One** scroll region in the analysis panel. Cards never scroll. A unit test
+  and `npm run qa:workspace` both fail if a second scroller appears.
+- The inherited classification chrome, MGRS readout and first-run card hidden
+  while the workspace is up, and fully restored by "Hide panels".
+- Four investigations with real playback controls — play, pause, stop, restart,
+  step forward and back, a progress bar and a clickable step list.
+- A glossary, a data legend that explains certainty as well as shape, and a
+  mandatory "why this matters" block on every data view.
+- Country borders, a staged supply-chain route with its five unplaceable stages
+  declared, and environmental risk joined to trade through a stated mechanism.
 
 ## Built since the first pass
 

@@ -47,19 +47,38 @@ Keyless it uses the Esri World Imagery basemap and live OpenSky aircraft. Add a 
 key to `.env` for photorealistic 3D tiles, or an OpenAI key for voice — see `.env.example`
 and `npm run doctor`.
 
-The supply-chain console is the right-hand rail, with five sections:
+### The interface
 
-| Section | What it does |
+A left navigation rail, and an analysis panel on the right with **one** scroll region.
+
+| Section | What is in it |
 | --- | --- |
-| **TRADE DEPENDENCY** | Pick a commodity and country, press INVESTIGATE, and the globe draws the trade arcs. Concentration, aggregate-partner flags, ten-year series, forecast vs baselines |
-| **WHERE IS PRODUCTION?** | Ranks every reporting exporter worldwide. Labelled `EXPORT PROXY` — this project has no production data |
-| **COMPARE COUNTRIES** | World Bank structural indicators plus k-means clustering with a silhouette score |
-| **EVENTS AFFECTING SUPPLY CHAINS** | Live GDACS hazards, linked to the ports and chokepoints within 500 km |
-| **WHAT IF?** | Close a chokepoint and see the modelled reroute, extra distance and propagation |
+| **Global Overview** | Global Supply Chain (home), Live Transport, Trade Routes, Strategic Chokepoints, Global Events |
+| **Analyze** | Product Supply Chain, Country, Resource, Trade Route, Disruption, Environmental Risk |
+| **Track** | Ships, Aircraft, Satellites, Trains, Major Logistics Hubs — click any marker on the globe to follow it |
+| **Map Layers** | Every layer, grouped, with what each one actually contains — including the ones that contain nothing |
+| **Investigations** | Four guided sequences, below |
 
-For the authored version, open **SCENES** and play **Supply Chain Eye — Semiconductors**:
-seven shots that drive the console as they go, ending on the live hazard feed. Shot 3 holds
-on the Taiwan Strait with an empty map, because Taiwan does not report to UN Comtrade.
+Every view opens with **why this matters**, ends with **what to investigate
+next**, and carries a data-class badge: 🟢 LIVE, 🔵 HISTORICAL, 🟡 INFERRED,
+🟣 SIMULATED, ⚪ UNAVAILABLE. **Reset View** in the top bar always gets you out.
+
+### Four investigations
+
+Each starts from a question and ends by stating what it cannot tell you.
+
+| Investigation | The question |
+| --- | --- |
+| **If Hormuz Closed** | What happens if the Strait of Hormuz is disrupted? |
+| **Where Semiconductors Come From** | Who supplies integrated circuits, and what would interrupt them? |
+| **Nepal Flood — Corridor Cut** | A flood closed a mountain road. What does that road carry, and who notices? |
+| **Fertilizer — Food's Supply Chain** | Who makes fertilizer, and which countries cannot farm without it? |
+
+The Nepal one is the method in miniature: the flood is step **one of six**, not
+the answer. Play, pause, step and stop are all available, and stepping by hand
+pauses — you are never carried off a step you wanted to read.
+
+To see the original interface instead, press **Hide panels**. Nothing was removed.
 
 **The supply-chain engine, headless** — the same analysis without a browser:
 
@@ -74,7 +93,8 @@ npm run demo economy          # live World Bank
 No API keys needed for any of it. Verify the whole thing:
 
 ```bash
-npm test                 # 4475 pass, 0 fail, 1 skipped (Node-24-only benchmark)
+npm test                 # 4650 pass, 0 fail, 1 skipped (Node-24-only benchmark)
+npm run qa:workspace     # drives all 12 user flows in a real browser
 npm run build
 npm run check:boundaries
 ```
@@ -93,6 +113,8 @@ The **analytical engine** is complete, tested and reproducible without a browser
 | UN Comtrade, World Bank and GDACS clients | `src/supplychain/sources/` |
 | Forecasting, anomaly detection, clustering | `src/supplychain/ml/` |
 | Production concentration from the export proxy | `src/supplychain/production.js` |
+| Staged supply chains with their gaps declared | `src/supplychain/chain.js` |
+| Environmental risk joined to trade | `src/supplychain/environment.js` |
 
 A live example, run against UN Comtrade on 2026-09-16 — South Korea's 2023 integrated-circuit
 imports:
@@ -117,10 +139,20 @@ returns that as an inference with its evidence attached, never as a verified fig
 | **Conflict, strikes, port closures** | GDACS covers natural hazards only and drives the event layer with no key. ACLED and EM-DAT still need registered accounts. The layer states that an absent marker is not evidence that nothing happened |
 | **Port-level container throughput** | Commercial. **Country-level** TEU is available from the World Bank and is used in COMPARE COUNTRIES; it cannot rank one port against another |
 | **Joint live + historical fused views** | The badging is in place; the fused view is not |
+| **Freight rail, road freight, air-cargo hubs, pipelines** | No open global dataset for any of them. City transit is available and is not the same thing; the interface says so in those words |
+| **Five of the ten supply-chain stages** | Extraction, processing, manufacture, inland distribution and the final consumer. Shown as explicit gaps in `Analyze → Trade Route`, never guessed at |
+| **Basin-level water stress** | The resolution that matters. WRI Aqueduct publishes it and is a bulk download rather than an API |
 
-`docs/PHASED_PLAN.md` tracks these, `docs/LIMITATIONS.md` states them in full, and
-`docs/DEMO_SCENARIOS.md` marks each step of the flagship investigation as working, inherited
-or data-unavailable.
+`docs/REBUILD_AUDIT.md` walks all 44 rebuild requirements with what was done and
+what was not. `docs/PHASED_PLAN.md` tracks the phases, `docs/LIMITATIONS.md`
+states the limits in full, and `docs/DEMO_SCENARIOS.md` marks each step of the
+flagship investigation as working, inherited or data-unavailable.
+
+Five of those gaps are the same fact in different clothes: **there is no open
+global dataset for inland freight or for facility-level production.** That is
+the boundary of what this project can honestly show, and it is stated in the
+interface wherever a user would otherwise assume an empty map meant an empty
+world.
 
 ## Principles enforced in code, not convention
 
