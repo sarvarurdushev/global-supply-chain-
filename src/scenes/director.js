@@ -542,9 +542,21 @@ export class SceneDirector {
       const expectedTitles = Array.isArray(bootstrap.fromShotTitles)
         ? bootstrap.fromShotTitles
         : [];
+      /*
+       * More than one accepted title, because the scene has been renamed.
+       *
+       * The match is by title, and a browser that saved this project before the
+       * plain-language renames still holds the old one. Accepting both means a
+       * returning user's three-shot Nepal scene is still upgraded to the full
+       * twenty-five, instead of silently staying a stub because the label
+       * changed underneath it.
+       */
+      const targetTitles = Array.isArray(bootstrap.targetSceneTitles)
+        ? bootstrap.targetSceneTitles
+        : [bootstrap.targetSceneTitle];
       const scene = this._project.scenes.find(
         (candidate) =>
-          candidate.title === bootstrap.targetSceneTitle &&
+          targetTitles.includes(candidate.title) &&
           candidate.shots.length === expectedTitles.length &&
           candidate.shots.every(
             (shot, index) => shot.title === expectedTitles[index],

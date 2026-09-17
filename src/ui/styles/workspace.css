@@ -49,16 +49,31 @@
   --ws-gap: #78909c;
 
   --ws-radius: 10px;
-  --ws-rail-w: 244px;
-  --ws-panel-w: 440px;
-  --ws-topbar-h: 52px;
+  --ws-panel-w: 404px;
+  /*
+   * The dock's box. `--ws-dock-top` clears the inherited title bar's band
+   * (top: 32px plus its two lines) and `--ws-dock-bottom` clears the inherited
+   * command dock, so the new panel sits beside the original interface rather
+   * than on top of it.
+   */
+  --ws-dock-x: 14px;
+  --ws-dock-top: 104px;
+  --ws-dock-bottom: 16px;
+  /* Total horizontal room the dock asks the inherited chrome to give up. */
+  --ws-dock-reserve: calc(var(--ws-panel-w) + var(--ws-dock-x) + 16px);
 
   --ws-sans: 'Inter', system-ui, sans-serif;
   --ws-mono: 'JetBrains Mono', ui-monospace, monospace;
 }
 
 /* ------------------------------------------------------------------ *
- * Root + top bar
+ * Root + right-hand dock
+ *
+ * The dock is a column pinned to the right edge, BELOW the inherited title
+ * bar's band and clear of the inherited command dock at the bottom. It does not
+ * span the window, because the window already has a title, a style indicator,
+ * camera actions, a scene tray, a layer tray, a context rail and a command
+ * dock, and all of those stay on screen.
  * ------------------------------------------------------------------ */
 
 .ws-root {
@@ -79,41 +94,67 @@
   pointer-events: auto;
 }
 
-.ws-topbar {
+.ws-dock {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: var(--ws-topbar-h);
+  top: var(--ws-dock-top);
+  right: var(--ws-dock-x);
+  bottom: var(--ws-dock-bottom);
+  width: var(--ws-panel-w);
+  max-width: calc(100vw - 32px);
   display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 0 16px;
+  flex-direction: column;
+  gap: 8px;
+  /* The rail drawer and the legend are absolutely placed against this box. */
+  isolation: isolate;
+}
+.ws-dock[hidden] {
+  display: none;
+}
+
+/*
+ * The dock's own header. Still called `.ws-topbar` because it carries the same
+ * controls it always did; it is no longer a bar across the window.
+ */
+.ws-topbar {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 9px 11px 8px;
   background: linear-gradient(
     180deg,
-    rgba(14, 20, 32, 0.96) 0%,
-    rgba(14, 20, 32, 0.82) 100%
+    rgba(19, 27, 42, 0.95) 0%,
+    rgba(15, 21, 33, 0.9) 100%
   );
-  border-bottom: 1px solid var(--ws-line);
+  border: 1px solid var(--ws-line);
+  border-radius: var(--ws-radius);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.45);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
+}
+.ws-topbar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .ws-brand {
   display: flex;
   align-items: baseline;
-  gap: 9px;
+  gap: 7px;
   flex: 0 0 auto;
 }
 .ws-brand-mark {
-  font-size: 17px;
+  font-size: 15px;
   line-height: 1;
   color: var(--ws-amber);
 }
 .ws-brand-name {
   font-weight: 600;
-  font-size: 14px;
-  letter-spacing: 0.01em;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   white-space: nowrap;
 }
 .ws-brand-sub {
@@ -127,11 +168,10 @@
 .ws-breadcrumb {
   display: flex;
   align-items: center;
-  gap: 7px;
-  font-size: 12px;
+  gap: 6px;
+  font-size: 11px;
   color: var(--ws-text-dim);
   min-width: 0;
-  flex: 1 1 auto;
 }
 .ws-breadcrumb-sep {
   color: var(--ws-text-faint);
@@ -147,34 +187,91 @@
 .ws-topbar-actions {
   display: flex;
   align-items: center;
-  gap: 7px;
-  flex: 0 0 auto;
+  gap: 5px;
+  flex: 1 1 auto;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+/* ------------------------------------------------------------------ *
+ * The edge tab that reopens a collapsed dock
+ * ------------------------------------------------------------------ */
+
+.ws-reopen {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 7px;
+  border: 1px solid var(--ws-line-strong);
+  border-right: none;
+  border-radius: var(--ws-radius) 0 0 var(--ws-radius);
+  background: rgba(19, 27, 42, 0.92);
+  color: var(--ws-text);
+  font-family: inherit;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+.ws-reopen[hidden] {
+  display: none;
+}
+.ws-reopen:hover {
+  border-color: var(--ws-amber);
+  color: var(--ws-amber);
+}
+.ws-reopen-mark {
+  font-size: 14px;
+  color: var(--ws-amber);
+}
+.ws-reopen-text {
+  writing-mode: vertical-rl;
 }
 
 /* ------------------------------------------------------------------ *
  * Left navigation rail
  * ------------------------------------------------------------------ */
 
+/*
+ * Navigation is a drawer over the dock, opened from the header.
+ *
+ * It was a fixed rail down the left edge, which is where the inherited
+ * data-layer and scene-director trays live. Two stacks of controls fighting for
+ * the same 360 px is why the trays looked like they had been taken away.
+ */
 .ws-rail {
   position: absolute;
-  top: var(--ws-topbar-h);
+  top: 0;
+  right: 0;
   bottom: 0;
-  left: 0;
-  width: var(--ws-rail-w);
-  display: flex;
+  width: 100%;
+  z-index: 3;
+  display: none;
   flex-direction: column;
   background: linear-gradient(
-    90deg,
-    rgba(14, 20, 32, 0.95) 0%,
-    rgba(14, 20, 32, 0.86) 100%
+    180deg,
+    rgba(16, 23, 36, 0.98) 0%,
+    rgba(13, 18, 29, 0.97) 100%
   );
-  border-right: 1px solid var(--ws-line);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--ws-line-strong);
+  border-radius: var(--ws-radius);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
   /* The ONE scroll on this side. */
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: 10px 0 24px;
+  padding: 8px 0 20px;
+}
+.ws-root.ws-rail-open .ws-rail {
+  display: flex;
 }
 .ws-root.ws-rail-hidden .ws-rail {
   display: none;
@@ -275,15 +372,11 @@
  * ------------------------------------------------------------------ */
 
 .ws-panel {
-  position: absolute;
-  top: calc(var(--ws-topbar-h) + 12px);
-  right: 12px;
-  bottom: 12px;
-  width: var(--ws-panel-w);
-  max-width: calc(100vw - var(--ws-rail-w) - 36px);
+  flex: 1 1 auto;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  background: rgba(14, 20, 32, 0.9);
+  background: rgba(14, 20, 32, 0.92);
   border: 1px solid var(--ws-line);
   border-radius: var(--ws-radius);
   backdrop-filter: blur(20px);
@@ -871,18 +964,18 @@
  * Playback strip
  * ------------------------------------------------------------------ */
 
+/*
+ * Pinned above the one scroll region, inside the panel.
+ *
+ * It used to float over the globe at the bottom of the window, which is where
+ * the inherited command dock is. Nothing has to move for it now.
+ */
 .ws-playback {
-  position: absolute;
-  left: calc(var(--ws-rail-w) + 16px);
-  right: calc(var(--ws-panel-w) + 24px);
-  bottom: 16px;
-  padding: 12px 16px;
-  background: rgba(14, 20, 32, 0.94);
-  border: 1px solid var(--ws-line-strong);
-  border-radius: var(--ws-radius);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.55);
+  flex: 0 0 auto;
+  padding: 10px 12px;
+  background: rgba(20, 28, 44, 0.96);
+  border-bottom: 1px solid var(--ws-line-strong);
+  box-shadow: inset 2px 0 0 var(--ws-amber);
 }
 .ws-playback[hidden] {
   display: none;
@@ -940,10 +1033,11 @@
 
 .ws-legend {
   position: absolute;
-  left: calc(var(--ws-rail-w) + 16px);
-  top: calc(var(--ws-topbar-h) + 12px);
+  right: 0;
+  top: 0;
+  z-index: 4;
   width: 250px;
-  max-height: calc(100vh - var(--ws-topbar-h) - 100px);
+  max-height: calc(100% - 8px);
   overflow-y: auto;
   padding: 13px;
   background: rgba(14, 20, 32, 0.95);
@@ -1098,63 +1192,82 @@
 }
 
 /* ------------------------------------------------------------------ *
+ * Coexistence with the inherited chrome
+ *
+ * NOTHING HERE HIDES ANYTHING. `body.ws-docked` is set while the dock is open
+ * and simply moves the inherited right-hand furniture inboard by the dock's
+ * width, so the context rail, the style indicator, the HUD readouts and the
+ * command dock are all fully visible beside it. Collapse the dock and every one
+ * of them returns to its original position, because the class comes off.
+ * ------------------------------------------------------------------ */
+
+body.ws-docked {
+  /* Read by God's Eye View's own layers.css for the context rail. */
+  --right-rail-x: var(--ws-dock-reserve);
+}
+body.ws-docked #style-indicator {
+  right: var(--ws-dock-reserve);
+}
+body.ws-docked .hud-bottom-right,
+body.ws-docked .hud-top-right {
+  right: calc(var(--ws-dock-reserve) + 4px);
+}
+/* The dock is fixed with `left: 50%` and a translate; moving the anchor keeps
+   every one of its own `:has()` transform rules working. */
+body.ws-docked #command-dock {
+  left: calc(50% - var(--ws-dock-reserve) / 2);
+}
+body.ws-docked #first-run-launcher {
+  margin-right: var(--ws-dock-reserve);
+}
+
+/* ------------------------------------------------------------------ *
  * Responsive — desktop-first, but never illegible
  * ------------------------------------------------------------------ */
 
 @media (max-width: 1280px) {
   :root {
-    --ws-panel-w: 380px;
-    --ws-rail-w: 216px;
+    --ws-panel-w: 366px;
   }
 }
 
 @media (max-width: 1020px) {
-  /* Below this the two chrome columns cannot both be readable over a globe.
-     The panel wins — it is where the analysis is — and the rail becomes a
-     drawer opened from the top bar. */
-  .ws-rail {
-    width: 260px;
-    z-index: 2;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  /*
+   * Below this the dock and the inherited trays cannot both be readable over a
+   * globe. The dock narrows and drops its breadcrumb rather than covering
+   * anything: the collapse button and the edge tab are how the user gets the
+   * whole window back.
+   */
+  :root {
+    --ws-panel-w: 320px;
+    --ws-dock-top: 92px;
   }
-  .ws-root:not(.ws-rail-open) .ws-rail {
+  .ws-breadcrumb {
     display: none;
   }
-  .ws-panel {
-    left: 12px;
-    width: auto;
-    max-width: none;
-  }
-  .ws-playback,
-  .ws-legend {
-    left: 12px;
-    right: 12px;
-    width: auto;
-  }
-  .ws-legend {
-    max-height: 40vh;
+  body.ws-docked #command-dock {
+    left: 50%;
   }
 }
 
 @media (max-width: 620px) {
-  .ws-brand-sub,
-  .ws-breadcrumb {
+  :root {
+    --ws-dock-x: 8px;
+    --ws-dock-top: 84px;
+    --ws-dock-bottom: 8px;
+  }
+  .ws-dock {
+    width: calc(100vw - 16px);
+  }
+  .ws-brand-sub {
     display: none;
   }
-  .ws-panel {
-    top: calc(var(--ws-topbar-h) + 8px);
-    left: 8px;
-    right: 8px;
-    bottom: 8px;
+  body.ws-docked {
+    --right-rail-x: 52px;
   }
-}
-
-/* The rail toggle only has a job at narrow widths. */
-.ws-rail-toggle {
-  display: none;
-}
-@media (max-width: 1020px) {
-  .ws-rail-toggle {
-    display: inline-flex;
+  body.ws-docked #style-indicator,
+  body.ws-docked .hud-bottom-right,
+  body.ws-docked .hud-top-right {
+    right: 36px;
   }
 }

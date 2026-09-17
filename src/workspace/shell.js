@@ -1,22 +1,40 @@
 /**
  * The workspace shell.
  *
- * Owns the chrome — top bar, navigation rail, the single-scroll panel, the
- * playback strip and the legend — and nothing else. It does not know what a
- * chokepoint is, does not talk to Cesium, and does not fetch. Everything
- * world-facing arrives as an injected dependency (`globe`, `layers`, `console`)
- * so the shell can be reasoned about, and largely tested, on its own.
+ * Owns the supply-chain chrome — the right-hand dock, its navigation drawer,
+ * the single-scroll analysis panel, the playback strip and the legend — and
+ * nothing else. It does not know what a chokepoint is, does not talk to Cesium,
+ * and does not fetch. Everything world-facing arrives as an injected dependency
+ * (`globe`, `layers`, `console`) so the shell can be reasoned about, and largely
+ * tested, on its own.
  *
- * Layout decisions that differ deliberately from the inherited shell:
+ * IT HIDES NOTHING IT INHERITED. An earlier version of this file blanked the
+ * God's Eye View title bar, intel HUD, style indicator, scene and layer trays,
+ * command dock, context rail and first-run card while the workspace was up, on
+ * the theory that two products in one window is one too many. That was the wrong
+ * call and it was not what was asked for: the request was to make the inherited
+ * tabs easier to read and to move around in, not to take them away. Every one of
+ * them is on screen now, renamed in place by `chromeRenames.js` and restyled by
+ * `workspace.css`, and the supply-chain console still opens from its own
+ * launcher.
  *
- *   - Navigation lives in a persistent LEFT RAIL with full names and one-line
- *     descriptions, not in stacked collapsible trays of icons.
- *   - The analysis panel is ONE scroll region on the right. Cards inside it
- *     never scroll. This is the fix for the six-scrollbar panel.
- *   - The top bar always carries Reset View. The user can always get out.
- *   - While the workspace is up, the inherited classification banner and MGRS
- *     readout are hidden: they belong to a different product and they make
- *     customs statistics look like intercepts.
+ * So the layout question becomes "where does the new panel go without covering
+ * anything?" rather than "what can be removed?":
+ *
+ *   - The dock is a RIGHT-HAND COLUMN. Its own header carries the brand, the
+ *     breadcrumb and the always-available controls, because the top edge of the
+ *     screen already belongs to the inherited title, style indicator and camera
+ *     actions.
+ *   - Navigation is a DRAWER inside that column, not a fixed left rail: the left
+ *     edge is the inherited panel stack's.
+ *   - `body.ws-docked` lets the stylesheet slide the inherited context rail,
+ *     style indicator, HUD readouts and command dock clear of the dock's width,
+ *     so both interfaces are fully visible at once instead of overlapping.
+ *   - The analysis panel is ONE scroll region. Cards inside it never scroll.
+ *     This is the fix for the six-scrollbar panel and the most important rule in
+ *     the file.
+ *   - The dock header always carries Reset View, and the dock itself collapses
+ *     to an edge tab. The user can always get out, and can always get back.
  */
 
 import { h, append } from './components.js';
@@ -24,49 +42,6 @@ import { NAV_SECTIONS, navItem, DEFAULT_NAV_ID } from './navigation.js';
 import { LEGEND, controlName } from './taxonomy.js';
 import { investigation, createPlayback } from './investigations.js';
 import { renderView } from './views.js';
-
-/**
- * Inherited chrome hidden while the workspace is up.
- *
- * These are the elements that make the product read as a surveillance cockpit:
- * the GOD'S EYE VIEW title, the classification strip and MGRS readout in the
- * intel HUD, the stacked layer/scene trays, and the style indicator. None of
- * them is deleted — `setVisible(false)` puts every one back, so "Hide panels"
- * returns the original interface intact.
- *
- * Verified against the real DOM rather than guessed: an earlier version of this
- * list used plausible-sounding class names that matched nothing, and the
- * inherited titles rendered straight through the workspace.
- */
-const INHERITED_CHROME_SELECTORS = Object.freeze([
-  '#title-bar',
-  '#intel-hud',
-  '#style-indicator',
-  '#left-panel-stack',
-  '#top-center-actions',
-  '#command-dock',
-  '#safe-frame-overlay',
-  '#world-overlay-actions',
-  // The inherited first-run card ("Choose your first view" / "forbidden
-  // cockpit") is the other product's opening. The workspace home view IS the
-  // orientation now: it says what the system is for and offers a first
-  // investigation, which is what a first run is supposed to do.
-  '#first-run-launcher',
-  // The right-hand context rail sits exactly where the analysis panel goes and
-  // peeks out behind it. The sync chips are inherited progress badges for feeds
-  // the workspace reports on itself.
-  '#right-context-rail',
-  '#traffic-sync-chip',
-  '#cctv-sync-chip',
-  '#global-loading-status',
-  '#toast',
-  // The original supply-chain console and its launcher. It is still the engine
-  // — every view calls into it — but it is no longer a user interface, and two
-  // panels showing the same trade query is exactly the duplication the rebuild
-  // is meant to remove. "Hide panels" brings it back.
-  '.sc-console',
-  '.sc-launcher',
-]);
 
 /**
  * Create the workspace shell.
@@ -117,11 +92,7 @@ export function createWorkspace({
 
   const brand = h('div', { class: 'ws-brand' }, [
     h('span', { class: 'ws-brand-mark', text: '◈' }),
-    h('span', { class: 'ws-brand-name', text: 'Global Supply Chain Eye' }),
-    h('span', {
-      class: 'ws-brand-sub',
-      text: 'Trade · Transport · Disruption',
-    }),
+    h('span', { class: 'ws-brand-name', text: 'Supply Chain' }),
   ]);
 
   const breadcrumb = h('nav', {
@@ -129,10 +100,15 @@ export function createWorkspace({
     'aria-label': 'Location',
   });
   const topbarActions = h('div', { class: 'ws-topbar-actions' });
+  /*
+   * Called `.ws-topbar` since the first version, when it really was a bar
+   * across the top of the window. It is the dock's own header row now — the
+   * top edge of the screen belongs to the inherited title bar, style indicator
+   * and camera actions, and a second full-width bar simply covered them.
+   */
   const topbar = h('header', { class: 'ws-topbar' }, [
-    brand,
+    h('div', { class: 'ws-topbar-row' }, [brand, topbarActions]),
     breadcrumb,
-    topbarActions,
   ]);
 
   const rail = h('nav', { class: 'ws-rail', 'aria-label': 'Main navigation' });
@@ -140,16 +116,26 @@ export function createWorkspace({
   const panelTitle = h('h1', { class: 'ws-panel-title' });
   const panelSummary = h('p', { class: 'ws-panel-summary' });
   const panelScroll = h('div', { class: 'ws-panel-scroll' });
-  const panel = h('section', { class: 'ws-panel', 'aria-label': 'Analysis' }, [
-    h('div', { class: 'ws-panel-head' }, [panelTitle, panelSummary]),
-    panelScroll,
-  ]);
 
+  /*
+   * Playback lives INSIDE the panel, above the one scroll region.
+   *
+   * It used to be a free-floating strip, which on a real screen landed on top
+   * of the inherited command dock at the bottom centre. In the panel it is
+   * pinned where the reader is already looking, and it cannot collide with
+   * anything that was here first.
+   */
   const playbackStrip = h('div', {
     class: 'ws-playback',
     hidden: true,
     'aria-live': 'polite',
   });
+
+  const panel = h('section', { class: 'ws-panel', 'aria-label': 'Analysis' }, [
+    h('div', { class: 'ws-panel-head' }, [panelTitle, panelSummary]),
+    playbackStrip,
+    panelScroll,
+  ]);
 
   const legend = h('aside', {
     class: 'ws-legend',
@@ -157,36 +143,36 @@ export function createWorkspace({
     'aria-label': 'Legend',
   });
 
-  const root = h('div', { class: 'ws-root' }, [
-    topbar,
-    rail,
-    panel,
-    playbackStrip,
-    legend,
+  /** The edge tab that brings a collapsed dock back. */
+  const reopenTab = h('button', {
+    class: 'ws-reopen',
+    type: 'button',
+    hidden: true,
+    title: 'Open the supply-chain panel',
+    onClick: () => setVisible(true),
+  }, [
+    h('span', { class: 'ws-reopen-mark', text: '◈' }),
+    h('span', { class: 'ws-reopen-text', text: 'Supply Chain' }),
   ]);
+
+  const dock = h('div', { class: 'ws-dock' }, [topbar, panel, rail, legend]);
+
+  const root = h('div', { class: 'ws-root' }, [dock, reopenTab]);
   container.appendChild(root);
 
-  /* ---------------- inherited chrome ---------------- */
+  /* ---------------- coexistence with the inherited chrome ---------------- */
 
-  const hiddenChrome = [];
-  function setInheritedChromeHidden(hidden) {
-    if (hidden) {
-      for (const selector of INHERITED_CHROME_SELECTORS) {
-        for (const node of container.querySelectorAll(selector)) {
-          if (node.dataset.wsHidden) continue;
-          node.dataset.wsHidden = '1';
-          node.dataset.wsPrevDisplay = node.style.display ?? '';
-          node.style.display = 'none';
-          hiddenChrome.push(node);
-        }
-      }
-    } else {
-      for (const node of hiddenChrome.splice(0)) {
-        node.style.display = node.dataset.wsPrevDisplay ?? '';
-        delete node.dataset.wsHidden;
-        delete node.dataset.wsPrevDisplay;
-      }
-    }
+  /**
+   * Tell the stylesheet the dock is occupying the right-hand column.
+   *
+   * Nothing is hidden. `body.ws-docked` moves the inherited context rail,
+   * style indicator, HUD readouts and command dock inboard by the dock's width
+   * so both interfaces are fully on screen, and removing the class puts every
+   * one of them back where God's Eye View had it.
+   */
+  const bodyEl = container.ownerDocument?.body ?? container;
+  function setDocked(docked) {
+    bodyEl.classList?.toggle('ws-docked', Boolean(docked));
   }
 
   /* ---------------- context handed to views ---------------- */
@@ -282,11 +268,14 @@ export function createWorkspace({
     topbarActions.replaceChildren();
     append(topbarActions, [
       h('button', {
-        class: 'ws-btn ws-btn-small ws-rail-toggle',
+        class: `ws-btn ws-btn-small ws-rail-toggle${state.railOpen ? ' ws-active' : ''}`,
         type: 'button',
-        text: '☰ Menu',
+        text: state.railOpen ? '✕ Close' : '☰ Views',
+        title: 'Choose what to look at',
+        'aria-expanded': String(state.railOpen),
         onClick: () => {
           state.railOpen = !state.railOpen;
+          renderTopbar();
           applyRootClasses();
         },
       }),
@@ -320,12 +309,15 @@ export function createWorkspace({
         title: 'Return the globe and this panel to the starting state',
         onClick: resetEverything,
       }),
+      // Collapses this dock only. Nothing inherited is hidden at any point, so
+      // there is no "show panels" to put back — the edge tab reopens this one.
       h('button', {
         class: 'ws-btn ws-btn-small ws-btn-ghost',
         type: 'button',
-        text: state.visible ? 'Hide panels' : 'Show panels',
-        title: 'Hide the workspace to see the globe on its own',
-        onClick: () => setVisible(!state.visible),
+        text: '⇥ Collapse',
+        title:
+          'Collapse this panel to the edge and give the window to the globe and the God’s Eye tools',
+        onClick: () => setVisible(false),
       }),
     ]);
   }
@@ -611,7 +603,10 @@ export function createWorkspace({
     root.classList.toggle('ws-rail-open', state.railOpen);
     root.classList.toggle('ws-panel-hidden', !state.visible);
     root.classList.toggle('ws-rail-hidden', !state.visible);
+    dock.hidden = !state.visible;
+    reopenTab.hidden = state.visible;
     playbackStrip.hidden = !state.visible || !playback;
+    setDocked(state.visible);
   }
 
   function renderPanel() {
@@ -635,26 +630,20 @@ export function createWorkspace({
   }
 
   /**
-   * Show or hide the workspace.
+   * Collapse the dock to its edge tab, or bring it back.
    *
-   * Hiding it restores the inherited interface in full — including the original
-   * supply-chain console — rather than leaving the user on a bare globe with no
-   * controls at all. "Hide panels" means "get out of my way", not "remove every
-   * way of doing anything".
+   * Collapsing gives the whole window over to the inherited interface, which
+   * still has everything it ever had: the scene director, the data-layer tray,
+   * the command dock, the context rail and the supply-chain console's own
+   * launcher. The edge tab is what brings this panel back, so collapsing is
+   * never a one-way door.
    */
   function setVisible(visible) {
     state.visible = Boolean(visible);
-    setInheritedChromeHidden(state.visible);
-    if (!state.visible) consoleHandle.setVisible?.(true);
-    else consoleHandle.setVisible?.(false);
     applyRootClasses();
-    renderTopbar();
+    if (state.visible) renderTopbar();
   }
 
-  // The console keeps its own visibility flag, so hiding its DOM is not enough:
-  // it would still believe it was open and re-show its launcher.
-  consoleHandle.setVisible?.(false);
-  setInheritedChromeHidden(true);
   render();
   renderLegend();
 
@@ -684,7 +673,7 @@ export function createWorkspace({
     destroy() {
       stopInvestigation({ silent: true });
       detachSelect?.();
-      setInheritedChromeHidden(false);
+      setDocked(false);
       root.remove();
     },
   };

@@ -462,12 +462,48 @@ test('an older default project gains the complete selectable Nepal scene once', 
     data: { registered: [...REGISTERED, 'bhote-koshi-2026', 'bhote-koshi-locator'] },
   });
   try {
-    const nepal = director._project.scenes.find(({ title }) => title === 'Nepal Flood Incident');
+    const nepal = director._project.scenes.find(({ id }) => id === 'bhote-koshi-nepal-scene');
     assert.ok(nepal);
     assert.equal(nepal.shots.length, 25);
     assert.equal(nepal.shots[0].title, 'Global Incident Context');
     assert.equal(nepal.shots.at(-1).title, 'Final view');
     assert.deepEqual(director._project.installedBuiltInSceneIds, ['bhote-koshi-nepal-scene']);
+  } finally {
+    restore();
+  }
+});
+
+test('a project saved under the scene\u2019s old title is still upgraded', () => {
+  /*
+   * The rename must not strand a returning user.
+   *
+   * The 25-shot Nepal pack is grafted onto an existing scene matched BY TITLE,
+   * and a browser that saved this project before the plain-language renames
+   * still holds "Nepal Flood Incident". Renaming the recipe without accepting
+   * the old title left that project as a three-shot stub.
+   */
+  const project = legacyDefaultProjectWithoutNepalFixture();
+  // This origin already installed the built-in scene once, so the only Nepal
+  // scene in the project is the user's own — saved under the old title.
+  project.installedBuiltInSceneIds = ['bhote-koshi-nepal-scene'];
+  const shot = structuredClone(PROJECT_FIXTURE.scenes[0].shots[0]);
+  project.scenes.push({
+    id: 'user-saved-nepal',
+    title: 'Nepal Flood Incident',
+    shots: [
+      { ...structuredClone(shot), id: 's1', title: 'Shot 1' },
+      { ...structuredClone(shot), id: 's2', title: 'Shot 2' },
+      { ...structuredClone(shot), id: 's3', title: 'Shot 3' },
+    ],
+  });
+  const { director, restore } = makeDirector({
+    project,
+    data: { registered: [...REGISTERED, 'bhote-koshi-2026', 'bhote-koshi-locator'] },
+  });
+  try {
+    const saved = director._project.scenes.find(({ id }) => id === 'user-saved-nepal');
+    assert.ok(saved, 'the user\u2019s own scene is still there');
+    assert.equal(saved.shots.length, 25, 'and it gained the full evidence pack');
   } finally {
     restore();
   }
@@ -479,7 +515,7 @@ test('a previously installed Nepal scene stays deleted when its marker remains',
   const { director, restore } = makeDirector({ project });
   try {
     assert.equal(
-      director._project.scenes.some(({ title }) => title === 'Nepal Flood Incident'),
+      director._project.scenes.some(({ id }) => id === 'bhote-koshi-nepal-scene'),
       false,
     );
   } finally {
@@ -501,7 +537,7 @@ test('an existing public default project gains Nepal without replacing authored 
   try {
     assert.deepEqual(director._project.scenes[0].shots.map(({ id, camera }) => ({ id, camera })),
       original.map(({ id, camera }) => ({ id, camera })));
-    assert.equal(director._project.scenes[1].title, 'Nepal Flood Incident');
+    assert.equal(director._project.scenes[1].id, 'bhote-koshi-nepal-scene');
     assert.equal(director._project.scenes[1].shots.length, 25);
     assert.deepEqual(director._project.installedBuiltInSceneIds, ['bhote-koshi-nepal-scene']);
   } finally { restore(); }

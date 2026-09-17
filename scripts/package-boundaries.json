@@ -375,6 +375,7 @@
     "modules": [
       "src/ui/layers.js",
       "src/ui/layerPanel.js",
+      "src/workspace/taxonomy.js",
       "src/ui/clearLayersControl.js",
       "src/loadingFeedback.js",
       "src/data/installationFeedback.js",
@@ -540,6 +541,7 @@
       "src/ui/effects.js",
       "src/ui/frameRateMonitor.js",
       "src/ui/layerPanel.js",
+      "src/workspace/taxonomy.js",
       "src/ui/layers.js",
       "src/ui/leftPanelRail.js",
       "src/ui/location.js",
@@ -1658,6 +1660,7 @@
       "src/ui/effects.js",
       "src/ui/frameRateMonitor.js",
       "src/ui/layerPanel.js",
+      "src/workspace/taxonomy.js",
       "src/ui/layers.js",
       "src/ui/leftPanelRail.js",
       "src/ui/location.js",

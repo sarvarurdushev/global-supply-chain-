@@ -164,15 +164,63 @@ test('an item with limited data is badged in the rail', () => {
   h.cleanup();
 });
 
-test('the original console is hidden on mount and restored when panels hide', () => {
-  // Two panels showing the same trade query is the duplication the rebuild
-  // removes — but "Hide panels" must not leave the user with nothing.
+test('the workspace never touches the inherited console', () => {
+  /*
+   * The regression this pins down.
+   *
+   * An earlier version closed the original supply-chain console on mount and
+   * blanked the inherited title bar, HUD, style indicator, scene tray, layer
+   * tray, command dock, context rail and first-run card, on the theory that one
+   * window should hold one product. That removed things the user had asked to
+   * keep. Mounting, collapsing and reopening the dock must all leave the
+   * inherited interface exactly as it was.
+   */
   const h = build();
-  assert.equal(h.isConsoleVisible(), false);
+  assert.equal(h.isConsoleVisible(), true, 'still open on mount');
   h.workspace.setVisible(false);
-  assert.equal(h.isConsoleVisible(), true);
+  assert.equal(h.isConsoleVisible(), true, 'still open once the dock collapses');
   h.workspace.setVisible(true);
-  assert.equal(h.isConsoleVisible(), false);
+  assert.equal(h.isConsoleVisible(), true, 'still open once the dock returns');
+  h.cleanup();
+});
+
+test('collapsing the dock leaves a way back and releases the layout', () => {
+  const h = build();
+  const root = h.root();
+  assert.equal(root.querySelector('.ws-dock').hidden, false);
+  assert.equal(root.querySelector('.ws-reopen').hidden, true);
+  assert.ok(
+    dom.body.classList.contains('ws-docked'),
+    'the inherited chrome is asked to make room while the dock is open',
+  );
+
+  h.workspace.setVisible(false);
+  assert.equal(root.querySelector('.ws-dock').hidden, true);
+  assert.equal(
+    root.querySelector('.ws-reopen').hidden,
+    false,
+    'the edge tab is the way back',
+  );
+  assert.equal(
+    dom.body.classList.contains('ws-docked'),
+    false,
+    'and the inherited chrome gets its full width back',
+  );
+  h.cleanup();
+});
+
+test('navigation opens as a drawer rather than a permanent rail', () => {
+  // The left edge belongs to the inherited data-layer and scene-director
+  // trays. Navigation is only on screen while the user has asked for it.
+  const h = build();
+  const root = h.root();
+  assert.equal(root.classList.contains('ws-rail-open'), false);
+  const toggle = root.querySelector('.ws-rail-toggle');
+  assert.ok(toggle, 'the drawer has a visible trigger');
+  toggle.dispatchEvent({ type: 'click' });
+  assert.equal(root.classList.contains('ws-rail-open'), true);
+  toggle.dispatchEvent({ type: 'click' });
+  assert.equal(root.classList.contains('ws-rail-open'), false);
   h.cleanup();
 });
 
@@ -396,7 +444,7 @@ test('navigating away from an investigation stops it', () => {
  * Teardown
  * ------------------------------------------------------------------ */
 
-test('destroy removes the chrome and restores the inherited interface', () => {
+test('destroy removes the dock and releases the inherited layout', () => {
   const rootsBefore = dom.body.querySelectorAll('.ws-root').length;
   const h = build();
   assert.equal(dom.body.querySelectorAll('.ws-root').length, rootsBefore + 1);
@@ -404,6 +452,11 @@ test('destroy removes the chrome and restores the inherited interface', () => {
   h.workspace.destroy();
   assert.equal(dom.body.querySelectorAll('.ws-root').length, rootsBefore);
   assert.equal(h.root().parentElement, null, 'and it is detached');
+  assert.equal(
+    dom.body.classList.contains('ws-docked'),
+    false,
+    'nothing inherited is left displaced',
+  );
 });
 
 test('the shell refuses to build without its dependencies', () => {

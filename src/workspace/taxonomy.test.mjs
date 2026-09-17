@@ -66,6 +66,35 @@ test('every scene says what it investigates', () => {
   }
 });
 
+test('the shipped recipe titles ARE the plain-language names', () => {
+  /*
+   * The rename has to reach the screen.
+   *
+   * The scene picker's options come from each recipe's own `title`, so a
+   * taxonomy that renamed "Orbital Watch" to "Satellite Tracking" while the
+   * dropdown still said "Orbital Watch" would have renamed nothing. This holds
+   * the two equal in the only direction that matters.
+   */
+  for (const recipe of SCENE_RECIPES) {
+    const entry = sceneName(recipe.id);
+    assert.equal(
+      recipe.title,
+      entry.name,
+      `recipe "${recipe.id}" still ships the label "${recipe.title}"`,
+    );
+  }
+});
+
+test('every layer the tray shows has a plain-language name and summary', () => {
+  // The same rule for the inherited data-layer tray: it reads its labels and
+  // its one-line descriptions out of LAYER_NAMES, so an entry without a
+  // summary is a row that says nothing about what it will draw.
+  for (const entry of LAYER_NAMES) {
+    assert.ok(entry.name?.length > 2, `${entry.id} has no name`);
+    assert.ok(entry.summary?.length > 10, `${entry.id} has no summary`);
+  }
+});
+
 test('a scene keeps its old name as a subtitle where one existed', () => {
   // So a returning user is not stranded by the rename.
   const orbital = sceneName('orbital-watch');

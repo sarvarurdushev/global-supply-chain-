@@ -2,6 +2,7 @@ import { layerFeedState } from '../data/feedState.js';
 export { layerFeedState } from '../data/feedState.js';
 import { GUIDANCE_STATUSES } from '../loadingFeedback.js';
 import { keySetupRequirement } from '../keySetupCore.mjs';
+import { LAYER_NAMES } from '../workspace/taxonomy.js';
 const FEED_STATE_LABELS = Object.freeze({
   nominal: 'ON',
   loading: 'LOADING',
@@ -64,23 +65,41 @@ const PANEL_ORDER = PANEL_GROUPS.flatMap(({ label, ids }) =>
 const PANEL_POSITIONS = new Map(
   PANEL_ORDER.map(({ id }, index) => [id, index]),
 );
+/*
+ * Plain-language names for the layers the taxonomy does not cover.
+ *
+ * Everything the supply-chain taxonomy names is taken from there instead, so
+ * the inherited tray and the new dock cannot disagree about what a layer is
+ * called. This table is only for the layers that belong to the original
+ * product and have no supply-chain reading.
+ */
 const PANEL_LABELS = {
-  'ais-live-vessels': 'Live Vessels',
-  'trade-flows': 'Trade Flows',
-  'supply-ports': 'Major Ports',
-  chokepoints: 'Chokepoints',
-  'supply-events': 'Supply Chain Events',
-  'country-borders': 'Country Borders',
-  'supply-chain': 'Supply Chain Route',
   bikeshare: 'Bike Share',
   cctv: 'Cameras',
   'alpr-cameras': 'Mapped ALPR Cameras',
-  'local-datacenters': 'Data Centers',
-  'local-firms': 'Active Fires',
 };
 
+/** id -> taxonomy entry, for names, one-line summaries and caveats. */
+const TAXONOMY_BY_ID = new Map(LAYER_NAMES.map((entry) => [entry.id, entry]));
+
 function panelLabel(layer) {
-  return PANEL_LABELS[layer.id] || layer.name;
+  return (
+    TAXONOMY_BY_ID.get(layer.id)?.name ?? PANEL_LABELS[layer.id] ?? layer.name
+  );
+}
+
+/**
+ * The sentence under a layer's name.
+ *
+ * "SUPPLY CHAIN EVENTS", "LOCAL FIRMS", "ORBITAL WATCH" — the inherited labels
+ * were short enough to fit and short enough to be unguessable. The tray now
+ * says what each layer will draw, and flags the ones whose scope is narrower
+ * than their name suggests, which was the actual complaint about the tabs.
+ */
+function panelBlurb(layer) {
+  const entry = TAXONOMY_BY_ID.get(layer.id);
+  if (!entry) return { summary: '', caveat: '' };
+  return { summary: entry.summary ?? '', caveat: entry.caveat ?? '' };
 }
 
 /**
@@ -184,11 +203,29 @@ export class LayerPanel {
       const icon = document.createElement('span');
       icon.className = 'data-icon';
       icon.textContent = layer.icon;
+      const nameBlock = document.createElement('span');
+      nameBlock.className = 'data-name-block';
       const name = document.createElement('span');
       name.className = 'data-name';
       name.textContent = panelLabel(layer);
+      nameBlock.appendChild(name);
+      const { summary, caveat } = panelBlurb(layer);
+      if (summary) {
+        const blurb = document.createElement('span');
+        blurb.className = 'data-blurb';
+        blurb.textContent = summary;
+        nameBlock.appendChild(blurb);
+      }
+      if (caveat) {
+        // The scope warnings that stop a reader assuming "Road Traffic" is
+        // road freight, or "City Transit" is a container train.
+        const note = document.createElement('span');
+        note.className = 'data-caveat';
+        note.textContent = caveat;
+        nameBlock.appendChild(note);
+      }
       left.appendChild(icon);
-      left.appendChild(name);
+      left.appendChild(nameBlock);
 
       const right = document.createElement('div');
       right.className = 'data-toggle-right';

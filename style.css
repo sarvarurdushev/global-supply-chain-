@@ -21,3 +21,5 @@
 @import './src/ui/styles/provider-settings.css';
 @import './src/ui/styles/supplychain.css';
 @import './src/ui/styles/workspace.css';
+/* Last: re-skins every stylesheet above it. */
+@import './src/ui/styles/identity.css';

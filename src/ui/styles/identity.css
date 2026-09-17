@@ -1,0 +1,234 @@
+/**
+ * Visual identity.
+ *
+ * Loaded LAST, after every inherited stylesheet, so it re-skins the whole
+ * application rather than only the supply-chain dock.
+ *
+ * WHY THIS FILE EXISTS. Keeping God's Eye View's panels and adopting its palette
+ * unchanged would make this a reskin of someone else's product wearing a new
+ * title. Keeping the panels and changing the palette makes it a different
+ * product that happens to share an engine — which is what was asked for: bring
+ * the tabs back, and stop looking like a copy.
+ *
+ * WHAT CHANGES. Only tokens and a handful of signature motifs. No panel is
+ * hidden, no control is moved, no behaviour is altered. Every rule here is a
+ * colour, a radius, a weight or a glow.
+ *
+ *   ACCENT      cyan #00d4ff  ->  amber #f0a830, with teal #2dd4bf as the
+ *               secondary. Cyan-on-black is the inherited signature and it is
+ *               also radar's colour; amber reads as cargo, manifests and
+ *               warnings, which is what this product is about.
+ *   SURFACE     pure black #0a0a0f  ->  navy-slate #0e1420. Panels sit ON
+ *               something instead of floating in a void, so a reader can tell
+ *               where one ends and the next begins.
+ *   GEOMETRY    16px pill radii  ->  8px. Squarer corners read as instrument
+ *               panel rather than consumer app, and they stop the inherited
+ *               panels and the new dock from looking like two different kits.
+ *   GLOW        the cyan bloom around every border is reduced to a thin warm
+ *               rim. The inherited look spends a lot of light on atmosphere;
+ *               this one spends it on edges you need to find.
+ *   TITLE       the wordmark's letter-spacing and glow come down, because a
+ *               glowing 4px-tracked headline is the single most recognisable
+ *               thing about the interface this one inherits from.
+ */
+
+:root {
+  /* Surfaces */
+  --bg-dark: #0e1420;
+  --glass-bg: rgba(19, 27, 42, 0.74);
+  --glass-border: rgba(148, 176, 214, 0.14);
+  --glass-border-hover: rgba(240, 168, 48, 0.42);
+
+  /* Accents */
+  --accent: #f0a830;
+  --accent-dim: rgba(240, 168, 48, 0.14);
+  --accent-glow: rgba(240, 168, 48, 0.3);
+  --accent-secondary: #2dd4bf;
+
+  /* Type */
+  --text-primary: #e6edf6;
+  --text-secondary: rgba(230, 237, 246, 0.58);
+  --text-dim: rgba(230, 237, 246, 0.34);
+
+  /* Geometry — squarer than the inherited pill radii. */
+  --panel-radius: 8px;
+  --btn-radius: 6px;
+}
+
+body {
+  background: var(--bg-dark);
+}
+
+/* ------------------------------------------------------------------ *
+ * The wordmark
+ *
+ * Renamed and de-glowed. The inherited title is a wide-tracked glowing
+ * all-caps headline with a radial bloom behind it; that silhouette is the most
+ * recognisable thing about it, so it is the first thing to change.
+ * ------------------------------------------------------------------ */
+
+#title-bar h1 {
+  letter-spacing: 0.04em;
+  text-shadow: none;
+}
+#title-bar .title-accent {
+  color: var(--accent);
+  text-shadow: none;
+}
+#title-bar .title-glow {
+  opacity: 0.25;
+  filter: saturate(0.5);
+}
+#title-bar .subtitle {
+  letter-spacing: 0.22em;
+  color: var(--text-dim);
+}
+
+/* ------------------------------------------------------------------ *
+ * Panels
+ *
+ * The inherited panels keep their positions, their collapse behaviour and
+ * their contents. What changes is that they read as one kit with the dock: the
+ * same border colour, the same radius, and a left accent rule instead of an
+ * all-round cyan bloom.
+ * ------------------------------------------------------------------ */
+
+.panel-collapsible,
+#command-dock,
+#location-bar,
+#control-panel,
+#provider-settings-panel {
+  border-radius: var(--panel-radius);
+}
+
+.panel-collapsible .panel-glow {
+  opacity: 0.18;
+  filter: saturate(0.4);
+}
+
+.panel-title {
+  color: var(--accent);
+  letter-spacing: 0.1em;
+}
+
+.panel-collapsible.active {
+  box-shadow:
+    inset 2px 0 0 var(--accent),
+    0 16px 44px rgba(0, 0, 0, 0.5);
+}
+
+/* ------------------------------------------------------------------ *
+ * The classification motif
+ *
+ * The inherited HUD frames the globe in corner brackets and a red
+ * classification strip. Both are costume from a different genre, and on customs
+ * statistics they are actively misleading: they make an annual trade total look
+ * like an intercept. The brackets stay as a faint frame; the strip loses its
+ * alarm colour and becomes an ordinary caption.
+ * ------------------------------------------------------------------ */
+
+#intel-hud .hud-corner,
+#intel-hud .hud-frame {
+  opacity: 0.32;
+}
+#intel-hud .hud-classification,
+#intel-hud .hud-class,
+.hud-classification {
+  color: var(--text-dim);
+  border-color: var(--glass-border);
+  background: transparent;
+  letter-spacing: 0.14em;
+}
+
+/* ------------------------------------------------------------------ *
+ * Controls
+ * ------------------------------------------------------------------ */
+
+.scene-btn,
+#top-center-actions button,
+.dock-btn,
+.control-btn {
+  border-radius: var(--btn-radius);
+}
+.scene-btn:hover,
+#top-center-actions button:hover,
+.control-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* The data-layer tray's on-state. Amber for "this is drawing", teal for the
+   trade layers, so the supply-chain group is visibly its own family. */
+.data-toggle.active,
+.data-toggle[aria-pressed='true'] {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.data-toggle[data-layer-id='trade-flows'].active,
+.data-toggle[data-layer-id='supply-chain'].active,
+.data-toggle[data-layer-id='supply-ports'].active,
+.data-toggle[data-layer-id='chokepoints'].active,
+.data-toggle[data-layer-id='freight-rail'].active,
+.data-toggle[data-layer-id='freight-roads'].active,
+.data-toggle[data-layer-id='pipelines'].active,
+.data-toggle[data-layer-id='air-cargo-hubs'].active,
+.data-toggle[data-layer-id='production-sites'].active {
+  border-color: var(--accent-secondary);
+  color: var(--accent-secondary);
+}
+
+/*
+ * The one-line description under each inherited layer toggle.
+ *
+ * "SUPPLY CHAIN EVENTS" told a reader nothing about what it would draw or where
+ * the numbers came from. The label is the taxonomy's plain-language name now
+ * and this is the sentence under it.
+ */
+.data-blurb {
+  display: block;
+  margin-top: 2px;
+  font-family: var(--font-sans);
+  font-size: 10.5px;
+  line-height: 1.35;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--text-secondary);
+}
+.data-caveat {
+  display: block;
+  margin-top: 2px;
+  font-family: var(--font-sans);
+  font-size: 10.5px;
+  line-height: 1.35;
+  letter-spacing: 0;
+  text-transform: none;
+  color: #ffb74d;
+}
+
+/*
+ * The name now sits over its description, so the row's left side is a column
+ * and the icon aligns to the first line rather than the middle of the block.
+ */
+.data-toggle-left {
+  align-items: flex-start;
+}
+.data-toggle-left .data-icon {
+  margin-top: 1px;
+}
+.data-name-block {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/*
+ * Group headings in the inherited tray.
+ *
+ * Same amber, same tracking and same weight as the dock's section headings, so
+ * moving between the two does not feel like moving between two applications.
+ */
+.data-layer-group-heading {
+  color: var(--accent);
+  letter-spacing: 0.12em;
+}

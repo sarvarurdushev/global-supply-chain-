@@ -22,7 +22,8 @@ const BHOTE_KOSHI_NEPAL_BASE_RECIPE = Object.freeze({
     mapStack: 'photoreal',
   },
   legacySceneBootstrap: {
-    targetSceneTitle: 'Nepal Flood Incident',
+    // Both the current title and the one browsers saved before the renames.
+    targetSceneTitles: ['Nepal Flood — Corridor Disruption', 'Nepal Flood Incident'],
     fromShotTitles: ['Shot 1', 'Shot 2', 'Shot 3'],
     cameraPath: [
       {
@@ -569,7 +570,7 @@ const BHOTE_KOSHI_NEPAL_APPEND_RECIPE = BHOTE_KOSHI_NEPAL_BASE_RECIPE
 const BHOTE_KOSHI_NEPAL_BOOTSTRAP_RECIPE = BHOTE_KOSHI_NEPAL_APPEND_RECIPE
   ? Object.freeze({
       id: 'bhote-koshi-nepal-scene',
-      title: 'Nepal Flood Incident',
+      title: 'Nepal Flood — Corridor Disruption',
       durationSec: 15,
       style: BHOTE_KOSHI_NEPAL_APPEND_RECIPE.style,
       ui: BHOTE_KOSHI_NEPAL_APPEND_RECIPE.ui,
@@ -593,7 +594,10 @@ const EVENT_RECIPES = [BHOTE_KOSHI_NEPAL_BOOTSTRAP_RECIPE].filter(Boolean);
 const PUBLIC_SCENE_RECIPES = [
   {
     id: 'flights-radar',
-    title: 'Global Flights Radar',
+    // Titles here are what the scene picker shows. They are held equal to
+    // workspace/taxonomy.js SCENE_NAMES by a test, so the picker, the dock and
+    // the docs cannot end up calling the same scene three different things.
+    title: 'Air Cargo & Aircraft Tracking',
     durationSec: 30,
     style: 'retro',
     ui: { hidePanels: true, hudMode: 'minimal', safeFrame: '16:9' },
@@ -663,7 +667,7 @@ const PUBLIC_SCENE_RECIPES = [
   },
   {
     id: 'orbital-watch',
-    title: 'Orbital Watch',
+    title: 'Satellite Tracking',
     durationSec: 32,
     style: 'surveillance',
     ui: { hidePanels: true, hudMode: 'full', safeFrame: '16:9' },
@@ -741,7 +745,7 @@ const PUBLIC_SCENE_RECIPES = [
   },
   {
     id: 'thermal-threats',
-    title: 'Thermal Threat Board',
+    title: 'Active Fires & Heat Detection',
     durationSec: 26,
     style: 'thermal',
     ui: { hidePanels: true, hudMode: 'full', safeFrame: '16:9' },
@@ -809,7 +813,7 @@ const PUBLIC_SCENE_RECIPES = [
   },
   {
     id: 'city-overload',
-    title: 'City Overload',
+    title: 'Urban Transport Density',
     durationSec: 30,
     style: 'surveillance',
     ui: { hidePanels: true, hudMode: 'minimal', safeFrame: '9:16' },
@@ -887,7 +891,7 @@ const PUBLIC_SCENE_RECIPES = [
   },
   {
     id: 'omniscience-pullback',
-    title: 'Omniscience Pullback',
+    title: 'Everything At Once — Wide View',
     durationSec: 36,
     style: 'retro',
     ui: { hidePanels: true, hudMode: 'full', safeFrame: '16:9' },
@@ -978,7 +982,7 @@ const PUBLIC_SCENE_RECIPES = [
      * exists — see the pack's header.
      */
     id: 'supply-chain-eye-semiconductors',
-    title: 'Supply Chain Eye \u2014 Semiconductors',
+    title: 'Semiconductors — Where They Come From',
     durationSec: 58,
     style: 'normal',
     ui: { hidePanels: false, hudMode: 'full', safeFrame: '16:9' },
