@@ -16,6 +16,8 @@ export const RAW = path.join(ROOT, 'data', 'raw');
 export const PROCESSED = path.join(ROOT, 'data', 'processed');
 export const REGISTRY = path.join(ROOT, 'data', 'registry');
 export const REPORTS = path.join(ROOT, 'data', 'reports');
+/** Stage 3+ analytical results, derived from the processed artefacts. */
+export const ANALYSIS = path.join(ROOT, 'data', 'analysis');
 
 const UA =
   'NepalEQ-Research/1.0 (university disaster-analysis project; contact via repository)';
@@ -58,6 +60,15 @@ export async function writeProcessed(name, payload) {
   const target = path.join(PROCESSED, name);
   const text = `${JSON.stringify(payload, null, 1)}\n`;
   await writeFile(target, text);
+  const { size } = await stat(target);
+  return { path: target, bytes: size };
+}
+
+/** Write an analysis result. Same envelope discipline as a processed artefact. */
+export async function writeAnalysis(name, payload) {
+  await mkdir(ANALYSIS, { recursive: true });
+  const target = path.join(ANALYSIS, name);
+  await writeFile(target, `${JSON.stringify(payload, null, 1)}\n`);
   const { size } = await stat(target);
   return { path: target, bytes: size };
 }

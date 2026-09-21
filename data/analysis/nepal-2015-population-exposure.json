@@ -1,0 +1,2454 @@
+{
+ "schemaVersion": 1,
+ "stage": 4,
+ "generatedAt": "2026-09-21",
+ "dataClass": "DERIVED",
+ "definitionOfExposure": {
+  "statement": "A person is counted as exposed at intensity X when the ~1 km population cell they are modelled into has its centre inside the closed Modified Mercalli Intensity X contour of the USGS ShakeMap for this event.",
+  "hazardVariable": "Modified Mercalli Intensity (MMI), from the USGS ShakeMap product",
+  "headlineThreshold": 6,
+  "thresholdMeaning": {
+   "roman": "VI",
+   "perceived": "Strong",
+   "damage": "Light — the lowest intensity at which damage occurs at all"
+  },
+  "spatialDefinition": "point-in-polygon containment of the cell centre in the closed contour ring",
+  "populationDataset": "WorldPop 2015 UN-adjusted, aggregated to ~819 m cells",
+  "populationYear": 2015,
+  "geographicUnit": "Nepal districts, the 2015 75-district system, reconstructed from COD-AB",
+  "notWhatThisMeans": "Exposed does not mean harmed, injured, displaced or damaged. It is a geographic statement about modelled shaking over modelled population."
+ },
+ "sources": [
+  {
+   "datasetId": "worldpop-npl-2015-unadj",
+   "license": "CC BY 4.0",
+   "redistribution": "SHARE_ALIKE",
+   "attribution": "WorldPop (www.worldpop.org), CC BY 4.0"
+  },
+  {
+   "datasetId": "usgs-nepal-2015-shakemap-contours",
+   "license": "US Government public domain (17 U.S.C. §105)",
+   "redistribution": "OPEN",
+   "attribution": "Data courtesy of the U.S. Geological Survey"
+  },
+  {
+   "datasetId": "cod-ab-npl-adm2",
+   "license": "CC BY-IGO 3.0",
+   "redistribution": "SHARE_ALIKE",
+   "attribution": "UN OCHA (data.humdata.org), CC BY-IGO"
+  },
+  {
+   "datasetId": "ocha-nepal-2015-district-exposure",
+   "license": "CC BY-IGO 3.0",
+   "redistribution": "SHARE_ALIKE",
+   "attribution": "UN OCHA (data.humdata.org), CC BY-IGO"
+  }
+ ],
+ "validation": {
+  "cellsProcessed": 177679,
+  "expectedCells": 177679,
+  "cellsMatch": true,
+  "populationDecoded": 27010569,
+  "populationInArtefact": 27010569,
+  "decodeReconciles": true,
+  "districtAssignmentReconciles": true,
+  "populationInDistricts": 27010569,
+  "populationOutsideAnyDistrict": 0,
+  "strictContainment": {
+   "populationInDistricts": 26891098,
+   "populationOutside": 119471,
+   "outsidePercent": 0.44,
+   "cellsOutside": 1248,
+   "exposedAtHeadline": 13774783
+  },
+  "nearestDistrictFill": {
+   "toleranceKm": 20,
+   "people": 119471,
+   "cells": 1248,
+   "sharePercent": 0.44,
+   "remainingOutside": 0,
+   "exposedAtHeadline": 13835518
+  },
+  "cellsOutsideAnyDistrict": 0,
+  "roundingResidualPeople": 1.9,
+  "districtPolygons": 75,
+  "districtKeysDistinct": 75,
+  "districtsMergedFromPost2017Splits": 2,
+  "usableContourLevels": [
+   3,
+   3.5,
+   4,
+   4.5,
+   5,
+   5.5,
+   6,
+   6.5,
+   7,
+   7.5,
+   8
+  ],
+  "excludedContourParts": 20,
+  "excludedContourLevels": [
+   3,
+   3.5,
+   4,
+   4.5,
+   5.5,
+   6,
+   7.5
+  ],
+  "sensitivityIsMonotonic": true,
+  "headlineThreshold": 6,
+  "headlineExposed": 13835518,
+  "districtExposureSumMatchesGrid": true,
+  "failures": [],
+  "passed": true
+ },
+ "methodology": [
+  {
+   "schemaVersion": 1,
+   "id": "exposure-population-by-intensity",
+   "name": "Population by shaking intensity",
+   "question": "How many people were geographically exposed to each level of earthquake shaking?",
+   "inputs": [
+    {
+     "dataset": "worldpop-npl-2015-unadj",
+     "role": "modelled population per ~1 km cell, 2015, UN-adjusted"
+    },
+    {
+     "dataset": "usgs-nepal-2015-shakemap-contours",
+     "role": "modelled shaking intensity as closed MMI contours"
+    },
+    {
+     "dataset": "cod-ab-npl-adm2",
+     "role": "the authoritative 75-district 2015 frame, merged from the current 77 and carrying p-codes"
+    },
+    {
+     "dataset": "ocha-nepal-2015-district-exposure",
+     "role": "independent official district populations, for comparison only"
+    }
+   ],
+   "method": "Each ~1 km population cell is tested for containment inside the closed MMI contour rings, highest level first. The cell’s whole modelled population is assigned to the strongest contour containing its centre. Populations are then summed per band and cumulatively at or above each level.",
+   "formula": "exposed(>=X) = sum of cell population where the cell centre lies inside the closed MMI X contour",
+   "parameters": {
+    "headlineThreshold": 6,
+    "usableLevels": [
+     3,
+     3.5,
+     4,
+     4.5,
+     5,
+     5.5,
+     6,
+     6.5,
+     7,
+     7.5,
+     8
+    ]
+   },
+   "parameterJustification": "MMI VI is the lowest intensity at which the USGS scale records damage occurring at all, so \"exposed at VI or above\" is a statement about people who experienced potentially damaging shaking. Every other usable threshold is reported beside it, because no single intensity makes a person \"affected\".",
+   "outputs": [
+    "population per intensity band",
+    "cumulative population at or above each intensity",
+    "population outside all contours"
+   ],
+   "visualisation": "Population-exposure curve against threshold, and a map of the population grid tinted by the intensity band it falls in.",
+   "dataClass": "DERIVED",
+   "limitations": [
+    "EXPOSURE IS NOT HARM. This counts people modelled to be inside a shaking contour. It does not say anyone was injured, or that any building failed. Whether shaking causes harm depends on construction, time of day and terrain, none of which is in this calculation.",
+    "Population is a modelled 2015 surface, not a census and not a snapshot of where people were at 11:56 on a Saturday morning.",
+    "A cell is assigned whole to the contour containing its centre, so cells straddling a contour are counted entirely on one side. At ~819 m cells this matters most along the steepest intensity gradients.",
+    "MMI 3 and 3.5 contours run beyond the edge of the ShakeMap grid and are not closed, so population at those intensities cannot be computed by containment and is not reported. Closing them along the grid edge would assert a boundary the model does not publish.",
+    "ShakeMap is itself a model constrained by sparse instrumentation; Nepal had few strong-motion stations in 2015."
+   ]
+  },
+  {
+   "schemaVersion": 1,
+   "id": "exposure-by-district",
+   "name": "Population exposure by district",
+   "question": "Which districts held the exposed population, and what share of each district was exposed?",
+   "inputs": [
+    {
+     "dataset": "worldpop-npl-2015-unadj",
+     "role": "modelled population per ~1 km cell, 2015, UN-adjusted"
+    },
+    {
+     "dataset": "usgs-nepal-2015-shakemap-contours",
+     "role": "modelled shaking intensity as closed MMI contours"
+    },
+    {
+     "dataset": "cod-ab-npl-adm2",
+     "role": "the authoritative 75-district 2015 frame, merged from the current 77 and carrying p-codes"
+    },
+    {
+     "dataset": "ocha-nepal-2015-district-exposure",
+     "role": "independent official district populations, for comparison only"
+    }
+   ],
+   "method": "Each population cell is assigned to at most one district by point-in-polygon containment against the 2006 75-district frame, and simultaneously to an intensity. District population, exposed population at the threshold, exposure share, density and maximum intensity are then aggregated. Cells falling outside every district polygon are counted separately, never dropped.",
+   "formula": "exposed(district) = sum of cell population where the cell is inside the district AND its intensity >= threshold",
+   "parameters": {
+    "threshold": 6,
+    "boundaryVintage": 2006,
+    "districts": 75
+   },
+   "parameterJustification": "The 2006 vintage is required, not preferred: Nepal restructured into 753 local units after the earthquake, and the event’s own statistics are reported against the 75-district system in force in 2015.",
+   "outputs": [
+    "population per district",
+    "exposed population per district",
+    "exposure percentage",
+    "maximum MMI per district",
+    "population density"
+   ],
+   "visualisation": "Interactive district choropleth; selecting a district reveals its population, exposed population, share and maximum intensity.",
+   "dataClass": "DERIVED",
+   "limitations": [
+    "The geoBoundaries district geometry is coarse — about fifty vertices per district — and strict containment leaves 1.32 million people, 4.9% of Nepal, inside no district at all, concentrated in the dense Terai border strip. Those cells are attributed to the nearest district within 20 km, which places every one of them; the strictly contained figures are reported alongside so a reader can take either. What the fill resolves is WHICH district, not whether the people are in Nepal: WorldPop’s raster is clipped to Nepal, so a populated cell in it is Nepali.",
+    "A cell placed by the fill sits near a border, so its district attribution is the least certain in the dataset. Each district reports how many of its people arrived this way.",
+    "The frame is reconstructed from the current 77-district COD-AB by merging the two districts split after 2015. Those two merged districts carry two p-codes each, because the 2015 district they represent no longer has one of its own.",
+    "A district’s maximum MMI is the strongest contour reaching any part of it, not a characteristic value for the district."
+   ]
+  },
+  {
+   "schemaVersion": 1,
+   "id": "exposure-threshold-sensitivity",
+   "name": "Sensitivity of the exposure estimate to the intensity threshold",
+   "question": "How much does the exposed-population figure depend on where the threshold is set?",
+   "inputs": [
+    {
+     "dataset": "worldpop-npl-2015-unadj",
+     "role": "modelled population per ~1 km cell, 2015, UN-adjusted"
+    },
+    {
+     "dataset": "usgs-nepal-2015-shakemap-contours",
+     "role": "modelled shaking intensity as closed MMI contours"
+    }
+   ],
+   "method": "The exposure calculation is repeated at every closed contour level and the resulting curve reported.",
+   "outputs": [
+    "exposed population at each threshold",
+    "share of considered population at each threshold"
+   ],
+   "visualisation": "A curve, so that a reader sees the estimate move with the threshold instead of receiving one number.",
+   "dataClass": "DERIVED",
+   "limitations": [
+    "The curve is only defined over thresholds whose contours are closed, which for this event is MMI 4.5 to 8.",
+    "Sensitivity to the threshold is not the same as uncertainty in the estimate: the population and hazard models carry their own errors, which this curve does not show."
+   ]
+  },
+  {
+   "schemaVersion": 1,
+   "id": "exposure-ocha-comparison",
+   "name": "Comparison against OCHA’s 2015 district figures",
+   "question": "Does our independently computed district population agree with the official figures published in 2015?",
+   "inputs": [
+    {
+     "dataset": "worldpop-npl-2015-unadj",
+     "role": "modelled population per ~1 km cell, 2015, UN-adjusted"
+    },
+    {
+     "dataset": "usgs-nepal-2015-shakemap-contours",
+     "role": "modelled shaking intensity as closed MMI contours"
+    },
+    {
+     "dataset": "cod-ab-npl-adm2",
+     "role": "the authoritative 75-district 2015 frame, merged from the current 77 and carrying p-codes"
+    },
+    {
+     "dataset": "ocha-nepal-2015-district-exposure",
+     "role": "independent official district populations, for comparison only"
+    }
+   ],
+   "method": "District populations derived here are differenced against OCHA’s published district populations for the districts that resolve to the same polygon. Exposure figures are deliberately NOT differenced, because ours is MMI-based and OCHA’s is PGA-based.",
+   "formula": "difference = our district population - OCHA district population",
+   "outputs": [
+    "per-district difference",
+    "per-district difference percentage",
+    "aggregate difference",
+    "districts within 10% and 20%"
+   ],
+   "visualisation": "Side-by-side district table with the difference column, and a scatter of ours against OCHA’s.",
+   "dataClass": "DERIVED",
+   "limitations": [
+    "Only districts that resolve to a boundary polygon can be compared; four of OCHA’s 66 cannot, for reasons recorded in the ingest.",
+    "OCHA’s population is a census projection and ours is a modelled grid. Agreement is evidence that neither is badly wrong; it is not proof that either is right.",
+    "The exposure halves of the two datasets are NOT comparable and are not compared. Doing so would manufacture agreement or disagreement out of a units mismatch."
+   ]
+  }
+ ],
+ "results": {
+  "intensity": {
+   "bands": [
+    {
+     "mmi": 3,
+     "meaning": null,
+     "populationInBand": 0,
+     "populationAtOrAbove": 20846924
+    },
+    {
+     "mmi": 3.5,
+     "meaning": null,
+     "populationInBand": 0,
+     "populationAtOrAbove": 20846924
+    },
+    {
+     "mmi": 4,
+     "meaning": {
+      "roman": "IV",
+      "perceived": "Light",
+      "damage": "None"
+     },
+     "populationInBand": 0,
+     "populationAtOrAbove": 20846924
+    },
+    {
+     "mmi": 4.5,
+     "meaning": {
+      "roman": "IV-V",
+      "perceived": "Light to moderate",
+      "damage": "None to very light"
+     },
+     "populationInBand": 1916035,
+     "populationAtOrAbove": 20846924
+    },
+    {
+     "mmi": 5,
+     "meaning": {
+      "roman": "V",
+      "perceived": "Moderate",
+      "damage": "Very light"
+     },
+     "populationInBand": 3021948,
+     "populationAtOrAbove": 18930889
+    },
+    {
+     "mmi": 5.5,
+     "meaning": {
+      "roman": "V-VI",
+      "perceived": "Moderate to strong",
+      "damage": "Very light to light"
+     },
+     "populationInBand": 2073423,
+     "populationAtOrAbove": 15908941
+    },
+    {
+     "mmi": 6,
+     "meaning": {
+      "roman": "VI",
+      "perceived": "Strong",
+      "damage": "Light — the lowest intensity at which damage occurs at all"
+     },
+     "populationInBand": 2146812,
+     "populationAtOrAbove": 13835518
+    },
+    {
+     "mmi": 6.5,
+     "meaning": {
+      "roman": "VI-VII",
+      "perceived": "Strong to very strong",
+      "damage": "Light to moderate"
+     },
+     "populationInBand": 4235172,
+     "populationAtOrAbove": 11688706
+    },
+    {
+     "mmi": 7,
+     "meaning": {
+      "roman": "VII",
+      "perceived": "Very strong",
+      "damage": "Moderate — general in poorly built structures"
+     },
+     "populationInBand": 6021640,
+     "populationAtOrAbove": 7453534
+    },
+    {
+     "mmi": 7.5,
+     "meaning": {
+      "roman": "VII-VIII",
+      "perceived": "Very strong to severe",
+      "damage": "Moderate to heavy"
+     },
+     "populationInBand": 1196778,
+     "populationAtOrAbove": 1431894
+    },
+    {
+     "mmi": 8,
+     "meaning": {
+      "roman": "VIII",
+      "perceived": "Severe",
+      "damage": "Heavy — considerable in ordinary buildings, partial collapse"
+     },
+     "populationInBand": 235116,
+     "populationAtOrAbove": 235116
+    }
+   ],
+   "populationOutsideAllContours": 6163645,
+   "totalPopulationConsidered": 27010569
+  },
+  "thresholdSensitivity": [
+   {
+    "threshold": 3,
+    "roman": null,
+    "damageAtThisIntensity": null,
+    "exposedPopulation": 20846924,
+    "shareOfConsidered": 77.18
+   },
+   {
+    "threshold": 3.5,
+    "roman": null,
+    "damageAtThisIntensity": null,
+    "exposedPopulation": 20846924,
+    "shareOfConsidered": 77.18
+   },
+   {
+    "threshold": 4,
+    "roman": "IV",
+    "damageAtThisIntensity": "None",
+    "exposedPopulation": 20846924,
+    "shareOfConsidered": 77.18
+   },
+   {
+    "threshold": 4.5,
+    "roman": "IV-V",
+    "damageAtThisIntensity": "None to very light",
+    "exposedPopulation": 20846924,
+    "shareOfConsidered": 77.18
+   },
+   {
+    "threshold": 5,
+    "roman": "V",
+    "damageAtThisIntensity": "Very light",
+    "exposedPopulation": 18930889,
+    "shareOfConsidered": 70.09
+   },
+   {
+    "threshold": 5.5,
+    "roman": "V-VI",
+    "damageAtThisIntensity": "Very light to light",
+    "exposedPopulation": 15908941,
+    "shareOfConsidered": 58.9
+   },
+   {
+    "threshold": 6,
+    "roman": "VI",
+    "damageAtThisIntensity": "Light — the lowest intensity at which damage occurs at all",
+    "exposedPopulation": 13835518,
+    "shareOfConsidered": 51.22
+   },
+   {
+    "threshold": 6.5,
+    "roman": "VI-VII",
+    "damageAtThisIntensity": "Light to moderate",
+    "exposedPopulation": 11688706,
+    "shareOfConsidered": 43.27
+   },
+   {
+    "threshold": 7,
+    "roman": "VII",
+    "damageAtThisIntensity": "Moderate — general in poorly built structures",
+    "exposedPopulation": 7453534,
+    "shareOfConsidered": 27.59
+   },
+   {
+    "threshold": 7.5,
+    "roman": "VII-VIII",
+    "damageAtThisIntensity": "Moderate to heavy",
+    "exposedPopulation": 1431894,
+    "shareOfConsidered": 5.3
+   },
+   {
+    "threshold": 8,
+    "roman": "VIII",
+    "damageAtThisIntensity": "Heavy — considerable in ordinary buildings, partial collapse",
+    "exposedPopulation": 235116,
+    "shareOfConsidered": 0.87
+   }
+  ],
+  "exposureAtHeadlineThreshold": {
+   "threshold": 6,
+   "fillToleranceKm": 20,
+   "filledByNearestDistrict": {
+    "people": 119471,
+    "cells": 1248,
+    "shareOfTotalPercent": 0.44
+   },
+   "districts": [
+    {
+     "district": "Kathmandu",
+     "districtKey": "kathmandu",
+     "areaSqKm": 413.62,
+     "population": 2779012,
+     "exposed": 2779012,
+     "maxMmi": 7.5,
+     "cells": 547,
+     "exposedPercent": 100,
+     "populationDensityPerSqKm": 6718.8,
+     "filledCells": 0,
+     "filledPeople": 0
+    },
+    {
+     "district": "Parsa",
+     "districtKey": "parsa",
+     "areaSqKm": 1407.71,
+     "population": 896158,
+     "exposed": 896158,
+     "maxMmi": 7,
+     "cells": 1129,
+     "filledCells": 48,
+     "filledPeople": 6436,
+     "exposedPercent": 100,
+     "populationDensityPerSqKm": 636.6
+    },
+    {
+     "district": "Siraha",
+     "districtKey": "siraha",
+     "areaSqKm": 1138.11,
+     "population": 753897,
+     "exposed": 748962,
+     "maxMmi": 6.5,
+     "cells": 1510,
+     "filledCells": 24,
+     "filledPeople": 5283,
+     "exposedPercent": 99.35,
+     "populationDensityPerSqKm": 662.4
+    },
+    {
+     "district": "Sarlahi",
+     "districtKey": "sarlahi",
+     "areaSqKm": 1263.17,
+     "population": 730125,
+     "exposed": 730125,
+     "maxMmi": 7.5,
+     "cells": 1681,
+     "filledCells": 32,
+     "filledPeople": 8626,
+     "exposedPercent": 100,
+     "populationDensityPerSqKm": 578
+    },
+    {
+     "district": "Dhanusa",
+     "districtKey": "dhanusa",
+     "areaSqKm": 1187.77,
+     "population": 701731,
+     "exposed": 701731,
+     "maxMmi": 7,
+     "cells": 1592,
+     "filledCells": 36,
+     "filledPeople": 13715,
+     "exposedPercent": 100,
+     "populationDensityPerSqKm": 590.8
+    },
+    {
+     "district": "Rautahat",
+     "districtKey": "rautahat",
+     "areaSqKm": 1037.74,
+     "population": 663222,
+     "exposed": 663222,
+     "maxMmi": 7,
+     "cells": 1376,
+     "filledCells": 20,
+     "filledPeople": 4975,
+     "exposedPercent": 100,
+     "populationDensityPerSqKm": 639.1
+    },
+    {
+     "district": "Bara",
+     "districtKey": "bara",
+     "areaSqKm": 1273.1,
+     "population": 657572,
+     "exposed": 657572,
+     "maxMmi": 7,
+     "cells": 1703,
+     "filledCells": 37,
+     "filledPeople": 6585,
+     "exposedPercent": 100,
+     "populationDensityPerSqKm": 516.5
+    },
+    {
+     "district": "Nawalparasi",
+     "districtKey": "nawalparasi",
+     "areaSqKm": 2154.61,
+     "population": 609012,
+     "exposed": 608969,
+     "maxMmi": 7,
+     "cells": 2789,
+     "filledCells": 32,
+     "filledPeople": 2747,
+     "exposedPercent": 99.99,
+     "populationDensityPerSqKm": 282.7
+    },
+    {
+     "district": "Mahottari",
+     "districtKey": "mahottari",
+     "areaSqKm": 1000.41,
+     "population": 576228,
+     "exposed": 576228,
+     "maxMmi": 7.5,
+     "cells": 1329,
+     "filledCells": 21,
+     "filledPeople": 3162,
+     "exposedPercent": 100,
+     "populationDensityPerSqKm": 576
+    },
+    {
+     "district": "Chitawan",
+     "districtKey": "chitawan",
+     "areaSqKm": 2241.57,
+     "population": 553958,
+     "exposed": 553958,
+     "maxMmi": 7.5,
+     "cells": 1885,
+     "filledCells": 20,
+     "filledPeople": 914,
+     "exposedPercent": 100,
+     "populationDensityPerSqKm": 247.1
+    },
+    {
+     "district": "Lalitpur",
+     "districtKey": "lalitpur",
+     "areaSqKm": 396.56,
+     "population": 481584,
+     "exposed": 481584,
+     "maxMmi": 7,
+     "cells": 522,
+     "filledCells": 2,
+     "filledPeople": 6349,
+     "exposedPercent": 100,
+     "populationDensityPerSqKm": 1214.4
+    },
+    {
+     "district": "Kaski",
+     "districtKey": "kaski",
+     "areaSqKm": 2087.8,
+     "population": 436075,
+     "exposed": 433509,
+     "maxMmi": 7,
+     "cells": 2676,
+     "exposedPercent": 99.41,
+     "populationDensityPerSqKm": 208.9,
+     "filledCells": 0,
+     "filledPeople": 0
+    },
+    {
+     "district": "Makwanpur",
+     "districtKey": "makwanpur",
+     "areaSqKm": 2443.23,
+     "population": 378031,
+     "exposed": 378031,
+     "maxMmi": 7.5,
+     "cells": 3004,
+     "exposedPercent": 100,
+     "populationDensityPerSqKm": 154.7,
+     "filledCells": 0,
+     "filledPeople": 0
+    },
+    {
+     "district": "Bhaktapur",
+     "districtKey": "bhaktapur",
+     "areaSqKm": 122.69,
+     "population": 330195,
+     "exposed": 330195,
+     "maxMmi": 7.5,
+     "cells": 164,
+     "exposedPercent": 100,
+     "populationDensityPerSqKm": 2691.3,
+     "filledCells": 0,
+     "filledPeople": 0
+    },
+    {
+     "district": "Dhading",
+     "districtKey": "dhading",
+     "areaSqKm": 1907.39,
+     "population": 295056,
+     "exposed": 295056,
+     "maxMmi": 8,
+     "cells": 2516,
+     "filledCells": 2,
+     "filledPeople": 11,
+     "exposedPercent": 100,
+     "populationDensityPerSqKm": 154.7
+    },
+    {
+     "district": "Tanahu",
+     "districtKey": "tanahu",
+     "areaSqKm": 1573.77,
+     "population": 286970,
+     "exposed": 286970,
+     "maxMmi": 7.5,
+     "cells": 2081,
+     "filledCells": 2,
+     "filledPeople": 315,
+     "exposedPercent": 100,
+     "populationDensityPerSqKm": 182.3
+    },
+    {
+     "district": "Sindhupalchok",
+     "districtKey": "sindhupalchok",
+     "areaSqKm": 2489.86,
+     "population": 255630,
+     "exposed": 255630,
+     "maxMmi": 8,
+     "cells": 3258,
+     "filledCells": 26,
+     "filledPeople": 461,
+     "exposedPercent": 100,
+     "populationDensityPerSqKm": 102.7
+    },
+    {
+     "district": "Sindhuli",
+     "districtKey": "sindhuli",
+     "areaSqKm": 2482.11,
+     "population": 253059,
+     "exposed": 253059,
+     "maxMmi": 7.5,
+     "cells": 3259,
+     "exposedPercent": 100,
+     "populationDensityPerSqKm": 102,
+     "filledCells": 0,
+     "filledPeople": 0
+    },
+    {
+     "district": "Nuwakot",
+     "districtKey": "nuwakot",
+     "areaSqKm": 1192.58,
+     "population": 240044,
+     "exposed": 240044,
+     "maxMmi": 8,
+     "cells": 1577,
+     "filledCells": 1,
+     "filledPeople": 152,
+     "exposedPercent": 100,
+     "populationDensityPerSqKm": 201.3
+    },
+    {
+     "district": "Gorkha",
+     "districtKey": "gorkha",
+     "areaSqKm": 3647.8,
+     "population": 234151,
+     "exposed": 234151,
+     "maxMmi": 8,
+     "cells": 4824,
+     "filledCells": 38,
+     "filledPeople": 74,
+     "exposedPercent": 100,
+     "populationDensityPerSqKm": 64.2
+    },
+    {
+     "district": "Syangja",
+     "districtKey": "syangja",
+     "areaSqKm": 1039.39,
+     "population": 253597,
+     "exposed": 230505,
+     "maxMmi": 6.5,
+     "cells": 1369,
+     "exposedPercent": 90.89,
+     "populationDensityPerSqKm": 244,
+     "filledCells": 0,
+     "filledPeople": 0
+    },
+    {
+     "district": "Kavrepalanchok",
+     "districtKey": "kavrepalanchok",
+     "areaSqKm": 1393.93,
+     "population": 222171,
+     "exposed": 222171,
+     "maxMmi": 7.5,
+     "cells": 1835,
+     "exposedPercent": 100,
+     "populationDensityPerSqKm": 159.4,
+     "filledCells": 0,
+     "filledPeople": 0
+    },
+    {
+     "district": "Rupandehi",
+     "districtKey": "rupandehi",
+     "areaSqKm": 1307.6,
+     "population": 833505,
+     "exposed": 219392,
+     "maxMmi": 6,
+     "cells": 1755,
+     "filledCells": 46,
+     "filledPeople": 5133,
+     "exposedPercent": 26.32,
+     "populationDensityPerSqKm": 637.4
+    },
+    {
+     "district": "Ramechhap",
+     "districtKey": "ramechhap",
+     "areaSqKm": 1563.41,
+     "population": 175583,
+     "exposed": 175583,
+     "maxMmi": 7.5,
+     "cells": 2055,
+     "filledCells": 1,
+     "filledPeople": 178,
+     "exposedPercent": 100,
+     "populationDensityPerSqKm": 112.3
+    },
+    {
+     "district": "Udayapur",
+     "districtKey": "udayapur",
+     "areaSqKm": 2295.12,
+     "population": 289674,
+     "exposed": 159235,
+     "maxMmi": 6.5,
+     "cells": 3010,
+     "exposedPercent": 54.97,
+     "populationDensityPerSqKm": 126.2,
+     "filledCells": 0,
+     "filledPeople": 0
+    },
+    {
+     "district": "Dolakha",
+     "districtKey": "dolakha",
+     "areaSqKm": 2144.37,
+     "population": 159133,
+     "exposed": 159133,
+     "maxMmi": 7.5,
+     "cells": 2834,
+     "filledCells": 20,
+     "filledPeople": 27,
+     "exposedPercent": 100,
+     "populationDensityPerSqKm": 74.2
+    },
+    {
+     "district": "Lamjung",
+     "districtKey": "lamjung",
+     "areaSqKm": 1664.3,
+     "population": 143496,
+     "exposed": 143496,
+     "maxMmi": 8,
+     "cells": 2191,
+     "exposedPercent": 100,
+     "populationDensityPerSqKm": 86.2,
+     "filledCells": 0,
+     "filledPeople": 0
+    },
+    {
+     "district": "Okhaldhunga",
+     "districtKey": "okhaldhunga",
+     "areaSqKm": 1075.41,
+     "population": 127293,
+     "exposed": 127293,
+     "maxMmi": 7,
+     "cells": 1409,
+     "exposedPercent": 100,
+     "populationDensityPerSqKm": 118.4,
+     "filledCells": 0,
+     "filledPeople": 0
+    },
+    {
+     "district": "Palpa",
+     "districtKey": "palpa",
+     "areaSqKm": 1465.21,
+     "population": 227705,
+     "exposed": 96405,
+     "maxMmi": 6.5,
+     "cells": 1934,
+     "filledCells": 1,
+     "filledPeople": 127,
+     "exposedPercent": 42.34,
+     "populationDensityPerSqKm": 155.4
+    },
+    {
+     "district": "Khotang",
+     "districtKey": "khotang",
+     "areaSqKm": 1587.79,
+     "population": 174382,
+     "exposed": 47039,
+     "maxMmi": 6,
+     "cells": 2083,
+     "exposedPercent": 26.97,
+     "populationDensityPerSqKm": 109.8,
+     "filledCells": 0,
+     "filledPeople": 0
+    },
+    {
+     "district": "Solukhumbu",
+     "districtKey": "solukhumbu",
+     "areaSqKm": 3350.89,
+     "population": 47867,
+     "exposed": 46297,
+     "maxMmi": 7,
+     "cells": 4396,
+     "filledCells": 28,
+     "filledPeople": 40,
+     "exposedPercent": 96.72,
+     "populationDensityPerSqKm": 14.3
+    },
+    {
+     "district": "Rasuwa",
+     "districtKey": "rasuwa",
+     "areaSqKm": 1500.31,
+     "population": 38197,
+     "exposed": 38197,
+     "maxMmi": 8,
+     "cells": 1533,
+     "filledCells": 16,
+     "filledPeople": 35,
+     "exposedPercent": 100,
+     "populationDensityPerSqKm": 25.5
+    },
+    {
+     "district": "Saptari",
+     "districtKey": "saptari",
+     "areaSqKm": 1279.76,
+     "population": 589363,
+     "exposed": 35622,
+     "maxMmi": 6,
+     "cells": 1631,
+     "filledCells": 33,
+     "filledPeople": 3007,
+     "exposedPercent": 6.04,
+     "populationDensityPerSqKm": 460.5
+    },
+    {
+     "district": "Parbat",
+     "districtKey": "parbat",
+     "areaSqKm": 542.06,
+     "population": 82328,
+     "exposed": 26121,
+     "maxMmi": 6,
+     "cells": 719,
+     "exposedPercent": 31.73,
+     "populationDensityPerSqKm": 151.9,
+     "filledCells": 0,
+     "filledPeople": 0
+    },
+    {
+     "district": "Manang",
+     "districtKey": "manang",
+     "areaSqKm": 2323.25,
+     "population": 4639,
+     "exposed": 4594,
+     "maxMmi": 7.5,
+     "cells": 1771,
+     "filledCells": 1,
+     "filledPeople": 1,
+     "exposedPercent": 99.02,
+     "populationDensityPerSqKm": 2
+    },
+    {
+     "district": "Sankhuwasabha",
+     "districtKey": "sankhuwasabha",
+     "areaSqKm": 3467.41,
+     "population": 139341,
+     "exposed": 217,
+     "maxMmi": 6,
+     "cells": 4287,
+     "filledCells": 24,
+     "filledPeople": 74,
+     "exposedPercent": 0.16,
+     "populationDensityPerSqKm": 40.2
+    },
+    {
+     "district": "Mustang",
+     "districtKey": "mustang",
+     "areaSqKm": 3570.09,
+     "population": 10968,
+     "exposed": 51,
+     "maxMmi": 6,
+     "cells": 2998,
+     "filledCells": 13,
+     "filledPeople": 26,
+     "exposedPercent": 0.47,
+     "populationDensityPerSqKm": 3.1
+    },
+    {
+     "district": "Taplejung",
+     "districtKey": "taplejung",
+     "areaSqKm": 3629.07,
+     "population": 109021,
+     "exposed": 0,
+     "maxMmi": 5,
+     "cells": 3405,
+     "filledCells": 18,
+     "filledPeople": 15,
+     "exposedPercent": 0,
+     "populationDensityPerSqKm": 30
+    },
+    {
+     "district": "Panchthar",
+     "districtKey": "panchthar",
+     "areaSqKm": 1246.96,
+     "population": 164412,
+     "exposed": 0,
+     "maxMmi": 4.5,
+     "cells": 1664,
+     "filledCells": 36,
+     "filledPeople": 186,
+     "exposedPercent": 0,
+     "populationDensityPerSqKm": 131.9
+    },
+    {
+     "district": "Ilam",
+     "districtKey": "ilam",
+     "areaSqKm": 1684.08,
+     "population": 262369,
+     "exposed": 0,
+     "maxMmi": 4.5,
+     "cells": 2259,
+     "filledCells": 40,
+     "filledPeople": 1862,
+     "exposedPercent": 0,
+     "populationDensityPerSqKm": 155.8
+    },
+    {
+     "district": "Jhapa",
+     "districtKey": "jhapa",
+     "areaSqKm": 1602.98,
+     "population": 765601,
+     "exposed": 0,
+     "maxMmi": 4.5,
+     "cells": 2172,
+     "filledCells": 95,
+     "filledPeople": 11221,
+     "exposedPercent": 0,
+     "populationDensityPerSqKm": 477.6
+    },
+    {
+     "district": "Morang",
+     "districtKey": "morang",
+     "areaSqKm": 1821.05,
+     "population": 943889,
+     "exposed": 0,
+     "maxMmi": 5,
+     "cells": 2422,
+     "filledCells": 41,
+     "filledPeople": 5607,
+     "exposedPercent": 0,
+     "populationDensityPerSqKm": 518.3
+    },
+    {
+     "district": "Sunsari",
+     "districtKey": "sunsari",
+     "areaSqKm": 1191.22,
+     "population": 1417173,
+     "exposed": 0,
+     "maxMmi": 5.5,
+     "cells": 1513,
+     "filledCells": 37,
+     "filledPeople": 7461,
+     "exposedPercent": 0,
+     "populationDensityPerSqKm": 1189.7
+    },
+    {
+     "district": "Dhankuta",
+     "districtKey": "dhankuta",
+     "areaSqKm": 898.45,
+     "population": 142692,
+     "exposed": 0,
+     "maxMmi": 5,
+     "cells": 1178,
+     "exposedPercent": 0,
+     "populationDensityPerSqKm": 158.8,
+     "filledCells": 0,
+     "filledPeople": 0
+    },
+    {
+     "district": "Terhathum",
+     "districtKey": "terhathum",
+     "areaSqKm": 669.81,
+     "population": 86068,
+     "exposed": 0,
+     "maxMmi": 4.5,
+     "cells": 881,
+     "exposedPercent": 0,
+     "populationDensityPerSqKm": 128.5,
+     "filledCells": 0,
+     "filledPeople": 0
+    },
+    {
+     "district": "Bhojpur",
+     "districtKey": "bhojpur",
+     "areaSqKm": 1522.44,
+     "population": 153208,
+     "exposed": 0,
+     "maxMmi": 5.5,
+     "cells": 1994,
+     "filledCells": 2,
+     "filledPeople": 144,
+     "exposedPercent": 0,
+     "populationDensityPerSqKm": 100.6
+    },
+    {
+     "district": "Baglung",
+     "districtKey": "baglung",
+     "areaSqKm": 1840.36,
+     "population": 235503,
+     "exposed": 0,
+     "maxMmi": 5.5,
+     "cells": 2440,
+     "exposedPercent": 0,
+     "populationDensityPerSqKm": 128,
+     "filledCells": 0,
+     "filledPeople": 0
+    },
+    {
+     "district": "Myagdi",
+     "districtKey": "myagdi",
+     "areaSqKm": 2289.96,
+     "population": 99200,
+     "exposed": 0,
+     "maxMmi": 5.5,
+     "cells": 2769,
+     "filledCells": 1,
+     "filledPeople": 22,
+     "exposedPercent": 0,
+     "populationDensityPerSqKm": 43.3
+    },
+    {
+     "district": "Kapilbastu",
+     "districtKey": "kapilbastu",
+     "areaSqKm": 1655.71,
+     "population": 590309,
+     "exposed": 0,
+     "maxMmi": 5.5,
+     "cells": 2213,
+     "filledCells": 38,
+     "filledPeople": 3069,
+     "exposedPercent": 0,
+     "populationDensityPerSqKm": 356.5
+    },
+    {
+     "district": "Arghakhanchi",
+     "districtKey": "arghakhanchi",
+     "areaSqKm": 1242.57,
+     "population": 170840,
+     "exposed": 0,
+     "maxMmi": 5,
+     "cells": 1640,
+     "filledCells": 2,
+     "filledPeople": 152,
+     "exposedPercent": 0,
+     "populationDensityPerSqKm": 137.5
+    },
+    {
+     "district": "Gulmi",
+     "districtKey": "gulmi",
+     "areaSqKm": 1109.98,
+     "population": 238589,
+     "exposed": 0,
+     "maxMmi": 5.5,
+     "cells": 1455,
+     "exposedPercent": 0,
+     "populationDensityPerSqKm": 214.9,
+     "filledCells": 0,
+     "filledPeople": 0
+    },
+    {
+     "district": "Rukum",
+     "districtKey": "rukum",
+     "areaSqKm": 2906.38,
+     "population": 193233,
+     "exposed": 0,
+     "maxMmi": 4.5,
+     "cells": 3836,
+     "filledCells": 1,
+     "filledPeople": 2,
+     "exposedPercent": 0,
+     "populationDensityPerSqKm": 66.5
+    },
+    {
+     "district": "Rolpa",
+     "districtKey": "rolpa",
+     "areaSqKm": 1891.99,
+     "population": 203040,
+     "exposed": 0,
+     "maxMmi": 4.5,
+     "cells": 2496,
+     "exposedPercent": 0,
+     "populationDensityPerSqKm": 107.3,
+     "filledCells": 0,
+     "filledPeople": 0
+    },
+    {
+     "district": "Pyuthan",
+     "districtKey": "pyuthan",
+     "areaSqKm": 1325.23,
+     "population": 206158,
+     "exposed": 0,
+     "maxMmi": 5,
+     "cells": 1740,
+     "exposedPercent": 0,
+     "populationDensityPerSqKm": 155.6,
+     "filledCells": 0,
+     "filledPeople": 0
+    },
+    {
+     "district": "Dang",
+     "districtKey": "dang",
+     "areaSqKm": 3071.26,
+     "population": 521639,
+     "exposed": 0,
+     "maxMmi": 4.5,
+     "cells": 4082,
+     "filledCells": 52,
+     "filledPeople": 1300,
+     "exposedPercent": 0,
+     "populationDensityPerSqKm": 169.8
+    },
+    {
+     "district": "Banke",
+     "districtKey": "banke",
+     "areaSqKm": 1891.42,
+     "population": 478011,
+     "exposed": 0,
+     "maxMmi": null,
+     "cells": 2534,
+     "filledCells": 42,
+     "filledPeople": 1997,
+     "exposedPercent": 0,
+     "populationDensityPerSqKm": 252.7
+    },
+    {
+     "district": "Bardiya",
+     "districtKey": "bardiya",
+     "areaSqKm": 2013.86,
+     "population": 394396,
+     "exposed": 0,
+     "maxMmi": null,
+     "cells": 1624,
+     "filledCells": 40,
+     "filledPeople": 1777,
+     "exposedPercent": 0,
+     "populationDensityPerSqKm": 195.8
+    },
+    {
+     "district": "Salyan",
+     "districtKey": "salyan",
+     "areaSqKm": 1888.65,
+     "population": 222146,
+     "exposed": 0,
+     "maxMmi": null,
+     "cells": 2496,
+     "exposedPercent": 0,
+     "populationDensityPerSqKm": 117.6,
+     "filledCells": 0,
+     "filledPeople": 0
+    },
+    {
+     "district": "Surkhet",
+     "districtKey": "surkhet",
+     "areaSqKm": 2500.68,
+     "population": 244961,
+     "exposed": 0,
+     "maxMmi": null,
+     "cells": 3309,
+     "filledCells": 1,
+     "filledPeople": 18,
+     "exposedPercent": 0,
+     "populationDensityPerSqKm": 98
+    },
+    {
+     "district": "Jajarkot",
+     "districtKey": "jajarkot",
+     "areaSqKm": 2232.79,
+     "population": 164271,
+     "exposed": 0,
+     "maxMmi": null,
+     "cells": 2948,
+     "exposedPercent": 0,
+     "populationDensityPerSqKm": 73.6,
+     "filledCells": 0,
+     "filledPeople": 0
+    },
+    {
+     "district": "Dailekh",
+     "districtKey": "dailekh",
+     "areaSqKm": 1493.05,
+     "population": 244719,
+     "exposed": 0,
+     "maxMmi": null,
+     "cells": 1974,
+     "exposedPercent": 0,
+     "populationDensityPerSqKm": 163.9,
+     "filledCells": 0,
+     "filledPeople": 0
+    },
+    {
+     "district": "Dolpa",
+     "districtKey": "dolpa",
+     "areaSqKm": 7967.12,
+     "population": 34147,
+     "exposed": 0,
+     "maxMmi": 5,
+     "cells": 6616,
+     "filledCells": 7,
+     "filledPeople": 4,
+     "exposedPercent": 0,
+     "populationDensityPerSqKm": 4.3
+    },
+    {
+     "district": "Jumla",
+     "districtKey": "jumla",
+     "areaSqKm": 2565.15,
+     "population": 103730,
+     "exposed": 0,
+     "maxMmi": null,
+     "cells": 3417,
+     "exposedPercent": 0,
+     "populationDensityPerSqKm": 40.4,
+     "filledCells": 0,
+     "filledPeople": 0
+    },
+    {
+     "district": "Kalikot",
+     "districtKey": "kalikot",
+     "areaSqKm": 1649.25,
+     "population": 65570,
+     "exposed": 0,
+     "maxMmi": null,
+     "cells": 2193,
+     "exposedPercent": 0,
+     "populationDensityPerSqKm": 39.8,
+     "filledCells": 0,
+     "filledPeople": 0
+    },
+    {
+     "district": "Mugu",
+     "districtKey": "mugu",
+     "areaSqKm": 3246.38,
+     "population": 53594,
+     "exposed": 0,
+     "maxMmi": null,
+     "cells": 3271,
+     "filledCells": 9,
+     "filledPeople": 10,
+     "exposedPercent": 0,
+     "populationDensityPerSqKm": 16.5
+    },
+    {
+     "district": "Humla",
+     "districtKey": "humla",
+     "areaSqKm": 6039.14,
+     "population": 47753,
+     "exposed": 0,
+     "maxMmi": null,
+     "cells": 5492,
+     "filledCells": 40,
+     "filledPeople": 40,
+     "exposedPercent": 0,
+     "populationDensityPerSqKm": 7.9
+    },
+    {
+     "district": "Bajhang",
+     "districtKey": "bajhang",
+     "areaSqKm": 3483,
+     "population": 183007,
+     "exposed": 0,
+     "maxMmi": null,
+     "cells": 3628,
+     "exposedPercent": 0,
+     "populationDensityPerSqKm": 52.5,
+     "filledCells": 0,
+     "filledPeople": 0
+    },
+    {
+     "district": "Bajura",
+     "districtKey": "bajura",
+     "areaSqKm": 2310.68,
+     "population": 128988,
+     "exposed": 0,
+     "maxMmi": null,
+     "cells": 2935,
+     "exposedPercent": 0,
+     "populationDensityPerSqKm": 55.8,
+     "filledCells": 0,
+     "filledPeople": 0
+    },
+    {
+     "district": "Achham",
+     "districtKey": "achham",
+     "areaSqKm": 1711.46,
+     "population": 236293,
+     "exposed": 0,
+     "maxMmi": null,
+     "cells": 2235,
+     "filledCells": 2,
+     "filledPeople": 183,
+     "exposedPercent": 0,
+     "populationDensityPerSqKm": 138.1
+    },
+    {
+     "district": "Doti",
+     "districtKey": "doti",
+     "areaSqKm": 2067.08,
+     "population": 188315,
+     "exposed": 0,
+     "maxMmi": null,
+     "cells": 2638,
+     "filledCells": 1,
+     "filledPeople": 59,
+     "exposedPercent": 0,
+     "populationDensityPerSqKm": 91.1
+    },
+    {
+     "district": "Kailali",
+     "districtKey": "kailali",
+     "areaSqKm": 3311.03,
+     "population": 901546,
+     "exposed": 0,
+     "maxMmi": null,
+     "cells": 4422,
+     "filledCells": 52,
+     "filledPeople": 3933,
+     "exposedPercent": 0,
+     "populationDensityPerSqKm": 272.3
+    },
+    {
+     "district": "Kanchanpur",
+     "districtKey": "kanchanpur",
+     "areaSqKm": 1633.94,
+     "population": 707888,
+     "exposed": 0,
+     "maxMmi": null,
+     "cells": 1850,
+     "filledCells": 64,
+     "filledPeople": 9734,
+     "exposedPercent": 0,
+     "populationDensityPerSqKm": 433.2
+    },
+    {
+     "district": "Dadeldhura",
+     "districtKey": "dadeldhura",
+     "areaSqKm": 1515.93,
+     "population": 130227,
+     "exposed": 0,
+     "maxMmi": null,
+     "cells": 2018,
+     "filledCells": 21,
+     "filledPeople": 272,
+     "exposedPercent": 0,
+     "populationDensityPerSqKm": 85.9
+    },
+    {
+     "district": "Baitadi",
+     "districtKey": "baitadi",
+     "areaSqKm": 1506.12,
+     "population": 225974,
+     "exposed": 0,
+     "maxMmi": null,
+     "cells": 2028,
+     "filledCells": 27,
+     "filledPeople": 806,
+     "exposedPercent": 0,
+     "populationDensityPerSqKm": 150
+    },
+    {
+     "district": "Darchula",
+     "districtKey": "darchula",
+     "areaSqKm": 2358.65,
+     "population": 121135,
+     "exposed": 0,
+     "maxMmi": null,
+     "cells": 2660,
+     "filledCells": 55,
+     "filledPeople": 1145,
+     "exposedPercent": 0,
+     "populationDensityPerSqKm": 51.4
+    }
+   ],
+   "totalPopulationInDistricts": 27010569,
+   "totalExposed": 13835518,
+   "districtsWithExposure": 37,
+   "populationOutsideAnyDistrict": 0,
+   "cellsOutsideAnyDistrict": 0,
+   "exact": {
+    "inDistricts": 27010568.9,
+    "exposed": 13835518.100000001,
+    "outsideAnyDistrict": 0,
+    "total": 27010568.9
+   },
+   "roundingResidual": 1.9
+  },
+  "exposureStrictContainment": {
+   "threshold": 6,
+   "totalPopulationInDistricts": 26891098,
+   "totalExposed": 13774783,
+   "populationOutsideAnyDistrict": 119471,
+   "districtsWithExposure": 37
+  },
+  "exposureTotalsByThreshold": {
+   "3": {
+    "threshold": 3,
+    "totalExposed": 20846924,
+    "districtsWithExposure": 56
+   },
+   "4": {
+    "threshold": 4,
+    "totalExposed": 20846924,
+    "districtsWithExposure": 56
+   },
+   "5": {
+    "threshold": 5,
+    "totalExposed": 18930889,
+    "districtsWithExposure": 49
+   },
+   "6": {
+    "threshold": 6,
+    "totalExposed": 13835518,
+    "districtsWithExposure": 37
+   },
+   "7": {
+    "threshold": 7,
+    "totalExposed": 7453534,
+    "districtsWithExposure": 27
+   },
+   "8": {
+    "threshold": 8,
+    "totalExposed": 235116,
+    "districtsWithExposure": 6
+   },
+   "3.5": {
+    "threshold": 3.5,
+    "totalExposed": 20846924,
+    "districtsWithExposure": 56
+   },
+   "4.5": {
+    "threshold": 4.5,
+    "totalExposed": 20846924,
+    "districtsWithExposure": 56
+   },
+   "5.5": {
+    "threshold": 5.5,
+    "totalExposed": 15908941,
+    "districtsWithExposure": 43
+   },
+   "6.5": {
+    "threshold": 6.5,
+    "totalExposed": 11688706,
+    "districtsWithExposure": 31
+   },
+   "7.5": {
+    "threshold": 7.5,
+    "totalExposed": 1431894,
+    "districtsWithExposure": 18
+   }
+  },
+  "contours": {
+   "usableLevels": [
+    3,
+    3.5,
+    4,
+    4.5,
+    5,
+    5.5,
+    6,
+    6.5,
+    7,
+    7.5,
+    8
+   ],
+   "excluded": [
+    {
+     "mmi": 3,
+     "reason": "contour is not closed; it runs beyond the ShakeMap grid",
+     "positions": 7
+    },
+    {
+     "mmi": 3,
+     "reason": "contour is not closed; it runs beyond the ShakeMap grid",
+     "positions": 6
+    },
+    {
+     "mmi": 3,
+     "reason": "contour is not closed; it runs beyond the ShakeMap grid",
+     "positions": 4
+    },
+    {
+     "mmi": 3.5,
+     "reason": "contour is not closed; it runs beyond the ShakeMap grid",
+     "positions": 52
+    },
+    {
+     "mmi": 3.5,
+     "reason": "contour is not closed; it runs beyond the ShakeMap grid",
+     "positions": 103
+    },
+    {
+     "mmi": 3.5,
+     "reason": "contour is not closed; it runs beyond the ShakeMap grid",
+     "positions": 6
+    },
+    {
+     "mmi": 3.5,
+     "reason": "contour is not closed; it runs beyond the ShakeMap grid",
+     "positions": 5
+    },
+    {
+     "mmi": 3.5,
+     "reason": "contour is not closed; it runs beyond the ShakeMap grid",
+     "positions": 19
+    },
+    {
+     "mmi": 3.5,
+     "reason": "contour is not closed; it runs beyond the ShakeMap grid",
+     "positions": 48
+    },
+    {
+     "mmi": 3.5,
+     "reason": "contour is not closed; it runs beyond the ShakeMap grid",
+     "positions": 5
+    },
+    {
+     "mmi": 3.5,
+     "reason": "fewer positions than a ring needs",
+     "positions": 2
+    },
+    {
+     "mmi": 4,
+     "reason": "contour is not closed; it runs beyond the ShakeMap grid",
+     "positions": 363
+    },
+    {
+     "mmi": 4,
+     "reason": "fewer positions than a ring needs",
+     "positions": 3
+    },
+    {
+     "mmi": 4,
+     "reason": "fewer positions than a ring needs",
+     "positions": 3
+    },
+    {
+     "mmi": 4.5,
+     "reason": "fewer positions than a ring needs",
+     "positions": 3
+    },
+    {
+     "mmi": 4.5,
+     "reason": "fewer positions than a ring needs",
+     "positions": 3
+    },
+    {
+     "mmi": 5.5,
+     "reason": "fewer positions than a ring needs",
+     "positions": 3
+    },
+    {
+     "mmi": 5.5,
+     "reason": "fewer positions than a ring needs",
+     "positions": 2
+    },
+    {
+     "mmi": 6,
+     "reason": "fewer positions than a ring needs",
+     "positions": 2
+    },
+    {
+     "mmi": 7.5,
+     "reason": "fewer positions than a ring needs",
+     "positions": 3
+    }
+   ]
+  }
+ },
+ "comparison": {
+  "status": "REPORTED SIDE BY SIDE, NOT DIFFERENCED",
+  "whyNotDifferenced": "OCHA’s population column cannot be pinned to a definition from what HDX publishes. It is not district total population — Jhapa reads 1,511 for a district of roughly 800,000 — and it is not population within the shaken footprint either, because in 52 of 66 districts it exceeds the district’s own population, which a clipped subset cannot do. Differencing an unverified quantity would produce a figure with no defensible meaning.",
+  "whatWouldResolveIt": "A column definition or methodology note from OCHA for PGA_AffectedDistricts_POP, or the source GIS product the table was derived from. Neither is published on the HDX record.",
+  "districtsPairedForDisplay": 66,
+  "districtsWhereOchaExceedsDistrictPopulation": 52,
+  "ratioStatistics": {
+   "count": 52,
+   "median": 1.355,
+   "min": 1.118,
+   "max": 2.713,
+   "note": "A consistent multiple suggests a different population base, not a different spatial method. Recorded as a lead, not a conclusion."
+  },
+  "examplesOfTheInconsistency": [
+   {
+    "district": "Morang",
+    "ochaFigure": 1251498,
+    "ourDistrictPopulation": 943889,
+    "ratio": 1.33
+   },
+   {
+    "district": "Rupandehi",
+    "ochaFigure": 1106381,
+    "ourDistrictPopulation": 833505,
+    "ratio": 1.33
+   },
+   {
+    "district": "Sarlahi",
+    "ochaFigure": 930939,
+    "ourDistrictPopulation": 730125,
+    "ratio": 1.28
+   },
+   {
+    "district": "Lalitpur",
+    "ochaFigure": 911815,
+    "ourDistrictPopulation": 481584,
+    "ratio": 1.89
+   },
+   {
+    "district": "Bara",
+    "ochaFigure": 863620,
+    "ourDistrictPopulation": 657572,
+    "ratio": 1.31
+   }
+  ],
+  "ochaDistrictsTotal": 66,
+  "notResolvedToAPolygon": [],
+  "rows": [
+   {
+    "district": "Kathmandu",
+    "districtKey": "kathmandu",
+    "ourDistrictPopulation": 2779012,
+    "ourExposedAtMmi6": 2779012,
+    "ourMaxMmi": 7.5,
+    "ochaPublishedFigure": 1870561,
+    "ochaPgaG": 0.08,
+    "ochaSeverity": "Moderate",
+    "ochaExceedsOurDistrictPopulation": false
+   },
+   {
+    "district": "Morang",
+    "districtKey": "morang",
+    "ourDistrictPopulation": 943889,
+    "ourExposedAtMmi6": 0,
+    "ourMaxMmi": 5,
+    "ochaPublishedFigure": 1251498,
+    "ochaPgaG": 0.02,
+    "ochaSeverity": "Light",
+    "ochaExceedsOurDistrictPopulation": true
+   },
+   {
+    "district": "Rupandehi",
+    "districtKey": "rupandehi",
+    "ourDistrictPopulation": 833505,
+    "ourExposedAtMmi6": 219392,
+    "ourMaxMmi": 6,
+    "ochaPublishedFigure": 1106381,
+    "ochaPgaG": 0.12,
+    "ochaSeverity": "Strong",
+    "ochaExceedsOurDistrictPopulation": true
+   },
+   {
+    "district": "Sarlahi",
+    "districtKey": "sarlahi",
+    "ourDistrictPopulation": 730125,
+    "ourExposedAtMmi6": 730125,
+    "ourMaxMmi": 7.5,
+    "ochaPublishedFigure": 930939,
+    "ochaPgaG": 0.04,
+    "ochaSeverity": "Moderate",
+    "ochaExceedsOurDistrictPopulation": true
+   },
+   {
+    "district": "Lalitpur",
+    "districtKey": "lalitpur",
+    "ourDistrictPopulation": 481584,
+    "ourExposedAtMmi6": 481584,
+    "ourMaxMmi": 7,
+    "ochaPublishedFigure": 911815,
+    "ochaPgaG": 0.08,
+    "ochaSeverity": "Moderate",
+    "ochaExceedsOurDistrictPopulation": true
+   },
+   {
+    "district": "Bara",
+    "districtKey": "bara",
+    "ourDistrictPopulation": 657572,
+    "ourExposedAtMmi6": 657572,
+    "ourMaxMmi": 7,
+    "ochaPublishedFigure": 863620,
+    "ochaPgaG": 0.08,
+    "ochaSeverity": "Moderate",
+    "ochaExceedsOurDistrictPopulation": true
+   },
+   {
+    "district": "Sunsari",
+    "districtKey": "sunsari",
+    "ourDistrictPopulation": 1417173,
+    "ourExposedAtMmi6": 0,
+    "ourMaxMmi": 5.5,
+    "ochaPublishedFigure": 828607,
+    "ochaPgaG": 0.04,
+    "ochaSeverity": "Moderate",
+    "ochaExceedsOurDistrictPopulation": false
+   },
+   {
+    "district": "Saptari",
+    "districtKey": "saptari",
+    "ourDistrictPopulation": 589363,
+    "ourExposedAtMmi6": 35622,
+    "ourMaxMmi": 6,
+    "ochaPublishedFigure": 806433,
+    "ochaPgaG": 0.04,
+    "ochaSeverity": "Moderate",
+    "ochaExceedsOurDistrictPopulation": true
+   },
+   {
+    "district": "Rautahat",
+    "districtKey": "rautahat",
+    "ourDistrictPopulation": 663222,
+    "ourExposedAtMmi6": 663222,
+    "ourMaxMmi": 7,
+    "ochaPublishedFigure": 771359,
+    "ochaPgaG": 0.12,
+    "ochaSeverity": "Strong",
+    "ochaExceedsOurDistrictPopulation": true
+   },
+   {
+    "district": "Siraha",
+    "districtKey": "siraha",
+    "ourDistrictPopulation": 753897,
+    "ourExposedAtMmi6": 748962,
+    "ourMaxMmi": 6.5,
+    "ochaPublishedFigure": 769722,
+    "ochaPgaG": 0.04,
+    "ochaSeverity": "Moderate",
+    "ochaExceedsOurDistrictPopulation": false
+   },
+   {
+    "district": "Mahottari",
+    "districtKey": "mahottari",
+    "ourDistrictPopulation": 576228,
+    "ourExposedAtMmi6": 576228,
+    "ourMaxMmi": 7.5,
+    "ochaPublishedFigure": 768232,
+    "ochaPgaG": 0.04,
+    "ochaSeverity": "Moderate",
+    "ochaExceedsOurDistrictPopulation": true
+   },
+   {
+    "district": "Nawalparasi",
+    "districtKey": "nawalparasi",
+    "ourDistrictPopulation": 609012,
+    "ourExposedAtMmi6": 608969,
+    "ourMaxMmi": 7,
+    "ochaPublishedFigure": 743787,
+    "ochaPgaG": 0.08,
+    "ochaSeverity": "Moderate",
+    "ochaExceedsOurDistrictPopulation": true
+   },
+   {
+    "district": "Chitawan",
+    "districtKey": "chitawan",
+    "ourDistrictPopulation": 553958,
+    "ourExposedAtMmi6": 553958,
+    "ourMaxMmi": 7.5,
+    "ochaPublishedFigure": 740838,
+    "ochaPgaG": 0.08,
+    "ochaSeverity": "Moderate",
+    "ochaExceedsOurDistrictPopulation": true
+   },
+   {
+    "district": "Parsa",
+    "districtKey": "parsa",
+    "ourDistrictPopulation": 896158,
+    "ourExposedAtMmi6": 896158,
+    "ourMaxMmi": 7,
+    "ochaPublishedFigure": 737118,
+    "ochaPgaG": 0.16,
+    "ochaSeverity": "Strong",
+    "ochaExceedsOurDistrictPopulation": false
+   },
+   {
+    "district": "Dang",
+    "districtKey": "dang",
+    "ourDistrictPopulation": 521639,
+    "ourExposedAtMmi6": 0,
+    "ourMaxMmi": 4.5,
+    "ochaPublishedFigure": 693566,
+    "ochaPgaG": 0.02,
+    "ochaSeverity": "Light",
+    "ochaExceedsOurDistrictPopulation": true
+   },
+   {
+    "district": "Kapilbastu",
+    "districtKey": "kapilbastu",
+    "ourDistrictPopulation": 590309,
+    "ourExposedAtMmi6": 0,
+    "ourMaxMmi": 5.5,
+    "ochaPublishedFigure": 674846,
+    "ochaPgaG": 0.04,
+    "ochaSeverity": "Moderate",
+    "ochaExceedsOurDistrictPopulation": true
+   },
+   {
+    "district": "Kaski",
+    "districtKey": "kaski",
+    "ourDistrictPopulation": 436075,
+    "ourExposedAtMmi6": 433509,
+    "ourMaxMmi": 7,
+    "ochaPublishedFigure": 634933,
+    "ochaPgaG": 0.08,
+    "ochaSeverity": "Moderate",
+    "ochaExceedsOurDistrictPopulation": true
+   },
+   {
+    "district": "Makawanpur",
+    "districtKey": "makwanpur",
+    "ourDistrictPopulation": 378031,
+    "ourExposedAtMmi6": 378031,
+    "ourMaxMmi": 7.5,
+    "ochaPublishedFigure": 515214,
+    "ochaPgaG": 0.08,
+    "ochaSeverity": "Moderate",
+    "ochaExceedsOurDistrictPopulation": true
+   },
+   {
+    "district": "Kabhrepalanchok",
+    "districtKey": "kavrepalanchok",
+    "ourDistrictPopulation": 222171,
+    "ourExposedAtMmi6": 222171,
+    "ourMaxMmi": 7.5,
+    "ochaPublishedFigure": 478438,
+    "ochaPgaG": 0.08,
+    "ochaSeverity": "Moderate",
+    "ochaExceedsOurDistrictPopulation": true
+   },
+   {
+    "district": "Udayapur",
+    "districtKey": "udayapur",
+    "ourDistrictPopulation": 289674,
+    "ourExposedAtMmi6": 159235,
+    "ourMaxMmi": 6.5,
+    "ochaPublishedFigure": 440802,
+    "ochaPgaG": 0.02,
+    "ochaSeverity": "Light",
+    "ochaExceedsOurDistrictPopulation": true
+   },
+   {
+    "district": "Bhaktapur",
+    "districtKey": "bhaktapur",
+    "ourDistrictPopulation": 330195,
+    "ourExposedAtMmi6": 330195,
+    "ourMaxMmi": 7.5,
+    "ochaPublishedFigure": 417659,
+    "ochaPgaG": 0.08,
+    "ochaSeverity": "Moderate",
+    "ochaExceedsOurDistrictPopulation": true
+   },
+   {
+    "district": "Tanahu",
+    "districtKey": "tanahu",
+    "ourDistrictPopulation": 286970,
+    "ourExposedAtMmi6": 286970,
+    "ourMaxMmi": 7.5,
+    "ochaPublishedFigure": 409691,
+    "ochaPgaG": 0.36,
+    "ochaSeverity": "Severe",
+    "ochaExceedsOurDistrictPopulation": true
+   },
+   {
+    "district": "Dhading",
+    "districtKey": "dhading",
+    "ourDistrictPopulation": 295056,
+    "ourExposedAtMmi6": 295056,
+    "ourMaxMmi": 8,
+    "ochaPublishedFigure": 397348,
+    "ochaPgaG": 0.12,
+    "ochaSeverity": "Strong",
+    "ochaExceedsOurDistrictPopulation": true
+   },
+   {
+    "district": "Sindhuli",
+    "districtKey": "sindhuli",
+    "ourDistrictPopulation": 253059,
+    "ourExposedAtMmi6": 253059,
+    "ourMaxMmi": 7.5,
+    "ochaPublishedFigure": 353354,
+    "ochaPgaG": 0.04,
+    "ochaSeverity": "Moderate",
+    "ochaExceedsOurDistrictPopulation": true
+   },
+   {
+    "district": "Sindhupalchok",
+    "districtKey": "sindhupalchok",
+    "ourDistrictPopulation": 255630,
+    "ourExposedAtMmi6": 255630,
+    "ourMaxMmi": 8,
+    "ochaPublishedFigure": 336829,
+    "ochaPgaG": 0.12,
+    "ochaSeverity": "Strong",
+    "ochaExceedsOurDistrictPopulation": true
+   },
+   {
+    "district": "Banke",
+    "districtKey": "banke",
+    "ourDistrictPopulation": 478011,
+    "ourExposedAtMmi6": 0,
+    "ourMaxMmi": null,
+    "ochaPublishedFigure": 335280,
+    "ochaPgaG": 0.02,
+    "ochaSeverity": "Light",
+    "ochaExceedsOurDistrictPopulation": false
+   },
+   {
+    "district": "Gorkha",
+    "districtKey": "gorkha",
+    "ourDistrictPopulation": 234151,
+    "ourExposedAtMmi6": 234151,
+    "ourMaxMmi": 8,
+    "ochaPublishedFigure": 328649,
+    "ochaPgaG": 0.12,
+    "ochaSeverity": "Strong",
+    "ochaExceedsOurDistrictPopulation": true
+   },
+   {
+    "district": "Nuwakot",
+    "districtKey": "nuwakot",
+    "ourDistrictPopulation": 240044,
+    "ourExposedAtMmi6": 240044,
+    "ourMaxMmi": 8,
+    "ochaPublishedFigure": 327111,
+    "ochaPgaG": 0.24,
+    "ochaSeverity": "Very Strong",
+    "ochaExceedsOurDistrictPopulation": true
+   },
+   {
+    "district": "Baglung",
+    "districtKey": "baglung",
+    "ourDistrictPopulation": 235503,
+    "ourExposedAtMmi6": 0,
+    "ourMaxMmi": 5.5,
+    "ochaPublishedFigure": 324566,
+    "ochaPgaG": 0.04,
+    "ochaSeverity": "Moderate",
+    "ochaExceedsOurDistrictPopulation": true
+   },
+   {
+    "district": "Palpa",
+    "districtKey": "palpa",
+    "ourDistrictPopulation": 227705,
+    "ourExposedAtMmi6": 96405,
+    "ourMaxMmi": 6.5,
+    "ochaPublishedFigure": 315743,
+    "ochaPgaG": 0.16,
+    "ochaSeverity": "Strong",
+    "ochaExceedsOurDistrictPopulation": true
+   },
+   {
+    "district": "Gulmi",
+    "districtKey": "gulmi",
+    "ourDistrictPopulation": 238589,
+    "ourExposedAtMmi6": 0,
+    "ourMaxMmi": 5.5,
+    "ochaPublishedFigure": 311075,
+    "ochaPgaG": 0.04,
+    "ochaSeverity": "Moderate",
+    "ochaExceedsOurDistrictPopulation": true
+   },
+   {
+    "district": "Syangja",
+    "districtKey": "syangja",
+    "ourDistrictPopulation": 253597,
+    "ourExposedAtMmi6": 230505,
+    "ourMaxMmi": 6.5,
+    "ochaPublishedFigure": 308334,
+    "ochaPgaG": 0.12,
+    "ochaSeverity": "Strong",
+    "ochaExceedsOurDistrictPopulation": true
+   },
+   {
+    "district": "Salyan",
+    "districtKey": "salyan",
+    "ourDistrictPopulation": 222146,
+    "ourExposedAtMmi6": 0,
+    "ourMaxMmi": null,
+    "ochaPublishedFigure": 296452,
+    "ochaPgaG": 0.04,
+    "ochaSeverity": "Moderate",
+    "ochaExceedsOurDistrictPopulation": true
+   },
+   {
+    "district": "Pyuthan",
+    "districtKey": "pyuthan",
+    "ourDistrictPopulation": 206158,
+    "ourExposedAtMmi6": 0,
+    "ourMaxMmi": 5,
+    "ochaPublishedFigure": 287672,
+    "ochaPgaG": 0.04,
+    "ochaSeverity": "Moderate",
+    "ochaExceedsOurDistrictPopulation": true
+   },
+   {
+    "district": "Arghakhanchi",
+    "districtKey": "arghakhanchi",
+    "ourDistrictPopulation": 170840,
+    "ourExposedAtMmi6": 0,
+    "ourMaxMmi": 5,
+    "ochaPublishedFigure": 275903,
+    "ochaPgaG": 0.04,
+    "ochaSeverity": "Moderate",
+    "ochaExceedsOurDistrictPopulation": true
+   },
+   {
+    "district": "Rolpa",
+    "districtKey": "rolpa",
+    "ourDistrictPopulation": 203040,
+    "ourExposedAtMmi6": 0,
+    "ourMaxMmi": 4.5,
+    "ochaPublishedFigure": 264249,
+    "ochaPgaG": 0.04,
+    "ochaSeverity": "Moderate",
+    "ochaExceedsOurDistrictPopulation": true
+   },
+   {
+    "district": "Rukum",
+    "districtKey": "rukum",
+    "ourDistrictPopulation": 193233,
+    "ourExposedAtMmi6": 0,
+    "ourMaxMmi": 4.5,
+    "ochaPublishedFigure": 250547,
+    "ochaPgaG": 0.04,
+    "ochaSeverity": "Moderate",
+    "ochaExceedsOurDistrictPopulation": true
+   },
+   {
+    "district": "Ramechhap",
+    "districtKey": "ramechhap",
+    "ourDistrictPopulation": 175583,
+    "ourExposedAtMmi6": 175583,
+    "ourMaxMmi": 7.5,
+    "ochaPublishedFigure": 246381,
+    "ochaPgaG": 0.04,
+    "ochaSeverity": "Moderate",
+    "ochaExceedsOurDistrictPopulation": true
+   },
+   {
+    "district": "Khotang",
+    "districtKey": "khotang",
+    "ourDistrictPopulation": 174382,
+    "ourExposedAtMmi6": 47039,
+    "ourMaxMmi": 6,
+    "ochaPublishedFigure": 236203,
+    "ochaPgaG": 0.02,
+    "ochaSeverity": "Light",
+    "ochaExceedsOurDistrictPopulation": true
+   },
+   {
+    "district": "Dolakha",
+    "districtKey": "dolakha",
+    "ourDistrictPopulation": 159133,
+    "ourExposedAtMmi6": 159133,
+    "ourMaxMmi": 7.5,
+    "ochaPublishedFigure": 213802,
+    "ochaPgaG": 0.04,
+    "ochaSeverity": "Moderate",
+    "ochaExceedsOurDistrictPopulation": true
+   },
+   {
+    "district": "Jajarkot",
+    "districtKey": "jajarkot",
+    "ourDistrictPopulation": 164271,
+    "ourExposedAtMmi6": 0,
+    "ourMaxMmi": null,
+    "ochaPublishedFigure": 208409,
+    "ochaPgaG": 0.02,
+    "ochaSeverity": "Light",
+    "ochaExceedsOurDistrictPopulation": true
+   },
+   {
+    "district": "Bhojpur",
+    "districtKey": "bhojpur",
+    "ourDistrictPopulation": 153208,
+    "ourExposedAtMmi6": 0,
+    "ourMaxMmi": 5.5,
+    "ochaPublishedFigure": 207461,
+    "ochaPgaG": 0.02,
+    "ochaSeverity": "Light",
+    "ochaExceedsOurDistrictPopulation": true
+   },
+   {
+    "district": "Lamjung",
+    "districtKey": "lamjung",
+    "ourDistrictPopulation": 143496,
+    "ourExposedAtMmi6": 143496,
+    "ourMaxMmi": 8,
+    "ochaPublishedFigure": 198233,
+    "ochaPgaG": 0.16,
+    "ochaSeverity": "Strong",
+    "ochaExceedsOurDistrictPopulation": true
+   },
+   {
+    "district": "Dhankuta",
+    "districtKey": "dhankuta",
+    "ourDistrictPopulation": 142692,
+    "ourExposedAtMmi6": 0,
+    "ourMaxMmi": 5,
+    "ochaPublishedFigure": 193626,
+    "ochaPgaG": 0.02,
+    "ochaSeverity": "Light",
+    "ochaExceedsOurDistrictPopulation": true
+   },
+   {
+    "district": "Sankhuwasabha",
+    "districtKey": "sankhuwasabha",
+    "ourDistrictPopulation": 139341,
+    "ourExposedAtMmi6": 217,
+    "ourMaxMmi": 6,
+    "ochaPublishedFigure": 187609,
+    "ochaPgaG": 0.04,
+    "ochaSeverity": "Moderate",
+    "ochaExceedsOurDistrictPopulation": true
+   },
+   {
+    "district": "Dailekh",
+    "districtKey": "dailekh",
+    "ourDistrictPopulation": 244719,
+    "ourExposedAtMmi6": 0,
+    "ourMaxMmi": null,
+    "ochaPublishedFigure": 184163,
+    "ochaPgaG": 0.02,
+    "ochaSeverity": "Light",
+    "ochaExceedsOurDistrictPopulation": false
+   },
+   {
+    "district": "Okhaldhunga",
+    "districtKey": "okhaldhunga",
+    "ourDistrictPopulation": 127293,
+    "ourExposedAtMmi6": 127293,
+    "ourMaxMmi": 7,
+    "ochaPublishedFigure": 170827,
+    "ochaPgaG": 0.04,
+    "ochaSeverity": "Moderate",
+    "ochaExceedsOurDistrictPopulation": true
+   },
+   {
+    "district": "Parbat",
+    "districtKey": "parbat",
+    "ourDistrictPopulation": 82328,
+    "ourExposedAtMmi6": 26121,
+    "ourMaxMmi": 6,
+    "ochaPublishedFigure": 170055,
+    "ochaPgaG": 0.12,
+    "ochaSeverity": "Strong",
+    "ochaExceedsOurDistrictPopulation": true
+   },
+   {
+    "district": "Surkhet",
+    "districtKey": "surkhet",
+    "ourDistrictPopulation": 244961,
+    "ourExposedAtMmi6": 0,
+    "ourMaxMmi": null,
+    "ochaPublishedFigure": 142299,
+    "ochaPgaG": 0.04,
+    "ochaSeverity": "Moderate",
+    "ochaExceedsOurDistrictPopulation": false
+   },
+   {
+    "district": "Myagdi",
+    "districtKey": "myagdi",
+    "ourDistrictPopulation": 99200,
+    "ourExposedAtMmi6": 0,
+    "ourMaxMmi": 5.5,
+    "ochaPublishedFigure": 136357,
+    "ochaPgaG": 0.04,
+    "ochaSeverity": "Moderate",
+    "ochaExceedsOurDistrictPopulation": true
+   },
+   {
+    "district": "Jumla",
+    "districtKey": "jumla",
+    "ourDistrictPopulation": 103730,
+    "ourExposedAtMmi6": 0,
+    "ourMaxMmi": null,
+    "ochaPublishedFigure": 135002,
+    "ochaPgaG": 0.04,
+    "ochaSeverity": "Moderate",
+    "ochaExceedsOurDistrictPopulation": true
+   },
+   {
+    "district": "Solukhumbu",
+    "districtKey": "solukhumbu",
+    "ourDistrictPopulation": 47867,
+    "ourExposedAtMmi6": 46297,
+    "ourMaxMmi": 7,
+    "ochaPublishedFigure": 129883,
+    "ochaPgaG": 0.04,
+    "ochaSeverity": "Moderate",
+    "ochaExceedsOurDistrictPopulation": true
+   },
+   {
+    "district": "Kalikot",
+    "districtKey": "kalikot",
+    "ourDistrictPopulation": 65570,
+    "ourExposedAtMmi6": 0,
+    "ourMaxMmi": null,
+    "ochaPublishedFigure": 118917,
+    "ochaPgaG": 0.02,
+    "ochaSeverity": "Light",
+    "ochaExceedsOurDistrictPopulation": true
+   },
+   {
+    "district": "Terhathum",
+    "districtKey": "terhathum",
+    "ourDistrictPopulation": 86068,
+    "ourExposedAtMmi6": 0,
+    "ourMaxMmi": 4.5,
+    "ochaPublishedFigure": 92354,
+    "ochaPgaG": 0.02,
+    "ochaSeverity": "Light",
+    "ochaExceedsOurDistrictPopulation": false
+   },
+   {
+    "district": "Panchthar",
+    "districtKey": "panchthar",
+    "ourDistrictPopulation": 164412,
+    "ourExposedAtMmi6": 0,
+    "ourMaxMmi": 4.5,
+    "ochaPublishedFigure": 67463,
+    "ochaPgaG": 0.02,
+    "ochaSeverity": "Light",
+    "ochaExceedsOurDistrictPopulation": false
+   },
+   {
+    "district": "Mugu",
+    "districtKey": "mugu",
+    "ourDistrictPopulation": 53594,
+    "ourExposedAtMmi6": 0,
+    "ourMaxMmi": null,
+    "ochaPublishedFigure": 65852,
+    "ochaPgaG": 0.02,
+    "ochaSeverity": "Light",
+    "ochaExceedsOurDistrictPopulation": true
+   },
+   {
+    "district": "Bajura",
+    "districtKey": "bajura",
+    "ourDistrictPopulation": 128988,
+    "ourExposedAtMmi6": 0,
+    "ourMaxMmi": null,
+    "ochaPublishedFigure": 56318,
+    "ochaPgaG": 0.02,
+    "ochaSeverity": "Light",
+    "ochaExceedsOurDistrictPopulation": false
+   },
+   {
+    "district": "Rasuwa",
+    "districtKey": "rasuwa",
+    "ourDistrictPopulation": 38197,
+    "ourExposedAtMmi6": 38197,
+    "ourMaxMmi": 8,
+    "ochaPublishedFigure": 54144,
+    "ochaPgaG": 0.2,
+    "ochaSeverity": "Very Strong",
+    "ochaExceedsOurDistrictPopulation": true
+   },
+   {
+    "district": "Humla",
+    "districtKey": "humla",
+    "ourDistrictPopulation": 47753,
+    "ourExposedAtMmi6": 0,
+    "ourMaxMmi": null,
+    "ochaPublishedFigure": 53405,
+    "ochaPgaG": 0.02,
+    "ochaSeverity": "Light",
+    "ochaExceedsOurDistrictPopulation": true
+   },
+   {
+    "district": "Dolpa",
+    "districtKey": "dolpa",
+    "ourDistrictPopulation": 34147,
+    "ourExposedAtMmi6": 0,
+    "ourMaxMmi": 5,
+    "ochaPublishedFigure": 46442,
+    "ochaPgaG": 0.04,
+    "ochaSeverity": "Moderate",
+    "ochaExceedsOurDistrictPopulation": true
+   },
+   {
+    "district": "Taplejung",
+    "districtKey": "taplejung",
+    "ourDistrictPopulation": 109021,
+    "ourExposedAtMmi6": 0,
+    "ourMaxMmi": 5,
+    "ochaPublishedFigure": 30490,
+    "ochaPgaG": 0.02,
+    "ochaSeverity": "Light",
+    "ochaExceedsOurDistrictPopulation": false
+   },
+   {
+    "district": "Bardiya",
+    "districtKey": "bardiya",
+    "ourDistrictPopulation": 394396,
+    "ourExposedAtMmi6": 0,
+    "ourMaxMmi": null,
+    "ochaPublishedFigure": 19235,
+    "ochaPgaG": 0.02,
+    "ochaSeverity": "Light",
+    "ochaExceedsOurDistrictPopulation": false
+   },
+   {
+    "district": "Mustang",
+    "districtKey": "mustang",
+    "ourDistrictPopulation": 10968,
+    "ourExposedAtMmi6": 51,
+    "ourMaxMmi": 6,
+    "ochaPublishedFigure": 16583,
+    "ochaPgaG": 0.04,
+    "ochaSeverity": "Moderate",
+    "ochaExceedsOurDistrictPopulation": true
+   },
+   {
+    "district": "Manang",
+    "districtKey": "manang",
+    "ourDistrictPopulation": 4639,
+    "ourExposedAtMmi6": 4594,
+    "ourMaxMmi": 7.5,
+    "ochaPublishedFigure": 9471,
+    "ochaPgaG": 0.08,
+    "ochaSeverity": "Moderate",
+    "ochaExceedsOurDistrictPopulation": true
+   },
+   {
+    "district": "Ilam",
+    "districtKey": "ilam",
+    "ourDistrictPopulation": 262369,
+    "ourExposedAtMmi6": 0,
+    "ourMaxMmi": 4.5,
+    "ochaPublishedFigure": 2144,
+    "ochaPgaG": 0.02,
+    "ochaSeverity": "Light",
+    "ochaExceedsOurDistrictPopulation": false
+   },
+   {
+    "district": "Jhapa",
+    "districtKey": "jhapa",
+    "ourDistrictPopulation": 765601,
+    "ourExposedAtMmi6": 0,
+    "ourMaxMmi": 4.5,
+    "ochaPublishedFigure": 1511,
+    "ochaPgaG": 0.02,
+    "ochaSeverity": "Light",
+    "ochaExceedsOurDistrictPopulation": false
+   }
+  ]
+ },
+ "discrepancyAnalysis": {
+  "question": "Why is our exposure estimate not reconciled against OCHA’s published figures?",
+  "finding": "Because the reference cannot be pinned to a definition. Two readings were tested against the data and both fail: the column is not district total population, and it is not population within the shaken footprint. Until OCHA’s column is defined, a difference against it measures nothing.",
+  "howThisWasFound": [
+   "The comparison was first built assuming district total population, and produced a median disagreement of -24%.",
+   "Jhapa reads 1,511 and Ilam 2,144 in that column — impossible as district populations, which pointed to a clipped or exposed subset.",
+   "The dataset title, \"Estimated Population EXPOSED to Nepal Earthquake shaking\", and the shape_leng and shape_area columns in the attribute table both support a GIS overlay of PGA bands against districts.",
+   "But in 52 of 66 paired districts the figure exceeds the district’s own population, which a clipped subset cannot do, so that reading fails too.",
+   "HDX documents the dataset as \"Population data by district and severity class\" with methodology \"Census\" and no column definitions."
+  ],
+  "separatelyResolved": [
+   {
+    "issue": "District geometry",
+    "resolution": "The first version of this analysis used geoBoundaries, whose ~50 vertices per district put a point in Patan inside Kathmandu and merged two pairs of identically named polygons. It now uses OCHA COD-AB at 329 vertices per district after simplification, with six known settlements re-verified against the simplified geometry. Every one resolves correctly."
+   },
+   {
+    "issue": "District name matching",
+    "resolution": "All 66 OCHA districts now resolve to a boundary polygon, 64 exactly and 2 by bounded edit distance. Under the previous frame only 55 resolved."
+   },
+   {
+    "issue": "Population outside any district",
+    "resolution": "Cells that strict containment cannot place are attributed to the nearest district within 20 km, which places all of them; both the strict and filled figures are reported."
+   }
+  ],
+  "remainingUncertaintyInOurOwnEstimate": [
+   "WorldPop is a modelled allocation, and in dense urban districts it differs materially from census counts. Our Kathmandu district figure is well above the 2011 census count projected forward, while Lalitpur and Morang land within a few per cent of theirs. The direction and size of that error is a property of the population model, not of this pipeline.",
+   "MMI is itself modelled from sparse instrumentation; Nepal had few strong-motion stations in 2015.",
+   "A cell is assigned whole to the contour containing its centre, so cells straddling a contour are counted entirely on one side."
+  ],
+  "conclusion": "Our exposure figures stand on their own stated definition and are reproducible from the committed artefacts. They are presented beside OCHA’s published figures without a difference column, because the reference’s own definition could not be established. Reporting a difference would have been easy and would have meant nothing."
+ }
+}

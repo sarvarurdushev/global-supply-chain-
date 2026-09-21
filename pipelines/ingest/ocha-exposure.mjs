@@ -63,13 +63,20 @@ export async function ingestOchaExposure({ force = false } = {}) {
   const { rows } = parseCsv(new TextDecoder().decode(raw.bytes));
   const log = createQualityLog(record.id);
 
-  /* The verified crosswalk decides what a district name means here too. */
+  /*
+   * District names are resolved against the COD-AB frame, which is
+   * authoritative and carries p-codes. OCHA's own spellings differ from it —
+   * "Chitawan" for Chitwan, "Kapilbastu" for Kapilvastu, "Terhathum" for
+   * Tehrathum — so the match is by bounded edit distance with the distance
+   * recorded, never a hand-written table, and an ambiguous or distant name is
+   * left unresolved rather than snapped to a neighbour.
+   */
   let canonicalKeys = null;
   try {
     const file = JSON.parse(
-      await readFile(path.join(PROCESSED, 'nepal-district-name-crosswalk.json'), 'utf8'),
+      await readFile(path.join(PROCESSED, 'nepal-districts-adm2-2015.json'), 'utf8'),
     );
-    canonicalKeys = [...new Set(file.data.entries.map((entry) => entry.joinKey).filter(Boolean))];
+    canonicalKeys = file.data.features.map((feature) => feature.properties.districtKey);
   } catch {
     canonicalKeys = null;
   }
@@ -115,7 +122,7 @@ export async function ingestOchaExposure({ force = false } = {}) {
      */
     const resolution = canonicalKeys
       ? resolveName(key, canonicalKeys)
-      : { matched: null, distance: null, reason: 'no crosswalk available' };
+      : { matched: null, distance: null, reason: 'no boundary frame available' };
     if (canonicalKeys && !resolution.matched) {
       unresolved.push({ district: name, reason: resolution.reason });
       log.note(
@@ -184,7 +191,7 @@ export async function ingestOchaExposure({ force = false } = {}) {
       { step: 'RAW', detail: `CSV ${formatBytes(raw.bytes.length)}, sha256 ${raw.sha256.slice(0, 16)}` },
       { step: 'READER', detail: 'RFC 4180 parser; quoted fields containing the delimiter preserved' },
       { step: 'VALIDATE', detail: 'population parseable, PGA within 0-2 g, district unique' },
-      { step: 'RESOLVE', detail: 'district names matched to the verified boundary crosswalk by bounded edit distance; ambiguous or distant names left unresolved rather than snapped to a neighbour' },
+      { step: 'RESOLVE', detail: 'district names matched to the COD-AB frame by bounded edit distance; ambiguous or distant names left unresolved rather than snapped to a neighbour' },
       { step: 'PROCESS', detail: `${repaired} population values carried a thousands separator and were repaired; each repair is logged` },
       { step: 'ARTEFACT', detail: 'data/processed/nepal-2015-ocha-district-exposure.json' },
     ]),

@@ -17,7 +17,6 @@ import { ingestUsgsEvents } from './ingest/usgs-events.mjs';
 import { ingestShakeMap } from './ingest/shakemap.mjs';
 import { ingestUnosatDamage } from './ingest/unosat-damage.mjs';
 import { ingestBoundaries } from './ingest/boundaries.mjs';
-import { ingestDistrictNames } from './ingest/district-names.mjs';
 import { ingestOchaExposure } from './ingest/ocha-exposure.mjs';
 import { ingestWorldPop } from './ingest/worldpop.mjs';
 
@@ -27,8 +26,7 @@ const STEPS = [
   ['USGS events and aftershocks', ingestUsgsEvents],
   ['USGS ShakeMap contours', ingestShakeMap],
   ['UNOSAT / Copernicus / NGA damage', ingestUnosatDamage],
-  ['Nepal district boundaries', ingestBoundaries],
-  ['District name verification', ingestDistrictNames],
+  ['Nepal district boundaries (COD-AB)', ingestBoundaries],
   ['OCHA district exposure', ingestOchaExposure],
   ['WorldPop 2015 population', ingestWorldPop],
 ];

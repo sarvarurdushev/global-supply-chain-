@@ -1,0 +1,6 @@
+cod-ab-npl-adm2: read 77, kept 77, dropped 0 (retention 100.00%)
+  REPAIRED x4
+    - "Nawalparasi East" is a post-2017 split; merged into the 2015 district "Nawalparasi"
+    - "Nawalparasi West" is a post-2017 split; merged into the 2015 district "Nawalparasi"
+    - "Rukum East" is a post-2017 split; merged into the 2015 district "Rukum"
+    - "Rukum West" is a post-2017 split; merged into the 2015 district "Rukum"

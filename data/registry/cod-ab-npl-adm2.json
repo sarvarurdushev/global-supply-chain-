@@ -1,0 +1,30 @@
+{
+ "id": "cod-ab-npl-adm2",
+ "datasetName": "Nepal Subnational Administrative Boundaries (COD-AB), ADM2",
+ "publisher": "UN OCHA Field Information Services Section",
+ "sourceUrl": "https://data.humdata.org/dataset/07db728a-4f0f-4e98-8eb0-8fa9df61f01c/resource/b6ab1a5a-8b6e-41fb-a61f-8202ce98d16c/download/npl_admin_boundaries.shp.zip",
+ "license": "CC BY-IGO 3.0",
+ "redistribution": "SHARE_ALIKE",
+ "retrievedAt": "2026-09-21",
+ "originalFormat": "ESRI Shapefile inside a zip archive",
+ "temporalCoverage": "current administrative divisions; merged here to the 2015 75-district frame",
+ "geographicCoverage": "Nepal, all districts",
+ "coordinateSystem": "EPSG:4326",
+ "description": "The authoritative humanitarian district boundary for Nepal, carrying p-codes. Published as the current 77 districts and merged here to the 75-district system the 2015 earthquake is reported against.",
+ "dataClass": "OFFICIAL",
+ "attribution": "UN OCHA (data.humdata.org), CC BY-IGO",
+ "discoveredVia": "https://data.humdata.org/dataset/cod-ab-npl",
+ "fields": [
+  "adm2_name",
+  "adm2_pcode",
+  "adm1_name",
+  "adm1_pcode",
+  "area_sqkm"
+ ],
+ "limitations": [
+  "Published for the CURRENT administrative divisions. The 2015 frame is reconstructed by merging Nawalparasi East and West, and Rukum East and West; every other district is unchanged by the 2017 restructuring.",
+  "Simplified to 100 m for a committable file size. Containment of known settlements is re-verified after simplification, but a point within about 100 m of a district border may fall on the wrong side.",
+  "A merged district carries two p-codes, because the 2015 district it represents no longer has one of its own."
+ ],
+ "schemaVersion": 1
+}

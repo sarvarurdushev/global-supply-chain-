@@ -1,4 +1,0 @@
-geoboundaries-npl-adm2: read 75, kept 75, dropped 0 (retention 100.00%)
-  DUPLICATE_RECORD x2
-    - district name "Bara" appears more than once; kept
-    - district name "Saptari" appears more than once; kept

@@ -32,7 +32,7 @@
   },
   {
    "step": "RESOLVE",
-   "detail": "district names matched to the verified boundary crosswalk by bounded edit distance; ambiguous or distant names left unresolved rather than snapped to a neighbour"
+   "detail": "district names matched to the COD-AB frame by bounded edit distance; ambiguous or distant names left unresolved rather than snapped to a neighbour"
   },
   {
    "step": "PROCESS",
@@ -52,7 +52,7 @@
   "issues": [
    {
     "code": "REPAIRED",
-    "count": 73,
+    "count": 68,
     "details": [
      "population thousands separator removed for Arghakhanchi",
      "population thousands separator removed for Baglung",
@@ -63,7 +63,6 @@
      "population thousands separator removed for Bhaktapur",
      "population thousands separator removed for Bhojpur",
      "population thousands separator removed for Chitawan",
-     "district \"Chitawan\" resolved to \"chitwan\" (1 edit(s))",
      "population thousands separator removed for Dailekh",
      "population thousands separator removed for Dang",
      "population thousands separator removed for Dhading",
@@ -81,7 +80,6 @@
      "district \"Kabhrepalanchok\" resolved to \"kavrepalanchok\" (2 edit(s))",
      "population thousands separator removed for Kalikot",
      "population thousands separator removed for Kapilbastu",
-     "district \"Kapilbastu\" resolved to \"kapilvastu\" (1 edit(s))",
      "population thousands separator removed for Kaski",
      "population thousands separator removed for Kathmandu",
      "population thousands separator removed for Khotang",
@@ -115,17 +113,14 @@
      "population thousands separator removed for Sarlahi",
      "population thousands separator removed for Sindhuli",
      "population thousands separator removed for Sindhupalchok",
-     "district \"Sindhupalchok\" resolved to \"sindhupalchowk\" (1 edit(s))",
      "population thousands separator removed for Siraha",
      "population thousands separator removed for Solukhumbu",
      "population thousands separator removed for Sunsari",
      "population thousands separator removed for Surkhet",
      "population thousands separator removed for Syangja",
      "population thousands separator removed for Tanahu",
-     "district \"Tanahu\" resolved to \"tanahun\" (1 edit(s))",
      "population thousands separator removed for Taplejung",
      "population thousands separator removed for Terhathum",
-     "district \"Terhathum\" resolved to \"tehrathum\" (2 edit(s))",
      "population thousands separator removed for Udayapur"
     ],
     "samples": [
@@ -134,22 +129,6 @@
      "56,318",
      "335,280",
      "863,620"
-    ]
-   },
-   {
-    "code": "UNEXPECTED_CATEGORY",
-    "count": 4,
-    "details": [
-     "district \"Jajarkot\" does not resolve to a boundary polygon: nearest candidate \"nuwakot\" is 4 edits away, beyond the 2-edit limit",
-     "district \"Nawalparasi\" does not resolve to a boundary polygon: nearest candidate \"nawalpur\" is 4 edits away, beyond the 2-edit limit",
-     "district \"Rukum\" does not resolve to a boundary polygon: nearest candidate \"mugu\" is 3 edits away, beyond the 2-edit limit",
-     "district \"Rupandehi\" does not resolve to a boundary polygon: nearest candidate \"myagdi\" is 6 edits away, beyond the 2-edit limit"
-    ],
-    "samples": [
-     "Jajarkot",
-     "Nawalparasi",
-     "Rukum",
-     "Rupandehi"
     ]
    }
   ]
@@ -170,37 +149,15 @@
    "Very Strong",
    "Severe"
   ],
-  "joinsToVerifiedBoundary": 62,
-  "joinedExactly": 55,
+  "joinsToVerifiedBoundary": 66,
+  "joinedExactly": 64,
   "joinedByTransliteration": [
-   "Chitawan -> chitwan (1 edit(s))",
    "Kabhrepalanchok -> kavrepalanchok (2 edit(s))",
-   "Kapilbastu -> kapilvastu (1 edit(s))",
-   "Makawanpur -> makwanpur (1 edit(s))",
-   "Sindhupalchok -> sindhupalchowk (1 edit(s))",
-   "Tanahu -> tanahun (1 edit(s))",
-   "Terhathum -> tehrathum (2 edit(s))"
+   "Makawanpur -> makwanpur (1 edit(s))"
   ],
-  "unjoinable": [
-   {
-    "district": "Jajarkot",
-    "reason": "nearest candidate \"nuwakot\" is 4 edits away, beyond the 2-edit limit"
-   },
-   {
-    "district": "Nawalparasi",
-    "reason": "nearest candidate \"nawalpur\" is 4 edits away, beyond the 2-edit limit"
-   },
-   {
-    "district": "Rukum",
-    "reason": "nearest candidate \"mugu\" is 3 edits away, beyond the 2-edit limit"
-   },
-   {
-    "district": "Rupandehi",
-    "reason": "nearest candidate \"myagdi\" is 6 edits away, beyond the 2-edit limit"
-   }
-  ],
+  "unjoinable": [],
   "unjoinableNote": "Four districts have no boundary polygon to join to, for three different reasons, none of which is a spelling problem: the polygon labelled \"Jajarkot\" is actually Dailekh so Jajarkot is absent; Nawalparasi and Rukum were each split into two units after 2015 and no single polygon represents the 2015 district; Rupandehi is simply missing from the source file. Aggregating the post-2015 halves back into their 2015 districts is an analysis decision with its own arithmetic and is not done here.",
-  "populationInJoinableDistricts": 23164686
+  "populationInJoinableDistricts": 25473810
  },
  "limitations": [
   "Peak ground acceleration, not Modified Mercalli intensity: PGA and MMI are different measures and the two must not be plotted on one scale.",
@@ -317,9 +274,9 @@
    {
     "district": "Chitawan",
     "districtKey": "chitawan",
-    "joinKey": "chitwan",
-    "joinDistance": 1,
-    "joinBasis": "transliteration difference, 1 edit(s), unambiguous",
+    "joinKey": "chitawan",
+    "joinDistance": 0,
+    "joinBasis": "exact match",
     "zone": "Narayani",
     "population": 740838,
     "pgaG": 0.08,
@@ -460,15 +417,15 @@
    {
     "district": "Jajarkot",
     "districtKey": "jajarkot",
-    "joinKey": null,
-    "joinDistance": 4,
-    "joinBasis": "nearest candidate \"nuwakot\" is 4 edits away, beyond the 2-edit limit",
+    "joinKey": "jajarkot",
+    "joinDistance": 0,
+    "joinBasis": "exact match",
     "zone": "Bheri",
     "population": 208409,
     "pgaG": 0.02,
     "severityClass": "Light",
     "ochaPcode": "M-BHE-61",
-    "joinsToBoundary": false
+    "joinsToBoundary": true
    },
    {
     "district": "Jhapa",
@@ -525,9 +482,9 @@
    {
     "district": "Kapilbastu",
     "districtKey": "kapilbastu",
-    "joinKey": "kapilvastu",
-    "joinDistance": 1,
-    "joinBasis": "transliteration difference, 1 edit(s), unambiguous",
+    "joinKey": "kapilbastu",
+    "joinDistance": 0,
+    "joinBasis": "exact match",
     "zone": "Lumbini",
     "population": 674846,
     "pgaG": 0.04,
@@ -694,15 +651,15 @@
    {
     "district": "Nawalparasi",
     "districtKey": "nawalparasi",
-    "joinKey": null,
-    "joinDistance": 4,
-    "joinBasis": "nearest candidate \"nawalpur\" is 4 edits away, beyond the 2-edit limit",
+    "joinKey": "nawalparasi",
+    "joinDistance": 0,
+    "joinBasis": "exact match",
     "zone": "Lumbini",
     "population": 743787,
     "pgaG": 0.08,
     "severityClass": "Moderate",
     "ochaPcode": "W-LUM-48",
-    "joinsToBoundary": false
+    "joinsToBoundary": true
    },
    {
     "district": "Nuwakot",
@@ -850,28 +807,28 @@
    {
     "district": "Rukum",
     "districtKey": "rukum",
-    "joinKey": null,
-    "joinDistance": 3,
-    "joinBasis": "nearest candidate \"mugu\" is 3 edits away, beyond the 2-edit limit",
+    "joinKey": "rukum",
+    "joinDistance": 0,
+    "joinBasis": "exact match",
     "zone": "Rapti",
     "population": 250547,
     "pgaG": 0.04,
     "severityClass": "Moderate",
     "ochaPcode": "M-RAP-54",
-    "joinsToBoundary": false
+    "joinsToBoundary": true
    },
    {
     "district": "Rupandehi",
     "districtKey": "rupandehi",
-    "joinKey": null,
-    "joinDistance": 6,
-    "joinBasis": "nearest candidate \"myagdi\" is 6 edits away, beyond the 2-edit limit",
+    "joinKey": "rupandehi",
+    "joinDistance": 0,
+    "joinBasis": "exact match",
     "zone": "Lumbini",
     "population": 1106381,
     "pgaG": 0.12,
     "severityClass": "Strong",
     "ochaPcode": "W-LUM-49",
-    "joinsToBoundary": false
+    "joinsToBoundary": true
    },
    {
     "district": "Salyan",
@@ -941,9 +898,9 @@
    {
     "district": "Sindhupalchok",
     "districtKey": "sindhupalchok",
-    "joinKey": "sindhupalchowk",
-    "joinDistance": 1,
-    "joinBasis": "transliteration difference, 1 edit(s), unambiguous",
+    "joinKey": "sindhupalchok",
+    "joinDistance": 0,
+    "joinBasis": "exact match",
     "zone": "Bagmati",
     "population": 336829,
     "pgaG": 0.12,
@@ -1019,9 +976,9 @@
    {
     "district": "Tanahu",
     "districtKey": "tanahu",
-    "joinKey": "tanahun",
-    "joinDistance": 1,
-    "joinBasis": "transliteration difference, 1 edit(s), unambiguous",
+    "joinKey": "tanahu",
+    "joinDistance": 0,
+    "joinBasis": "exact match",
     "zone": "Gandaki",
     "population": 409691,
     "pgaG": 0.36,
@@ -1045,9 +1002,9 @@
    {
     "district": "Terhathum",
     "districtKey": "terhathum",
-    "joinKey": "tehrathum",
-    "joinDistance": 2,
-    "joinBasis": "transliteration difference, 2 edit(s), unambiguous",
+    "joinKey": "terhathum",
+    "joinDistance": 0,
+    "joinBasis": "exact match",
     "zone": "Koshi",
     "population": 92354,
     "pgaG": 0.02,

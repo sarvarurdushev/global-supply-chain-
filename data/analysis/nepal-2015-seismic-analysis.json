@@ -1,0 +1,2093 @@
+{
+ "schemaVersion": 1,
+ "stage": 3,
+ "generatedAt": "2026-09-21",
+ "dataClass": "DERIVED",
+ "source": {
+  "datasetId": "usgs-nepal-2015-seismic",
+  "sourceUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=2015-04-25&endtime=2016-04-25&latitude=28.147&longitude=84.708&maxradiuskm=300&minmagnitude=2.5&orderby=time-asc",
+  "license": "US Government public domain (17 U.S.C. §105)",
+  "attribution": "Data courtesy of the U.S. Geological Survey"
+ },
+ "validation": {
+  "eventCount": 316,
+  "expectedEventCount": 316,
+  "eventCountMatches": true,
+  "mainShock": {
+   "id": "us20002926",
+   "magnitude": 7.8,
+   "time": "2015-04-25T06:11:25.950Z",
+   "longitude": 84.7314,
+   "latitude": 28.2305,
+   "depthKm": 8.22,
+   "matchesPublished": true
+  },
+  "may12Aftershock": {
+   "id": "us20002ejl",
+   "magnitude": 7.3,
+   "time": "2015-05-12T07:05:19.730Z",
+   "hoursFromMainShock": 408.8983,
+   "distanceFromEpicentreKm": 139.267,
+   "matchesExpected": true
+  },
+  "duplicateIds": [],
+  "partition": {
+   "foreshocks": 0,
+   "mainShock": 1,
+   "aftershocks": 315,
+   "sum": 316,
+   "reconciles": true
+  },
+  "magnitudeBandsSumToTotal": true,
+  "depthAccountedFor": true,
+  "failures": [],
+  "passed": true
+ },
+ "methodology": [
+  {
+   "schemaVersion": 1,
+   "id": "seismic-magnitude-distribution",
+   "name": "Magnitude distribution of the Gorkha sequence",
+   "question": "How were the magnitudes of the 2015 Nepal earthquake sequence distributed?",
+   "inputs": [
+    {
+     "dataset": "usgs-nepal-2015-seismic",
+     "role": "the validated event catalogue, 316 events of M2.5+ within 300 km in the year after the main shock"
+    }
+   ],
+   "method": "Events counted into fixed magnitude bands; minimum, maximum, mean and median computed over the whole catalogue and over the aftershocks alone.",
+   "formula": "count(M in [min, max)) per band",
+   "outputs": [
+    "count per magnitude band",
+    "min",
+    "max",
+    "mean",
+    "median"
+   ],
+   "visualisation": "Histogram, with the main shock marked separately from the aftershocks.",
+   "dataClass": "DERIVED",
+   "limitations": [
+    "The catalogue is complete only above its completeness magnitude; counts in the lowest band are a lower bound, not a measurement.",
+    "Band edges are a presentation choice. The underlying magnitudes are continuous and the shape of the distribution depends on where the edges fall."
+   ]
+  },
+  {
+   "schemaVersion": 1,
+   "id": "seismic-depth-distribution",
+   "name": "Depth distribution of the Gorkha sequence",
+   "question": "At what depths did the 2015 Nepal earthquake sequence occur?",
+   "inputs": [
+    {
+     "dataset": "usgs-nepal-2015-seismic",
+     "role": "the validated event catalogue, 316 events of M2.5+ within 300 km in the year after the main shock"
+    }
+   ],
+   "method": "Events counted into seismological depth bands. Events without a reported depth are counted separately and never treated as zero.",
+   "outputs": [
+    "count per depth band",
+    "events with depth",
+    "events missing depth",
+    "min",
+    "max",
+    "mean",
+    "median"
+   ],
+   "visualisation": "Histogram, with a stated count of events carrying no depth.",
+   "dataClass": "DERIVED",
+   "limitations": [
+    "Depths for shallow continental earthquakes carry uncertainties of several kilometres, and some are fixed by the analyst rather than solved from the data. The distribution is coarser than its decimal places suggest.",
+    "A depth band boundary is a convention, not a physical interface."
+   ]
+  },
+  {
+   "schemaVersion": 1,
+   "id": "seismic-temporal-series",
+   "name": "Temporal evolution of the sequence",
+   "question": "How did seismic activity evolve in the hours, days and months after the main shock?",
+   "inputs": [
+    {
+     "dataset": "usgs-nepal-2015-seismic",
+     "role": "the validated event catalogue, 316 events of M2.5+ within 300 km in the year after the main shock"
+    }
+   ],
+   "method": "Events bucketed by hours from the main shock for the first three days and by days thereafter, with a running cumulative count. Bucket width changes because the rate falls by orders of magnitude over the window.",
+   "outputs": [
+    "events per hour for 72 hours",
+    "events per day",
+    "cumulative count",
+    "first-day count",
+    "first-week count"
+   ],
+   "visualisation": "Timeline driven by the real timestamps, with the main shock and the 12 May aftershock marked.",
+   "dataClass": "DERIVED",
+   "limitations": [
+    "Small aftershocks in the hours immediately after the main shock are masked by its coda and are missing from the catalogue, so the first buckets understate the true rate most severely.",
+    "The catalogue window ends one year after the main shock; the sequence did not."
+   ]
+  },
+  {
+   "schemaVersion": 1,
+   "id": "seismic-gutenberg-richter",
+   "name": "Gutenberg-Richter b-value for the aftershock sequence",
+   "question": "Does the aftershock sequence follow the standard magnitude-frequency relation, and with what b-value?",
+   "inputs": [
+    {
+     "dataset": "usgs-nepal-2015-seismic",
+     "role": "the validated event catalogue, 316 events of M2.5+ within 300 km in the year after the main shock"
+    }
+   ],
+   "method": "Completeness magnitude estimated by maximum curvature, then least squares on log10 of the cumulative count against magnitude, restricted to events at or above it.",
+   "formula": "log10 N(>=M) = a - b*M",
+   "parameters": {
+    "completenessMagnitude": 4,
+    "binWidth": 0.1
+   },
+   "parameterJustification": "The completeness magnitude is estimated from the catalogue itself rather than chosen, by the maximum-curvature method. The 0.1 bin width matches the precision magnitudes are reported to.",
+   "outputs": [
+    "b-value",
+    "a-value",
+    "R-squared",
+    "completeness magnitude",
+    "events used"
+   ],
+   "visualisation": "Log-linear plot of cumulative count against magnitude with the fitted line.",
+   "dataClass": "DERIVED",
+   "limitations": [
+    "Maximum curvature returns Mc = 4.0 for this catalogue, but the magnitude histogram has a cliff at exactly M4.0 — 41 events at 4.0 against 2 at 3.9 — which is the signature of a REPORTING threshold, not a detection limit. The true completeness is higher, so the b fitted at 4.0 is probably biased.",
+    "Because of that, b is reported across a range of plausible completeness cuts as well as at the estimated Mc. The spread across those cuts is the honest uncertainty; a single value to three decimals is false precision.",
+    "The R-squared describes the quality of the line fit, not a confidence interval on b, which is not computed here.",
+    "b is a property of the catalogue as recorded, not of the crust alone."
+   ]
+  },
+  {
+   "schemaVersion": 1,
+   "id": "seismic-omori-decay",
+   "name": "Omori decay of the aftershock rate",
+   "question": "How quickly did the aftershock rate decay after the main shock?",
+   "inputs": [
+    {
+     "dataset": "usgs-nepal-2015-seismic",
+     "role": "the validated event catalogue, 316 events of M2.5+ within 300 km in the year after the main shock"
+    }
+   ],
+   "method": "Daily aftershock counts fitted by least squares in log-log space against time since the main shock, with the offset c held fixed. Fitted three ways: across the whole window, and segmented before and after the largest aftershock, which resets the sequence.",
+   "formula": "n(t) = K / (t + c)^p",
+   "parameters": {
+    "c": 0.1,
+    "minimumDaysFitted": 5
+   },
+   "parameterJustification": "c is held at 0.1 days rather than fitted: three free parameters against a few dozen daily counts would produce a number with no meaning. Holding it and reporting that is more honest than fitting it and not.",
+   "outputs": [
+    "p-value",
+    "K",
+    "R-squared",
+    "days fitted",
+    "daily counts"
+   ],
+   "visualisation": "Log-log plot of daily rate against time with the fitted decay curve.",
+   "dataClass": "DERIVED",
+   "limitations": [
+    "A single fit across the whole year returns p = 0.42 with R-squared 0.44. That is not noise: Omori describes decay from ONE main shock, and the M7.3 of 12 May restarted the sequence seventeen days in. The segmented fits are the defensible numbers and the whole-window fit is retained only as the evidence for splitting.",
+    "The window after 12 May is superimposed on the continuing decay from 25 April, so re-zeroing it on the M7.3 is itself an approximation, and its fit is correspondingly poor.",
+    "Daily counts at long lags are small, so the tail of any of these fits is noisy.",
+    "The first day is the most incomplete part of the catalogue and also the most influential point in a log-log fit."
+   ]
+  },
+  {
+   "schemaVersion": 1,
+   "id": "seismic-spatial-distribution",
+   "name": "Spatial distribution of the sequence",
+   "question": "Where did the aftershocks occur relative to the epicentre, and over what extent?",
+   "inputs": [
+    {
+     "dataset": "usgs-nepal-2015-seismic",
+     "role": "the validated event catalogue, 316 events of M2.5+ within 300 km in the year after the main shock"
+    }
+   ],
+   "method": "Distance from the main-shock epicentre computed for every event in EPSG:32645 metres; bounding box and east-west and north-south extents derived.",
+   "outputs": [
+    "bounding box",
+    "extent in km",
+    "distance distribution",
+    "counts within 50/100/200 km"
+   ],
+   "visualisation": "Map with magnitude-scaled markers, the main shock distinguished from aftershocks.",
+   "dataClass": "DERIVED",
+   "limitations": [
+    "Epicentres are horizontal projections of hypocentres; two events 5 km apart on the map may be 30 km apart in the rock.",
+    "Location uncertainty for these events is of order kilometres and is not represented in the marker positions.",
+    "The 300 km search radius is a circle drawn around the epicentre, not a tectonic boundary. Events near its edge belong to other structures."
+   ]
+  }
+ ],
+ "results": {
+  "mainShock": {
+   "id": "us20002926",
+   "magnitude": 7.8,
+   "magType": "mww",
+   "time": "2015-04-25T06:11:25.950Z",
+   "longitude": 84.7314,
+   "latitude": 28.2305,
+   "depthKm": 8.22,
+   "place": "67 km NNE of Bharatpur, Nepal",
+   "mmi": 8.718,
+   "alert": "red"
+  },
+  "counts": {
+   "total": 316,
+   "foreshocksInWindow": 0,
+   "aftershocks": 315
+  },
+  "magnitude": {
+   "bands": [
+    {
+     "label": "M2.5-4",
+     "min": 2.5,
+     "max": 4,
+     "count": 10
+    },
+    {
+     "label": "M4-5",
+     "min": 4,
+     "max": 5,
+     "count": 270
+    },
+    {
+     "label": "M5-6",
+     "min": 5,
+     "max": 6,
+     "count": 30
+    },
+    {
+     "label": "M6-7",
+     "min": 6,
+     "max": 7,
+     "count": 4
+    },
+    {
+     "label": "M7+",
+     "min": 7,
+     "max": null,
+     "count": 2
+    }
+   ],
+   "total": 316,
+   "min": 3.4,
+   "max": 7.8,
+   "median": 4.3,
+   "mean": 4.449
+  },
+  "aftershockMagnitude": {
+   "bands": [
+    {
+     "label": "M2.5-4",
+     "min": 2.5,
+     "max": 4,
+     "count": 10
+    },
+    {
+     "label": "M4-5",
+     "min": 4,
+     "max": 5,
+     "count": 270
+    },
+    {
+     "label": "M5-6",
+     "min": 5,
+     "max": 6,
+     "count": 30
+    },
+    {
+     "label": "M6-7",
+     "min": 6,
+     "max": 7,
+     "count": 4
+    },
+    {
+     "label": "M7+",
+     "min": 7,
+     "max": null,
+     "count": 1
+    }
+   ],
+   "total": 315,
+   "min": 3.4,
+   "max": 7.3,
+   "median": 4.3,
+   "mean": 4.438
+  },
+  "depth": {
+   "bands": [
+    {
+     "label": "0-10 km",
+     "min": 0,
+     "max": 10,
+     "count": 15
+    },
+    {
+     "label": "10-20 km",
+     "min": 10,
+     "max": 20,
+     "count": 289
+    },
+    {
+     "label": "20-35 km",
+     "min": 20,
+     "max": 35,
+     "count": 10
+    },
+    {
+     "label": "35-70 km",
+     "min": 35,
+     "max": 70,
+     "count": 2
+    },
+    {
+     "label": "70 km+",
+     "min": 70,
+     "max": null,
+     "count": 0
+    }
+   ],
+   "withDepth": 316,
+   "missingDepth": 0,
+   "min": 2.64,
+   "max": 42.44,
+   "median": 10,
+   "mean": 10.95
+  },
+  "temporal": {
+   "beforeMainShock": 0,
+   "firstThreeDaysHourly": [
+    {
+     "hour": 0,
+     "count": 21,
+     "cumulative": 21
+    },
+    {
+     "hour": 1,
+     "count": 12,
+     "cumulative": 33
+    },
+    {
+     "hour": 2,
+     "count": 11,
+     "cumulative": 44
+    },
+    {
+     "hour": 3,
+     "count": 7,
+     "cumulative": 51
+    },
+    {
+     "hour": 4,
+     "count": 7,
+     "cumulative": 58
+    },
+    {
+     "hour": 5,
+     "count": 5,
+     "cumulative": 63
+    },
+    {
+     "hour": 6,
+     "count": 4,
+     "cumulative": 67
+    },
+    {
+     "hour": 7,
+     "count": 4,
+     "cumulative": 71
+    },
+    {
+     "hour": 10,
+     "count": 1,
+     "cumulative": 72
+    },
+    {
+     "hour": 11,
+     "count": 2,
+     "cumulative": 74
+    },
+    {
+     "hour": 12,
+     "count": 1,
+     "cumulative": 75
+    },
+    {
+     "hour": 13,
+     "count": 1,
+     "cumulative": 76
+    },
+    {
+     "hour": 14,
+     "count": 2,
+     "cumulative": 78
+    },
+    {
+     "hour": 17,
+     "count": 4,
+     "cumulative": 82
+    },
+    {
+     "hour": 19,
+     "count": 1,
+     "cumulative": 83
+    },
+    {
+     "hour": 20,
+     "count": 2,
+     "cumulative": 85
+    },
+    {
+     "hour": 21,
+     "count": 1,
+     "cumulative": 86
+    },
+    {
+     "hour": 22,
+     "count": 3,
+     "cumulative": 89
+    },
+    {
+     "hour": 24,
+     "count": 1,
+     "cumulative": 90
+    },
+    {
+     "hour": 25,
+     "count": 5,
+     "cumulative": 95
+    },
+    {
+     "hour": 26,
+     "count": 3,
+     "cumulative": 98
+    },
+    {
+     "hour": 27,
+     "count": 1,
+     "cumulative": 99
+    },
+    {
+     "hour": 30,
+     "count": 2,
+     "cumulative": 101
+    },
+    {
+     "hour": 32,
+     "count": 2,
+     "cumulative": 103
+    },
+    {
+     "hour": 34,
+     "count": 1,
+     "cumulative": 104
+    },
+    {
+     "hour": 35,
+     "count": 1,
+     "cumulative": 105
+    },
+    {
+     "hour": 36,
+     "count": 1,
+     "cumulative": 106
+    },
+    {
+     "hour": 38,
+     "count": 1,
+     "cumulative": 107
+    },
+    {
+     "hour": 40,
+     "count": 1,
+     "cumulative": 108
+    },
+    {
+     "hour": 42,
+     "count": 1,
+     "cumulative": 109
+    },
+    {
+     "hour": 43,
+     "count": 1,
+     "cumulative": 110
+    },
+    {
+     "hour": 46,
+     "count": 1,
+     "cumulative": 111
+    },
+    {
+     "hour": 47,
+     "count": 1,
+     "cumulative": 112
+    },
+    {
+     "hour": 55,
+     "count": 1,
+     "cumulative": 113
+    },
+    {
+     "hour": 56,
+     "count": 2,
+     "cumulative": 115
+    },
+    {
+     "hour": 57,
+     "count": 1,
+     "cumulative": 116
+    },
+    {
+     "hour": 60,
+     "count": 1,
+     "cumulative": 117
+    },
+    {
+     "hour": 63,
+     "count": 2,
+     "cumulative": 119
+    },
+    {
+     "hour": 65,
+     "count": 1,
+     "cumulative": 120
+    }
+   ],
+   "daily": [
+    {
+     "day": 0,
+     "count": 89,
+     "cumulative": 89
+    },
+    {
+     "day": 1,
+     "count": 23,
+     "cumulative": 112
+    },
+    {
+     "day": 2,
+     "count": 8,
+     "cumulative": 120
+    },
+    {
+     "day": 3,
+     "count": 1,
+     "cumulative": 121
+    },
+    {
+     "day": 4,
+     "count": 6,
+     "cumulative": 127
+    },
+    {
+     "day": 5,
+     "count": 2,
+     "cumulative": 129
+    },
+    {
+     "day": 6,
+     "count": 6,
+     "cumulative": 135
+    },
+    {
+     "day": 7,
+     "count": 4,
+     "cumulative": 139
+    },
+    {
+     "day": 8,
+     "count": 3,
+     "cumulative": 142
+    },
+    {
+     "day": 9,
+     "count": 3,
+     "cumulative": 145
+    },
+    {
+     "day": 10,
+     "count": 2,
+     "cumulative": 147
+    },
+    {
+     "day": 11,
+     "count": 2,
+     "cumulative": 149
+    },
+    {
+     "day": 12,
+     "count": 2,
+     "cumulative": 151
+    },
+    {
+     "day": 13,
+     "count": 2,
+     "cumulative": 153
+    },
+    {
+     "day": 14,
+     "count": 1,
+     "cumulative": 154
+    },
+    {
+     "day": 15,
+     "count": 2,
+     "cumulative": 156
+    },
+    {
+     "day": 16,
+     "count": 2,
+     "cumulative": 158
+    },
+    {
+     "day": 17,
+     "count": 63,
+     "cumulative": 221
+    },
+    {
+     "day": 18,
+     "count": 7,
+     "cumulative": 228
+    },
+    {
+     "day": 19,
+     "count": 2,
+     "cumulative": 230
+    },
+    {
+     "day": 20,
+     "count": 3,
+     "cumulative": 233
+    },
+    {
+     "day": 21,
+     "count": 4,
+     "cumulative": 237
+    },
+    {
+     "day": 23,
+     "count": 2,
+     "cumulative": 239
+    },
+    {
+     "day": 24,
+     "count": 1,
+     "cumulative": 240
+    },
+    {
+     "day": 25,
+     "count": 1,
+     "cumulative": 241
+    },
+    {
+     "day": 26,
+     "count": 1,
+     "cumulative": 242
+    },
+    {
+     "day": 27,
+     "count": 3,
+     "cumulative": 245
+    },
+    {
+     "day": 29,
+     "count": 1,
+     "cumulative": 246
+    },
+    {
+     "day": 30,
+     "count": 1,
+     "cumulative": 247
+    },
+    {
+     "day": 31,
+     "count": 2,
+     "cumulative": 249
+    },
+    {
+     "day": 32,
+     "count": 3,
+     "cumulative": 252
+    },
+    {
+     "day": 33,
+     "count": 1,
+     "cumulative": 253
+    },
+    {
+     "day": 34,
+     "count": 1,
+     "cumulative": 254
+    },
+    {
+     "day": 35,
+     "count": 1,
+     "cumulative": 255
+    },
+    {
+     "day": 39,
+     "count": 1,
+     "cumulative": 256
+    },
+    {
+     "day": 42,
+     "count": 1,
+     "cumulative": 257
+    },
+    {
+     "day": 46,
+     "count": 1,
+     "cumulative": 258
+    },
+    {
+     "day": 47,
+     "count": 3,
+     "cumulative": 261
+    },
+    {
+     "day": 48,
+     "count": 1,
+     "cumulative": 262
+    },
+    {
+     "day": 50,
+     "count": 1,
+     "cumulative": 263
+    },
+    {
+     "day": 52,
+     "count": 3,
+     "cumulative": 266
+    },
+    {
+     "day": 56,
+     "count": 1,
+     "cumulative": 267
+    },
+    {
+     "day": 57,
+     "count": 1,
+     "cumulative": 268
+    },
+    {
+     "day": 58,
+     "count": 1,
+     "cumulative": 269
+    },
+    {
+     "day": 61,
+     "count": 1,
+     "cumulative": 270
+    },
+    {
+     "day": 64,
+     "count": 1,
+     "cumulative": 271
+    },
+    {
+     "day": 65,
+     "count": 2,
+     "cumulative": 273
+    },
+    {
+     "day": 67,
+     "count": 1,
+     "cumulative": 274
+    },
+    {
+     "day": 69,
+     "count": 1,
+     "cumulative": 275
+    },
+    {
+     "day": 72,
+     "count": 1,
+     "cumulative": 276
+    },
+    {
+     "day": 76,
+     "count": 1,
+     "cumulative": 277
+    },
+    {
+     "day": 88,
+     "count": 1,
+     "cumulative": 278
+    },
+    {
+     "day": 97,
+     "count": 1,
+     "cumulative": 279
+    },
+    {
+     "day": 98,
+     "count": 1,
+     "cumulative": 280
+    },
+    {
+     "day": 106,
+     "count": 1,
+     "cumulative": 281
+    },
+    {
+     "day": 107,
+     "count": 1,
+     "cumulative": 282
+    },
+    {
+     "day": 111,
+     "count": 1,
+     "cumulative": 283
+    },
+    {
+     "day": 112,
+     "count": 1,
+     "cumulative": 284
+    },
+    {
+     "day": 114,
+     "count": 1,
+     "cumulative": 285
+    },
+    {
+     "day": 120,
+     "count": 1,
+     "cumulative": 286
+    },
+    {
+     "day": 121,
+     "count": 1,
+     "cumulative": 287
+    },
+    {
+     "day": 127,
+     "count": 1,
+     "cumulative": 288
+    },
+    {
+     "day": 129,
+     "count": 1,
+     "cumulative": 289
+    },
+    {
+     "day": 144,
+     "count": 1,
+     "cumulative": 290
+    },
+    {
+     "day": 150,
+     "count": 1,
+     "cumulative": 291
+    },
+    {
+     "day": 157,
+     "count": 1,
+     "cumulative": 292
+    },
+    {
+     "day": 163,
+     "count": 2,
+     "cumulative": 294
+    },
+    {
+     "day": 164,
+     "count": 3,
+     "cumulative": 297
+    },
+    {
+     "day": 166,
+     "count": 1,
+     "cumulative": 298
+    },
+    {
+     "day": 167,
+     "count": 1,
+     "cumulative": 299
+    },
+    {
+     "day": 170,
+     "count": 1,
+     "cumulative": 300
+    },
+    {
+     "day": 207,
+     "count": 1,
+     "cumulative": 301
+    },
+    {
+     "day": 213,
+     "count": 1,
+     "cumulative": 302
+    },
+    {
+     "day": 271,
+     "count": 1,
+     "cumulative": 303
+    },
+    {
+     "day": 280,
+     "count": 2,
+     "cumulative": 305
+    },
+    {
+     "day": 286,
+     "count": 1,
+     "cumulative": 306
+    },
+    {
+     "day": 291,
+     "count": 1,
+     "cumulative": 307
+    },
+    {
+     "day": 302,
+     "count": 1,
+     "cumulative": 308
+    },
+    {
+     "day": 305,
+     "count": 1,
+     "cumulative": 309
+    },
+    {
+     "day": 322,
+     "count": 1,
+     "cumulative": 310
+    },
+    {
+     "day": 324,
+     "count": 1,
+     "cumulative": 311
+    },
+    {
+     "day": 340,
+     "count": 1,
+     "cumulative": 312
+    },
+    {
+     "day": 344,
+     "count": 1,
+     "cumulative": 313
+    },
+    {
+     "day": 350,
+     "count": 1,
+     "cumulative": 314
+    },
+    {
+     "day": 353,
+     "count": 1,
+     "cumulative": 315
+    },
+    {
+     "day": 356,
+     "count": 1,
+     "cumulative": 316
+    }
+   ],
+   "firstDayCount": 89,
+   "firstWeekCount": 135
+  },
+  "completeness": {
+   "mc": 4,
+   "method": "maximum curvature (mode of the non-cumulative magnitude distribution)",
+   "binWidth": 0.1,
+   "eventsInModalBin": 41,
+   "caveat": "Maximum curvature is known to under-estimate the completeness magnitude for aftershock sequences, where small events are masked by the coda of larger ones. Treat it as a lower bound."
+  },
+  "reportingThreshold": {
+   "magnitude": 4,
+   "countAtThreshold": 41,
+   "countBelow": 2,
+   "ratio": 20.5,
+   "note": "Counts jump by a factor of 20.5 at M4. A detection limit produces a taper; a jump this sharp is a reporting threshold, and the catalogue should be treated as incomplete below it regardless of what maximum curvature returns."
+  },
+  "gutenbergRichter": {
+   "bValue": 0.799,
+   "aValue": 5.572,
+   "rSquared": 0.9696,
+   "completenessMagnitude": 4,
+   "eventsUsed": 305,
+   "pointsFitted": 34,
+   "points": [
+    {
+     "magnitude": 4,
+     "cumulative": 305,
+     "log10": 2.484299839346786
+    },
+    {
+     "magnitude": 4.1,
+     "cumulative": 264,
+     "log10": 2.4216039268698313
+    },
+    {
+     "magnitude": 4.2,
+     "cumulative": 233,
+     "log10": 2.367355921026019
+    },
+    {
+     "magnitude": 4.3,
+     "cumulative": 194,
+     "log10": 2.287801729930226
+    },
+    {
+     "magnitude": 4.4,
+     "cumulative": 153,
+     "log10": 2.184691430817599
+    },
+    {
+     "magnitude": 4.5,
+     "cumulative": 117,
+     "log10": 2.0681858617461617
+    },
+    {
+     "magnitude": 4.6,
+     "cumulative": 92,
+     "log10": 1.9637878273455551
+    },
+    {
+     "magnitude": 4.7,
+     "cumulative": 74,
+     "log10": 1.8692317197309762
+    },
+    {
+     "magnitude": 4.8,
+     "cumulative": 61,
+     "log10": 1.7853298350107671
+    },
+    {
+     "magnitude": 4.9,
+     "cumulative": 49,
+     "log10": 1.6901960800285136
+    },
+    {
+     "magnitude": 5,
+     "cumulative": 35,
+     "log10": 1.5440680443502757
+    },
+    {
+     "magnitude": 5.1,
+     "cumulative": 25,
+     "log10": 1.3979400086720377
+    },
+    {
+     "magnitude": 5.2,
+     "cumulative": 18,
+     "log10": 1.255272505103306
+    },
+    {
+     "magnitude": 5.3,
+     "cumulative": 13,
+     "log10": 1.1139433523068367
+    },
+    {
+     "magnitude": 5.4,
+     "cumulative": 12,
+     "log10": 1.0791812460476249
+    },
+    {
+     "magnitude": 5.5,
+     "cumulative": 10,
+     "log10": 1
+    },
+    {
+     "magnitude": 5.6,
+     "cumulative": 7,
+     "log10": 0.8450980400142568
+    },
+    {
+     "magnitude": 5.7,
+     "cumulative": 6,
+     "log10": 0.7781512503836436
+    },
+    {
+     "magnitude": 5.8,
+     "cumulative": 5,
+     "log10": 0.6989700043360189
+    },
+    {
+     "magnitude": 5.9,
+     "cumulative": 5,
+     "log10": 0.6989700043360189
+    },
+    {
+     "magnitude": 6,
+     "cumulative": 5,
+     "log10": 0.6989700043360189
+    },
+    {
+     "magnitude": 6.1,
+     "cumulative": 5,
+     "log10": 0.6989700043360189
+    },
+    {
+     "magnitude": 6.2,
+     "cumulative": 4,
+     "log10": 0.6020599913279624
+    },
+    {
+     "magnitude": 6.3,
+     "cumulative": 4,
+     "log10": 0.6020599913279624
+    },
+    {
+     "magnitude": 6.4,
+     "cumulative": 3,
+     "log10": 0.47712125471966244
+    },
+    {
+     "magnitude": 6.5,
+     "cumulative": 3,
+     "log10": 0.47712125471966244
+    },
+    {
+     "magnitude": 6.6,
+     "cumulative": 3,
+     "log10": 0.47712125471966244
+    },
+    {
+     "magnitude": 6.7,
+     "cumulative": 2,
+     "log10": 0.3010299956639812
+    },
+    {
+     "magnitude": 6.8,
+     "cumulative": 1,
+     "log10": 0
+    },
+    {
+     "magnitude": 6.9,
+     "cumulative": 1,
+     "log10": 0
+    },
+    {
+     "magnitude": 7,
+     "cumulative": 1,
+     "log10": 0
+    },
+    {
+     "magnitude": 7.1,
+     "cumulative": 1,
+     "log10": 0
+    },
+    {
+     "magnitude": 7.2,
+     "cumulative": 1,
+     "log10": 0
+    },
+    {
+     "magnitude": 7.3,
+     "cumulative": 1,
+     "log10": 0
+    }
+   ],
+   "formula": "log10 N(>=M) = a - b*M, least squares on the cumulative distribution above Mc",
+   "interpretation": "b near 1.0 is typical of tectonic seismicity. A markedly lower b in a short aftershock catalogue usually indicates the fit is running through catalogue incompleteness rather than a real property of the crust."
+  },
+  "bValueSensitivity": {
+   "fits": [
+    {
+     "completenessMagnitude": 4,
+     "bValue": 0.799,
+     "rSquared": 0.9696,
+     "eventsUsed": 305
+    },
+    {
+     "completenessMagnitude": 4.2,
+     "bValue": 0.785,
+     "rSquared": 0.9644,
+     "eventsUsed": 233
+    },
+    {
+     "completenessMagnitude": 4.4,
+     "bValue": 0.759,
+     "rSquared": 0.9604,
+     "eventsUsed": 153
+    },
+    {
+     "completenessMagnitude": 4.5,
+     "bValue": 0.743,
+     "rSquared": 0.9587,
+     "eventsUsed": 117
+    },
+    {
+     "completenessMagnitude": 4.6,
+     "bValue": 0.728,
+     "rSquared": 0.9566,
+     "eventsUsed": 92
+    },
+    {
+     "completenessMagnitude": 4.8,
+     "bValue": 0.693,
+     "rSquared": 0.9526,
+     "eventsUsed": 61
+    }
+   ],
+   "range": [
+    0.693,
+    0.799
+   ],
+   "spread": 0.106,
+   "interpretation": "b falls monotonically as the completeness cut rises, which is what happens when a fit that included incomplete bins is progressively cleaned. The spread across plausible cuts is the honest uncertainty on b from this catalogue; a single value quoted to three decimals is not."
+  },
+  "omori": {
+   "whole": {
+    "pValue": 0.418,
+    "kValue": 8.256,
+    "cFixedAt": 0.1,
+    "rSquared": 0.4434,
+    "daysFitted": 86,
+    "points": [
+     {
+      "day": 0,
+      "count": 88
+     },
+     {
+      "day": 1,
+      "count": 23
+     },
+     {
+      "day": 2,
+      "count": 8
+     },
+     {
+      "day": 3,
+      "count": 1
+     },
+     {
+      "day": 4,
+      "count": 6
+     },
+     {
+      "day": 5,
+      "count": 2
+     },
+     {
+      "day": 6,
+      "count": 6
+     },
+     {
+      "day": 7,
+      "count": 4
+     },
+     {
+      "day": 8,
+      "count": 3
+     },
+     {
+      "day": 9,
+      "count": 3
+     },
+     {
+      "day": 10,
+      "count": 2
+     },
+     {
+      "day": 11,
+      "count": 2
+     },
+     {
+      "day": 12,
+      "count": 2
+     },
+     {
+      "day": 13,
+      "count": 2
+     },
+     {
+      "day": 14,
+      "count": 1
+     },
+     {
+      "day": 15,
+      "count": 2
+     },
+     {
+      "day": 16,
+      "count": 2
+     },
+     {
+      "day": 17,
+      "count": 63
+     },
+     {
+      "day": 18,
+      "count": 7
+     },
+     {
+      "day": 19,
+      "count": 2
+     },
+     {
+      "day": 20,
+      "count": 3
+     },
+     {
+      "day": 21,
+      "count": 4
+     },
+     {
+      "day": 23,
+      "count": 2
+     },
+     {
+      "day": 24,
+      "count": 1
+     },
+     {
+      "day": 25,
+      "count": 1
+     },
+     {
+      "day": 26,
+      "count": 1
+     },
+     {
+      "day": 27,
+      "count": 3
+     },
+     {
+      "day": 29,
+      "count": 1
+     },
+     {
+      "day": 30,
+      "count": 1
+     },
+     {
+      "day": 31,
+      "count": 2
+     },
+     {
+      "day": 32,
+      "count": 3
+     },
+     {
+      "day": 33,
+      "count": 1
+     },
+     {
+      "day": 34,
+      "count": 1
+     },
+     {
+      "day": 35,
+      "count": 1
+     },
+     {
+      "day": 39,
+      "count": 1
+     },
+     {
+      "day": 42,
+      "count": 1
+     },
+     {
+      "day": 46,
+      "count": 1
+     },
+     {
+      "day": 47,
+      "count": 3
+     },
+     {
+      "day": 48,
+      "count": 1
+     },
+     {
+      "day": 50,
+      "count": 1
+     },
+     {
+      "day": 52,
+      "count": 3
+     },
+     {
+      "day": 56,
+      "count": 1
+     },
+     {
+      "day": 57,
+      "count": 1
+     },
+     {
+      "day": 58,
+      "count": 1
+     },
+     {
+      "day": 61,
+      "count": 1
+     },
+     {
+      "day": 64,
+      "count": 1
+     },
+     {
+      "day": 65,
+      "count": 2
+     },
+     {
+      "day": 67,
+      "count": 1
+     },
+     {
+      "day": 69,
+      "count": 1
+     },
+     {
+      "day": 72,
+      "count": 1
+     },
+     {
+      "day": 76,
+      "count": 1
+     },
+     {
+      "day": 88,
+      "count": 1
+     },
+     {
+      "day": 97,
+      "count": 1
+     },
+     {
+      "day": 98,
+      "count": 1
+     },
+     {
+      "day": 106,
+      "count": 1
+     },
+     {
+      "day": 107,
+      "count": 1
+     },
+     {
+      "day": 111,
+      "count": 1
+     },
+     {
+      "day": 112,
+      "count": 1
+     },
+     {
+      "day": 114,
+      "count": 1
+     },
+     {
+      "day": 120,
+      "count": 1
+     },
+     {
+      "day": 121,
+      "count": 1
+     },
+     {
+      "day": 127,
+      "count": 1
+     },
+     {
+      "day": 129,
+      "count": 1
+     },
+     {
+      "day": 144,
+      "count": 1
+     },
+     {
+      "day": 150,
+      "count": 1
+     },
+     {
+      "day": 157,
+      "count": 1
+     },
+     {
+      "day": 163,
+      "count": 2
+     },
+     {
+      "day": 164,
+      "count": 3
+     },
+     {
+      "day": 166,
+      "count": 1
+     },
+     {
+      "day": 167,
+      "count": 1
+     },
+     {
+      "day": 170,
+      "count": 1
+     },
+     {
+      "day": 207,
+      "count": 1
+     },
+     {
+      "day": 213,
+      "count": 1
+     },
+     {
+      "day": 271,
+      "count": 1
+     },
+     {
+      "day": 280,
+      "count": 2
+     },
+     {
+      "day": 286,
+      "count": 1
+     },
+     {
+      "day": 291,
+      "count": 1
+     },
+     {
+      "day": 302,
+      "count": 1
+     },
+     {
+      "day": 305,
+      "count": 1
+     },
+     {
+      "day": 322,
+      "count": 1
+     },
+     {
+      "day": 324,
+      "count": 1
+     },
+     {
+      "day": 340,
+      "count": 1
+     },
+     {
+      "day": 344,
+      "count": 1
+     },
+     {
+      "day": 350,
+      "count": 1
+     },
+     {
+      "day": 353,
+      "count": 1
+     },
+     {
+      "day": 356,
+      "count": 1
+     }
+    ],
+    "formula": "n(t) = K / (t + c)^p, fitted by least squares on log10(rate) against log10(t + c)",
+    "interpretation": "p near 1.0 is typical of aftershock decay. c is held fixed rather than fitted: three free parameters against a few dozen daily counts would produce a number without meaning."
+   },
+   "secondary": {
+    "id": "us20002ejl",
+    "magnitude": 7.3,
+    "time": "2015-05-12T07:05:19.730Z",
+    "daysFromMainShock": 17.04
+   },
+   "beforeSecondary": {
+    "pValue": 1.065,
+    "kValue": 26.55,
+    "cFixedAt": 0.1,
+    "rSquared": 0.7201,
+    "daysFitted": 17,
+    "points": [
+     {
+      "day": 0,
+      "count": 88
+     },
+     {
+      "day": 1,
+      "count": 23
+     },
+     {
+      "day": 2,
+      "count": 8
+     },
+     {
+      "day": 3,
+      "count": 1
+     },
+     {
+      "day": 4,
+      "count": 6
+     },
+     {
+      "day": 5,
+      "count": 2
+     },
+     {
+      "day": 6,
+      "count": 6
+     },
+     {
+      "day": 7,
+      "count": 4
+     },
+     {
+      "day": 8,
+      "count": 3
+     },
+     {
+      "day": 9,
+      "count": 3
+     },
+     {
+      "day": 10,
+      "count": 2
+     },
+     {
+      "day": 11,
+      "count": 2
+     },
+     {
+      "day": 12,
+      "count": 2
+     },
+     {
+      "day": 13,
+      "count": 2
+     },
+     {
+      "day": 14,
+      "count": 1
+     },
+     {
+      "day": 15,
+      "count": 2
+     },
+     {
+      "day": 16,
+      "count": 2
+     }
+    ],
+    "formula": "n(t) = K / (t + c)^p, fitted by least squares on log10(rate) against log10(t + c)",
+    "interpretation": "p near 1.0 is typical of aftershock decay. c is held fixed rather than fitted: three free parameters against a few dozen daily counts would produce a number without meaning."
+   },
+   "afterSecondary": {
+    "pValue": 0.253,
+    "kValue": 3.578,
+    "cFixedAt": 0.1,
+    "rSquared": 0.3306,
+    "daysFitted": 68,
+    "points": [
+     {
+      "day": 0,
+      "count": 65
+     },
+     {
+      "day": 1,
+      "count": 4
+     },
+     {
+      "day": 2,
+      "count": 2
+     },
+     {
+      "day": 3,
+      "count": 3
+     },
+     {
+      "day": 4,
+      "count": 4
+     },
+     {
+      "day": 6,
+      "count": 2
+     },
+     {
+      "day": 7,
+      "count": 1
+     },
+     {
+      "day": 8,
+      "count": 1
+     },
+     {
+      "day": 9,
+      "count": 1
+     },
+     {
+      "day": 10,
+      "count": 3
+     },
+     {
+      "day": 12,
+      "count": 1
+     },
+     {
+      "day": 13,
+      "count": 1
+     },
+     {
+      "day": 14,
+      "count": 2
+     },
+     {
+      "day": 15,
+      "count": 3
+     },
+     {
+      "day": 16,
+      "count": 1
+     },
+     {
+      "day": 17,
+      "count": 1
+     },
+     {
+      "day": 18,
+      "count": 1
+     },
+     {
+      "day": 22,
+      "count": 1
+     },
+     {
+      "day": 25,
+      "count": 1
+     },
+     {
+      "day": 29,
+      "count": 1
+     },
+     {
+      "day": 30,
+      "count": 3
+     },
+     {
+      "day": 31,
+      "count": 1
+     },
+     {
+      "day": 33,
+      "count": 1
+     },
+     {
+      "day": 35,
+      "count": 3
+     },
+     {
+      "day": 39,
+      "count": 1
+     },
+     {
+      "day": 40,
+      "count": 1
+     },
+     {
+      "day": 41,
+      "count": 1
+     },
+     {
+      "day": 44,
+      "count": 1
+     },
+     {
+      "day": 47,
+      "count": 1
+     },
+     {
+      "day": 48,
+      "count": 2
+     },
+     {
+      "day": 50,
+      "count": 1
+     },
+     {
+      "day": 52,
+      "count": 1
+     },
+     {
+      "day": 55,
+      "count": 1
+     },
+     {
+      "day": 59,
+      "count": 1
+     },
+     {
+      "day": 71,
+      "count": 1
+     },
+     {
+      "day": 80,
+      "count": 1
+     },
+     {
+      "day": 81,
+      "count": 1
+     },
+     {
+      "day": 89,
+      "count": 1
+     },
+     {
+      "day": 90,
+      "count": 1
+     },
+     {
+      "day": 94,
+      "count": 1
+     },
+     {
+      "day": 95,
+      "count": 1
+     },
+     {
+      "day": 97,
+      "count": 1
+     },
+     {
+      "day": 103,
+      "count": 2
+     },
+     {
+      "day": 110,
+      "count": 1
+     },
+     {
+      "day": 112,
+      "count": 1
+     },
+     {
+      "day": 127,
+      "count": 1
+     },
+     {
+      "day": 132,
+      "count": 1
+     },
+     {
+      "day": 140,
+      "count": 1
+     },
+     {
+      "day": 146,
+      "count": 2
+     },
+     {
+      "day": 147,
+      "count": 3
+     },
+     {
+      "day": 149,
+      "count": 1
+     },
+     {
+      "day": 150,
+      "count": 1
+     },
+     {
+      "day": 153,
+      "count": 1
+     },
+     {
+      "day": 190,
+      "count": 1
+     },
+     {
+      "day": 196,
+      "count": 1
+     },
+     {
+      "day": 254,
+      "count": 1
+     },
+     {
+      "day": 263,
+      "count": 2
+     },
+     {
+      "day": 269,
+      "count": 1
+     },
+     {
+      "day": 274,
+      "count": 1
+     },
+     {
+      "day": 285,
+      "count": 1
+     },
+     {
+      "day": 288,
+      "count": 1
+     },
+     {
+      "day": 305,
+      "count": 1
+     },
+     {
+      "day": 307,
+      "count": 1
+     },
+     {
+      "day": 323,
+      "count": 1
+     },
+     {
+      "day": 327,
+      "count": 1
+     },
+     {
+      "day": 333,
+      "count": 1
+     },
+     {
+      "day": 336,
+      "count": 1
+     },
+     {
+      "day": 339,
+      "count": 1
+     }
+    ],
+    "formula": "n(t) = K / (t + c)^p, fitted by least squares on log10(rate) against log10(t + c)",
+    "interpretation": "p near 1.0 is typical of aftershock decay. c is held fixed rather than fitted: three free parameters against a few dozen daily counts would produce a number without meaning."
+   },
+   "interpretation": "A single Omori fit across a sequence with two large events applies a one-main-shock model to a two-main-shock sequence. The segmented fits are the defensible numbers; the whole-window fit is reported because its poor quality is the evidence for splitting."
+  },
+  "spatial": {
+   "bbox": [
+    82.6319,
+    27.0336,
+    87.6636,
+    29.6637
+   ],
+   "extentEastWestKm": 494.6,
+   "extentNorthSouthKm": 290.8,
+   "aftershockCount": 315,
+   "distanceFromEpicentreKm": {
+    "min": 5.936,
+    "median": 120.804,
+    "max": 292.687,
+    "within50km": 42,
+    "within100km": 107,
+    "within200km": 308
+   }
+  },
+  "largestEvents": [
+   {
+    "id": "us20002926",
+    "magnitude": 7.8,
+    "time": "2015-04-25T06:11:25.950Z",
+    "hoursFromMainShock": 0,
+    "depthKm": 8.22,
+    "distanceFromEpicentreKm": 0,
+    "place": "67 km NNE of Bharatpur, Nepal",
+    "longitude": 84.7314,
+    "latitude": 28.2305
+   },
+   {
+    "id": "us20002ejl",
+    "magnitude": 7.3,
+    "time": "2015-05-12T07:05:19.730Z",
+    "hoursFromMainShock": 408.8983,
+    "depthKm": 15,
+    "distanceFromEpicentreKm": 139.267,
+    "place": "Nepal",
+    "longitude": 86.0655,
+    "latitude": 27.8087
+   },
+   {
+    "id": "us200029bt",
+    "magnitude": 6.7,
+    "time": "2015-04-26T07:09:10.670Z",
+    "hoursFromMainShock": 24.9624,
+    "depthKm": 22.91,
+    "distanceFromEpicentreKm": 136.334,
+    "place": "21 km SSE of Kod?ri??, Nepal",
+    "longitude": 86.0173,
+    "latitude": 27.7711
+   },
+   {
+    "id": "us2000292y",
+    "magnitude": 6.6,
+    "time": "2015-04-25T06:45:21.320Z",
+    "hoursFromMainShock": 0.5654,
+    "depthKm": 10,
+    "distanceFromEpicentreKm": 8.881,
+    "place": "71 km NNE of Bharatpur, Nepal",
+    "longitude": 84.8216,
+    "latitude": 28.2244
+   },
+   {
+    "id": "us20002ek5",
+    "magnitude": 6.3,
+    "time": "2015-05-12T07:36:54.490Z",
+    "hoursFromMainShock": 409.4246,
+    "depthKm": 15,
+    "distanceFromEpicentreKm": 155.938,
+    "place": "42 km SSE of Kod?ri??, Nepal",
+    "longitude": 86.1617,
+    "latitude": 27.625
+   },
+   {
+    "id": "us20002bi4",
+    "magnitude": 6.1,
+    "time": "2015-04-25T06:15:22.910Z",
+    "hoursFromMainShock": 0.0658,
+    "depthKm": 10,
+    "distanceFromEpicentreKm": 103.836,
+    "place": "0 km NNW of Dhulikhel, Nepal",
+    "longitude": 85.5398,
+    "latitude": 27.6285
+   },
+   {
+    "id": "us2000294g",
+    "magnitude": 5.7,
+    "time": "2015-04-25T09:17:02.310Z",
+    "hoursFromMainShock": 3.0934,
+    "depthKm": 10,
+    "distanceFromEpicentreKm": 254.177,
+    "place": "69 km NE of Lobujya, Nepal",
+    "longitude": 87.3173,
+    "latitude": 28.3902
+   },
+   {
+    "id": "us20002bi0",
+    "magnitude": 5.6,
+    "time": "2015-04-25T06:18:10.870Z",
+    "hoursFromMainShock": 0.1125,
+    "depthKm": 10,
+    "distanceFromEpicentreKm": 140.542,
+    "place": "31 km SSE of Kod?ri??, Nepal",
+    "longitude": 86.0213,
+    "latitude": 27.6857
+   },
+   {
+    "id": "us20002934",
+    "magnitude": 5.5,
+    "time": "2015-04-25T06:56:33.860Z",
+    "hoursFromMainShock": 0.7522,
+    "depthKm": 10,
+    "distanceFromEpicentreKm": 107.364,
+    "place": "22 km WSW of Kod?ri??, Nepal",
+    "longitude": 85.7505,
+    "latitude": 27.8822
+   },
+   {
+    "id": "us20002ek0",
+    "magnitude": 5.5,
+    "time": "2015-05-12T07:17:20.640Z",
+    "hoursFromMainShock": 409.0985,
+    "depthKm": 13.01,
+    "distanceFromEpicentreKm": 157.014,
+    "place": "37 km SE of Kod?ri??, Nepal",
+    "longitude": 86.2177,
+    "latitude": 27.7141
+   }
+  ]
+ }
+}

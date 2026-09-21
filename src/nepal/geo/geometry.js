@@ -238,3 +238,49 @@ function inRing([x, y], ring) {
   }
   return inside;
 }
+
+/**
+ * Shortest distance from a point to a line segment, in degrees.
+ *
+ * Used only to rank candidates, never to report a distance, so working in
+ * degrees is adequate and avoids projecting every vertex of every district
+ * for every cell. The winner is re-measured in metres by the caller if the
+ * actual distance matters.
+ */
+export function pointToSegmentDegrees([px, py], [ax, ay], [bx, by]) {
+  const dx = bx - ax;
+  const dy = by - ay;
+  if (dx === 0 && dy === 0) return Math.hypot(px - ax, py - ay);
+  const t = Math.max(
+    0,
+    Math.min(1, ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy)),
+  );
+  return Math.hypot(px - (ax + t * dx), py - (ay + t * dy));
+}
+
+/**
+ * Shortest distance from a point to a polygon's boundary, in degrees.
+ *
+ * Measured against SEGMENTS rather than vertices. With about fifty vertices
+ * per district the edges are tens of kilometres long, so a nearest-vertex
+ * test can rank a distant district ahead of the one the point actually sits
+ * beside.
+ */
+export function distanceToPolygonDegrees(position, geometry) {
+  const polygons =
+    geometry?.type === 'MultiPolygon'
+      ? geometry.coordinates
+      : geometry?.type === 'Polygon'
+        ? [geometry.coordinates]
+        : [];
+  let best = Infinity;
+  for (const rings of polygons) {
+    for (const ring of rings) {
+      for (let i = 1; i < ring.length; i += 1) {
+        const distance = pointToSegmentDegrees(position, ring[i - 1], ring[i]);
+        if (distance < best) best = distance;
+      }
+    }
+  }
+  return best;
+}
