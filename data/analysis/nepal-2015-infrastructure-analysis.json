@@ -1,0 +1,1920 @@
+{
+ "schemaVersion": 1,
+ "stage": 5,
+ "generatedAt": "2026-09-21",
+ "dataClass": "DERIVED",
+ "criticalCaveat": {
+  "whatABlockedRoadFeatureIs": "These 179 features carry 19.9 km of line geometry in total, with a median feature length of 65 m. A feature of that length is an OBSTRUCTION MARKER at a place where an analyst saw a blockage, not the extent of a closed route. Any statement about how much road was unusable must come from the network the marker sits on, never from the marker’s own length.",
+  "absenceIsNotEvidence": "ABSENCE OF A REPORTED BLOCKAGE IS NOT EVIDENCE A ROAD WAS OPEN. The NGA products publish no footprint of which roads were checked. A road with no marker may have been clear, may have been blocked and unobserved, or may never have been imaged.",
+  "wholeEdgeDisabling": "A marker disables the whole network edge it sits on. That is correct for CONNECTIVITY, because buildRoadGraph cuts ways at junctions so an edge has no turning inside it, and it OVERSTATES the physical extent of the blockage. No length-of-road-closed figure is derived from it.",
+  "networkIsAsMapped": "The baseline network is OpenStreetMap as it stood on 2015-04-24. Rural Nepal was incompletely mapped then, so a route this analysis cannot find is not necessarily a route that did not exist."
+ },
+ "sources": [
+  {
+   "datasetId": "nga-nepal-2015-infrastructure-damage",
+   "license": "CC BY-NC-SA 3.0 (HDX license_other for this dataset)",
+   "redistribution": "NON_COMMERCIAL",
+   "attribution": "UNITAR/UNOSAT; Copernicus EMS (EMSR125); U.S. NGA"
+  },
+  {
+   "datasetId": "osm-nepal-2015-roads",
+   "license": "Open Database License (ODbL) 1.0",
+   "redistribution": "SHARE_ALIKE",
+   "attribution": "© OpenStreetMap contributors, ODbL"
+  },
+  {
+   "datasetId": "usgs-nepal-2015-shakemap-contours",
+   "license": "US Government public domain (17 U.S.C. §105)",
+   "redistribution": "OPEN",
+   "attribution": "Data courtesy of the U.S. Geological Survey"
+  },
+  {
+   "datasetId": "cod-ab-npl-adm2",
+   "license": "CC BY-IGO 3.0",
+   "redistribution": "SHARE_ALIKE",
+   "attribution": "UN OCHA (data.humdata.org), CC BY-IGO"
+  },
+  {
+   "datasetId": "worldpop-npl-2015-unadj",
+   "license": "CC BY 4.0",
+   "redistribution": "SHARE_ALIKE",
+   "attribution": "WorldPop (www.worldpop.org), CC BY 4.0"
+  }
+ ],
+ "validation": {
+  "passed": true,
+  "checks": [
+   {
+    "name": "Blocked-road features are measured before being described",
+    "passed": true,
+    "detail": "179 features, 19.93 km total, median 65 m"
+   },
+   {
+    "name": "The association tolerance is derived from the geometry, not chosen",
+    "passed": true,
+    "detail": "50 m headline; geometry floor 13.7 m; landslide characteristic radius 54 m"
+   },
+   {
+    "name": "Association is reported across every tolerance, not at one",
+    "passed": true,
+    "detail": "0m:7.8% 25m:8.9% 50m:9.5% 100m:11.2% 250m:12.3% 500m:14.5% 1000m:14.5%"
+   },
+   {
+    "name": "The 2015 road network loaded and built a connected graph",
+    "passed": true,
+    "detail": "2129 ways -> 2268 nodes, 5454 directed edges, largest component 1927"
+   },
+   {
+    "name": "Blockages that match no network edge are counted, not dropped silently",
+    "passed": true,
+    "detail": "163 of 184 blockages match no routable edge within 25 m"
+   },
+   {
+    "name": "The unmatched blockages are diagnosed rather than left unexplained",
+    "passed": true,
+    "detail": "66 sit within 25 m of a mapped road of some class (45 below tertiary, 21 strategic), 48 lie further from the nearest mapped road than the snap tolerance, and 70 have no mapped road of any class within the ~600 m query box"
+   },
+   {
+    "name": "Disabling edges never adds connectivity",
+    "passed": true,
+    "detail": "components 40 -> 49; largest 1927 -> 1907"
+   },
+   {
+    "name": "Routes that could not be found before the blockages are not reported as severed",
+    "passed": true,
+    "detail": "5 of 14 pairs were already unroutable on the 2015 map"
+   },
+   {
+    "name": "No travel time, speed or recovery figure is produced anywhere in this stage",
+    "passed": true,
+    "detail": "Distances only. No speed dataset exists for April 2015 in any source this project holds."
+   }
+  ]
+ },
+ "methodology": [
+  {
+   "schemaVersion": 1,
+   "resultClass": "DESCRIPTIVE_STATISTIC",
+   "id": "infrastructure-geometry-check",
+   "name": "What the NGA damage features actually are",
+   "question": "What do the blocked-road and landslide features measure, and what claim can their geometry support?",
+   "inputs": [
+    {
+     "dataset": "nga-nepal-2015-infrastructure-damage",
+     "role": "observed blockages, bridges and landslides"
+    }
+   ],
+   "spatialCoverage": "The central affected region between Gorkha and Dolakha; no examined-area footprint is published.",
+   "method": "Project every feature to EPSG:32645 and measure line length, vertex spacing and polygon area, then state the interpretation those measurements license.",
+   "formula": "length = sum of segment lengths in UTM; equivalent radius = sqrt(area / pi)",
+   "outputs": [
+    "feature length distribution",
+    "vertex spacing distribution",
+    "landslide area and equivalent radius distribution"
+   ],
+   "visualisation": "Length and area histograms beside the map, so the scale of a marker is visible before it is read.",
+   "validation": "179 road features carry 19.93 km of geometry, median 65 m; 51 landslides cover 325.9 ha, median equivalent radius 54 m.",
+   "dataClass": "OBSERVED",
+   "limitations": [
+    "A marker’s length is a digitising choice, not the extent of the obstruction. It bounds what may be claimed, it does not measure the blockage.",
+    "No positional accuracy statement is published with these layers, so the geometry’s own resolution is the only available proxy for it."
+   ]
+  },
+  {
+   "schemaVersion": 1,
+   "resultClass": "DERIVED",
+   "id": "infrastructure-road-landslide-association",
+   "name": "Blocked roads spatially associated with mapped landslides",
+   "question": "How much of the observed road disruption lies within a defensible distance of an observed landslide?",
+   "inputs": [
+    {
+     "dataset": "nga-nepal-2015-infrastructure-damage",
+     "role": "observed blockages, bridges and landslides"
+    }
+   ],
+   "spatialCoverage": "Wherever both a blockage and a landslide were mapped; both products cover the same central region but neither publishes its examined area.",
+   "method": "Compute the exact minimum distance between each road polyline and each landslide polygon in EPSG:32645 — segment to segment, with containment tested so a road crossing a slide returns zero — then report the share associated at every tolerance on the curve.",
+   "formula": "d(road, slide) = min over segment pairs of segment-to-segment distance, 0 if the road enters the polygon",
+   "parameters": {
+    "toleranceMetres": [
+     0,
+     25,
+     50,
+     100,
+     250,
+     500,
+     1000
+    ],
+    "headlineMetres": 50
+   },
+   "parameterJustification": "The blocked-road lines have a median vertex spacing of 13.7 m, so a separation smaller than that is digitising noise rather than a measured gap. The mapped landslides have a median equivalent radius of 54 m, which is the distance over which a slide of typical mapped size extends from its own centre. A tolerance of 50 m therefore means \"the road lies within about one landslide-width of the mapped slide extent\". It is a resolution-based tolerance, not a runout model: no debris travel distance is claimed, and the association is reported across the whole tolerance curve so the sensitivity is visible.",
+   "outputs": [
+    "association share at each tolerance, by feature and by length",
+    "distance distribution",
+    "the reverse association from landslides to roads"
+   ],
+   "visualisation": "Association share against tolerance, with the headline marked and the curve visible so the sensitivity cannot be hidden.",
+   "validation": "Distances computed for all 179 x 51 pairs; median nearest distance 7684 m; at the headline tolerance 17 features (9.5 per cent) are associated.",
+   "dataClass": "DERIVED",
+   "limitations": [
+    "SPATIAL ASSOCIATION IS NOT CAUSATION. Neither product links a blockage to a slide, and several pairs were observed on different dates.",
+    "A road blocked by a slide nobody mapped counts as unassociated; a road blocked by a collapsed building beside a slide counts as associated.",
+    "The tolerance is derived from geometry resolution, not from a runout model. No debris travel distance is claimed."
+   ]
+  },
+  {
+   "schemaVersion": 1,
+   "resultClass": "SCENARIO",
+   "id": "infrastructure-network-disruption",
+   "name": "Connectivity of the April 2015 road network with the observed blockages applied",
+   "question": "How did the observed blockages and bridge losses change what could be reached from Kathmandu on the road network as it was mapped in April 2015?",
+   "inputs": [
+    {
+     "dataset": "nga-nepal-2015-infrastructure-damage",
+     "role": "observed blockages, bridges and landslides"
+    },
+    {
+     "dataset": "osm-nepal-2015-roads",
+     "role": "baseline road network as at 2015-04-24"
+    },
+    {
+     "dataset": "cod-ab-npl-adm2",
+     "role": "district centroids as destinations"
+    },
+    {
+     "dataset": "osm-nepal-2015-blockage-context",
+     "role": "all-class local roads, to diagnose unmatched blockages"
+    }
+   ],
+   "spatialCoverage": "The study envelope 84.2, 27.1, 86.8, 28.7, restricted to motorway through tertiary classes as mapped on 2015-04-24.",
+   "method": "Build a routable graph with the project’s existing buildRoadGraph (junction-splitting, bidirectional edges), attach each blockage to its nearest edge within a tolerance taken from the knee of the match curve, disable those edges in both directions with withScenario, and re-run the project’s existing Dijkstra and Brandes betweenness over the damaged view. No routing algorithm is written here.",
+   "formula": "damaged = withScenario(baseline, {disabledEdges}); extra distance = d_damaged(s,t) - d_baseline(s,t)",
+   "parameters": {
+    "snapToleranceMetres": 25,
+    "snapCandidates": [
+     25,
+     50,
+     100,
+     250,
+     500
+    ],
+    "snapCeilingMetres": 100,
+    "centralityNodeLimit": 6000
+   },
+   "parameterJustification": "The snap tolerance is taken from the knee of the reported match curve rather than chosen, and capped at 100 m: beyond that a marker in a dense street network can attach to a parallel road, and wrongly disabling an open road is a worse error than leaving a marker unmatched. The centrality limit exists because the project’s Brandes implementation runs every node as a source; exceeding it is reported rather than silently skipped.",
+   "outputs": [
+    "connected components before and after",
+    "severed, detoured and unchanged origin-destination pairs",
+    "extra distance per detour",
+    "betweenness change per junction"
+   ],
+   "visualisation": "Baseline and damaged routes drawn together on the terrain, with severed destinations marked and the centrality change shown on the junctions.",
+   "validation": "184 blockages matched against 2727 undirected edges; 163 matched no edge within 25 m and are excluded rather than counted as no-effect. Each was then matched against an all-class local network: 66 sit within the snap tolerance of a mapped road of some class (45 of them below tertiary), 48 lie beyond that tolerance from one, and 70 have no mapped road of any class within about 600 m.matchedMinor} sit on a road below tertiary class, undefined on a strategic road, undefined on no road mapped by 2015-04-24. Components 40 -> 49. 5 of 14 pairs were already unroutable on the 2015 map and are reported separately from severed ones. Centrality computed over 2268 nodes.",
+   "dataClass": "DERIVED",
+   "limitations": [
+    "THE RESULT CLASS IS SCENARIO, NOT OBSERVED. The blockages are observed; the network, the edge attachment and the assumption that a marker closes its whole edge are all constructed here.",
+    "OpenStreetMap coverage of rural Nepal in April 2015 was incomplete, so an unroutable destination may be a mapping gap rather than a severed road. Snap distances and baseline-unroutable pairs are reported so the two can be told apart.",
+    "THE CLASS RESTRICTION AND THE MAPPING GAP ARE BOTH BINDING, AND BOTH ARE MEASURED: of 184 observed blockages, 45 sit on a mapped road below tertiary class which this network excludes by design, and 70 sit where OpenStreetMap had mapped no road of any class in April 2015. Movement on tracks and trails — how much of the response actually reached mountain villages — is invisible here, and most of the observed disruption was somewhere this network cannot represent.",
+    "A blockage disables an entire edge. For connectivity that is right; as a statement about how much road was unusable it would be badly wrong, and no such figure is produced.",
+    "ABSENCE OF A BLOCKAGE IS NOT EVIDENCE OF AN OPEN ROAD, so the baseline network is not a map of what was passable.",
+    "District centroids stand in for destinations because no settlement gazetteer is held; a centroid on a hillside snaps to a road that may be far from anywhere people were.",
+    "No travel time is computed anywhere, because no speed or condition data for April 2015 exists in any source this project holds."
+   ]
+  }
+ ],
+ "results": {
+  "geometry": {
+   "blockedRoads": {
+    "features": 179,
+    "totalLengthKm": 19.93,
+    "lengthMetres": {
+     "min": 7,
+     "p25": 39,
+     "median": 65,
+     "p75": 115,
+     "max": 1178
+    },
+    "vertices": {
+     "min": 2,
+     "median": 5,
+     "max": 68
+    },
+    "vertexSpacingMetres": {
+     "p10": 5.2,
+     "median": 13.7,
+     "p90": 34.4
+    },
+    "interpretation": "These 179 features carry 19.9 km of line geometry in total, with a median feature length of 65 m. A feature of that length is an OBSTRUCTION MARKER at a place where an analyst saw a blockage, not the extent of a closed route. Any statement about how much road was unusable must come from the network the marker sits on, never from the marker’s own length."
+   },
+   "landslides": {
+    "features": 51,
+    "totalAreaHectares": 325.9,
+    "totalAreaSqKm": 3.259,
+    "areaSqMetres": {
+     "min": 568,
+     "median": 9144,
+     "p90": 152189,
+     "max": 840871
+    },
+    "equivalentRadiusMetres": {
+     "min": 13,
+     "median": 54,
+     "p90": 220,
+     "max": 517
+    }
+   }
+  },
+  "distribution": {
+   "blockedRoads": {
+    "byDistrict": [
+     {
+      "id": "Sindhupalchok",
+      "count": 65,
+      "lengthMetres": 5804,
+      "areaHectares": 0
+     },
+     {
+      "id": "Dolakha",
+      "count": 33,
+      "lengthMetres": 3327,
+      "areaHectares": 0
+     },
+     {
+      "id": "Rasuwa",
+      "count": 22,
+      "lengthMetres": 5283,
+      "areaHectares": 0
+     },
+     {
+      "id": "Gorkha",
+      "count": 20,
+      "lengthMetres": 2370,
+      "areaHectares": 0
+     },
+     {
+      "id": "Okhaldhunga",
+      "count": 11,
+      "lengthMetres": 1101,
+      "areaHectares": 0
+     },
+     {
+      "id": "Nuwakot",
+      "count": 8,
+      "lengthMetres": 369,
+      "areaHectares": 0
+     },
+     {
+      "id": "Dhading",
+      "count": 5,
+      "lengthMetres": 286,
+      "areaHectares": 0
+     },
+     {
+      "id": "Kavrepalanchok",
+      "count": 5,
+      "lengthMetres": 438,
+      "areaHectares": 0
+     },
+     {
+      "id": "Sindhuli",
+      "count": 3,
+      "lengthMetres": 160,
+      "areaHectares": 0
+     },
+     {
+      "id": "Lalitpur",
+      "count": 1,
+      "lengthMetres": 125,
+      "areaHectares": 0
+     },
+     {
+      "id": "Makwanpur",
+      "count": 1,
+      "lengthMetres": 93,
+      "areaHectares": 0
+     },
+     {
+      "id": "Kathmandu",
+      "count": 1,
+      "lengthMetres": 37,
+      "areaHectares": 0
+     },
+     {
+      "id": "Tanahu",
+      "count": 1,
+      "lengthMetres": 25,
+      "areaHectares": 0
+     },
+     {
+      "id": "Ramechhap",
+      "count": 1,
+      "lengthMetres": 67,
+      "areaHectares": 0
+     },
+     {
+      "id": "(outside the district layer)",
+      "count": 1,
+      "lengthMetres": 432,
+      "areaHectares": 0
+     },
+     {
+      "id": "Lamjung",
+      "count": 1,
+      "lengthMetres": 18,
+      "areaHectares": 0
+     }
+    ],
+    "byIntensity": [
+     {
+      "id": "MMI 6",
+      "count": 8,
+      "lengthMetres": 779,
+      "areaHectares": 0
+     },
+     {
+      "id": "MMI 6.5",
+      "count": 3,
+      "lengthMetres": 322,
+      "areaHectares": 0
+     },
+     {
+      "id": "MMI 7",
+      "count": 13,
+      "lengthMetres": 880,
+      "areaHectares": 0
+     },
+     {
+      "id": "MMI 7.5",
+      "count": 114,
+      "lengthMetres": 13909,
+      "areaHectares": 0
+     },
+     {
+      "id": "MMI 8",
+      "count": 41,
+      "lengthMetres": 4044,
+      "areaHectares": 0
+     }
+    ]
+   },
+   "bridgesOut": {
+    "byDistrict": [
+     {
+      "id": "Kavrepalanchok",
+      "count": 2,
+      "lengthMetres": 0,
+      "areaHectares": 0
+     },
+     {
+      "id": "Sindhupalchok",
+      "count": 2,
+      "lengthMetres": 0,
+      "areaHectares": 0
+     },
+     {
+      "id": "Okhaldhunga",
+      "count": 1,
+      "lengthMetres": 0,
+      "areaHectares": 0
+     }
+    ],
+    "byIntensity": [
+     {
+      "id": "MMI 6.5",
+      "count": 1,
+      "lengthMetres": 0,
+      "areaHectares": 0
+     },
+     {
+      "id": "MMI 7.5",
+      "count": 4,
+      "lengthMetres": 0,
+      "areaHectares": 0
+     }
+    ]
+   },
+   "landslides": {
+    "byDistrict": [
+     {
+      "id": "Sindhupalchok",
+      "count": 23,
+      "lengthMetres": 0,
+      "areaHectares": 173.71
+     },
+     {
+      "id": "Gorkha",
+      "count": 9,
+      "lengthMetres": 0,
+      "areaHectares": 34.48
+     },
+     {
+      "id": "Rasuwa",
+      "count": 5,
+      "lengthMetres": 0,
+      "areaHectares": 103.04
+     },
+     {
+      "id": "Dhading",
+      "count": 5,
+      "lengthMetres": 0,
+      "areaHectares": 2.24
+     },
+     {
+      "id": "Dolakha",
+      "count": 4,
+      "lengthMetres": 0,
+      "areaHectares": 6.1
+     },
+     {
+      "id": "Ramechhap",
+      "count": 3,
+      "lengthMetres": 0,
+      "areaHectares": 1.76
+     },
+     {
+      "id": "(outside the district layer)",
+      "count": 2,
+      "lengthMetres": 0,
+      "areaHectares": 4.6
+     }
+    ],
+    "byIntensity": [
+     {
+      "id": "MMI 7",
+      "count": 3,
+      "lengthMetres": 0,
+      "areaHectares": 5.02
+     },
+     {
+      "id": "MMI 7.5",
+      "count": 36,
+      "lengthMetres": 0,
+      "areaHectares": 299.83
+     },
+     {
+      "id": "MMI 8",
+      "count": 12,
+      "lengthMetres": 0,
+      "areaHectares": 21.07
+     }
+    ]
+   }
+  },
+  "bridges": [
+   {
+    "lon": 86.43463,
+    "lat": 27.34119,
+    "district": "Okhaldhunga",
+    "mmi": 6.5,
+    "sensedOn": "2015-04-26",
+    "producedOn": "2015-04-29",
+    "nearestLandslideMetres": 43363
+   },
+   {
+    "lon": 85.78274,
+    "lat": 27.44397,
+    "district": "Kavrepalanchok",
+    "mmi": 7.5,
+    "sensedOn": "2015-05-04",
+    "producedOn": "2015-05-05",
+    "nearestLandslideMetres": 20050
+   },
+   {
+    "lon": 85.65188,
+    "lat": 27.93908,
+    "district": "Sindhupalchok",
+    "mmi": 7.5,
+    "sensedOn": "2015-05-03",
+    "producedOn": "2015-05-03",
+    "nearestLandslideMetres": 1408
+   },
+   {
+    "lon": 85.68713,
+    "lat": 27.98667,
+    "district": "Sindhupalchok",
+    "mmi": 7.5,
+    "sensedOn": "2015-05-03",
+    "producedOn": "2015-05-03",
+    "nearestLandslideMetres": 3256
+   },
+   {
+    "lon": 85.71658,
+    "lat": 27.62395,
+    "district": "Kavrepalanchok",
+    "mmi": 7.5,
+    "sensedOn": "2015-05-06",
+    "producedOn": "2015-05-06",
+    "nearestLandslideMetres": 21421
+   }
+  ],
+  "landslideRoadAssociation": {
+   "tolerance": {
+    "headlineMetres": 50,
+    "geometryFloorMetres": 13.7,
+    "landslideCharacteristicRadiusMetres": 54,
+    "justification": "The blocked-road lines have a median vertex spacing of 13.7 m, so a separation smaller than that is digitising noise rather than a measured gap. The mapped landslides have a median equivalent radius of 54 m, which is the distance over which a slide of typical mapped size extends from its own centre. A tolerance of 50 m therefore means \"the road lies within about one landslide-width of the mapped slide extent\". It is a resolution-based tolerance, not a runout model: no debris travel distance is claimed, and the association is reported across the whole tolerance curve so the sensitivity is visible."
+   },
+   "roadToLandslide": {
+    "roadFeatures": 179,
+    "landslideFeatures": 51,
+    "curve": [
+     {
+      "toleranceMetres": 0,
+      "features": 14,
+      "featureShare": 7.8,
+      "lengthMetres": 1377,
+      "lengthShare": 6.9
+     },
+     {
+      "toleranceMetres": 25,
+      "features": 16,
+      "featureShare": 8.9,
+      "lengthMetres": 1449,
+      "lengthShare": 7.3
+     },
+     {
+      "toleranceMetres": 50,
+      "features": 17,
+      "featureShare": 9.5,
+      "lengthMetres": 1550,
+      "lengthShare": 7.8
+     },
+     {
+      "toleranceMetres": 100,
+      "features": 20,
+      "featureShare": 11.2,
+      "lengthMetres": 1763,
+      "lengthShare": 8.8
+     },
+     {
+      "toleranceMetres": 250,
+      "features": 22,
+      "featureShare": 12.3,
+      "lengthMetres": 1853,
+      "lengthShare": 9.3
+     },
+     {
+      "toleranceMetres": 500,
+      "features": 26,
+      "featureShare": 14.5,
+      "lengthMetres": 2955,
+      "lengthShare": 14.8
+     },
+     {
+      "toleranceMetres": 1000,
+      "features": 26,
+      "featureShare": 14.5,
+      "lengthMetres": 2955,
+      "lengthShare": 14.8
+     }
+    ],
+    "distanceMetres": {
+     "min": 0,
+     "p25": 1968,
+     "median": 7684,
+     "p75": 11699,
+     "max": 58636
+    },
+    "causalityNote": "Every figure here is a measured separation between two independently mapped features. The NGA products contain no field linking a blockage to a slide, and in several cases the two were observed on different dates. \"Spatially associated with\" is the strongest claim the data supports."
+   },
+   "landslideToRoad": {
+    "landslideFeatures": 51,
+    "curve": [
+     {
+      "toleranceMetres": 0,
+      "features": 10,
+      "featureShare": 19.6
+     },
+     {
+      "toleranceMetres": 25,
+      "features": 10,
+      "featureShare": 19.6
+     },
+     {
+      "toleranceMetres": 50,
+      "features": 10,
+      "featureShare": 19.6
+     },
+     {
+      "toleranceMetres": 100,
+      "features": 12,
+      "featureShare": 23.5
+     },
+     {
+      "toleranceMetres": 250,
+      "features": 12,
+      "featureShare": 23.5
+     },
+     {
+      "toleranceMetres": 500,
+      "features": 17,
+      "featureShare": 33.3
+     },
+     {
+      "toleranceMetres": 1000,
+      "features": 21,
+      "featureShare": 41.2
+     }
+    ],
+    "distanceMetres": {
+     "min": 0,
+     "median": 1773,
+     "max": 15664
+    }
+   },
+   "headline": {
+    "toleranceMetres": 50,
+    "features": 17,
+    "featureShare": 9.5,
+    "lengthMetres": 1550,
+    "lengthShare": 7.8
+   },
+   "statement": "17 of 179 observed blocked-road features lie within 50 m of an observed landslide polygon (9.5 per cent). They are SPATIALLY ASSOCIATED WITH those landslides. The source establishes no causal link between any blockage and any slide, and in several cases the two were observed on different dates."
+  },
+  "landslides": [
+   {
+    "index": 0,
+    "lon": 86.2218,
+    "lat": 27.85095,
+    "areaHectares": 1.2,
+    "district": "Dolakha",
+    "mmi": 7.5,
+    "nearestBlockedRoadMetres": 0,
+    "peopleWithin1Km": 337,
+    "nearestPopulatedCellKm": 0.12
+   },
+   {
+    "index": 1,
+    "lon": 86.14284,
+    "lat": 28.14205,
+    "areaHectares": 1.4,
+    "district": null,
+    "mmi": 7,
+    "nearestBlockedRoadMetres": 8627,
+    "peopleWithin1Km": 0,
+    "nearestPopulatedCellKm": null
+   },
+   {
+    "index": 2,
+    "lon": 86.1426,
+    "lat": 28.18194,
+    "areaHectares": 3.2,
+    "district": null,
+    "mmi": 7,
+    "nearestBlockedRoadMetres": null,
+    "peopleWithin1Km": 0,
+    "nearestPopulatedCellKm": null
+   },
+   {
+    "index": 3,
+    "lon": 84.79432,
+    "lat": 28.55564,
+    "areaHectares": 15.22,
+    "district": "Gorkha",
+    "mmi": 7.5,
+    "nearestBlockedRoadMetres": 3854,
+    "peopleWithin1Km": 19,
+    "nearestPopulatedCellKm": null
+   },
+   {
+    "index": 4,
+    "lon": 85.39817,
+    "lat": 28.15494,
+    "areaHectares": 0.71,
+    "district": "Rasuwa",
+    "mmi": 7.5,
+    "nearestBlockedRoadMetres": 5752,
+    "peopleWithin1Km": 74,
+    "nearestPopulatedCellKm": 4.96
+   },
+   {
+    "index": 5,
+    "lon": 84.72497,
+    "lat": 28.19634,
+    "areaHectares": 0.2,
+    "district": "Gorkha",
+    "mmi": 8,
+    "nearestBlockedRoadMetres": null,
+    "peopleWithin1Km": 307,
+    "nearestPopulatedCellKm": 0.43
+   },
+   {
+    "index": 6,
+    "lon": 84.72411,
+    "lat": 28.19609,
+    "areaHectares": 0.6,
+    "district": "Gorkha",
+    "mmi": 8,
+    "nearestBlockedRoadMetres": null,
+    "peopleWithin1Km": 345,
+    "nearestPopulatedCellKm": 0.37
+   },
+   {
+    "index": 7,
+    "lon": 84.72906,
+    "lat": 28.19673,
+    "areaHectares": 0.06,
+    "district": "Gorkha",
+    "mmi": 8,
+    "nearestBlockedRoadMetres": 0,
+    "peopleWithin1Km": 307,
+    "nearestPopulatedCellKm": 0.47
+   },
+   {
+    "index": 8,
+    "lon": 84.72401,
+    "lat": 28.19739,
+    "areaHectares": 0.18,
+    "district": "Gorkha",
+    "mmi": 8,
+    "nearestBlockedRoadMetres": null,
+    "peopleWithin1Km": 307,
+    "nearestPopulatedCellKm": 0.44
+   },
+   {
+    "index": 9,
+    "lon": 84.72347,
+    "lat": 28.19869,
+    "areaHectares": 0.3,
+    "district": "Gorkha",
+    "mmi": 8,
+    "nearestBlockedRoadMetres": null,
+    "peopleWithin1Km": 346,
+    "nearestPopulatedCellKm": 0.29
+   },
+   {
+    "index": 10,
+    "lon": 84.723,
+    "lat": 28.19265,
+    "areaHectares": 16.84,
+    "district": "Gorkha",
+    "mmi": 8,
+    "nearestBlockedRoadMetres": 0,
+    "peopleWithin1Km": 330,
+    "nearestPopulatedCellKm": 0.03
+   },
+   {
+    "index": 11,
+    "lon": 84.72451,
+    "lat": 28.19915,
+    "areaHectares": 0.28,
+    "district": "Gorkha",
+    "mmi": 8,
+    "nearestBlockedRoadMetres": null,
+    "peopleWithin1Km": 307,
+    "nearestPopulatedCellKm": 0.28
+   },
+   {
+    "index": 12,
+    "lon": 85.45202,
+    "lat": 28.19861,
+    "areaHectares": 8.14,
+    "district": "Rasuwa",
+    "mmi": 7.5,
+    "nearestBlockedRoadMetres": null,
+    "peopleWithin1Km": 6,
+    "nearestPopulatedCellKm": 11.1
+   },
+   {
+    "index": 13,
+    "lon": 84.73196,
+    "lat": 28.20784,
+    "areaHectares": 0.81,
+    "district": "Gorkha",
+    "mmi": 8,
+    "nearestBlockedRoadMetres": 0,
+    "peopleWithin1Km": 297,
+    "nearestPopulatedCellKm": 0.21
+   },
+   {
+    "index": 14,
+    "lon": 85.48582,
+    "lat": 28.21137,
+    "areaHectares": 25.31,
+    "district": "Rasuwa",
+    "mmi": 7.5,
+    "nearestBlockedRoadMetres": null,
+    "peopleWithin1Km": 6,
+    "nearestPopulatedCellKm": null
+   },
+   {
+    "index": 15,
+    "lon": 85.52356,
+    "lat": 28.21636,
+    "areaHectares": 11.5,
+    "district": "Rasuwa",
+    "mmi": 7.5,
+    "nearestBlockedRoadMetres": null,
+    "peopleWithin1Km": 6,
+    "nearestPopulatedCellKm": null
+   },
+   {
+    "index": 16,
+    "lon": 85.50264,
+    "lat": 28.21507,
+    "areaHectares": 57.37,
+    "district": "Rasuwa",
+    "mmi": 7.5,
+    "nearestBlockedRoadMetres": null,
+    "peopleWithin1Km": 5,
+    "nearestPopulatedCellKm": null
+   },
+   {
+    "index": 17,
+    "lon": 85.68527,
+    "lat": 28.03275,
+    "areaHectares": 0.91,
+    "district": "Sindhupalchok",
+    "mmi": 7.5,
+    "nearestBlockedRoadMetres": null,
+    "peopleWithin1Km": 46,
+    "nearestPopulatedCellKm": 3.7
+   },
+   {
+    "index": 18,
+    "lon": 85.68502,
+    "lat": 28.03029,
+    "areaHectares": 0.76,
+    "district": "Sindhupalchok",
+    "mmi": 7.5,
+    "nearestBlockedRoadMetres": null,
+    "peopleWithin1Km": 46,
+    "nearestPopulatedCellKm": 3.43
+   },
+   {
+    "index": 19,
+    "lon": 85.68355,
+    "lat": 28.02166,
+    "areaHectares": 3.12,
+    "district": "Sindhupalchok",
+    "mmi": 7.5,
+    "nearestBlockedRoadMetres": null,
+    "peopleWithin1Km": 69,
+    "nearestPopulatedCellKm": 2.49
+   },
+   {
+    "index": 20,
+    "lon": 85.68765,
+    "lat": 28.02015,
+    "areaHectares": 0.81,
+    "district": "Sindhupalchok",
+    "mmi": 7.5,
+    "nearestBlockedRoadMetres": 5533,
+    "peopleWithin1Km": 69,
+    "nearestPopulatedCellKm": 2.55
+   },
+   {
+    "index": 21,
+    "lon": 85.68212,
+    "lat": 28.0164,
+    "areaHectares": 5.01,
+    "district": "Sindhupalchok",
+    "mmi": 7.5,
+    "nearestBlockedRoadMetres": 1763,
+    "peopleWithin1Km": 113,
+    "nearestPopulatedCellKm": 1.91
+   },
+   {
+    "index": 22,
+    "lon": 85.68292,
+    "lat": 28.01972,
+    "areaHectares": 1.4,
+    "district": "Sindhupalchok",
+    "mmi": 7.5,
+    "nearestBlockedRoadMetres": null,
+    "peopleWithin1Km": 69,
+    "nearestPopulatedCellKm": 2.27
+   },
+   {
+    "index": 23,
+    "lon": 85.68497,
+    "lat": 28.02749,
+    "areaHectares": 0.07,
+    "district": "Sindhupalchok",
+    "mmi": 7.5,
+    "nearestBlockedRoadMetres": null,
+    "peopleWithin1Km": 46,
+    "nearestPopulatedCellKm": 3.14
+   },
+   {
+    "index": 24,
+    "lon": 85.68408,
+    "lat": 28.02497,
+    "areaHectares": 0.75,
+    "district": "Sindhupalchok",
+    "mmi": 7.5,
+    "nearestBlockedRoadMetres": null,
+    "peopleWithin1Km": 69,
+    "nearestPopulatedCellKm": 2.85
+   },
+   {
+    "index": 25,
+    "lon": 85.68128,
+    "lat": 28.02441,
+    "areaHectares": 3.32,
+    "district": "Sindhupalchok",
+    "mmi": 7.5,
+    "nearestBlockedRoadMetres": null,
+    "peopleWithin1Km": 66,
+    "nearestPopulatedCellKm": 2.7
+   },
+   {
+    "index": 26,
+    "lon": 85.67399,
+    "lat": 28.02183,
+    "areaHectares": 0.94,
+    "district": "Sindhupalchok",
+    "mmi": 7.5,
+    "nearestBlockedRoadMetres": null,
+    "peopleWithin1Km": 83,
+    "nearestPopulatedCellKm": 2.28
+   },
+   {
+    "index": 27,
+    "lon": 85.66132,
+    "lat": 28.0185,
+    "areaHectares": 3.23,
+    "district": "Sindhupalchok",
+    "mmi": 7.5,
+    "nearestBlockedRoadMetres": null,
+    "peopleWithin1Km": 73,
+    "nearestPopulatedCellKm": 2.23
+   },
+   {
+    "index": 28,
+    "lon": 85.65082,
+    "lat": 28.01465,
+    "areaHectares": 0.29,
+    "district": "Sindhupalchok",
+    "mmi": 7.5,
+    "nearestBlockedRoadMetres": 82,
+    "peopleWithin1Km": 126,
+    "nearestPopulatedCellKm": 1.51
+   },
+   {
+    "index": 29,
+    "lon": 85.65019,
+    "lat": 28.01485,
+    "areaHectares": 0.79,
+    "district": "Sindhupalchok",
+    "mmi": 7.5,
+    "nearestBlockedRoadMetres": 194,
+    "peopleWithin1Km": 126,
+    "nearestPopulatedCellKm": 1.52
+   },
+   {
+    "index": 30,
+    "lon": 85.57686,
+    "lat": 28.03159,
+    "areaHectares": 0.71,
+    "district": "Sindhupalchok",
+    "mmi": 7.5,
+    "nearestBlockedRoadMetres": null,
+    "peopleWithin1Km": 19,
+    "nearestPopulatedCellKm": 5.1
+   },
+   {
+    "index": 31,
+    "lon": 85.57544,
+    "lat": 28.02997,
+    "areaHectares": 10.19,
+    "district": "Sindhupalchok",
+    "mmi": 7.5,
+    "nearestBlockedRoadMetres": 4428,
+    "peopleWithin1Km": 19,
+    "nearestPopulatedCellKm": 4.9
+   },
+   {
+    "index": 32,
+    "lon": 85.68457,
+    "lat": 27.94829,
+    "areaHectares": 0.44,
+    "district": "Sindhupalchok",
+    "mmi": 7.5,
+    "nearestBlockedRoadMetres": null,
+    "peopleWithin1Km": 311,
+    "nearestPopulatedCellKm": 0.46
+   },
+   {
+    "index": 33,
+    "lon": 85.68447,
+    "lat": 27.94619,
+    "areaHectares": 2.44,
+    "district": "Sindhupalchok",
+    "mmi": 7.5,
+    "nearestBlockedRoadMetres": null,
+    "peopleWithin1Km": 311,
+    "nearestPopulatedCellKm": 0.48
+   },
+   {
+    "index": 34,
+    "lon": 85.68283,
+    "lat": 27.94383,
+    "areaHectares": 5.54,
+    "district": "Sindhupalchok",
+    "mmi": 7.5,
+    "nearestBlockedRoadMetres": null,
+    "peopleWithin1Km": 399,
+    "nearestPopulatedCellKm": 0.18
+   },
+   {
+    "index": 35,
+    "lon": 85.68022,
+    "lat": 27.94604,
+    "areaHectares": 1.06,
+    "district": "Sindhupalchok",
+    "mmi": 7.5,
+    "nearestBlockedRoadMetres": null,
+    "peopleWithin1Km": 463,
+    "nearestPopulatedCellKm": 0.36
+   },
+   {
+    "index": 36,
+    "lon": 85.67434,
+    "lat": 27.93307,
+    "areaHectares": 45.34,
+    "district": "Sindhupalchok",
+    "mmi": 7.5,
+    "nearestBlockedRoadMetres": 0,
+    "peopleWithin1Km": 829,
+    "nearestPopulatedCellKm": 0.22
+   },
+   {
+    "index": 37,
+    "lon": 85.64036,
+    "lat": 27.94805,
+    "areaHectares": 2.26,
+    "district": "Sindhupalchok",
+    "mmi": 7.5,
+    "nearestBlockedRoadMetres": 7797,
+    "peopleWithin1Km": 497,
+    "nearestPopulatedCellKm": 0.36
+   },
+   {
+    "index": 38,
+    "lon": 85.68101,
+    "lat": 27.9553,
+    "areaHectares": 0.26,
+    "district": "Sindhupalchok",
+    "mmi": 7.5,
+    "nearestBlockedRoadMetres": null,
+    "peopleWithin1Km": 258,
+    "nearestPopulatedCellKm": 0.45
+   },
+   {
+    "index": 39,
+    "lon": 84.74232,
+    "lat": 27.74523,
+    "areaHectares": 0.42,
+    "district": "Dhading",
+    "mmi": 7,
+    "nearestBlockedRoadMetres": 0,
+    "peopleWithin1Km": 305,
+    "nearestPopulatedCellKm": 0.37
+   },
+   {
+    "index": 40,
+    "lon": 85.86931,
+    "lat": 27.76811,
+    "areaHectares": 84.09,
+    "district": "Sindhupalchok",
+    "mmi": 7.5,
+    "nearestBlockedRoadMetres": 10178,
+    "peopleWithin1Km": 772,
+    "nearestPopulatedCellKm": 0.36
+   },
+   {
+    "index": 41,
+    "lon": 84.92355,
+    "lat": 28.00682,
+    "areaHectares": 1.07,
+    "district": "Dhading",
+    "mmi": 8,
+    "nearestBlockedRoadMetres": 5667,
+    "peopleWithin1Km": 1299,
+    "nearestPopulatedCellKm": 0.31
+   },
+   {
+    "index": 42,
+    "lon": 84.92498,
+    "lat": 28.00893,
+    "areaHectares": 0.54,
+    "district": "Dhading",
+    "mmi": 8,
+    "nearestBlockedRoadMetres": null,
+    "peopleWithin1Km": 783,
+    "nearestPopulatedCellKm": 0.22
+   },
+   {
+    "index": 43,
+    "lon": 84.93181,
+    "lat": 28.02032,
+    "areaHectares": 0.07,
+    "district": "Dhading",
+    "mmi": 8,
+    "nearestBlockedRoadMetres": 0,
+    "peopleWithin1Km": 779,
+    "nearestPopulatedCellKm": 0.27
+   },
+   {
+    "index": 44,
+    "lon": 84.92693,
+    "lat": 28.02139,
+    "areaHectares": 0.13,
+    "district": "Dhading",
+    "mmi": 8,
+    "nearestBlockedRoadMetres": 0,
+    "peopleWithin1Km": 804,
+    "nearestPopulatedCellKm": 0.55
+   },
+   {
+    "index": 45,
+    "lon": 86.029,
+    "lat": 27.66486,
+    "areaHectares": 0.39,
+    "district": "Dolakha",
+    "mmi": 7.5,
+    "nearestBlockedRoadMetres": 0,
+    "peopleWithin1Km": 731,
+    "nearestPopulatedCellKm": 0.4
+   },
+   {
+    "index": 46,
+    "lon": 86.01859,
+    "lat": 27.46665,
+    "areaHectares": 0.31,
+    "district": "Ramechhap",
+    "mmi": 7.5,
+    "nearestBlockedRoadMetres": 0,
+    "peopleWithin1Km": 601,
+    "nearestPopulatedCellKm": 0.42
+   },
+   {
+    "index": 47,
+    "lon": 86.0338,
+    "lat": 27.5073,
+    "areaHectares": 1.14,
+    "district": "Dolakha",
+    "mmi": 7.5,
+    "nearestBlockedRoadMetres": 51883,
+    "peopleWithin1Km": 636,
+    "nearestPopulatedCellKm": 0.36
+   },
+   {
+    "index": 48,
+    "lon": 85.98172,
+    "lat": 27.48116,
+    "areaHectares": 0.88,
+    "district": "Ramechhap",
+    "mmi": 7.5,
+    "nearestBlockedRoadMetres": null,
+    "peopleWithin1Km": 1097,
+    "nearestPopulatedCellKm": 0.38
+   },
+   {
+    "index": 49,
+    "lon": 86.00071,
+    "lat": 27.49763,
+    "areaHectares": 0.57,
+    "district": "Ramechhap",
+    "mmi": 7.5,
+    "nearestBlockedRoadMetres": null,
+    "peopleWithin1Km": 430,
+    "nearestPopulatedCellKm": 0.49
+   },
+   {
+    "index": 50,
+    "lon": 86.00162,
+    "lat": 27.52381,
+    "areaHectares": 3.38,
+    "district": "Dolakha",
+    "mmi": 7.5,
+    "nearestBlockedRoadMetres": null,
+    "peopleWithin1Km": 597,
+    "nearestPopulatedCellKm": 0.45
+   }
+  ],
+  "network": {
+   "baseline": {
+    "instant": "2015-04-24T00:00:00Z",
+    "ways": 2129,
+    "nodes": 2268,
+    "directedEdges": 5454,
+    "components": 40,
+    "largestComponent": 1927,
+    "mappingGrowthSince2015": 3.36,
+    "mappingGrowthNote": "OpenStreetMap now holds 7143 ways of these classes over the same tiles, against 2129 on 2015-04-24. The ratio is a direct measure of how much of the network was unmapped at the time, and it bounds what any connectivity result here can claim."
+   },
+   "blockageMatching": {
+    "snapToleranceMetres": 25,
+    "snapToleranceBasis": "The knee of the match curve, capped at 100 m. Beyond that a marker can attach to a parallel street rather than the one it sits on, and a wrongly disabled road is a worse error than an unmatched marker.",
+    "curve": [
+     {
+      "toleranceMetres": 25,
+      "matched": 21,
+      "matchedShare": 11.4,
+      "distinctEdges": 10
+     },
+     {
+      "toleranceMetres": 50,
+      "matched": 22,
+      "matchedShare": 12,
+      "distinctEdges": 10
+     },
+     {
+      "toleranceMetres": 100,
+      "matched": 22,
+      "matchedShare": 12,
+      "distinctEdges": 10
+     },
+     {
+      "toleranceMetres": 250,
+      "matched": 24,
+      "matchedShare": 13,
+      "distinctEdges": 12
+     },
+     {
+      "toleranceMetres": 500,
+      "matched": 27,
+      "matchedShare": 14.7,
+      "distinctEdges": 12
+     }
+    ],
+    "matched": 21,
+    "unmatched": 163,
+    "unmatchedNote": "A blockage that matches no edge at any tolerance sits on a road this network does not contain — below tertiary class, or unmapped in OpenStreetMap in April 2015. It is a gap in the map, not an absence of disruption, and it is excluded from the network result rather than counted as \"no effect\".",
+    "distinctEdgesDisabled": 10,
+    "whatTheBlockagesSitOn": {
+     "method": "Each blockage matched a second time against every highway class within about 600 m of it, as OpenStreetMap held them on 2015-04-24. Three outcomes are kept apart, because collapsing them answers the wrong question: on a mapped road (within the snap tolerance), near one but beyond that tolerance, and no mapped road of any class inside the query box.",
+     "snapToleranceMetres": 25,
+     "queryBoxHalfWidthMetres": 600,
+     "onMappedRoad": 66,
+     "onStrategicClassRoad": 21,
+     "onRoadBelowTertiary": 45,
+     "nearMappedRoadBeyondTolerance": 48,
+     "noMappedRoadWithinQueryBox": 70,
+     "byHighwayClass": {
+      "road": 2,
+      "tertiary": 15,
+      "primary": 2,
+      "residential": 3,
+      "track": 12,
+      "unclassified": 17,
+      "path": 11,
+      "secondary": 4
+     },
+     "distanceToNearestMappedRoadMetres": {
+      "min": 0,
+      "p25": 0,
+      "median": 12,
+      "p75": 200,
+      "max": 1163
+     },
+     "contextNetworkByClass": {
+      "residential": 169,
+      "secondary": 10,
+      "footway": 29,
+      "primary": 17,
+      "tertiary": 18,
+      "unclassified": 29,
+      "path": 45,
+      "track": 39,
+      "service": 25,
+      "road": 8,
+      "steps": 2,
+      "living_street": 2
+     },
+     "finding": "Of 184 observed blockages, 66 sit within 25 m of a road OpenStreetMap had mapped by 2015-04-24, and only 21 of those are on a strategic-class road — 45 are on residential streets, tracks and unclassified roads the routable network excludes by design. A further 48 lie near a mapped road but beyond the snap tolerance, and 70 have no mapped road of any class within about 600 m. Two things follow and they point in different directions. The low match rate against the routable network is partly a CLASS restriction this analysis imposed: the disruption was on exactly the minor mountain roads a strategic-network analysis cannot see. But 70 markers — the largest single group — sit where OpenStreetMap had drawn no road of any class, which is a MAPPING GAP rather than a class restriction. Neither reading is evidence about where roads actually were: both describe the map of April 2015, not the road system."
+    }
+   },
+   "damaged": {
+    "components": 49,
+    "largestComponent": 1907,
+    "newComponents": 9
+   },
+   "routes": {
+    "pairs": 14,
+    "outcomes": {
+     "UNCHANGED": 8,
+     "NOT_ROUTABLE_BASELINE": 5,
+     "DETOUR": 1
+    },
+    "routes": [
+     {
+      "from": "n:190042:61679",
+      "to": "n:189333:62008",
+      "label": "Kathmandu → Dhading",
+      "district": "Dhading",
+      "destinationSnapMetres": 7259,
+      "outcome": "UNCHANGED",
+      "baselineKm": 61.74,
+      "damagedKm": 61.74,
+      "extraKm": 0,
+      "extraShare": 0
+     },
+     {
+      "from": "n:190042:61679",
+      "to": "n:191908:61802",
+      "label": "Kathmandu → Dolakha",
+      "district": "Dolakha",
+      "destinationSnapMetres": 4044,
+      "outcome": "UNCHANGED",
+      "baselineKm": 170.1,
+      "damagedKm": 170.1,
+      "extraKm": 0,
+      "extraShare": 0
+     },
+     {
+      "from": "n:190042:61679",
+      "to": "n:188825:62440",
+      "label": "Kathmandu → Gorkha",
+      "district": "Gorkha",
+      "destinationSnapMetres": 30390,
+      "outcome": "NOT_ROUTABLE_BASELINE",
+      "baselineKm": null,
+      "damagedKm": null,
+      "extraKm": null,
+      "extraShare": null
+     },
+     {
+      "from": "n:190042:61679",
+      "to": "n:190638:61358",
+      "label": "Kathmandu → Kavrepalanchok",
+      "district": "Kavrepalanchok",
+      "destinationSnapMetres": 4014,
+      "outcome": "UNCHANGED",
+      "baselineKm": 46.89,
+      "damagedKm": 46.89,
+      "extraKm": 0,
+      "extraShare": 0
+     },
+     {
+      "from": "n:190042:61679",
+      "to": "n:190009:61374",
+      "label": "Kathmandu → Lalitpur",
+      "district": "Lalitpur",
+      "destinationSnapMetres": 1821,
+      "outcome": "UNCHANGED",
+      "baselineKm": 67.14,
+      "damagedKm": 67.14,
+      "extraKm": 0,
+      "extraShare": 0
+     },
+     {
+      "from": "n:190042:61679",
+      "to": "n:187846:62867",
+      "label": "Kathmandu → Lamjung",
+      "district": "Lamjung",
+      "destinationSnapMetres": 5254,
+      "outcome": "UNCHANGED",
+      "baselineKm": 179.89,
+      "damagedKm": 179.89,
+      "extraKm": 0,
+      "extraShare": 0
+     },
+     {
+      "from": "n:190042:61679",
+      "to": "n:189341:61131",
+      "label": "Kathmandu → Makwanpur",
+      "district": "Makwanpur",
+      "destinationSnapMetres": 4105,
+      "outcome": "UNCHANGED",
+      "baselineKm": 84.43,
+      "damagedKm": 84.43,
+      "extraKm": 0,
+      "extraShare": 0
+     },
+     {
+      "from": "n:190042:61679",
+      "to": "n:189704:62116",
+      "label": "Kathmandu → Nuwakot",
+      "district": "Nuwakot",
+      "destinationSnapMetres": 1066,
+      "outcome": "DETOUR",
+      "baselineKm": 74.33,
+      "damagedKm": 83.49,
+      "extraKm": 9.16,
+      "extraShare": 12.3
+     },
+     {
+      "from": "n:190042:61679",
+      "to": "n:192295:60536",
+      "label": "Kathmandu → Okhaldhunga",
+      "district": "Okhaldhunga",
+      "destinationSnapMetres": 14449,
+      "outcome": "NOT_ROUTABLE_BASELINE",
+      "baselineKm": null,
+      "damagedKm": null,
+      "extraKm": null,
+      "extraShare": null
+     },
+     {
+      "from": "n:190042:61679",
+      "to": "n:191735:61174",
+      "label": "Kathmandu → Ramechhap",
+      "district": "Ramechhap",
+      "destinationSnapMetres": 7804,
+      "outcome": "NOT_ROUTABLE_BASELINE",
+      "baselineKm": null,
+      "damagedKm": null,
+      "extraKm": null,
+      "extraShare": null
+     },
+     {
+      "from": "n:190042:61679",
+      "to": "n:190006:62709",
+      "label": "Kathmandu → Rasuwa",
+      "district": "Rasuwa",
+      "destinationSnapMetres": 4792,
+      "outcome": "NOT_ROUTABLE_BASELINE",
+      "baselineKm": null,
+      "damagedKm": null,
+      "extraKm": null,
+      "extraShare": null
+     },
+     {
+      "from": "n:190042:61679",
+      "to": "n:191310:60546",
+      "label": "Kathmandu → Sindhuli",
+      "district": "Sindhuli",
+      "destinationSnapMetres": 1447,
+      "outcome": "NOT_ROUTABLE_BASELINE",
+      "baselineKm": null,
+      "damagedKm": null,
+      "extraKm": null,
+      "extraShare": null
+     },
+     {
+      "from": "n:190042:61679",
+      "to": "n:190749:61873",
+      "label": "Kathmandu → Sindhupalchok",
+      "district": "Sindhupalchok",
+      "destinationSnapMetres": 6786,
+      "outcome": "UNCHANGED",
+      "baselineKm": 87.54,
+      "damagedKm": 87.54,
+      "extraKm": 0,
+      "extraShare": 0
+     },
+     {
+      "from": "n:190042:61679",
+      "to": "n:187579:62295",
+      "label": "Kathmandu → Tanahu",
+      "district": "Tanahu",
+      "destinationSnapMetres": 2891,
+      "outcome": "UNCHANGED",
+      "baselineKm": 156.03,
+      "damagedKm": 156.03,
+      "extraKm": 0,
+      "extraShare": 0
+     }
+    ],
+    "detourExtraKm": {
+     "count": 1,
+     "totalExtraKm": 9.16,
+     "maxExtraKm": 9.16,
+     "medianExtraKm": 9.16
+    },
+    "travelTimeNote": "NO TRAVEL TIME IS REPORTED. A detour distance is measured on the network; a detour DURATION would need road speeds, surface condition and post-earthquake traffic, none of which exists for April 2015 in any source this project holds. Multiplying kilometres by an assumed speed would produce a number that looks like evidence and is not.",
+    "origin": {
+     "district": "Kathmandu",
+     "snapMetres": 478
+    }
+   },
+   "destinations": [
+    {
+     "district": "Dhading",
+     "centroid": [
+      84.97264,
+      27.87837
+     ],
+     "nodeId": "n:189333:62008",
+     "snapMetres": 7259,
+     "componentSize": 1927
+    },
+    {
+     "district": "Dolakha",
+     "centroid": [
+      86.20957,
+      27.7931
+     ],
+     "nodeId": "n:191908:61802",
+     "snapMetres": 4044,
+     "componentSize": 1927
+    },
+    {
+     "district": "Gorkha",
+     "centroid": [
+      84.77672,
+      28.31783
+     ],
+     "nodeId": "n:188825:62440",
+     "snapMetres": 30390,
+     "componentSize": 8
+    },
+    {
+     "district": "Kavrepalanchok",
+     "centroid": [
+      85.59687,
+      27.53396
+     ],
+     "nodeId": "n:190638:61358",
+     "snapMetres": 4014,
+     "componentSize": 1927
+    },
+    {
+     "district": "Lalitpur",
+     "centroid": [
+      85.34571,
+      27.55024
+     ],
+     "nodeId": "n:190009:61374",
+     "snapMetres": 1821,
+     "componentSize": 1927
+    },
+    {
+     "district": "Lamjung",
+     "centroid": [
+      84.41816,
+      28.26146
+     ],
+     "nodeId": "n:187846:62867",
+     "snapMetres": 5254,
+     "componentSize": 1927
+    },
+    {
+     "district": "Makwanpur",
+     "centroid": [
+      85.08499,
+      27.45506
+     ],
+     "nodeId": "n:189341:61131",
+     "snapMetres": 4105,
+     "componentSize": 1927
+    },
+    {
+     "district": "Nuwakot",
+     "centroid": [
+      85.20573,
+      27.90917
+     ],
+     "nodeId": "n:189704:62116",
+     "snapMetres": 1066,
+     "componentSize": 1927
+    },
+    {
+     "district": "Okhaldhunga",
+     "centroid": [
+      86.38875,
+      27.31946
+     ],
+     "nodeId": "n:192295:60536",
+     "snapMetres": 14449,
+     "componentSize": 104
+    },
+    {
+     "district": "Ramechhap",
+     "centroid": [
+      86.18368,
+      27.51684
+     ],
+     "nodeId": "n:191735:61174",
+     "snapMetres": 7804,
+     "componentSize": 27
+    },
+    {
+     "district": "Rasuwa",
+     "centroid": [
+      85.39099,
+      28.16961
+     ],
+     "nodeId": "n:190006:62709",
+     "snapMetres": 4792,
+     "componentSize": 29
+    },
+    {
+     "district": "Sindhuli",
+     "centroid": [
+      85.94213,
+      27.19749
+     ],
+     "nodeId": "n:191310:60546",
+     "snapMetres": 1447,
+     "componentSize": 104
+    },
+    {
+     "district": "Sindhupalchok",
+     "centroid": [
+      85.70031,
+      27.84788
+     ],
+     "nodeId": "n:190749:61873",
+     "snapMetres": 6786,
+     "componentSize": 1927
+    },
+    {
+     "district": "Tanahu",
+     "centroid": [
+      84.23892,
+      27.95702
+     ],
+     "nodeId": "n:187579:62295",
+     "snapMetres": 2891,
+     "componentSize": 1927
+    }
+   ],
+   "centrality": {
+    "nodes": 2268,
+    "weight": "hop count",
+    "variant": "unweighted (hop count)",
+    "formula": "C_B(v) = sum over s != v != t of sigma_st(v) / sigma_st",
+    "engineLimitations": [
+     "Assumes flows follow shortest paths. Real cargo follows carrier schedules and contracts, which are commercial data we do not hold.",
+     "Every origin-destination pair is weighted equally. Actual trade is heavily concentrated on a few pairs.",
+     "Sensitive to network completeness: an unmapped alternative route inflates the betweenness of the routes we did map."
+    ],
+    "mostChanged": [
+     {
+      "id": "n:189670:61965",
+      "before": 0.014997,
+      "after": 0,
+      "change": -0.014997
+     },
+     {
+      "id": "n:189640:61957",
+      "before": 0.014707,
+      "after": 0,
+      "change": -0.014707
+     },
+     {
+      "id": "n:189674:61995",
+      "before": 0.015288,
+      "after": 0.000742,
+      "change": -0.014546
+     },
+     {
+      "id": "n:189713:61948",
+      "before": 0.01558,
+      "after": 0.001483,
+      "change": -0.014098
+     },
+     {
+      "id": "n:189593:61961",
+      "before": 0.014417,
+      "after": 0.000742,
+      "change": -0.013676
+     },
+     {
+      "id": "n:189743:61941",
+      "before": 0.015874,
+      "after": 0.002223,
+      "change": -0.013651
+     },
+     {
+      "id": "n:189793:61929",
+      "before": 0.016174,
+      "after": 0.002962,
+      "change": -0.013212
+     },
+     {
+      "id": "n:189578:61990",
+      "before": 0.014323,
+      "after": 0.001483,
+      "change": -0.012841
+     },
+     {
+      "id": "n:189796:61927",
+      "before": 0.016482,
+      "after": 0.003701,
+      "change": -0.012781
+     },
+     {
+      "id": "n:189797:61926",
+      "before": 0.016795,
+      "after": 0.004438,
+      "change": -0.012357
+     },
+     {
+      "id": "n:189545:62028",
+      "before": 0.014438,
+      "after": 0.002223,
+      "change": -0.012215
+     },
+     {
+      "id": "n:189544:62028",
+      "before": 0.014582,
+      "after": 0.002962,
+      "change": -0.01162
+     },
+     {
+      "id": "n:189776:61645",
+      "before": 0.142953,
+      "after": 0.154093,
+      "change": 0.011139
+     },
+     {
+      "id": "n:189750:61647",
+      "before": 0.142648,
+      "after": 0.153787,
+      "change": 0.011139
+     },
+     {
+      "id": "n:189730:61657",
+      "before": 0.142343,
+      "after": 0.153481,
+      "change": 0.011138
+     }
+    ],
+    "mostCentralBaseline": [
+     {
+      "id": "n:189912:61637",
+      "betweenness": 0.261561,
+      "node": {
+       "lon": 85.300239,
+       "lat": 27.684823
+      }
+     },
+     {
+      "id": "n:189984:61597",
+      "betweenness": 0.259584,
+      "node": {
+       "lon": 85.332194,
+       "lat": 27.666649
+      }
+     },
+     {
+      "id": "n:189962:61578",
+      "betweenness": 0.235964,
+      "node": {
+       "lon": 85.322395,
+       "lat": 27.658054
+      }
+     },
+     {
+      "id": "n:189906:61638",
+      "betweenness": 0.234006,
+      "node": {
+       "lon": 85.297239,
+       "lat": 27.684933
+      }
+     },
+     {
+      "id": "n:189908:61638",
+      "betweenness": 0.233266,
+      "node": {
+       "lon": 85.298053,
+       "lat": 27.684843
+      }
+     },
+     {
+      "id": "n:189931:61597",
+      "betweenness": 0.232777,
+      "node": {
+       "lon": 85.308374,
+       "lat": 27.666804
+      }
+     },
+     {
+      "id": "n:189913:61637",
+      "betweenness": 0.231757,
+      "node": {
+       "lon": 85.300271,
+       "lat": 27.684698
+      }
+     },
+     {
+      "id": "n:189914:61637",
+      "betweenness": 0.231632,
+      "node": {
+       "lon": 85.300756,
+       "lat": 27.684535
+      }
+     },
+     {
+      "id": "n:189917:61614",
+      "betweenness": 0.231524,
+      "node": {
+       "lon": 85.302244,
+       "lat": 27.674469
+      }
+     },
+     {
+      "id": "n:189926:61602",
+      "betweenness": 0.231442,
+      "node": {
+       "lon": 85.306272,
+       "lat": 27.668889
+      }
+     },
+     {
+      "id": "n:189930:61597",
+      "betweenness": 0.230455,
+      "node": {
+       "lon": 85.307985,
+       "lat": 27.666586
+      }
+     },
+     {
+      "id": "n:189967:61579",
+      "betweenness": 0.229075,
+      "node": {
+       "lon": 85.324801,
+       "lat": 27.658762
+      }
+     },
+     {
+      "id": "n:189953:61585",
+      "betweenness": 0.226861,
+      "node": {
+       "lon": 85.318243,
+       "lat": 27.661427
+      }
+     },
+     {
+      "id": "n:189958:61581",
+      "betweenness": 0.224552,
+      "node": {
+       "lon": 85.320911,
+       "lat": 27.65926
+      }
+     },
+     {
+      "id": "n:189959:61580",
+      "betweenness": 0.22448,
+      "node": {
+       "lon": 85.321001,
+       "lat": 27.659185
+      }
+     }
+    ]
+   }
+  },
+  "dataGaps": [
+   {
+    "gap": "Road speeds and surface condition for April 2015",
+    "consequence": "No travel time, and therefore no isochrone or response-time analysis.",
+    "couldBeFilledBy": "A contemporaneous road inventory from the Department of Roads; not found in open form."
+   },
+   {
+    "gap": "A digital elevation model for the study area",
+    "consequence": "Landslide susceptibility cannot be related to slope or aspect, so §5.6’s terrain question is unanswered.",
+    "couldBeFilledBy": "SRTM or ALOS AW3D30, both openly licensed; not ingested in this stage."
+   },
+   {
+    "gap": "Which roads were checked and found open",
+    "consequence": "Blockage counts have no denominator, exactly as the damage points have none.",
+    "couldBeFilledBy": "Nothing published: the NGA products do not record an examined-area footprint."
+   },
+   {
+    "gap": "Reopening dates for blocked roads",
+    "consequence": "Disruption cannot be given a duration; every network result is a single snapshot.",
+    "couldBeFilledBy": "Logistics Cluster access constraint updates; not machine-readable for this event."
+   },
+   {
+    "gap": "A settlement gazetteer with populations",
+    "consequence": "Landslide proximity is measured to modelled population cells rather than to named settlements.",
+    "couldBeFilledBy": "OCHA COD-PS settlement points; not ingested in this stage."
+   }
+  ]
+ }
+}

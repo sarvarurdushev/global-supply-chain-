@@ -1,0 +1,36 @@
+{
+ "id": "osm-nepal-2015-roads",
+ "datasetName": "OpenStreetMap strategic road network, Nepal study area, as at 2015-04-24",
+ "publisher": "OpenStreetMap contributors, served by the Overpass API",
+ "sourceUrl": "https://www.openstreetmap.org/",
+ "license": "Open Database License (ODbL) 1.0",
+ "redistribution": "SHARE_ALIKE",
+ "retrievedAt": "2026-09-21",
+ "originalFormat": "Overpass API JSON (way geometry)",
+ "temporalCoverage": "Database state at 2015-04-24T00:00:00Z, the day before the earthquake",
+ "geographicCoverage": "Study envelope 84.2, 27.1, 86.8, 28.7 (EPSG:4326)",
+ "coordinateSystem": "EPSG:4326",
+ "description": "Motorway, trunk, primary, secondary and tertiary roads and their link roads, as mapped in OpenStreetMap immediately before the 25 April 2015 Gorkha earthquake. Retrieved with an Overpass attic query so that the network predates the post-earthquake mapping activation.",
+ "dataClass": "OBSERVED",
+ "attribution": "© OpenStreetMap contributors, ODbL",
+ "fields": [
+  "osmId",
+  "coordinates",
+  "highway",
+  "name",
+  "ref",
+  "bridge",
+  "tunnel",
+  "surface",
+  "oneway",
+  "maxspeed",
+  "layer"
+ ],
+ "limitations": [
+  "OpenStreetMap coverage of rural Nepal in April 2015 was INCOMPLETE. A road absent from this network may have existed and been unmapped, so a route this analysis cannot find is not necessarily a route that did not exist.",
+  "Only motorway to tertiary classes and their links are included. Movement over tracks, paths and residential streets is invisible to this network by construction, which matters most in exactly the mountain districts where the damage was worst.",
+  "OpenStreetMap records no road condition or seasonal passability. A mapped road is a road somebody drew, not a road that was open.",
+  "Attic geometry reflects the node positions as they were at the stated instant; positions corrected in OpenStreetMap since 2015 are not applied here, which is correct for the baseline and means coordinates may be less accurate than today’s map."
+ ],
+ "schemaVersion": 1
+}

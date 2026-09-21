@@ -19,6 +19,8 @@ import { ingestUnosatDamage } from './ingest/unosat-damage.mjs';
 import { ingestBoundaries } from './ingest/boundaries.mjs';
 import { ingestOchaExposure } from './ingest/ocha-exposure.mjs';
 import { ingestWorldPop } from './ingest/worldpop.mjs';
+import { ingestOsmRoads } from './ingest/osm-roads.mjs';
+import { ingestBlockageContext } from './ingest/osm-blockage-context.mjs';
 
 const force = process.argv.includes('--force');
 
@@ -29,6 +31,14 @@ const STEPS = [
   ['Nepal district boundaries (COD-AB)', ingestBoundaries],
   ['OCHA district exposure', ingestOchaExposure],
   ['WorldPop 2015 population', ingestWorldPop],
+  /*
+   * The two OpenStreetMap steps come last, and the second depends on the
+   * first ingest in this list having written the NGA damage artefact: it
+   * queries the roads beneath those blockages. Order is load-bearing here in
+   * the same way the boundary and crosswalk steps are above.
+   */
+  ['OpenStreetMap roads as at 2015-04-24', ingestOsmRoads],
+  ['OpenStreetMap roads beneath the observed blockages', ingestBlockageContext],
 ];
 
 for (const [label, run] of STEPS) {

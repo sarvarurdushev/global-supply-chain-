@@ -1,0 +1,1 @@
+osm-nepal-2015-blockage-context: read 393, kept 393, dropped 0 (retention 100.00%)

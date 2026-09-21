@@ -1,0 +1,4004 @@
+{
+ "schemaVersion": 1,
+ "stage": 5,
+ "generatedAt": "2026-09-21",
+ "dataClass": "OBSERVED",
+ "coverageStatement": {
+  "headline": "EVERY FIGURE IN THIS FILE DESCRIBES THE AREAS THAT WERE EXAMINED, NOT NEPAL.",
+  "unosat": "4583 damage sites across 14 named analysis areas in 9 districts of 75.",
+  "copernicus": "41042 graded structures inside 7 areas of interest, with 8 area polygons published.",
+  "whyItMatters": "A district with no observed damage is a district no satellite product examined at this resolution. Extrapolating these counts to the country would multiply a tasking decision by a population."
+ },
+ "sources": [
+  {
+   "datasetId": "unosat-nepal-2015-damage-sites",
+   "license": "CC BY-NC-SA 3.0 (HDX license_other for this dataset)",
+   "redistribution": "NON_COMMERCIAL",
+   "attribution": "UNITAR/UNOSAT; Copernicus EMS (EMSR125); U.S. NGA"
+  },
+  {
+   "datasetId": "copernicus-emsr125-grading",
+   "license": "CC BY-NC-SA 3.0 (HDX license_other for this dataset)",
+   "redistribution": "NON_COMMERCIAL",
+   "attribution": "UNITAR/UNOSAT; Copernicus EMS (EMSR125); U.S. NGA"
+  },
+  {
+   "datasetId": "nga-nepal-2015-infrastructure-damage",
+   "license": "CC BY-NC-SA 3.0 (HDX license_other for this dataset)",
+   "redistribution": "NON_COMMERCIAL",
+   "attribution": "UNITAR/UNOSAT; Copernicus EMS (EMSR125); U.S. NGA"
+  },
+  {
+   "datasetId": "usgs-nepal-2015-shakemap-contours",
+   "license": "US Government public domain (17 U.S.C. §105)",
+   "redistribution": "OPEN",
+   "attribution": "Data courtesy of the U.S. Geological Survey"
+  },
+  {
+   "datasetId": "cod-ab-npl-adm2",
+   "license": "CC BY-IGO 3.0",
+   "redistribution": "SHARE_ALIKE",
+   "attribution": "UN OCHA (data.humdata.org), CC BY-IGO"
+  }
+ ],
+ "validation": {
+  "passed": true,
+  "checks": [
+   {
+    "name": "UNOSAT class counts reproduce the published inventory",
+    "passed": true,
+    "detail": "4583 records; differences: 0"
+   },
+   {
+    "name": "Every damage point is accounted for by the district attribution",
+    "passed": true,
+    "detail": "4582 contained, 1 by nearest boundary (max 0.01 km), 0 unplaced"
+   },
+   {
+    "name": "Grid binning conserves the damage points",
+    "passed": true,
+    "detail": "1000m: 362 cells; 2000m: 145 cells; 5000m: 51 cells"
+   },
+   {
+    "name": "Intensity binning conserves the damage points",
+    "passed": true,
+    "detail": "3 bands, 0 outside every usable contour"
+   },
+   {
+    "name": "Copernicus record count matches the ingested artefact",
+    "passed": true,
+    "detail": "41042 of 41042"
+   },
+   {
+    "name": "Copernicus graded and ungraded partition the records",
+    "passed": true,
+    "detail": "38589 graded + 2453 not graded"
+   },
+   {
+    "name": "No UNOSAT damage class is mapped onto a Copernicus grade anywhere in this stage",
+    "passed": true,
+    "detail": "The two vocabularies are carried side by side in the source comparison and never joined; Copernicus publishes no EMS-98 grade 2, 3 or 4 for this activation, so no crosswalk exists to build."
+   },
+   {
+    "name": "Every NGA observation date parses to an unambiguous calendar date",
+    "passed": true,
+    "detail": "25 date groups, mixed M/D/YYYY and ISO formats normalised"
+   }
+  ]
+ },
+ "methodology": [
+  {
+   "schemaVersion": 1,
+   "resultClass": "OBSERVED",
+   "id": "damage-unosat-counts",
+   "name": "UNOSAT damage counts and composition",
+   "question": "How many structures were observed damaged, in what classes, and does the artefact reproduce the published inventory?",
+   "inputs": [
+    {
+     "dataset": "unosat-nepal-2015-damage-sites",
+     "role": "observed damage points"
+    }
+   ],
+   "spatialCoverage": "The UNOSAT analysis areas only — fourteen named areas in nine districts. Not Nepal, and not a sample of Nepal.",
+   "method": "Recount the damage class of every feature from the artefact geometry and compare class by class with the counts published in the UNOSAT inventory, reporting the differences rather than a pass/fail.",
+   "formula": "count(class) over all features; share(class) = count(class) / total",
+   "outputs": [
+    "count per damage class",
+    "percentage composition",
+    "counts by confidence, imagery date and analysis area"
+   ],
+   "visualisation": "Stacked composition bar, and a point layer coloured by damage class.",
+   "validation": "All four classes reproduce exactly (4583 records, 0 differences).",
+   "dataClass": "OBSERVED",
+   "limitations": [
+    "These are remote-sensing interpretations. Every record in the source reads \"Not yet field validated\".",
+    "Only damaged structures appear. There is no undamaged-structure record and no examined-area footprint, so no damage RATE can be computed from this source.",
+    "Coverage is the areas that were tasked, which were chosen because damage was expected there."
+   ]
+  },
+  {
+   "schemaVersion": 1,
+   "resultClass": "DERIVED",
+   "id": "damage-severity-index",
+   "name": "Damage severity index and its dependence on the weights",
+   "question": "Can a single severity number be derived from four ordinal damage classes, and does the ranking it produces survive the choice of weights?",
+   "inputs": [
+    {
+     "dataset": "unosat-nepal-2015-damage-sites",
+     "role": "observed damage points"
+    }
+   ],
+   "spatialCoverage": "The UNOSAT analysis areas, aggregated to districts, to analysis areas and to 1 km cells.",
+   "method": "Score each unit under four weight schemes spanning the plausible range, from the weightless \"count the destroyed\" case to doubling steps, then measure rank agreement between every pair of schemes with Spearman’s rho and compare the top-five sets.",
+   "formula": "S(unit, scheme) = sum over classes of weight(class) x count(class); rho over units between each pair of schemes",
+   "parameters": {
+    "schemes": [
+     "ordinal-linear",
+     "destroyed-only",
+     "collapse-weighted",
+     "geometric"
+    ],
+    "robustThreshold": 0.9,
+    "broadlyStableThreshold": 0.7
+   },
+   "parameterJustification": "The four schemes are chosen to bracket the space rather than to be individually correct: equal steps is the assumption a reader would make, destroyed-only assumes no interval at all, and doubling steps is the steepest defensible shape. A ranking that survives both extremes cannot be overturned by any intermediate one. The 0.9 and 0.7 bands are the conventional strong and moderate rank-agreement cut-offs, named here so a reader can disagree with the band rather than with a hidden judgement.",
+   "outputs": [
+    "severity score per unit per scheme",
+    "pairwise Spearman",
+    "stability verdict"
+   ],
+   "visualisation": "Ranked bar of districts with the four schemes overlaid, so a reader sees the ordering hold.",
+   "validation": "Districts ROBUST (worst rho 0.933); analysis areas ROBUST; 1 km cells BROADLY_STABLE.",
+   "dataClass": "DERIVED",
+   "limitations": [
+    "THE SCORE IS AN INDEX, NOT A MEASUREMENT. UNOSAT publishes an order, not an interval; the numbers are supplied by this analysis.",
+    "Rank stability says the ordering does not depend on the weights. It says nothing about whether the ordering reflects reality, which is limited by the coverage of the underlying observations.",
+    "A unit with few observations can rank high under a scheme that weights destruction heavily and low under one that does not; the top-five agreement figure is reported for exactly this reason."
+   ]
+  },
+  {
+   "schemaVersion": 1,
+   "resultClass": "DESCRIPTIVE_STATISTIC",
+   "id": "damage-spatial-concentration",
+   "name": "Damage concentration over a shared grid",
+   "question": "How concentrated is the observed damage, and where are the concentrations?",
+   "inputs": [
+    {
+     "dataset": "unosat-nepal-2015-damage-sites",
+     "role": "observed damage points"
+    },
+    {
+     "dataset": "cod-ab-npl-adm2",
+     "role": "district attribution"
+    }
+   ],
+   "spatialCoverage": "The 362 km² in which damage was observed, binned at 1 km, 2 km and 5 km.",
+   "method": "Bin points into square cells in EPSG:32645, then measure concentration with a Gini coefficient over cell counts and a concentration curve reporting how few cells hold half and four fifths of the observations.",
+   "formula": "G = 2*sum(i*x_i)/(n*sum(x_i)) - (n+1)/n over cells sorted ascending",
+   "parameters": {
+    "cellMetres": [
+     1000,
+     2000,
+     5000
+    ]
+   },
+   "parameterJustification": "One kilometre matches the WorldPop cell size used in Stage 4, so damage and population share a unit and can be compared cell for cell. Two and five kilometres are reported beside it so that the concentration result can be seen not to depend on the choice.",
+   "outputs": [
+    "occupied cells",
+    "Gini coefficient",
+    "cells holding 25/50/80/90 per cent of observations",
+    "top cells with their district and modelled intensity"
+   ],
+   "visualisation": "Graduated grid over the terrain, with a Lorenz-style concentration curve beside it.",
+   "validation": "Cell counts sum to the full record count at every resolution.",
+   "dataClass": "DERIVED",
+   "limitations": [
+    "The denominator is the area in which damage WAS observed, not the area that was examined. A cell with no damage point may never have been looked at.",
+    "Concentration measured over observed points inherits the concentration of the tasking that produced them.",
+    "The grid is aligned to the UTM origin, not to any feature on the ground; a cell boundary through a settlement splits it."
+   ]
+  },
+  {
+   "schemaVersion": 1,
+   "resultClass": "DERIVED",
+   "id": "damage-by-intensity",
+   "name": "Observed damage against modelled shaking intensity",
+   "question": "Does the mix of damage classes differ between modelled intensity bands, and does the difference survive holding the place constant?",
+   "inputs": [
+    {
+     "dataset": "unosat-nepal-2015-damage-sites",
+     "role": "observed damage points"
+    },
+    {
+     "dataset": "usgs-nepal-2015-shakemap-contours",
+     "role": "modelled shaking field"
+    }
+   ],
+   "spatialCoverage": "The intersection of the UNOSAT analysis areas with the closed ShakeMap contours. Every observation falls inside MMI VII or above; no UNOSAT area was tasked at lower intensity.",
+   "method": "Assign each damage point the strongest closed contour containing it, then test whether damage class and intensity band are independent with Pearson’s chi-square, report Cramér’s V as the effect size, and repeat the comparison WITHIN each analysis area that spans two bands so that building stock, imagery and analyst are held constant.",
+   "formula": "chi2 = sum (O-E)^2/E with E = row total x column total / n; V = sqrt(chi2 / (n x min(r-1, c-1)))",
+   "outputs": [
+    "damage counts and composition per intensity band",
+    "chi-square, degrees of freedom, p, Cramér’s V",
+    "within-area comparison for areas spanning two bands"
+   ],
+   "visualisation": "Composition bars per intensity band, with the within-area pairs drawn as connected points.",
+   "validation": "Bands plus outside-contours sum to the full record count; Cochran’s expected-count rule holds (minimum expected 18.6). 2 analysis areas span two bands.",
+   "dataClass": "DERIVED",
+   "limitations": [
+    "THE NUMBER OF OBSERVATIONS PER BAND IS NOT A MEASURE OF DAMAGE. It is a measure of where imagery was tasked and digitised. Only composition within a band is read here.",
+    "CORRELATION IS NOT CAUSATION, and here it is not even a clean correlation: the intensity bands contain different towns and valleys, so composition differences have building stock, terrain and analyst as competing explanations.",
+    "The intensity field is itself a model interpolated between very few instruments, so the band a point falls in carries its own uncertainty.",
+    "With thousands of observations a chi-square is significant at trivial effect sizes; the Cramér’s V figure is the one to read."
+   ]
+  },
+  {
+   "schemaVersion": 1,
+   "resultClass": "DERIVED",
+   "id": "damage-copernicus-dose-response",
+   "name": "Copernicus destruction rate by modelled intensity",
+   "question": "Among structures that were examined and graded, does the proportion destroyed rise with modelled shaking intensity?",
+   "inputs": [
+    {
+     "dataset": "copernicus-emsr125-grading",
+     "role": "graded structures, including undamaged"
+    },
+    {
+     "dataset": "usgs-nepal-2015-shakemap-contours",
+     "role": "modelled shaking field"
+    }
+   ],
+   "spatialCoverage": "Inside the Copernicus areas of interest only — seven towns with grading. This is the ONLY damage source in this project with a denominator, and it covers seven towns.",
+   "method": "Assign each graded structure the strongest closed contour containing it, then compute destroyed / graded per band and test the destroyed-versus-not table for independence across bands.",
+   "formula": "rate(band) = destroyed(band) / graded(band), with \"graded\" excluding Unknown, Null, Not Applicable and empty gradings",
+   "outputs": [
+    "structures examined, graded, damaged and destroyed per band",
+    "destruction rate per band",
+    "chi-square and Spearman trend"
+   ],
+   "visualisation": "Destruction rate against intensity band, with each point labelled by the towns it contains.",
+   "validation": "Rates computed over 38589 graded structures; Cochran’s rule does NOT hold.",
+   "dataClass": "DERIVED",
+   "limitations": [
+    "INTENSITY BAND AND TOWN ARE THE SAME VARIABLE HERE. No area of interest spans two bands, so the gradient cannot be separated from which towns were graded.",
+    "Ungraded records vary from none to all of an area (one area of interest carries no usable grading at all), so the denominator is not equally reliable between areas.",
+    "The grading vocabulary has only two damage grades and no middle, so \"destroyed\" here means the top grade and cannot be compared with a four-step scale.",
+    "Seven towns are not Nepal, and they were chosen for grading because damage was expected."
+   ]
+  },
+  {
+   "schemaVersion": 1,
+   "resultClass": "OBSERVED",
+   "id": "damage-observation-timeline",
+   "name": "Four clocks: earthquake, imagery, mapping, publication",
+   "question": "When was each observation made, and how long after the earthquake did it become available?",
+   "inputs": [
+    {
+     "dataset": "unosat-nepal-2015-damage-sites",
+     "role": "observed damage points"
+    },
+    {
+     "dataset": "nga-nepal-2015-infrastructure-damage",
+     "role": "acquisition and production dates"
+    },
+    {
+     "dataset": "usgs-nepal-2015-seismic",
+     "role": "event time"
+    }
+   ],
+   "spatialCoverage": "All observed damage products in this project; the dates are a property of the products, not of a place.",
+   "method": "Normalise the mixed M/D/YYYY and ISO date formats explicitly, refusing anything ambiguous, then group observations by their date triple and compute the lags between the event, the imagery, the mapping and the publication separately.",
+   "outputs": [
+    "observations per acquisition date",
+    "event-to-imagery lag",
+    "imagery-to-mapping lag",
+    "mapping-to-publication lag"
+   ],
+   "visualisation": "Four parallel tracks on one time axis, never merged into a single animated sequence.",
+   "validation": "Every one of the 25 date groups parsed to an unambiguous calendar date; UNOSAT production and publication dates are absent from the source and left null rather than inferred.",
+   "dataClass": "OBSERVED",
+   "limitations": [
+    "NONE OF THESE CLOCKS RECORDS WHEN DAMAGE OCCURRED. A feature dated 3 May means the first usable image of that place was taken on 3 May.",
+    "Cloud cover and satellite revisit intervals drive the acquisition sequence, so the apparent spread of damage over time is largely a property of the satellites.",
+    "UNOSAT publishes no production or publication date in this shapefile, so its mapping lag cannot be measured at all."
+   ]
+  },
+  {
+   "schemaVersion": 1,
+   "resultClass": "DESCRIPTIVE_STATISTIC",
+   "id": "damage-cross-source",
+   "name": "UNOSAT, Copernicus and NGA as three different products",
+   "question": "What does each damage product actually observe, and why can their classifications not be merged?",
+   "inputs": [
+    {
+     "dataset": "unosat-nepal-2015-damage-sites",
+     "role": "observed damage points"
+    },
+    {
+     "dataset": "copernicus-emsr125-grading",
+     "role": "graded structures"
+    },
+    {
+     "dataset": "nga-nepal-2015-infrastructure-damage",
+     "role": "infrastructure features"
+    }
+   ],
+   "spatialCoverage": "Overlapping but non-nested coverage; neither building product is a superset of the other.",
+   "method": "Tabulate each product’s observed unit, vocabulary, coverage, dates and whether it carries a denominator, and state the specific reasons a combined count would be wrong.",
+   "outputs": [
+    "per-product comparison table",
+    "reasons the vocabularies are not interchangeable"
+   ],
+   "visualisation": "Side-by-side source cards in the methodology panel, with the denominator column highlighted.",
+   "validation": "No crosswalk between UNOSAT classes and Copernicus grades exists anywhere in this stage; the check is asserted in the validation block.",
+   "dataClass": "DERIVED",
+   "limitations": [
+    "The products overlap geographically, so a single collapsed building can appear in both as different record types. A combined total would double-count it.",
+    "This comparison describes what the products claim to observe. It does not adjudicate which is more accurate, because no field-validation dataset is held."
+   ]
+  }
+ ],
+ "results": {
+  "unosat": {
+   "reproduction": {
+    "observed": {
+     "Possible Damage": 95,
+     "Moderate Damage": 1057,
+     "Severe Damage": 1347,
+     "Destroyed": 2084
+    },
+    "published": {
+     "Destroyed": 2084,
+     "Severe Damage": 1347,
+     "Moderate Damage": 1057,
+     "Possible Damage": 95
+    },
+    "total": 4583,
+    "publishedTotal": 4583,
+    "reproduced": true,
+    "differences": []
+   },
+   "composition": {
+    "total": 4583,
+    "shares": {
+     "Possible Damage": 2.1,
+     "Moderate Damage": 23.1,
+     "Severe Damage": 29.4,
+     "Destroyed": 45.5
+    }
+   },
+   "byConfidence": {
+    "Medium": 4325,
+    "Very High": 162,
+    "Uncertain": 96
+   },
+   "bySensorDate": {
+    "2015-04-29": 2528,
+    "2015-05-03": 1221,
+    "2015-04-27": 778,
+    "2015-04-26": 56
+   },
+   "byAnalysisArea": {
+    "Manbu Area": 1524,
+    "Daraudi valley": 651,
+    "Parkhalchaur": 473,
+    "Bhaktapur": 458,
+    "Sankhu": 300,
+    "Nepal": 299,
+    "Chepe valley": 267,
+    "Sundar Bazar": 250,
+    "(unlabelled)": 149,
+    "Tuhure Pasal": 86,
+    "Epicenter South": 54,
+    "Kurintar Chitwan, Nepal": 46,
+    "Banepa": 20,
+    "Butt Tar Village, Nepal": 6
+   },
+   "fieldValidated": {
+    "Not yet field validated": 4583
+   },
+   "byDistrict": [
+    {
+     "district": "Gorkha",
+     "count": 1847,
+     "counts": {
+      "Severe Damage": 516,
+      "Destroyed": 927,
+      "Moderate Damage": 355,
+      "Possible Damage": 49
+     }
+    },
+    {
+     "district": "Dhading",
+     "count": 926,
+     "counts": {
+      "Moderate Damage": 214,
+      "Destroyed": 511,
+      "Severe Damage": 201
+     }
+    },
+    {
+     "district": "Bhaktapur",
+     "count": 458,
+     "counts": {
+      "Destroyed": 115,
+      "Moderate Damage": 173,
+      "Severe Damage": 170
+     }
+    },
+    {
+     "district": "Kavrepalanchok",
+     "count": 420,
+     "counts": {
+      "Moderate Damage": 103,
+      "Severe Damage": 103,
+      "Destroyed": 214
+     }
+    },
+    {
+     "district": "Lamjung",
+     "count": 420,
+     "counts": {
+      "Destroyed": 74,
+      "Severe Damage": 213,
+      "Moderate Damage": 133
+     }
+    },
+    {
+     "district": "Kathmandu",
+     "count": 300,
+     "counts": {
+      "Destroyed": 166,
+      "Moderate Damage": 37,
+      "Severe Damage": 97
+     }
+    },
+    {
+     "district": "Tanahu",
+     "count": 93,
+     "counts": {
+      "Moderate Damage": 36,
+      "Destroyed": 34,
+      "Severe Damage": 23
+     }
+    },
+    {
+     "district": "Lalitpur",
+     "count": 73,
+     "counts": {
+      "Severe Damage": 24,
+      "Moderate Damage": 6,
+      "Destroyed": 43
+     }
+    },
+    {
+     "district": "Chitawan",
+     "count": 46,
+     "counts": {
+      "Possible Damage": 46
+     }
+    }
+   ],
+   "attributionLedger": {
+    "read": 4583,
+    "contained": 4582,
+    "placedByNearestBoundary": 1,
+    "unplaced": 0,
+    "placed": 4583,
+    "reconciles": true,
+    "fallbackKm": 2,
+    "maxFallbackUsedKm": 0.01
+   },
+   "classOrder": [
+    "Possible Damage",
+    "Moderate Damage",
+    "Severe Damage",
+    "Destroyed"
+   ]
+  },
+  "severityIndex": {
+   "schemes": [
+    {
+     "id": "ordinal-linear",
+     "label": "Equal ordinal steps (1/2/3/4)",
+     "rationale": "The minimum assumption that still produces a number: the classes are equally spaced. It is the default a reader would guess, which makes it the right baseline to test the others against.",
+     "weights": {
+      "Possible Damage": 1,
+      "Moderate Damage": 2,
+      "Severe Damage": 3,
+      "Destroyed": 4
+     }
+    },
+    {
+     "id": "destroyed-only",
+     "label": "Destroyed count only (0/0/0/1)",
+     "rationale": "The only weighting that needs no interval assumption at all, because it uses the classes as a single yes/no. If the ranking under this scheme matches the weighted ones, the weights were not doing the work.",
+     "weights": {
+      "Possible Damage": 0,
+      "Moderate Damage": 0,
+      "Severe Damage": 0,
+      "Destroyed": 1
+     }
+    },
+    {
+     "id": "collapse-weighted",
+     "label": "Collapse-weighted (0/1/3/5)",
+     "rationale": "Reflects the judgement that \"Possible Damage\" carries almost no information — 89 of its 95 records are flagged Uncertain in the source — while total collapse dominates. A deliberately opinionated shape, included to be argued with.",
+     "weights": {
+      "Possible Damage": 0,
+      "Moderate Damage": 1,
+      "Severe Damage": 3,
+      "Destroyed": 5
+     }
+    },
+    {
+     "id": "geometric",
+     "label": "Doubling steps (1/2/4/8)",
+     "rationale": "The opposite extreme to equal steps: each class twice the last. Included because if a ranking survives both equal and doubling steps, no intermediate shape can overturn it.",
+     "weights": {
+      "Possible Damage": 1,
+      "Moderate Damage": 2,
+      "Severe Damage": 4,
+      "Destroyed": 8
+     }
+    }
+   ],
+   "stability": {
+    "districts": {
+     "units": 9,
+     "schemes": [
+      {
+       "scheme": "ordinal-linear",
+       "label": "Equal ordinal steps (1/2/3/4)",
+       "scores": [
+        6015,
+        3075,
+        1316,
+        1371,
+        1201,
+        1029,
+        277,
+        256,
+        46
+       ]
+      },
+      {
+       "scheme": "destroyed-only",
+       "label": "Destroyed count only (0/0/0/1)",
+       "scores": [
+        927,
+        511,
+        115,
+        214,
+        74,
+        166,
+        34,
+        43,
+        0
+       ]
+      },
+      {
+       "scheme": "collapse-weighted",
+       "label": "Collapse-weighted (0/1/3/5)",
+       "scores": [
+        6538,
+        3372,
+        1258,
+        1482,
+        1142,
+        1158,
+        275,
+        293,
+        0
+       ]
+      },
+      {
+       "scheme": "geometric",
+       "label": "Doubling steps (1/2/4/8)",
+       "scores": [
+        10239,
+        5320,
+        1946,
+        2330,
+        1710,
+        1790,
+        436,
+        452,
+        46
+       ]
+      }
+     ],
+     "pairwise": [
+      {
+       "a": "ordinal-linear",
+       "b": "destroyed-only",
+       "spearman": 0.9333333333333333
+      },
+      {
+       "a": "ordinal-linear",
+       "b": "collapse-weighted",
+       "spearman": 0.9666666666666667
+      },
+      {
+       "a": "ordinal-linear",
+       "b": "geometric",
+       "spearman": 0.9666666666666667
+      },
+      {
+       "a": "destroyed-only",
+       "b": "collapse-weighted",
+       "spearman": 0.9833333333333333
+      },
+      {
+       "a": "destroyed-only",
+       "b": "geometric",
+       "spearman": 0.9833333333333333
+      },
+      {
+       "a": "collapse-weighted",
+       "b": "geometric",
+       "spearman": 1
+      }
+     ],
+     "worstSpearman": 0.9333333333333333,
+     "topFiveByScheme": [
+      [
+       "Gorkha",
+       "Dhading",
+       "Kavrepalanchok",
+       "Bhaktapur",
+       "Lamjung"
+      ],
+      [
+       "Gorkha",
+       "Dhading",
+       "Kavrepalanchok",
+       "Kathmandu",
+       "Bhaktapur"
+      ],
+      [
+       "Gorkha",
+       "Dhading",
+       "Kavrepalanchok",
+       "Bhaktapur",
+       "Kathmandu"
+      ],
+      [
+       "Gorkha",
+       "Dhading",
+       "Kavrepalanchok",
+       "Bhaktapur",
+       "Kathmandu"
+      ]
+     ],
+     "topFiveAgreement": 0.8,
+     "verdict": "ROBUST",
+     "verdictMeaning": "The ordering of places is the same under every weighting tried, including the one that uses no weights at all. The ORDERING may be reported; the score itself is still an index, not a measurement."
+    },
+    "analysisAreas": {
+     "units": 14,
+     "schemes": [
+      {
+       "scheme": "ordinal-linear",
+       "label": "Equal ordinal steps (1/2/3/4)",
+       "scores": [
+        1316,
+        60,
+        1029,
+        2345,
+        151,
+        955,
+        46,
+        6,
+        407,
+        739,
+        713,
+        4995,
+        257,
+        1567
+       ]
+      },
+      {
+       "scheme": "destroyed-only",
+       "label": "Destroyed count only (0/0/0/1)",
+       "scores": [
+        115,
+        4,
+        166,
+        434,
+        21,
+        162,
+        0,
+        0,
+        33,
+        46,
+        32,
+        786,
+        32,
+        253
+       ]
+      },
+      {
+       "scheme": "collapse-weighted",
+       "label": "Collapse-weighted (0/1/3/5)",
+       "scores": [
+        1258,
+        60,
+        1158,
+        2737,
+        146,
+        1046,
+        0,
+        0,
+        371,
+        728,
+        625,
+        5418,
+        256,
+        1715
+       ]
+      },
+      {
+       "scheme": "geometric",
+       "label": "Doubling steps (1/2/4/8)",
+       "scores": [
+        1946,
+        88,
+        1790,
+        4256,
+        242,
+        1669,
+        46,
+        6,
+        586,
+        1070,
+        956,
+        8514,
+        406,
+        2694
+       ]
+      }
+     ],
+     "pairwise": [
+      {
+       "a": "ordinal-linear",
+       "b": "destroyed-only",
+       "spearman": 0.9779759406769171
+      },
+      {
+       "a": "ordinal-linear",
+       "b": "collapse-weighted",
+       "spearman": 0.9989004944448661
+      },
+      {
+       "a": "ordinal-linear",
+       "b": "geometric",
+       "spearman": 1
+      },
+      {
+       "a": "destroyed-only",
+       "b": "collapse-weighted",
+       "spearman": 0.979052414245147
+      },
+      {
+       "a": "destroyed-only",
+       "b": "geometric",
+       "spearman": 0.9779759406769171
+      },
+      {
+       "a": "collapse-weighted",
+       "b": "geometric",
+       "spearman": 0.9989004944448661
+      }
+     ],
+     "worstSpearman": 0.9779759406769171,
+     "topFiveByScheme": [
+      [
+       "Manbu Area",
+       "Daraudi valley",
+       "Parkhalchaur",
+       "Bhaktapur",
+       "Sankhu"
+      ],
+      [
+       "Manbu Area",
+       "Daraudi valley",
+       "Parkhalchaur",
+       "Sankhu",
+       "Nepal"
+      ],
+      [
+       "Manbu Area",
+       "Daraudi valley",
+       "Parkhalchaur",
+       "Bhaktapur",
+       "Sankhu"
+      ],
+      [
+       "Manbu Area",
+       "Daraudi valley",
+       "Parkhalchaur",
+       "Bhaktapur",
+       "Sankhu"
+      ]
+     ],
+     "topFiveAgreement": 0.8,
+     "verdict": "ROBUST",
+     "verdictMeaning": "The ordering of places is the same under every weighting tried, including the one that uses no weights at all. The ORDERING may be reported; the score itself is still an index, not a measurement."
+    },
+    "gridCells": {
+     "units": 362,
+     "schemes": [
+      {
+       "scheme": "ordinal-linear",
+       "label": "Equal ordinal steps (1/2/3/4)",
+       "scores": [
+        1015,
+        787,
+        716,
+        398,
+        263,
+        275,
+        264,
+        210,
+        194,
+        149,
+        191,
+        190,
+        144,
+        177,
+        115,
+        168,
+        136,
+        121,
+        38,
+        113,
+        101,
+        121,
+        130,
+        104,
+        92,
+        92,
+        107,
+        111,
+        107,
+        121,
+        128,
+        92,
+        104,
+        100,
+        76,
+        110,
+        98,
+        98,
+        91,
+        82,
+        98,
+        85,
+        82,
+        102,
+        84,
+        80,
+        83,
+        79,
+        96,
+        66,
+        85,
+        72,
+        55,
+        85,
+        83,
+        57,
+        64,
+        81,
+        74,
+        73,
+        66,
+        63,
+        70,
+        65,
+        64,
+        62,
+        68,
+        63,
+        65,
+        48,
+        57,
+        65,
+        63,
+        57,
+        64,
+        53,
+        46,
+        50,
+        51,
+        52,
+        55,
+        54,
+        51,
+        53,
+        41,
+        54,
+        49,
+        53,
+        39,
+        47,
+        56,
+        46,
+        48,
+        43,
+        50,
+        46,
+        45,
+        41,
+        35,
+        33,
+        44,
+        39,
+        31,
+        32,
+        27,
+        28,
+        41,
+        38,
+        41,
+        38,
+        34,
+        38,
+        38,
+        32,
+        29,
+        29,
+        30,
+        27,
+        24,
+        29,
+        37,
+        40,
+        27,
+        33,
+        30,
+        26,
+        25,
+        26,
+        23,
+        31,
+        34,
+        28,
+        31,
+        28,
+        25,
+        20,
+        27,
+        24,
+        28,
+        26,
+        22,
+        23,
+        23,
+        18,
+        18,
+        24,
+        22,
+        28,
+        24,
+        17,
+        23,
+        20,
+        21,
+        18,
+        21,
+        20,
+        14,
+        14,
+        6,
+        6,
+        22,
+        22,
+        20,
+        18,
+        18,
+        19,
+        20,
+        20,
+        19,
+        22,
+        13,
+        17,
+        18,
+        10,
+        17,
+        13,
+        12,
+        17,
+        19,
+        14,
+        18,
+        11,
+        16,
+        16,
+        19,
+        19,
+        11,
+        14,
+        17,
+        14,
+        12,
+        10,
+        12,
+        10,
+        10,
+        8,
+        8,
+        8,
+        11,
+        10,
+        13,
+        15,
+        16,
+        14,
+        10,
+        12,
+        13,
+        12,
+        16,
+        10,
+        16,
+        10,
+        7,
+        8,
+        9,
+        7,
+        6,
+        7,
+        9,
+        9,
+        5,
+        8,
+        7,
+        11,
+        5,
+        8,
+        5,
+        5,
+        12,
+        11,
+        12,
+        6,
+        8,
+        12,
+        6,
+        8,
+        10,
+        7,
+        12,
+        9,
+        10,
+        12,
+        9,
+        8,
+        7,
+        6,
+        6,
+        6,
+        7,
+        6,
+        6,
+        6,
+        7,
+        6,
+        6,
+        7,
+        4,
+        7,
+        6,
+        7,
+        5,
+        4,
+        6,
+        4,
+        4,
+        4,
+        5,
+        2,
+        2,
+        4,
+        4,
+        8,
+        6,
+        6,
+        4,
+        6,
+        6,
+        8,
+        7,
+        5,
+        4,
+        6,
+        6,
+        7,
+        6,
+        8,
+        8,
+        4,
+        6,
+        5,
+        4,
+        6,
+        5,
+        7,
+        8,
+        6,
+        8,
+        4,
+        3,
+        3,
+        4,
+        3,
+        4,
+        3,
+        2,
+        2,
+        4,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        2,
+        2,
+        3,
+        2,
+        2,
+        4,
+        3,
+        2,
+        4,
+        4,
+        2,
+        2,
+        1,
+        4,
+        1,
+        4,
+        1,
+        4,
+        1,
+        2,
+        2,
+        1,
+        4,
+        4,
+        4,
+        1,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        2,
+        4,
+        2,
+        3,
+        3,
+        4,
+        2,
+        3,
+        4,
+        4,
+        2,
+        2,
+        3,
+        2,
+        3,
+        3,
+        3
+       ]
+      },
+      {
+       "scheme": "destroyed-only",
+       "label": "Destroyed count only (0/0/0/1)",
+       "scores": [
+        165,
+        80,
+        156,
+        70,
+        19,
+        39,
+        53,
+        22,
+        32,
+        7,
+        25,
+        38,
+        10,
+        37,
+        2,
+        39,
+        22,
+        14,
+        0,
+        7,
+        5,
+        13,
+        21,
+        4,
+        3,
+        16,
+        14,
+        16,
+        11,
+        23,
+        29,
+        8,
+        18,
+        15,
+        0,
+        22,
+        16,
+        18,
+        13,
+        8,
+        18,
+        9,
+        11,
+        22,
+        12,
+        11,
+        13,
+        11,
+        22,
+        3,
+        15,
+        9,
+        3,
+        17,
+        15,
+        3,
+        7,
+        17,
+        16,
+        14,
+        10,
+        9,
+        14,
+        8,
+        7,
+        11,
+        14,
+        12,
+        13,
+        3,
+        5,
+        14,
+        14,
+        10,
+        15,
+        7,
+        5,
+        6,
+        4,
+        9,
+        10,
+        8,
+        8,
+        7,
+        3,
+        13,
+        8,
+        11,
+        2,
+        7,
+        12,
+        7,
+        7,
+        6,
+        8,
+        7,
+        9,
+        4,
+        3,
+        3,
+        9,
+        5,
+        2,
+        1,
+        0,
+        1,
+        8,
+        7,
+        8,
+        7,
+        5,
+        6,
+        7,
+        2,
+        2,
+        4,
+        1,
+        1,
+        0,
+        3,
+        7,
+        10,
+        3,
+        5,
+        3,
+        2,
+        0,
+        1,
+        1,
+        6,
+        8,
+        3,
+        6,
+        5,
+        4,
+        1,
+        5,
+        1,
+        5,
+        5,
+        2,
+        3,
+        2,
+        0,
+        1,
+        3,
+        4,
+        7,
+        5,
+        0,
+        2,
+        2,
+        4,
+        0,
+        4,
+        4,
+        0,
+        0,
+        0,
+        0,
+        4,
+        4,
+        4,
+        2,
+        3,
+        3,
+        4,
+        4,
+        2,
+        5,
+        0,
+        0,
+        3,
+        0,
+        2,
+        2,
+        0,
+        3,
+        4,
+        2,
+        3,
+        0,
+        1,
+        2,
+        4,
+        4,
+        0,
+        2,
+        2,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        2,
+        1,
+        3,
+        4,
+        3,
+        1,
+        1,
+        1,
+        1,
+        4,
+        0,
+        4,
+        1,
+        0,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        2,
+        0,
+        0,
+        0,
+        2,
+        0,
+        0,
+        0,
+        0,
+        3,
+        2,
+        3,
+        0,
+        1,
+        3,
+        0,
+        1,
+        2,
+        0,
+        3,
+        1,
+        2,
+        3,
+        1,
+        0,
+        0,
+        1,
+        0,
+        1,
+        1,
+        1,
+        1,
+        0,
+        1,
+        1,
+        1,
+        1,
+        0,
+        1,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        1,
+        1,
+        0,
+        1,
+        0,
+        2,
+        1,
+        0,
+        0,
+        1,
+        1,
+        1,
+        1,
+        2,
+        2,
+        0,
+        1,
+        0,
+        0,
+        1,
+        0,
+        1,
+        2,
+        0,
+        2,
+        1,
+        0,
+        0,
+        1,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        1,
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        1,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        1,
+        0,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+       ]
+      },
+      {
+       "scheme": "collapse-weighted",
+       "label": "Collapse-weighted (0/1/3/5)",
+       "scores": [
+        1145,
+        791,
+        868,
+        466,
+        241,
+        304,
+        303,
+        204,
+        214,
+        127,
+        211,
+        222,
+        135,
+        207,
+        86,
+        204,
+        152,
+        125,
+        0,
+        115,
+        91,
+        131,
+        149,
+        103,
+        82,
+        91,
+        112,
+        120,
+        112,
+        143,
+        157,
+        88,
+        112,
+        104,
+        62,
+        130,
+        112,
+        112,
+        98,
+        83,
+        115,
+        89,
+        83,
+        123,
+        90,
+        82,
+        92,
+        83,
+        117,
+        60,
+        98,
+        72,
+        47,
+        101,
+        97,
+        48,
+        62,
+        96,
+        85,
+        83,
+        69,
+        66,
+        80,
+        70,
+        71,
+        67,
+        79,
+        69,
+        76,
+        42,
+        60,
+        76,
+        75,
+        63,
+        77,
+        55,
+        41,
+        52,
+        54,
+        56,
+        62,
+        60,
+        54,
+        58,
+        37,
+        65,
+        53,
+        61,
+        33,
+        49,
+        67,
+        47,
+        54,
+        44,
+        58,
+        50,
+        51,
+        43,
+        34,
+        30,
+        52,
+        42,
+        26,
+        28,
+        21,
+        23,
+        49,
+        43,
+        49,
+        43,
+        35,
+        43,
+        43,
+        31,
+        28,
+        28,
+        30,
+        24,
+        18,
+        28,
+        44,
+        50,
+        24,
+        36,
+        30,
+        25,
+        23,
+        25,
+        19,
+        35,
+        41,
+        29,
+        35,
+        29,
+        26,
+        16,
+        30,
+        24,
+        32,
+        28,
+        20,
+        22,
+        25,
+        15,
+        15,
+        27,
+        24,
+        35,
+        27,
+        13,
+        25,
+        19,
+        24,
+        18,
+        24,
+        22,
+        10,
+        10,
+        0,
+        0,
+        26,
+        26,
+        22,
+        18,
+        18,
+        20,
+        22,
+        22,
+        20,
+        26,
+        8,
+        16,
+        21,
+        5,
+        19,
+        12,
+        9,
+        19,
+        23,
+        14,
+        21,
+        7,
+        17,
+        17,
+        23,
+        23,
+        7,
+        13,
+        19,
+        13,
+        12,
+        8,
+        12,
+        8,
+        8,
+        4,
+        4,
+        4,
+        10,
+        10,
+        14,
+        18,
+        20,
+        16,
+        8,
+        12,
+        14,
+        12,
+        20,
+        8,
+        20,
+        11,
+        5,
+        7,
+        9,
+        5,
+        3,
+        5,
+        9,
+        10,
+        3,
+        7,
+        5,
+        13,
+        3,
+        7,
+        2,
+        3,
+        15,
+        13,
+        15,
+        3,
+        7,
+        15,
+        3,
+        7,
+        11,
+        5,
+        15,
+        9,
+        11,
+        15,
+        9,
+        7,
+        5,
+        6,
+        6,
+        6,
+        8,
+        6,
+        6,
+        6,
+        8,
+        6,
+        6,
+        8,
+        2,
+        8,
+        6,
+        8,
+        4,
+        2,
+        6,
+        2,
+        2,
+        2,
+        4,
+        0,
+        0,
+        2,
+        2,
+        10,
+        6,
+        6,
+        2,
+        6,
+        6,
+        10,
+        8,
+        4,
+        2,
+        6,
+        6,
+        8,
+        6,
+        10,
+        10,
+        2,
+        6,
+        4,
+        2,
+        6,
+        4,
+        8,
+        10,
+        6,
+        10,
+        5,
+        3,
+        3,
+        5,
+        3,
+        5,
+        3,
+        1,
+        1,
+        5,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        1,
+        1,
+        3,
+        1,
+        1,
+        5,
+        3,
+        1,
+        5,
+        5,
+        1,
+        1,
+        0,
+        5,
+        0,
+        5,
+        0,
+        5,
+        0,
+        1,
+        1,
+        0,
+        5,
+        5,
+        5,
+        0,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        1,
+        5,
+        1,
+        3,
+        3,
+        5,
+        1,
+        3,
+        5,
+        5,
+        1,
+        1,
+        3,
+        1,
+        3,
+        3,
+        3
+       ]
+      },
+      {
+       "scheme": "geometric",
+       "label": "Doubling steps (1/2/4/8)",
+       "scores": [
+        1770,
+        1212,
+        1368,
+        716,
+        374,
+        464,
+        484,
+        320,
+        336,
+        198,
+        318,
+        352,
+        206,
+        330,
+        138,
+        326,
+        236,
+        192,
+        38,
+        166,
+        138,
+        194,
+        228,
+        146,
+        122,
+        157,
+        174,
+        186,
+        168,
+        222,
+        248,
+        136,
+        180,
+        166,
+        92,
+        204,
+        172,
+        176,
+        152,
+        126,
+        178,
+        134,
+        132,
+        194,
+        140,
+        130,
+        143,
+        130,
+        186,
+        90,
+        152,
+        114,
+        76,
+        158,
+        150,
+        76,
+        98,
+        152,
+        138,
+        132,
+        110,
+        104,
+        128,
+        106,
+        104,
+        108,
+        126,
+        112,
+        120,
+        66,
+        88,
+        122,
+        120,
+        100,
+        124,
+        86,
+        68,
+        80,
+        78,
+        90,
+        98,
+        92,
+        86,
+        88,
+        58,
+        106,
+        84,
+        98,
+        52,
+        78,
+        106,
+        76,
+        82,
+        70,
+        88,
+        78,
+        82,
+        64,
+        52,
+        48,
+        82,
+        64,
+        42,
+        42,
+        32,
+        36,
+        76,
+        68,
+        76,
+        68,
+        56,
+        66,
+        68,
+        46,
+        42,
+        46,
+        42,
+        36,
+        28,
+        44,
+        68,
+        80,
+        40,
+        56,
+        46,
+        38,
+        32,
+        36,
+        30,
+        56,
+        66,
+        44,
+        56,
+        48,
+        42,
+        26,
+        48,
+        34,
+        50,
+        46,
+        32,
+        36,
+        36,
+        22,
+        24,
+        40,
+        39,
+        56,
+        44,
+        20,
+        36,
+        30,
+        38,
+        24,
+        38,
+        36,
+        16,
+        16,
+        6,
+        6,
+        40,
+        40,
+        36,
+        28,
+        30,
+        32,
+        36,
+        36,
+        30,
+        42,
+        14,
+        22,
+        32,
+        10,
+        28,
+        21,
+        14,
+        30,
+        36,
+        23,
+        32,
+        12,
+        24,
+        26,
+        36,
+        36,
+        12,
+        22,
+        28,
+        20,
+        18,
+        14,
+        18,
+        14,
+        14,
+        8,
+        8,
+        8,
+        14,
+        18,
+        20,
+        28,
+        32,
+        26,
+        14,
+        18,
+        20,
+        18,
+        32,
+        12,
+        32,
+        16,
+        8,
+        12,
+        14,
+        8,
+        6,
+        8,
+        12,
+        17,
+        6,
+        10,
+        8,
+        20,
+        6,
+        10,
+        5,
+        6,
+        24,
+        20,
+        24,
+        6,
+        12,
+        24,
+        6,
+        12,
+        18,
+        8,
+        24,
+        14,
+        18,
+        24,
+        14,
+        10,
+        8,
+        10,
+        8,
+        10,
+        12,
+        10,
+        10,
+        8,
+        12,
+        10,
+        10,
+        12,
+        4,
+        12,
+        10,
+        12,
+        6,
+        4,
+        8,
+        4,
+        4,
+        4,
+        6,
+        2,
+        2,
+        4,
+        4,
+        16,
+        10,
+        10,
+        4,
+        10,
+        8,
+        16,
+        12,
+        6,
+        4,
+        10,
+        10,
+        12,
+        10,
+        16,
+        16,
+        4,
+        10,
+        6,
+        4,
+        10,
+        6,
+        12,
+        16,
+        8,
+        16,
+        8,
+        4,
+        4,
+        8,
+        4,
+        8,
+        4,
+        2,
+        2,
+        8,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        2,
+        2,
+        4,
+        2,
+        2,
+        8,
+        4,
+        2,
+        8,
+        8,
+        2,
+        2,
+        1,
+        8,
+        1,
+        8,
+        1,
+        8,
+        1,
+        2,
+        2,
+        1,
+        8,
+        8,
+        8,
+        1,
+        8,
+        8,
+        8,
+        8,
+        8,
+        8,
+        2,
+        8,
+        2,
+        4,
+        4,
+        8,
+        2,
+        4,
+        8,
+        8,
+        2,
+        2,
+        4,
+        2,
+        4,
+        4,
+        4
+       ]
+      }
+     ],
+     "pairwise": [
+      {
+       "a": "ordinal-linear",
+       "b": "destroyed-only",
+       "spearman": 0.8694176093757593
+      },
+      {
+       "a": "ordinal-linear",
+       "b": "collapse-weighted",
+       "spearman": 0.9773033906723652
+      },
+      {
+       "a": "ordinal-linear",
+       "b": "geometric",
+       "spearman": 0.9897376736392824
+      },
+      {
+       "a": "destroyed-only",
+       "b": "collapse-weighted",
+       "spearman": 0.9179410409523046
+      },
+      {
+       "a": "destroyed-only",
+       "b": "geometric",
+       "spearman": 0.9206190467084923
+      },
+      {
+       "a": "collapse-weighted",
+       "b": "geometric",
+       "spearman": 0.9913251766743918
+      }
+     ],
+     "worstSpearman": 0.8694176093757593,
+     "topFiveByScheme": [
+      [
+       "348:3068",
+       "345:3061",
+       "276:3118",
+       "276:3117",
+       "276:3114"
+      ],
+      [
+       "348:3068",
+       "276:3118",
+       "345:3061",
+       "276:3117",
+       "290:3098"
+      ],
+      [
+       "348:3068",
+       "276:3118",
+       "345:3061",
+       "276:3117",
+       "276:3114"
+      ],
+      [
+       "348:3068",
+       "276:3118",
+       "345:3061",
+       "276:3117",
+       "290:3098"
+      ]
+     ],
+     "topFiveAgreement": 0.8,
+     "verdict": "BROADLY_STABLE",
+     "verdictMeaning": "The ordering mostly holds but individual places move between weightings. Report the ordering only with the schemes shown beside it."
+    }
+   },
+   "verdict": "ROBUST",
+   "statement": "The UNOSAT classes are ORDINAL. Any number assigned to them is an index chosen by this analysis, not a measurement published by UNOSAT. What is reported is whether the ORDERING of places survives every weighting tried, including the weightless \"count the destroyed\" case; where it does, the ordering is reported and the score is not."
+  },
+  "spatialDistribution": {
+   "headlineCellMetres": 1000,
+   "headlineCellJustification": "One kilometre is the resolution of the WorldPop surface Stage 4 used, so damage counts and population totals share a unit and can be compared cell for cell. The 2 km and 5 km runs are reported beside it to show the concentration measures are not an artefact of that choice.",
+   "grids": [
+    {
+     "cellMetres": 1000,
+     "occupiedCells": 362,
+     "observedFootprintSqKm": 362,
+     "meanPerOccupiedCell": 12.66,
+     "concentration": {
+      "cellMetres": 1000,
+      "occupiedCells": 362,
+      "gini": 0.6500151291766474,
+      "curve": {
+       "units": 362,
+       "total": 4583,
+       "points": [
+        {
+         "share": 0.25,
+         "units": 8,
+         "unitShare": 0.022099447513812154,
+         "cumulative": 1178
+        },
+        {
+         "share": 0.5,
+         "units": 37,
+         "unitShare": 0.10220994475138122,
+         "cumulative": 2316
+        },
+        {
+         "share": 0.8,
+         "units": 112,
+         "unitShare": 0.30939226519337015,
+         "cumulative": 3671
+        },
+        {
+         "share": 0.9,
+         "units": 170,
+         "unitShare": 0.4696132596685083,
+         "cumulative": 4126
+        }
+       ],
+       "topUnitShare": 0.06436831769583243
+      },
+      "maxCellCount": 295,
+      "medianCellCount": 5
+     },
+     "topCells": [
+      {
+       "lon": 85.46352,
+       "lat": 27.72979,
+       "count": 295,
+       "counts": {
+        "Destroyed": 165,
+        "Moderate Damage": 35,
+        "Severe Damage": 95
+       },
+       "mmi": 7,
+       "district": "Kathmandu"
+      },
+      {
+       "lon": 85.4338,
+       "lat": 27.6713,
+       "count": 261,
+       "counts": {
+        "Severe Damage": 105,
+        "Destroyed": 80,
+        "Moderate Damage": 76
+       },
+       "mmi": 7,
+       "district": "Bhaktapur"
+      },
+      {
+       "lon": 84.72227,
+       "lat": 28.1706,
+       "count": 188,
+       "counts": {
+        "Destroyed": 156,
+        "Moderate Damage": 4,
+        "Severe Damage": 28
+       },
+       "mmi": 8,
+       "district": "Gorkha"
+      },
+      {
+       "lon": 84.72267,
+       "lat": 28.16579,
+       "count": 110,
+       "counts": {
+        "Severe Damage": 38,
+        "Destroyed": 70,
+        "Moderate Damage": 2
+       },
+       "mmi": 8,
+       "district": "Gorkha"
+      },
+      {
+       "lon": 85.43409,
+       "lat": 27.67493,
+       "count": 95,
+       "counts": {
+        "Destroyed": 19,
+        "Severe Damage": 35,
+        "Moderate Damage": 41
+       },
+       "mmi": 7,
+       "district": "Bhaktapur"
+      },
+      {
+       "lon": 84.72674,
+       "lat": 28.13923,
+       "count": 82,
+       "counts": {
+        "Severe Damage": 33,
+        "Destroyed": 39,
+        "Moderate Damage": 10
+       },
+       "mmi": 8,
+       "district": "Gorkha"
+      },
+      {
+       "lon": 84.86864,
+       "lat": 27.99725,
+       "count": 75,
+       "counts": {
+        "Destroyed": 53,
+        "Moderate Damage": 14,
+        "Severe Damage": 8
+       },
+       "mmi": 8,
+       "district": "Dhading"
+      },
+      {
+       "lon": 84.81636,
+       "lat": 28.04822,
+       "count": 72,
+       "counts": {
+        "Severe Damage": 22,
+        "Destroyed": 22,
+        "Moderate Damage": 28
+       },
+       "mmi": 8,
+       "district": "Gorkha"
+      },
+      {
+       "lon": 84.81929,
+       "lat": 28.04007,
+       "count": 58,
+       "counts": {
+        "Severe Damage": 14,
+        "Moderate Damage": 12,
+        "Destroyed": 32
+       },
+       "mmi": 8,
+       "district": "Dhading"
+      },
+      {
+       "lon": 84.5122,
+       "lat": 28.09703,
+       "count": 57,
+       "counts": {
+        "Severe Damage": 21,
+        "Moderate Damage": 29,
+        "Destroyed": 7
+       },
+       "mmi": 7.5,
+       "district": "Lamjung"
+      },
+      {
+       "lon": 84.82491,
+       "lat": 28.11026,
+       "count": 57,
+       "counts": {
+        "Severe Damage": 27,
+        "Destroyed": 25,
+        "Moderate Damage": 5
+       },
+       "mmi": 8,
+       "district": "Gorkha"
+      },
+      {
+       "lon": 84.68398,
+       "lat": 28.16405,
+       "count": 54,
+       "counts": {
+        "Moderate Damage": 2,
+        "Destroyed": 38,
+        "Severe Damage": 10,
+        "Possible Damage": 4
+       },
+       "mmi": 8,
+       "district": "Gorkha"
+      },
+      {
+       "lon": 84.81162,
+       "lat": 28.04052,
+       "count": 51,
+       "counts": {
+        "Moderate Damage": 19,
+        "Severe Damage": 22,
+        "Destroyed": 10
+       },
+       "mmi": 8,
+       "district": "Dhading"
+      },
+      {
+       "lon": 84.82069,
+       "lat": 28.06746,
+       "count": 49,
+       "counts": {
+        "Moderate Damage": 7,
+        "Severe Damage": 5,
+        "Destroyed": 37
+       },
+       "mmi": 8,
+       "district": "Gorkha"
+      },
+      {
+       "lon": 85.42609,
+       "lat": 27.66987,
+       "count": 48,
+       "counts": {
+        "Severe Damage": 15,
+        "Moderate Damage": 31,
+        "Destroyed": 2
+       },
+       "mmi": 7,
+       "district": "Bhaktapur"
+      }
+     ]
+    },
+    {
+     "cellMetres": 2000,
+     "occupiedCells": 145,
+     "observedFootprintSqKm": 580,
+     "meanPerOccupiedCell": 31.61,
+     "concentration": {
+      "cellMetres": 2000,
+      "occupiedCells": 145,
+      "gini": 0.6436109459998345,
+      "curve": {
+       "units": 145,
+       "total": 4583,
+       "points": [
+        {
+         "share": 0.25,
+         "units": 6,
+         "unitShare": 0.041379310344827586,
+         "cumulative": 1266
+        },
+        {
+         "share": 0.5,
+         "units": 17,
+         "unitShare": 0.11724137931034483,
+         "cumulative": 2295
+        },
+        {
+         "share": 0.8,
+         "units": 46,
+         "unitShare": 0.31724137931034485,
+         "cumulative": 3694
+        },
+        {
+         "share": 0.9,
+         "units": 65,
+         "unitShare": 0.4482758620689655,
+         "cumulative": 4132
+        }
+       ],
+       "topUnitShare": 0.06742308531529566
+      },
+      "maxCellCount": 309,
+      "medianCellCount": 13
+     },
+     "topCells": [
+      {
+       "lon": 85.4326,
+       "lat": 27.67108,
+       "count": 309,
+       "counts": {
+        "Severe Damage": 120,
+        "Moderate Damage": 107,
+        "Destroyed": 82
+       },
+       "mmi": 7,
+       "district": "Bhaktapur"
+      },
+      {
+       "lon": 85.46352,
+       "lat": 27.72979,
+       "count": 295,
+       "counts": {
+        "Destroyed": 165,
+        "Moderate Damage": 35,
+        "Severe Damage": 95
+       },
+       "mmi": 7,
+       "district": "Kathmandu"
+      },
+      {
+       "lon": 84.72283,
+       "lat": 28.17213,
+       "count": 224,
+       "counts": {
+        "Destroyed": 188,
+        "Moderate Damage": 4,
+        "Severe Damage": 32
+       },
+       "mmi": 8,
+       "district": "Gorkha"
+      },
+      {
+       "lon": 84.72502,
+       "lat": 28.16205,
+       "count": 158,
+       "counts": {
+        "Severe Damage": 41,
+        "Destroyed": 112,
+        "Moderate Damage": 5
+       },
+       "mmi": 8,
+       "district": "Gorkha"
+      },
+      {
+       "lon": 84.81463,
+       "lat": 28.04944,
+       "count": 146,
+       "counts": {
+        "Severe Damage": 40,
+        "Destroyed": 56,
+        "Moderate Damage": 50
+       },
+       "mmi": 8,
+       "district": "Gorkha"
+      },
+      {
+       "lon": 84.81509,
+       "lat": 28.03849,
+       "count": 134,
+       "counts": {
+        "Moderate Damage": 44,
+        "Destroyed": 45,
+        "Severe Damage": 45
+       },
+       "mmi": 8,
+       "district": "Dhading"
+      },
+      {
+       "lon": 84.72899,
+       "lat": 28.13859,
+       "count": 124,
+       "counts": {
+        "Severe Damage": 57,
+        "Destroyed": 54,
+        "Moderate Damage": 13
+       },
+       "mmi": 8,
+       "district": "Gorkha"
+      },
+      {
+       "lon": 84.83,
+       "lat": 28.10742,
+       "count": 112,
+       "counts": {
+        "Severe Damage": 40,
+        "Destroyed": 57,
+        "Moderate Damage": 15
+       },
+       "mmi": 8,
+       "district": "Gorkha"
+      },
+      {
+       "lon": 85.43297,
+       "lat": 27.67489,
+       "count": 107,
+       "counts": {
+        "Destroyed": 21,
+        "Severe Damage": 38,
+        "Moderate Damage": 48
+       },
+       "mmi": 7,
+       "district": "Bhaktapur"
+      },
+      {
+       "lon": 84.81413,
+       "lat": 27.99935,
+       "count": 101,
+       "counts": {
+        "Moderate Damage": 25,
+        "Severe Damage": 23,
+        "Destroyed": 53
+       },
+       "mmi": 7.5,
+       "district": "Dhading"
+      },
+      {
+       "lon": 84.68374,
+       "lat": 28.16086,
+       "count": 89,
+       "counts": {
+        "Possible Damage": 13,
+        "Destroyed": 55,
+        "Moderate Damage": 10,
+        "Severe Damage": 11
+       },
+       "mmi": 8,
+       "district": "Gorkha"
+      },
+      {
+       "lon": 84.66569,
+       "lat": 28.15621,
+       "count": 85,
+       "counts": {
+        "Severe Damage": 25,
+        "Moderate Damage": 5,
+        "Possible Damage": 1,
+        "Destroyed": 54
+       },
+       "mmi": 8,
+       "district": "Gorkha"
+      },
+      {
+       "lon": 84.86841,
+       "lat": 27.99806,
+       "count": 83,
+       "counts": {
+        "Destroyed": 55,
+        "Moderate Damage": 18,
+        "Severe Damage": 10
+       },
+       "mmi": 8,
+       "district": "Dhading"
+      },
+      {
+       "lon": 84.4412,
+       "lat": 28.15456,
+       "count": 82,
+       "counts": {
+        "Severe Damage": 46,
+        "Moderate Damage": 31,
+        "Destroyed": 5
+       },
+       "mmi": 7.5,
+       "district": "Lamjung"
+      },
+      {
+       "lon": 84.70735,
+       "lat": 28.16027,
+       "count": 82,
+       "counts": {
+        "Destroyed": 42,
+        "Severe Damage": 27,
+        "Moderate Damage": 13
+       },
+       "mmi": 8,
+       "district": "Gorkha"
+      }
+     ]
+    },
+    {
+     "cellMetres": 5000,
+     "occupiedCells": 51,
+     "observedFootprintSqKm": 1275,
+     "meanPerOccupiedCell": 89.86,
+     "concentration": {
+      "cellMetres": 5000,
+      "occupiedCells": 51,
+      "gini": 0.6161132574347654,
+      "curve": {
+       "units": 51,
+       "total": 4583,
+       "points": [
+        {
+         "share": 0.25,
+         "units": 3,
+         "unitShare": 0.058823529411764705,
+         "cumulative": 1207
+        },
+        {
+         "share": 0.5,
+         "units": 7,
+         "unitShare": 0.13725490196078433,
+         "cumulative": 2306
+        },
+        {
+         "share": 0.8,
+         "units": 17,
+         "unitShare": 0.3333333333333333,
+         "cumulative": 3703
+        },
+        {
+         "share": 0.9,
+         "units": 23,
+         "unitShare": 0.45098039215686275,
+         "cumulative": 4129
+        }
+       ],
+       "topUnitShare": 0.09447959851625573
+      },
+      "maxCellCount": 433,
+      "medianCellCount": 40
+     },
+     "topCells": [
+      {
+       "lon": 84.72265,
+       "lat": 28.16681,
+       "count": 433,
+       "counts": {
+        "Destroyed": 331,
+        "Severe Damage": 91,
+        "Moderate Damage": 11
+       },
+       "mmi": 8,
+       "district": "Gorkha"
+      },
+      {
+       "lon": 85.43457,
+       "lat": 27.67246,
+       "count": 390,
+       "counts": {
+        "Destroyed": 111,
+        "Severe Damage": 150,
+        "Moderate Damage": 129
+       },
+       "mmi": 7,
+       "district": "Bhaktapur"
+      },
+      {
+       "lon": 84.82967,
+       "lat": 28.0326,
+       "count": 384,
+       "counts": {
+        "Severe Damage": 87,
+        "Moderate Damage": 102,
+        "Destroyed": 195
+       },
+       "mmi": 8,
+       "district": "Dhading"
+      },
+      {
+       "lon": 84.67986,
+       "lat": 28.15932,
+       "count": 300,
+       "counts": {
+        "Severe Damage": 70,
+        "Destroyed": 174,
+        "Moderate Damage": 39,
+        "Possible Damage": 17
+       },
+       "mmi": 8,
+       "district": "Gorkha"
+      },
+      {
+       "lon": 85.46351,
+       "lat": 27.72976,
+       "count": 300,
+       "counts": {
+        "Destroyed": 166,
+        "Moderate Damage": 37,
+        "Severe Damage": 97
+       },
+       "mmi": 7,
+       "district": "Kathmandu"
+      },
+      {
+       "lon": 84.82523,
+       "lat": 28.07376,
+       "count": 262,
+       "counts": {
+        "Moderate Damage": 70,
+        "Destroyed": 115,
+        "Severe Damage": 77
+       },
+       "mmi": 8,
+       "district": "Gorkha"
+      },
+      {
+       "lon": 85.45391,
+       "lat": 27.59547,
+       "count": 237,
+       "counts": {
+        "Severe Damage": 55,
+        "Destroyed": 135,
+        "Moderate Damage": 47
+       },
+       "mmi": 7,
+       "district": "Kavrepalanchok"
+      },
+      {
+       "lon": 84.84229,
+       "lat": 27.99636,
+       "count": 202,
+       "counts": {
+        "Moderate Damage": 43,
+        "Severe Damage": 43,
+        "Destroyed": 116
+       },
+       "mmi": 7.5,
+       "district": "Dhading"
+      },
+      {
+       "lon": 84.82843,
+       "lat": 28.11224,
+       "count": 196,
+       "counts": {
+        "Severe Damage": 75,
+        "Destroyed": 96,
+        "Moderate Damage": 25
+       },
+       "mmi": 8,
+       "district": "Gorkha"
+      },
+      {
+       "lon": 84.80264,
+       "lat": 28.03476,
+       "count": 165,
+       "counts": {
+        "Moderate Damage": 49,
+        "Destroyed": 74,
+        "Severe Damage": 42
+       },
+       "mmi": 8,
+       "district": "Gorkha"
+      },
+      {
+       "lon": 84.43184,
+       "lat": 28.1481,
+       "count": 160,
+       "counts": {
+        "Severe Damage": 94,
+        "Moderate Damage": 44,
+        "Destroyed": 22
+       },
+       "mmi": 7,
+       "district": "Lamjung"
+      },
+      {
+       "lon": 84.63248,
+       "lat": 28.16503,
+       "count": 134,
+       "counts": {
+        "Possible Damage": 11,
+        "Severe Damage": 45,
+        "Moderate Damage": 52,
+        "Destroyed": 26
+       },
+       "mmi": 7.5,
+       "district": "Gorkha"
+      },
+      {
+       "lon": 84.72849,
+       "lat": 28.13831,
+       "count": 128,
+       "counts": {
+        "Severe Damage": 57,
+        "Destroyed": 58,
+        "Moderate Damage": 13
+       },
+       "mmi": 8,
+       "district": "Gorkha"
+      },
+      {
+       "lon": 84.522,
+       "lat": 28.10032,
+       "count": 113,
+       "counts": {
+        "Moderate Damage": 54,
+        "Severe Damage": 43,
+        "Destroyed": 16
+       },
+       "mmi": 7.5,
+       "district": "Lamjung"
+      },
+      {
+       "lon": 84.86871,
+       "lat": 27.9948,
+       "count": 108,
+       "counts": {
+        "Destroyed": 70,
+        "Moderate Damage": 25,
+        "Severe Damage": 13
+       },
+       "mmi": 7.5,
+       "district": "Dhading"
+      }
+     ]
+    }
+   ]
+  },
+  "damageByIntensity": {
+   "bands": [
+    {
+     "mmi": 7,
+     "count": 1479,
+     "counts": {
+      "Destroyed": 573,
+      "Moderate Damage": 353,
+      "Severe Damage": 497,
+      "Possible Damage": 56
+     },
+     "destroyedShare": 38.7,
+     "composition": {
+      "Destroyed": 38.7,
+      "Moderate Damage": 23.9,
+      "Severe Damage": 33.6,
+      "Possible Damage": 3.8
+     }
+    },
+    {
+     "mmi": 7.5,
+     "count": 895,
+     "counts": {
+      "Moderate Damage": 318,
+      "Destroyed": 278,
+      "Severe Damage": 292,
+      "Possible Damage": 7
+     },
+     "destroyedShare": 31.1,
+     "composition": {
+      "Moderate Damage": 35.5,
+      "Destroyed": 31.1,
+      "Severe Damage": 32.6,
+      "Possible Damage": 0.8
+     }
+    },
+    {
+     "mmi": 8,
+     "count": 2209,
+     "counts": {
+      "Severe Damage": 558,
+      "Destroyed": 1233,
+      "Moderate Damage": 386,
+      "Possible Damage": 32
+     },
+     "destroyedShare": 55.8,
+     "composition": {
+      "Severe Damage": 25.3,
+      "Destroyed": 55.8,
+      "Moderate Damage": 17.5,
+      "Possible Damage": 1.4
+     }
+    }
+   ],
+   "outsideContours": 0,
+   "outsideCounts": {},
+   "classes": [
+    "Possible Damage",
+    "Moderate Damage",
+    "Severe Damage",
+    "Destroyed"
+   ],
+   "contingencyTable": [
+    [
+     56,
+     353,
+     497,
+     573
+    ],
+    [
+     7,
+     318,
+     292,
+     278
+    ],
+    [
+     32,
+     386,
+     558,
+     1233
+    ]
+   ],
+   "independenceTest": {
+    "usable": true,
+    "statistic": 255.48345412121523,
+    "df": 6,
+    "p": 2.7599911960117723e-52,
+    "cramersV": 0.16695193736929512,
+    "total": 4583,
+    "expected": [
+     [
+      30.657866026620116,
+      341.10909884355226,
+      434.69626881955054,
+      672.5367663102771
+     ],
+     [
+      18.55225834606153,
+      206.41828496617936,
+      263.05149465415667,
+      406.97796203360247
+     ],
+     [
+      45.78987562731835,
+      509.4726161902684,
+      649.2522365262928,
+      1004.4852716561204
+     ]
+    ],
+    "minExpected": 18.55225834606153,
+    "cellsBelowFive": 0,
+    "shareBelowFive": 0,
+    "cochranSatisfied": true,
+    "cochranNote": "Cochran’s rule holds: no expected count below 1 and at most a fifth below 5."
+   },
+   "destroyedShareTrendSpearman": 0.5,
+   "selectionWarning": "OBSERVATION COUNTS PER BAND ARE NOT COMPARABLE ACROSS BANDS. Both damage products were tasked at places where damage was expected, so the number of sites inside a band measures satellite tasking as much as it measures shaking. Only the COMPOSITION within a band — the mix of damage classes among sites that were looked at — is read here, and even that inherits whatever bias governed which sites were digitised.",
+   "withinAnalysisArea": [
+    {
+     "area": "Sundar Bazar",
+     "totalPoints": 250,
+     "bands": [
+      {
+       "mmi": 7,
+       "observations": 172,
+       "destroyed": 35,
+       "destroyedSharePercent": 20.3
+      },
+      {
+       "mmi": 7.5,
+       "observations": 78,
+       "destroyed": 11,
+       "destroyedSharePercent": 14.1
+      }
+     ],
+     "direction": "DOES_NOT_INCREASE_WITH_INTENSITY",
+     "spearman": -1
+    },
+    {
+     "area": "Manbu Area",
+     "totalPoints": 1524,
+     "bands": [
+      {
+       "mmi": 7.5,
+       "observations": 271,
+       "destroyed": 150,
+       "destroyedSharePercent": 55.4
+      },
+      {
+       "mmi": 8,
+       "observations": 1253,
+       "destroyed": 636,
+       "destroyedSharePercent": 50.8
+      }
+     ],
+     "direction": "DOES_NOT_INCREASE_WITH_INTENSITY",
+     "spearman": -1
+    }
+   ],
+   "withinAreaVerdict": "In 0 of 2 analysis areas spanning two intensity bands the destroyed share is higher in the stronger band. Where it is not, the between-band pattern in the pooled table is being produced by WHICH PLACES fall in each band rather than by the shaking."
+  },
+  "copernicus": {
+   "totals": {
+    "total": 41042,
+    "graded": 38589,
+    "damaged": 1240,
+    "destroyed": 448,
+    "notAffected": 37349,
+    "notGraded": 2453
+   },
+   "vocabularyNote": "Copernicus EMSR125 published only two damage grades for this activation — EMS-98 grade 1 (negligible to slight) and grade 5 (completely destroyed) — with no grade 2, 3 or 4 anywhere in the product. A grading scheme with a hole in the middle cannot be aligned with UNOSAT’s four-step scale, and this module does not attempt it.",
+   "grades": [
+    {
+     "aoi": "BHARATPUR",
+     "total": 18076,
+     "graded": 18076,
+     "damaged": 50,
+     "destroyed": 6,
+     "slight": 44,
+     "notAffected": 18026,
+     "notGraded": 0,
+     "grades": {
+      "Not Affected": 18026,
+      "Completely Destroyed (EMS-98 grade 5)": 6,
+      "Negligible to slight damage (EMS-98 grade 1)": 44
+     },
+     "damagedShareOfGraded": 0.3,
+     "destroyedShareOfGraded": 0,
+     "destroyedShareOfAllRecords": 0,
+     "ungradedShare": 0,
+     "areaSqKm": 35.49,
+     "structuresPerSqKm": 509.3,
+     "damagedRatePercent": 0.28,
+     "destroyedRatePercent": 0.033,
+     "ungradedRatePercent": 0
+    },
+    {
+     "aoi": "POKHARA",
+     "total": 16192,
+     "graded": 14542,
+     "damaged": 42,
+     "destroyed": 8,
+     "slight": 34,
+     "notAffected": 14500,
+     "notGraded": 1650,
+     "grades": {
+      "Not Applicable": 5,
+      "Not Affected": 14500,
+      "Negligible to slight damage (EMS-98 grade 1)": 34,
+      "Unknown": 1645,
+      "Completely Destroyed (EMS-98 grade 5)": 8
+     },
+     "damagedShareOfGraded": 0.3,
+     "destroyedShareOfGraded": 0.1,
+     "destroyedShareOfAllRecords": 0,
+     "ungradedShare": 10.2,
+     "areaSqKm": 35.09,
+     "structuresPerSqKm": 461.4,
+     "damagedRatePercent": 0.29,
+     "destroyedRatePercent": 0.055,
+     "ungradedRatePercent": 10.2
+    },
+    {
+     "aoi": "BIDUR",
+     "total": 4791,
+     "graded": 4128,
+     "damaged": 180,
+     "destroyed": 120,
+     "slight": 60,
+     "notAffected": 3948,
+     "notGraded": 663,
+     "grades": {
+      "Not Affected": 3948,
+      "Completely Destroyed": 120,
+      "Unknown": 663,
+      "Negligible to slight damage": 60
+     },
+     "damagedShareOfGraded": 4.4,
+     "destroyedShareOfGraded": 2.9,
+     "destroyedShareOfAllRecords": 2.5,
+     "ungradedShare": 13.8,
+     "areaSqKm": 36.87,
+     "structuresPerSqKm": 129.9,
+     "damagedRatePercent": 4.4,
+     "destroyedRatePercent": 2.9,
+     "ungradedRatePercent": 13.8
+    },
+    {
+     "aoi": "KATHMANDU",
+     "total": 958,
+     "graded": 939,
+     "damaged": 723,
+     "destroyed": 183,
+     "slight": 540,
+     "notAffected": 216,
+     "notGraded": 19,
+     "grades": {
+      "Not Affected": 216,
+      "Negligible to slight damage": 540,
+      "Completely Destroyed": 183,
+      "Not Applicable": 3,
+      "Null": 2,
+      "(empty)": 14
+     },
+     "damagedShareOfGraded": 77,
+     "destroyedShareOfGraded": 19.5,
+     "destroyedShareOfAllRecords": 19.1,
+     "ungradedShare": 2,
+     "areaSqKm": 37.06,
+     "structuresPerSqKm": 25.8,
+     "damagedRatePercent": 77,
+     "destroyedRatePercent": 19.5,
+     "ungradedRatePercent": 2
+    },
+    {
+     "aoi": "CHILIME",
+     "total": 859,
+     "graded": 859,
+     "damaged": 200,
+     "destroyed": 129,
+     "slight": 71,
+     "notAffected": 659,
+     "notGraded": 0,
+     "grades": {
+      "Not Affected": 659,
+      "Negligible to slight damage": 71,
+      "Completely Destroyed": 129
+     },
+     "damagedShareOfGraded": 23.3,
+     "destroyedShareOfGraded": 15,
+     "destroyedShareOfAllRecords": 15,
+     "ungradedShare": 0,
+     "areaSqKm": 35.05,
+     "structuresPerSqKm": 24.5,
+     "damagedRatePercent": 23.3,
+     "destroyedRatePercent": 15,
+     "ungradedRatePercent": 0
+    },
+    {
+     "aoi": "GORKHA",
+     "total": 121,
+     "graded": 0,
+     "damaged": 0,
+     "destroyed": 0,
+     "slight": 0,
+     "notAffected": 0,
+     "notGraded": 121,
+     "grades": {
+      "Null": 121
+     },
+     "damagedShareOfGraded": null,
+     "destroyedShareOfGraded": null,
+     "destroyedShareOfAllRecords": 0,
+     "ungradedShare": 100,
+     "areaSqKm": 31.67,
+     "structuresPerSqKm": 3.8,
+     "damagedRatePercent": null,
+     "destroyedRatePercent": null,
+     "ungradedRatePercent": 100
+    },
+    {
+     "aoi": "HETAUDA",
+     "total": 45,
+     "graded": 45,
+     "damaged": 45,
+     "destroyed": 2,
+     "slight": 43,
+     "notAffected": 0,
+     "notGraded": 0,
+     "grades": {
+      "Negligible to slight damage": 43,
+      "Completely Destroyed": 2
+     },
+     "damagedShareOfGraded": 100,
+     "destroyedShareOfGraded": 4.4,
+     "destroyedShareOfAllRecords": 4.4,
+     "ungradedShare": 0,
+     "areaSqKm": 30.3,
+     "structuresPerSqKm": 1.5,
+     "damagedRatePercent": 100,
+     "destroyedRatePercent": 4.4,
+     "ungradedRatePercent": 0
+    }
+   ],
+   "areaPolygons": [
+    {
+     "aoiName": "LEKHNATH",
+     "aoiCode": "07LEKHNATH",
+     "hasGrading": false,
+     "areaSqKm": 910.93
+    },
+    {
+     "aoiName": "CHILIME",
+     "aoiCode": "14CHILIME",
+     "hasGrading": true,
+     "areaSqKm": 35.05
+    },
+    {
+     "aoiName": "HETAUDA",
+     "aoiCode": "05HETAUDA",
+     "hasGrading": true,
+     "areaSqKm": 30.3
+    },
+    {
+     "aoiName": "BIDUR",
+     "aoiCode": "04BIDUR",
+     "hasGrading": true,
+     "areaSqKm": 36.87
+    },
+    {
+     "aoiName": "POKHARA",
+     "aoiCode": "03POKHARA",
+     "hasGrading": true,
+     "areaSqKm": 35.09
+    },
+    {
+     "aoiName": "KATHMANDU",
+     "aoiCode": "01KATHMANDU",
+     "hasGrading": true,
+     "areaSqKm": 37.06
+    },
+    {
+     "aoiName": "GORKHA",
+     "aoiCode": "12GORKHA",
+     "hasGrading": true,
+     "areaSqKm": 31.67
+    },
+    {
+     "aoiName": "BHARATPUR",
+     "aoiCode": "02BHARATPUR",
+     "hasGrading": true,
+     "areaSqKm": 35.49
+    }
+   ],
+   "aoisWithoutGrading": [
+    "LEKHNATH"
+   ],
+   "doseResponse": {
+    "bands": [
+     {
+      "mmi": 6.5,
+      "structuresExamined": 16192,
+      "structuresGraded": 14542,
+      "damaged": 42,
+      "destroyed": 8,
+      "damagedRatePercent": 0.29,
+      "destroyedRatePercent": 0.055,
+      "areasOfInterest": [
+       "POKHARA"
+      ]
+     },
+     {
+      "mmi": 7,
+      "structuresExamined": 19079,
+      "structuresGraded": 19060,
+      "damaged": 818,
+      "destroyed": 191,
+      "damagedRatePercent": 4.3,
+      "destroyedRatePercent": 1,
+      "areasOfInterest": [
+       "BHARATPUR",
+       "HETAUDA",
+       "KATHMANDU"
+      ]
+     },
+     {
+      "mmi": 7.5,
+      "structuresExamined": 5771,
+      "structuresGraded": 4987,
+      "damaged": 380,
+      "destroyed": 249,
+      "damagedRatePercent": 7.6,
+      "destroyedRatePercent": 5,
+      "areasOfInterest": [
+       "BIDUR",
+       "CHILIME",
+       "GORKHA"
+      ]
+     }
+    ],
+    "spearman": 1,
+    "independenceTest": {
+     "usable": true,
+     "statistic": 0,
+     "df": 2,
+     "p": 1,
+     "cramersV": null,
+     "total": null,
+     "expected": [
+      [
+       null,
+       null
+      ],
+      [
+       null,
+       null
+      ],
+      [
+       null,
+       null
+      ]
+     ],
+     "minExpected": null,
+     "cellsBelowFive": 0,
+     "shareBelowFive": 0,
+     "cochranSatisfied": false,
+     "cochranNote": "Cochran’s rule does NOT hold for this table, so the p-value is an approximation the cell counts do not support. Read the effect size, not the p-value."
+    },
+    "bandsAreDisjointByArea": true,
+    "confound": "NO AREA OF INTEREST SPANS TWO INTENSITY BANDS. Intensity band and town are therefore the same variable in this table: the gradient shown is \"destruction rates were higher in the towns nearer the rupture\", which is consistent with a shaking effect and does not isolate one from building stock, terrain or the analyst who graded each area."
+   }
+  },
+  "observationTimeline": {
+   "event": {
+    "mainShock": "2015-04-25T06:11:26Z",
+    "mainShockMagnitude": 7.8,
+    "largestAftershock": "2015-05-12T07:05:19Z",
+    "largestAftershockMagnitude": 7.3
+   },
+   "clocks": [
+    {
+     "id": "EARTHQUAKE",
+     "label": "Ground shaking",
+     "meaning": "When the earthquake happened. The only clock that records the damage itself."
+    },
+    {
+     "id": "ACQUISITION",
+     "label": "Imagery acquired",
+     "meaning": "When a satellite photographed the ground. Damage visible in it occurred at some point between the earthquake and this date."
+    },
+    {
+     "id": "PRODUCTION",
+     "label": "Feature mapped",
+     "meaning": "When an analyst digitised the feature from that imagery. A measure of response speed, not of the event."
+    },
+    {
+     "id": "PUBLICATION",
+     "label": "Layer published",
+     "meaning": "When the product reached users. What a responder could actually have seen."
+    }
+   ],
+   "rows": [
+    {
+     "product": "UNOSAT damage sites",
+     "count": 56,
+     "acquired": "2015-04-26",
+     "produced": null,
+     "published": null,
+     "daysEventToAcquisition": 1,
+     "daysAcquisitionToProduction": null,
+     "daysProductionToPublication": null,
+     "daysEventToPublication": null
+    },
+    {
+     "product": "NGA bridgesOut",
+     "count": 1,
+     "acquired": "2015-04-26",
+     "produced": "2015-04-29",
+     "published": "2015-05-06",
+     "daysEventToAcquisition": 1,
+     "daysAcquisitionToProduction": 3,
+     "daysProductionToPublication": 7,
+     "daysEventToPublication": 11
+    },
+    {
+     "product": "UNOSAT damage sites",
+     "count": 778,
+     "acquired": "2015-04-27",
+     "produced": null,
+     "published": null,
+     "daysEventToAcquisition": 2,
+     "daysAcquisitionToProduction": null,
+     "daysProductionToPublication": null,
+     "daysEventToPublication": null
+    },
+    {
+     "product": "NGA blockedRoads",
+     "count": 8,
+     "acquired": "2015-04-27",
+     "produced": "2015-04-28",
+     "published": "2015-05-07",
+     "daysEventToAcquisition": 2,
+     "daysAcquisitionToProduction": 1,
+     "daysProductionToPublication": 9,
+     "daysEventToPublication": 12
+    },
+    {
+     "product": "NGA blockedRoads",
+     "count": 5,
+     "acquired": "2015-04-27",
+     "produced": "2015-04-27",
+     "published": "2015-05-07",
+     "daysEventToAcquisition": 2,
+     "daysAcquisitionToProduction": 0,
+     "daysProductionToPublication": 10,
+     "daysEventToPublication": 12
+    },
+    {
+     "product": "NGA blockedRoads",
+     "count": 1,
+     "acquired": "2015-04-27",
+     "produced": "2015-04-29",
+     "published": "2015-05-07",
+     "daysEventToAcquisition": 2,
+     "daysAcquisitionToProduction": 2,
+     "daysProductionToPublication": 8,
+     "daysEventToPublication": 12
+    },
+    {
+     "product": "UNOSAT damage sites",
+     "count": 2528,
+     "acquired": "2015-04-29",
+     "produced": null,
+     "published": null,
+     "daysEventToAcquisition": 4,
+     "daysAcquisitionToProduction": null,
+     "daysProductionToPublication": null,
+     "daysEventToPublication": null
+    },
+    {
+     "product": "NGA blockedRoads",
+     "count": 1,
+     "acquired": "2015-04-29",
+     "produced": "2015-04-30",
+     "published": "2015-05-07",
+     "daysEventToAcquisition": 4,
+     "daysAcquisitionToProduction": 1,
+     "daysProductionToPublication": 7,
+     "daysEventToPublication": 12
+    },
+    {
+     "product": "NGA blockedRoads",
+     "count": 8,
+     "acquired": "2015-05-01",
+     "produced": "2015-05-01",
+     "published": "2015-05-07",
+     "daysEventToAcquisition": 6,
+     "daysAcquisitionToProduction": 0,
+     "daysProductionToPublication": 6,
+     "daysEventToPublication": 12
+    },
+    {
+     "product": "NGA blockedRoads",
+     "count": 25,
+     "acquired": "2015-05-02",
+     "produced": "2015-05-02",
+     "published": "2015-05-07",
+     "daysEventToAcquisition": 7,
+     "daysAcquisitionToProduction": 0,
+     "daysProductionToPublication": 5,
+     "daysEventToPublication": 12
+    },
+    {
+     "product": "NGA landslides",
+     "count": 13,
+     "acquired": "2015-05-02",
+     "produced": "2015-05-02",
+     "published": "2015-05-07",
+     "daysEventToAcquisition": 7,
+     "daysAcquisitionToProduction": 0,
+     "daysProductionToPublication": 5,
+     "daysEventToPublication": 12
+    },
+    {
+     "product": "UNOSAT damage sites",
+     "count": 1221,
+     "acquired": "2015-05-03",
+     "produced": null,
+     "published": null,
+     "daysEventToAcquisition": 8,
+     "daysAcquisitionToProduction": null,
+     "daysProductionToPublication": null,
+     "daysEventToPublication": null
+    },
+    {
+     "product": "NGA blockedRoads",
+     "count": 32,
+     "acquired": "2015-05-03",
+     "produced": "2015-05-03",
+     "published": "2015-05-07",
+     "daysEventToAcquisition": 8,
+     "daysAcquisitionToProduction": 0,
+     "daysProductionToPublication": 4,
+     "daysEventToPublication": 12
+    },
+    {
+     "product": "NGA bridgesOut",
+     "count": 2,
+     "acquired": "2015-05-03",
+     "produced": "2015-05-03",
+     "published": "2015-05-06",
+     "daysEventToAcquisition": 8,
+     "daysAcquisitionToProduction": 0,
+     "daysProductionToPublication": 3,
+     "daysEventToPublication": 11
+    },
+    {
+     "product": "NGA landslides",
+     "count": 22,
+     "acquired": "2015-05-03",
+     "produced": "2015-05-03",
+     "published": "2015-05-07",
+     "daysEventToAcquisition": 8,
+     "daysAcquisitionToProduction": 0,
+     "daysProductionToPublication": 4,
+     "daysEventToPublication": 12
+    },
+    {
+     "product": "NGA blockedRoads",
+     "count": 44,
+     "acquired": "2015-05-04",
+     "produced": "2015-05-04",
+     "published": "2015-05-07",
+     "daysEventToAcquisition": 9,
+     "daysAcquisitionToProduction": 0,
+     "daysProductionToPublication": 3,
+     "daysEventToPublication": 12
+    },
+    {
+     "product": "NGA blockedRoads",
+     "count": 13,
+     "acquired": "2015-05-04",
+     "produced": "2015-05-05",
+     "published": "2015-05-07",
+     "daysEventToAcquisition": 9,
+     "daysAcquisitionToProduction": 1,
+     "daysProductionToPublication": 2,
+     "daysEventToPublication": 12
+    },
+    {
+     "product": "NGA bridgesOut",
+     "count": 1,
+     "acquired": "2015-05-04",
+     "produced": "2015-05-05",
+     "published": "2015-05-06",
+     "daysEventToAcquisition": 9,
+     "daysAcquisitionToProduction": 1,
+     "daysProductionToPublication": 1,
+     "daysEventToPublication": 11
+    },
+    {
+     "product": "NGA landslides",
+     "count": 1,
+     "acquired": "2015-05-04",
+     "produced": "2015-05-05",
+     "published": "2015-05-07",
+     "daysEventToAcquisition": 9,
+     "daysAcquisitionToProduction": 1,
+     "daysProductionToPublication": 2,
+     "daysEventToPublication": 12
+    },
+    {
+     "product": "NGA landslides",
+     "count": 6,
+     "acquired": "2015-05-04",
+     "produced": "2015-05-04",
+     "published": "2015-05-07",
+     "daysEventToAcquisition": 9,
+     "daysAcquisitionToProduction": 0,
+     "daysProductionToPublication": 3,
+     "daysEventToPublication": 12
+    },
+    {
+     "product": "NGA blockedRoads",
+     "count": 4,
+     "acquired": "2015-05-06",
+     "produced": "2015-05-06",
+     "published": "2015-05-07",
+     "daysEventToAcquisition": 11,
+     "daysAcquisitionToProduction": 0,
+     "daysProductionToPublication": 1,
+     "daysEventToPublication": 12
+    },
+    {
+     "product": "NGA bridgesOut",
+     "count": 1,
+     "acquired": "2015-05-06",
+     "produced": "2015-05-06",
+     "published": "2015-05-06",
+     "daysEventToAcquisition": 11,
+     "daysAcquisitionToProduction": 0,
+     "daysProductionToPublication": 0,
+     "daysEventToPublication": 11
+    },
+    {
+     "product": "NGA landslides",
+     "count": 6,
+     "acquired": "2015-05-06",
+     "produced": "2015-05-06",
+     "published": "2015-05-07",
+     "daysEventToAcquisition": 11,
+     "daysAcquisitionToProduction": 0,
+     "daysProductionToPublication": 1,
+     "daysEventToPublication": 12
+    },
+    {
+     "product": "NGA blockedRoads",
+     "count": 38,
+     "acquired": "2015-05-07",
+     "produced": "2015-05-07",
+     "published": "2015-05-07",
+     "daysEventToAcquisition": 12,
+     "daysAcquisitionToProduction": 0,
+     "daysProductionToPublication": 0,
+     "daysEventToPublication": 12
+    },
+    {
+     "product": "NGA landslides",
+     "count": 3,
+     "acquired": "2015-05-07",
+     "produced": "2015-05-07",
+     "published": "2015-05-07",
+     "daysEventToAcquisition": 12,
+     "daysAcquisitionToProduction": 0,
+     "daysProductionToPublication": 0,
+     "daysEventToPublication": 12
+    }
+   ],
+   "lags": {
+    "eventToAcquisition": {
+     "observations": 4818,
+     "min": 1,
+     "median": 4,
+     "max": 12
+    },
+    "acquisitionToProduction": {
+     "observations": 235,
+     "min": 0,
+     "median": 0,
+     "max": 3
+    },
+    "productionToPublication": {
+     "observations": 235,
+     "min": 0,
+     "median": 3,
+     "max": 10
+    },
+    "eventToPublication": {
+     "observations": 235,
+     "min": 11,
+     "median": 12,
+     "max": 12
+    }
+   },
+   "animationWarning": "These dates must not be animated as the progress of the disaster. A damage point dated 3 May does not mean a building fell on 3 May; it means the first usable image of that place was taken on 3 May. Cloud cover, satellite revisit intervals and tasking priorities drive this sequence at least as much as the earthquake does."
+  },
+  "crossSource": {
+   "products": {
+    "products": [
+     {
+      "product": "UNOSAT damage sites",
+      "unitObserved": "Individual damaged structure, as a point",
+      "records": 4583,
+      "hasDenominator": false,
+      "denominatorNote": "Only damaged structures are recorded. There is no \"examined and intact\" record and no published examined-area footprint, so no proportion of buildings can be computed from this source.",
+      "vocabulary": [
+       "Possible Damage",
+       "Moderate Damage",
+       "Severe Damage",
+       "Destroyed"
+      ],
+      "vocabularySteps": 4
+     },
+     {
+      "product": "Copernicus EMSR125 grading",
+      "unitObserved": "Every structure inside a published area of interest, graded including undamaged",
+      "records": 41042,
+      "hasDenominator": true,
+      "denominatorNote": "38589 of 41042 records carry a damage judgement, so a damage rate is computable within the areas of interest — and only within them.",
+      "vocabulary": [
+       "Not Affected",
+       "Negligible to slight damage",
+       "Negligible to slight damage (EMS-98 grade 1)",
+       "Completely Destroyed",
+       "Completely Destroyed (EMS-98 grade 5)",
+       "Unknown",
+       "Not Applicable",
+       "Null",
+       "(empty)"
+      ],
+      "vocabularySteps": 2
+     },
+     {
+      "product": "NGA infrastructure damage",
+      "unitObserved": "Blocked road segments, bridges out, landslide extents",
+      "records": 235,
+      "hasDenominator": false,
+      "denominatorNote": "A road with no reported blockage is a road with no OBSERVED blockage. The product does not publish which roads were checked, so \"not blocked\" cannot be inferred.",
+      "vocabulary": [
+       "BLOCKED_ROAD",
+       "BRIDGE_OUT",
+       "LANDSLIDE"
+      ],
+      "vocabularySteps": 1
+     }
+    ],
+    "whyNotMerged": [
+     "The units differ: UNOSAT counts damaged structures, Copernicus grades all structures examined, NGA maps infrastructure features. Adding them would count different things in one total.",
+     "The vocabularies differ in shape, not just in wording: UNOSAT has four ordered damage classes, Copernicus has two non-adjacent EMS-98 grades with nothing between them.",
+     "The coverage differs: the two products overlap geographically but neither is a superset, and where they overlap a single collapsed building may appear in both, once as a point and once as a graded structure. A combined count would double-count it.",
+     "Only Copernicus carries a denominator. A rate computed from UNOSAT and a rate computed from Copernicus are not the same quantity even when both are called a \"damage rate\"."
+    ]
+   },
+   "table": [
+    {
+     "dataset": "USGS earthquake catalogue (us20002926 and aftershocks)",
+     "observes": "Earthquake origin time, location, depth and magnitude",
+     "coverage": "Regional, instrumental; complete above the network detection threshold only",
+     "date": "2015-04-25 onwards, catalogue revised since",
+     "classification": "Moment magnitude and depth, continuous measurements",
+     "limitation": "Small aftershocks below the reporting threshold are absent, which is a property of the seismic network rather than of the sequence.",
+     "resultClass": "OBSERVED"
+    },
+    {
+     "dataset": "USGS ShakeMap MMI contours",
+     "observes": "Modelled ground-shaking intensity",
+     "coverage": "Regional grid; 8 contour levels closed and usable (MMI 4.5–8)",
+     "date": "Current ShakeMap revision, not the version issued during the response",
+     "classification": "Modified Mercalli Intensity, ordinal I–XII",
+     "limitation": "A MODEL, not a measurement grid. Nepal had very few strong-motion instruments in 2015, so intensity between them is interpolated. Contours below MMI 4.5 run off the model grid and are excluded entirely.",
+     "resultClass": "OBSERVED"
+    },
+    {
+     "dataset": "WorldPop 2015 UN-adjusted population",
+     "observes": "Modelled residential population density",
+     "coverage": "National, ~819 m cells",
+     "date": "2015 estimate",
+     "classification": "People per cell, continuous",
+     "limitation": "A model built from census totals and covariates, not a headcount, and residential rather than a Saturday-late-morning distribution of where people actually were.",
+     "resultClass": "ESTIMATE"
+    },
+    {
+     "dataset": "UNOSAT satellite-detected damage sites",
+     "observes": "Individual damaged structures, as points",
+     "coverage": "14 named analysis areas; NOT national",
+     "date": "Imagery 2015-04-26 to 2015-05-03",
+     "classification": "Four ordinal damage classes: Possible Damage, Moderate Damage, Severe Damage, Destroyed",
+     "limitation": "DAMAGE-ONLY: no undamaged structure is recorded and no examined-area footprint is published, so no proportion of buildings can be computed. Every record reads \"Not yet field validated\".",
+     "resultClass": "OBSERVED"
+    },
+    {
+     "dataset": "Copernicus EMS EMSR125 grading",
+     "observes": "Every structure inside an area of interest, graded including undamaged",
+     "coverage": "7 areas of interest with grading; 8 area polygons published",
+     "date": "Activation EMSR125, April–May 2015; latest revision per area only",
+     "classification": "Copernicus grading vocabulary; only EMS-98 grades 1 and 5 appear, with nothing between them",
+     "limitation": "2453 of 41042 records carry no usable grading. The vocabulary is NOT interchangeable with UNOSAT’s four classes.",
+     "resultClass": "OBSERVED"
+    },
+    {
+     "dataset": "NGA infrastructure damage",
+     "observes": "Blocked road locations, bridges out, landslide extents",
+     "coverage": "235 features over the central affected region; no examined-area footprint",
+     "date": "Imagery 2015-04-26 to 2015-05-07; layers published 6–7 May 2015",
+     "classification": "Three feature types, no severity scale",
+     "limitation": "Absence of a feature is not evidence a road was open. Road features are short obstruction markers, not the extents of closed routes.",
+     "resultClass": "OBSERVED"
+    },
+    {
+     "dataset": "OCHA district-level exposure table",
+     "observes": "Reported population and peak ground acceleration per district",
+     "coverage": "66 districts",
+     "date": "Compiled during the 2015 response",
+     "classification": "District totals; the population column’s definition is not published",
+     "limitation": "The population column cannot be matched to a stated definition, so Stage 4 reported it as NOT COMPARABLE and computed no difference against the modelled surface.",
+     "resultClass": "OFFICIAL"
+    },
+    {
+     "dataset": "OCHA COD-AB district boundaries (2015, 75 districts)",
+     "observes": "Administrative geometry",
+     "coverage": "National, 75 districts with p-codes",
+     "date": "Current COD-AB, reconstructed to the 2015 75-district system",
+     "classification": "Polygons with p-codes",
+     "limitation": "Reconstructed by merging the districts that were later split; the 2015 boundaries themselves are not separately published in this form.",
+     "resultClass": "OFFICIAL"
+    }
+   ]
+  }
+ }
+}

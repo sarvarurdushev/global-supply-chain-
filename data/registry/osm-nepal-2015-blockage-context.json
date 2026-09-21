@@ -1,0 +1,32 @@
+{
+ "id": "osm-nepal-2015-blockage-context",
+ "datasetName": "OpenStreetMap roads of every class beneath the observed blockages, as at 2015-04-24",
+ "publisher": "OpenStreetMap contributors, served by the Overpass API",
+ "sourceUrl": "https://www.openstreetmap.org/",
+ "license": "Open Database License (ODbL) 1.0",
+ "redistribution": "SHARE_ALIKE",
+ "retrievedAt": "2026-09-21",
+ "originalFormat": "Overpass API JSON (way geometry)",
+ "temporalCoverage": "Database state at 2015-04-24T00:00:00Z",
+ "geographicCoverage": "184 boxes of +/-0.006 degrees around each observed blockage",
+ "coordinateSystem": "EPSG:4326",
+ "description": "Every tagged highway, including track, path, residential and unclassified, within about 600 m of each NGA blocked-road or bridge-out feature, as OpenStreetMap held it the day before the earthquake. Used only to diagnose why a blockage attaches to no routable edge.",
+ "dataClass": "OBSERVED",
+ "attribution": "© OpenStreetMap contributors, ODbL",
+ "fields": [
+  "osmId",
+  "coordinates",
+  "highway",
+  "name",
+  "ref",
+  "surface",
+  "bridge",
+  "tunnel"
+ ],
+ "limitations": [
+  "This is a DIAGNOSTIC layer, not a routable network. It covers only the immediate surroundings of the observed blockages and has no connectivity beyond them.",
+  "A blockage with no road of any class beneath it means OpenStreetMap had mapped no road there in April 2015. It does not mean no road existed.",
+  "Box half-width is a chosen 600 m; a marker offset further than that from its road will be reported as having no road beneath it."
+ ],
+ "schemaVersion": 1
+}

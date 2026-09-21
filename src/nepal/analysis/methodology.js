@@ -90,3 +90,34 @@ export function createAnalysisRecord(input) {
     limitations: Object.freeze([...input.limitations]),
   });
 }
+
+/**
+ * The Stage 5 record: everything `createAnalysisRecord` requires, plus the two
+ * fields §5.15 adds.
+ *
+ * `spatialCoverage` and `validation` are required here and optional in the
+ * base record on purpose. Stage 3 fitted models to a national earthquake
+ * catalogue, where "spatial coverage" is the country and there is nothing to
+ * state. Stage 5 works with products that cover eight towns and a handful of
+ * valleys, and a result from one of them read as if it covered Nepal is the
+ * single most likely misreading of this whole project. Making the field
+ * mandatory is how that misreading is made impossible to commit silently.
+ *
+ * `validation` is required for the same reason in the other direction: an
+ * analysis whose author cannot name a check that would have caught it being
+ * wrong has not been validated, however carefully it was written.
+ */
+export function createSpatialAnalysisRecord(input) {
+  for (const key of ['spatialCoverage', 'validation']) {
+    const value = input?.[key];
+    if (value === undefined || value === null || String(value).trim() === '') {
+      throw new TypeError(
+        `Stage 5 analysis record "${input?.id ?? '(unnamed)'}" is missing ${key}. ` +
+          (key === 'spatialCoverage'
+            ? 'A damage result without its coverage will be read as if it covered Nepal.'
+            : 'An analysis with no stated check has not been validated.'),
+      );
+    }
+  }
+  return createAnalysisRecord(input);
+}

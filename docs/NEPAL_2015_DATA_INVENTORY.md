@@ -278,3 +278,50 @@ citation**, never a computed one.
 | District economic loss | **Not published** | The PDNA total is national/sectoral, not per-district |
 | Real 2015 road closure timeline | **Partial only** | NGA layers are dated 6–7 May 2015 — snapshots, not a time series |
 | Actual relief convoy movements | **Not published** | Logistics Cluster reports are prose; FTS publishes funding, not tonnage |
+
+---
+
+## 10. Road network — OpenStreetMap as at 24 April 2015 (added at Stage 5)
+
+Stage 5 needs a network to apply the observed blockages to, and the obvious
+choice is the wrong one. OpenStreetMap's Nepal coverage was transformed by the
+post-earthquake HOT activation, so a network downloaded today contains roads
+mapped **because of** the event and roads built since.
+
+The Overpass API serves *attic* data — the database as at a stated instant — so
+the baseline is the network as it stood the day before the earthquake.
+
+| Field | Value |
+| --- | --- |
+| **Dataset** | OpenStreetMap ways, `highway` = motorway…tertiary and their links |
+| **Publisher** | OpenStreetMap contributors, served by the Overpass API |
+| **Instant** | `2015-04-24T00:00:00Z` (attic query) |
+| **Licence** | **ODbL 1.0 — share-alike.** The obligation travels with the derived artefact and is written into it |
+| **Envelope** | 84.2, 27.1 → 86.8, 28.7, fetched as 28 tiles of 0.4° |
+| **Result** | **2,129 ways**, 105,887 positions, 5.40 MB |
+| **Classes** | tertiary 646, primary 603, secondary 548, trunk 303, links 29 |
+
+**The mapping gap, measured rather than asserted.** The same query against
+today's database over the same tiles returns **7,143 ways — 3.36× more**. That
+ratio bounds what any connectivity result can claim: a route the 2015 network
+cannot find is not necessarily a route that did not exist.
+
+### 10.1 Roads of every class beneath the observed blockages
+
+A second, deliberately small query: every tagged `highway`, including `track`,
+`path` and `residential`, within ~600 m of each of the 184 NGA blockage
+features, at the same instant. **393 ways**, 1.09 MB.
+
+It exists to answer one question — why only 21 of 184 blockages attach to the
+routable network — and it answers it: 169 of the 393 context ways are
+residential, 45 path, 39 track, 29 unclassified, against 45 of strategic class.
+
+| Endpoint | Note |
+| --- | --- |
+| `overpass-api.de` | **Unreachable from this environment** (connection reset at the egress proxy) |
+| `overpass.kumi.systems`, `overpass.private.coffee` | Unreachable |
+| **`maps.mail.ru/osm/tools/overpass/api`** | ✅ Reachable, carries attic data, **GET only** — a POST returns an immediate nginx 504 |
+
+The mirror rejects a second query while one is running, answering with a 504
+rather than queueing, so the ingest retries with a capped exponential backoff
+and fails loudly rather than ingesting a partial network.

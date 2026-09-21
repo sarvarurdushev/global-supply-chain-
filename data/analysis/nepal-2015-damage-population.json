@@ -1,0 +1,824 @@
+{
+ "schemaVersion": 1,
+ "stage": 5,
+ "generatedAt": "2026-09-21",
+ "dataClass": "DERIVED",
+ "definitionOfTheRelationship": {
+  "statement": "A person is counted near observed damage when the ~1 km modelled population cell they are placed in has its centre within a stated distance of a point where a satellite analyst recorded a damaged structure.",
+  "whatItIsNot": "It is not a count of damaged homes, of people whose homes were damaged, of displaced people, or of anyone harmed. Those are four further variables, and this project holds a source for none of them.",
+  "sanctionedWording": "X people lived in ~1 km modelled population cells whose centre lies within D metres of an observed damage point. It is a statement about the overlap of a modelled population surface with a set of observed points — not about houses lost, people displaced or anyone harmed, none of which this project holds a source for.",
+  "forbiddenWording": [
+   "X people lost their homes",
+   "X people were made homeless",
+   "X people were affected",
+   "X houses were destroyed (beyond the observed points themselves)"
+  ],
+  "impactVariables": [
+   {
+    "id": "EXPOSURE",
+    "label": "Geographic exposure",
+    "derivableFromThisAnalysis": true,
+    "source": "Derived here from a population surface and a hazard model."
+   },
+   {
+    "id": "DAMAGE",
+    "label": "Physical damage",
+    "derivableFromThisAnalysis": true,
+    "source": "Satellite interpretation (UNOSAT, Copernicus EMSR125) or field assessment. Never inferred from exposure."
+   },
+   {
+    "id": "CASUALTIES",
+    "label": "Human casualties",
+    "derivableFromThisAnalysis": false,
+    "source": "Government and agency counts, published as national or district totals. Not derivable from exposure or damage."
+   },
+   {
+    "id": "HUMANITARIAN_NEED",
+    "label": "Humanitarian need",
+    "derivableFromThisAnalysis": false,
+    "source": "Cluster assessments and needs surveys. An assessment, not a measurement."
+   },
+   {
+    "id": "DISPLACEMENT",
+    "label": "Displacement",
+    "derivableFromThisAnalysis": false,
+    "source": "IOM Displacement Tracking Matrix and shelter cluster site reports."
+   }
+  ]
+ },
+ "sources": [
+  {
+   "datasetId": "unosat-nepal-2015-damage-sites",
+   "license": "CC BY-NC-SA 3.0 (HDX license_other for this dataset)",
+   "redistribution": "NON_COMMERCIAL",
+   "attribution": "UNITAR/UNOSAT; Copernicus EMS (EMSR125); U.S. NGA"
+  },
+  {
+   "datasetId": "worldpop-npl-2015-unadj",
+   "license": "CC BY 4.0",
+   "redistribution": "SHARE_ALIKE",
+   "attribution": "WorldPop (www.worldpop.org), CC BY 4.0"
+  },
+  {
+   "datasetId": "cod-ab-npl-adm2",
+   "license": "CC BY-IGO 3.0",
+   "redistribution": "SHARE_ALIKE",
+   "attribution": "UN OCHA (data.humdata.org), CC BY-IGO"
+  },
+  {
+   "datasetId": "usgs-nepal-2015-shakemap-contours",
+   "license": "US Government public domain (17 U.S.C. §105)",
+   "redistribution": "OPEN",
+   "attribution": "Data courtesy of the U.S. Geological Survey"
+  }
+ ],
+ "validation": {
+  "passed": true,
+  "checks": [
+   {
+    "name": "Proximity bands are cumulative and monotonic",
+    "passed": true,
+    "detail": "500m:169387 1000m:250510 2000m:361150 5000m:784796 10000m:2644051"
+   },
+   {
+    "name": "Damage points are binned onto the population grid without duplication",
+    "passed": true,
+    "detail": "4583 points binned from 4583; 4572 of them land in a POPULATED cell of the analysed districts, the rest in cells WorldPop models as unpopulated"
+   },
+   {
+    "name": "Quadrants partition the analysed cells",
+    "passed": true,
+    "detail": "16501 cells across four quadrants"
+   },
+   {
+    "name": "The damage threshold is not a median split",
+    "passed": true,
+    "detail": "Median damage count across the analysed cells is 0, so a median split would be meaningless; presence is used and a second cut at 5 is reported beside it"
+   },
+   {
+    "name": "No displacement, homelessness or casualty figure appears in this stage",
+    "passed": true,
+    "detail": "The artefact carries the sanctioned wording and the forbidden phrasings explicitly."
+   }
+  ]
+ },
+ "methodology": [
+  {
+   "schemaVersion": 1,
+   "resultClass": "DERIVED",
+   "id": "damage-population-proximity",
+   "name": "Population in a stated spatial relationship to observed damage",
+   "question": "How many people did the 2015 modelled population surface place within a given distance of an observed damage point?",
+   "inputs": [
+    {
+     "dataset": "unosat-nepal-2015-damage-sites",
+     "role": "observed damage points"
+    },
+    {
+     "dataset": "worldpop-npl-2015-unadj",
+     "role": "modelled 2015 population surface"
+    }
+   ],
+   "spatialCoverage": "Wherever the two overlap: the UNOSAT analysis areas and their surroundings out to 10 km. Population beyond that is reported separately rather than dropped.",
+   "method": "Index the damage points on a grid in EPSG:32645, then for each populated cell find the nearest damage point and add the cell’s whole modelled population to every band at or beyond that distance.",
+   "formula": "people(<=d) = sum of cell population where min distance from cell centre to any damage point <= d",
+   "parameters": {
+    "bandsMetres": [
+     500,
+     1000,
+     2000,
+     5000,
+     10000
+    ]
+   },
+   "parameterJustification": "The zero band is \"same 1 km cell\", which is the finest relationship the population surface can express; 1 km and 2 km are walking distances at which a household is plausibly in the same settlement as the damage; 5 km and 10 km are reported to show how fast the figure grows with the distance chosen, which is the point of reporting a curve rather than one number.",
+   "outputs": [
+    "population within each band",
+    "cells within each band",
+    "population beyond the furthest band"
+   ],
+   "visualisation": "Population against distance-to-damage, with each band labelled by its full sentence rather than a bare number.",
+   "validation": "Bands are cumulative and monotonic; 4857 cells fall inside the furthest band and 24366518 people are reported as beyond it.",
+   "dataClass": "DERIVED",
+   "limitations": [
+    "NEITHER ENDPOINT IS A PERSON. It is the distance from a modelled cell centre to an observed point, and the cell is about a kilometre across.",
+    "The damage points are only where satellites looked, so a population near unexamined damage is counted as far from damage.",
+    "Population is residential and modelled for 2015, not a record of where anyone was at 11:56 on a Saturday.",
+    "This measures proximity and nothing else. It does not imply that any of these people lost a home, were displaced or were harmed."
+   ]
+  },
+  {
+   "schemaVersion": 1,
+   "resultClass": "DERIVED",
+   "id": "damage-population-concentration",
+   "name": "Where people were against where damage was observed",
+   "question": "Is observed damage more concentrated than the population among which it sits, and which cells combine many people with observed damage?",
+   "inputs": [
+    {
+     "dataset": "unosat-nepal-2015-damage-sites",
+     "role": "observed damage points"
+    },
+    {
+     "dataset": "worldpop-npl-2015-unadj",
+     "role": "modelled 2015 population surface"
+    },
+    {
+     "dataset": "cod-ab-npl-adm2",
+     "role": "the district universe"
+    }
+   ],
+   "spatialCoverage": "Populated 1 km cells inside the 9 districts where damage was observed — 16501 cells, not Nepal.",
+   "method": "Bin damage points onto the WorldPop grid’s own cells — the same cells the population is reported in — then measure the concentration of each with a Gini coefficient over identical cells, and cross-classify the cells by a population threshold taken from their own median and a damage threshold taken from presence.",
+   "formula": "G over cells for each variable; quadrant = (people >= median) x (damage >= threshold)",
+   "parameters": {
+    "cellDegrees": 0.008333333,
+    "populationThreshold": 72.8,
+    "damageThresholdPresence": 1,
+    "damageThresholdConcentrated": 5
+   },
+   "parameterJustification": "The population cut is the median of the analysed cells, computed independently of the damage axis so the two variables cannot define each other. The damage cut is NOT a median: the median damage count across these cells is zero, so a median split would classify every cell with a single observation as \"high\". Presence is used instead, with a second cut at the median count among cells that have any, and both are reported.",
+   "outputs": [
+    "Gini for population and for observed damage over the same cells",
+    "concentration curves",
+    "four quadrants with populations and examples",
+    "per-district cell coverage"
+   ],
+   "visualisation": "Scatter of population against observed damage per cell with the quadrant lines drawn, and the two concentration curves overlaid.",
+   "validation": "Quadrants partition all 16501 analysed cells; damage Gini 0.991 against population Gini 0.836 over identical cells; Spearman 0.122.",
+   "dataClass": "DERIVED",
+   "limitations": [
+    "\"LOW DAMAGE\" MEANS NO DAMAGE POINT WAS OBSERVED IN THE CELL, which outside the examined areas is not evidence that the buildings held.",
+    "The universe is the districts that were examined, so the analysis compares places inside the tasked areas and says nothing about the rest of Nepal.",
+    "A positive population-damage correlation is expected from building density and from satellite tasking alone, and is not evidence that denser places fared worse.",
+    "Cell boundaries are aligned to the UTM origin, so a settlement straddling a boundary is split between two cells."
+   ]
+  }
+ ],
+ "results": {
+  "populationNearObservedDamage": {
+   "bands": [
+    {
+     "withinMetres": 500,
+     "people": 169387,
+     "cells": 414,
+     "cumulative": true
+    },
+    {
+     "withinMetres": 1000,
+     "people": 250510,
+     "cells": 725,
+     "cumulative": true
+    },
+    {
+     "withinMetres": 2000,
+     "people": 361150,
+     "cells": 1182,
+     "cumulative": true
+    },
+    {
+     "withinMetres": 5000,
+     "people": 784796,
+     "cells": 2547,
+     "cumulative": true
+    },
+    {
+     "withinMetres": 10000,
+     "people": 2644051,
+     "cells": 4857,
+     "cumulative": true
+    }
+   ],
+   "populationBeyondFurthestBand": 24366518,
+   "populationTotalConsidered": 27010569,
+   "cellsWithinFurthestBand": 4857,
+   "wording": "X people lived in ~1 km modelled population cells whose centre lies within D metres of an observed damage point. It is a statement about the overlap of a modelled population surface with a set of observed points — not about houses lost, people displaced or anyone harmed, none of which this project holds a source for.",
+   "forbidden": [
+    "X people lost their homes",
+    "X people were made homeless",
+    "X people were affected",
+    "X houses were destroyed (beyond the observed points themselves)"
+   ],
+   "rounded": [
+    {
+     "withinMetres": 500,
+     "people": 169387,
+     "rounded": "169,000",
+     "statement": "169,000 people lived in ~1 km modelled population cells whose centre lies within 500 m of an observed damage point."
+    },
+    {
+     "withinMetres": 1000,
+     "people": 250510,
+     "rounded": "251,000",
+     "statement": "251,000 people lived in ~1 km modelled population cells whose centre lies within 1000 m of an observed damage point."
+    },
+    {
+     "withinMetres": 2000,
+     "people": 361150,
+     "rounded": "361,000",
+     "statement": "361,000 people lived in ~1 km modelled population cells whose centre lies within 2000 m of an observed damage point."
+    },
+    {
+     "withinMetres": 5000,
+     "people": 784796,
+     "rounded": "785,000",
+     "statement": "785,000 people lived in ~1 km modelled population cells whose centre lies within 5000 m of an observed damage point."
+    },
+    {
+     "withinMetres": 10000,
+     "people": 2644051,
+     "rounded": "2.64 million",
+     "statement": "2.64 million people lived in ~1 km modelled population cells whose centre lies within 10000 m of an observed damage point."
+    }
+   ]
+  },
+  "concentration": {
+   "universe": {
+    "districts": [
+     "Bhaktapur",
+     "Chitawan",
+     "Dhading",
+     "Gorkha",
+     "Kathmandu",
+     "Kavrepalanchok",
+     "Lalitpur",
+     "Lamjung",
+     "Tanahu"
+    ],
+    "cells": 16501,
+    "population": 5318929,
+    "damagePointsInside": 4572,
+    "basis": "Populated 1 km cells inside the districts where damage was observed. Not the whole country, because most of it was never examined; not just the cells near damage, because that would make \"low damage\" vacuous."
+   },
+   "populationGini": 0.835972278891014,
+   "damageGini": 0.9909979474188659,
+   "moreConcentrated": "OBSERVED_DAMAGE",
+   "populationCurve": {
+    "units": 16501,
+    "total": 5318929.199999972,
+    "points": [
+     {
+      "share": 0.25,
+      "units": 45,
+      "unitShare": 0.0027271074480334527,
+      "cumulative": 1333308.8999999997
+     },
+     {
+      "share": 0.5,
+      "units": 153,
+      "unitShare": 0.00927216532331374,
+      "cumulative": 2661856.9
+     },
+     {
+      "share": 0.8,
+      "units": 1935,
+      "unitShare": 0.11726562026543846,
+      "cumulative": 4255203.399999993
+     },
+     {
+      "share": 0.9,
+      "units": 4990,
+      "unitShare": 0.30240591479304285,
+      "cumulative": 4787149.099999999
+     }
+    ],
+    "topUnitShare": 0.006816240381616696
+   },
+   "damageCurve": {
+    "units": 16501,
+    "total": 4572,
+    "points": [
+     {
+      "share": 0.25,
+      "units": 9,
+      "unitShare": 0.0005454214896066905,
+      "cumulative": 1158
+     },
+     {
+      "share": 0.5,
+      "units": 40,
+      "unitShare": 0.002424095509363069,
+      "cumulative": 2305
+     },
+     {
+      "share": 0.8,
+      "units": 136,
+      "unitShare": 0.008241924731834434,
+      "cumulative": 3665
+     },
+     {
+      "share": 0.9,
+      "units": 205,
+      "unitShare": 0.012423489485485727,
+      "cumulative": 4119
+     }
+    ],
+    "topUnitShare": 0.06342957130358705
+   },
+   "spearmanPopulationVsDamage": 0.12211935857872454,
+   "correlationNote": "A positive rank correlation here means cells with more people tend to carry more observed damage points. That is expected for at least two reasons that have nothing to do with vulnerability: there are more buildings where there are more people, and satellites were tasked over settlements. It is not evidence that dense areas fared worse."
+  },
+  "quadrants": {
+   "byPresence": {
+    "cellsAnalysed": 16501,
+    "populationThreshold": 72.8,
+    "populationThresholdBasis": "Median modelled population across the analysed cells, computed here and independent of the damage axis.",
+    "damageThreshold": 1,
+    "damageThresholdBasis": "Presence of any observed damage point. A median split is meaningless on this axis because the median damage count across the analysed cells is zero.",
+    "quadrants": {
+     "HIGH_POPULATION_HIGH_DAMAGE": {
+      "cells": 350,
+      "people": 162214,
+      "damagePoints": 3666,
+      "examples": [
+       {
+        "lon": 85.4646,
+        "lat": 27.7263,
+        "people": 2391,
+        "damage": 207,
+        "district": "Kathmandu"
+       },
+       {
+        "lon": 85.4312,
+        "lat": 27.6679,
+        "people": 10635,
+        "damage": 149,
+        "district": "Bhaktapur"
+       },
+       {
+        "lon": 85.4396,
+        "lat": 27.6763,
+        "people": 11878,
+        "damage": 120,
+        "district": "Bhaktapur"
+       },
+       {
+        "lon": 85.4646,
+        "lat": 27.7346,
+        "people": 2075,
+        "damage": 93,
+        "district": "Kathmandu"
+       },
+       {
+        "lon": 85.4312,
+        "lat": 27.6763,
+        "people": 11579,
+        "damage": 89,
+        "district": "Bhaktapur"
+       }
+      ]
+     },
+     "HIGH_POPULATION_LOW_DAMAGE": {
+      "cells": 7907,
+      "people": 4939366,
+      "damagePoints": 0,
+      "examples": [
+       {
+        "lon": 85.3146,
+        "lat": 27.7346,
+        "people": 36255,
+        "damage": 0,
+        "district": "Kathmandu"
+       },
+       {
+        "lon": 85.3396,
+        "lat": 27.7263,
+        "people": 36046,
+        "damage": 0,
+        "district": "Kathmandu"
+       },
+       {
+        "lon": 85.3396,
+        "lat": 27.7346,
+        "people": 35044,
+        "damage": 0,
+        "district": "Kathmandu"
+       },
+       {
+        "lon": 85.3312,
+        "lat": 27.7179,
+        "people": 34579,
+        "damage": 0,
+        "district": "Kathmandu"
+       },
+       {
+        "lon": 85.3229,
+        "lat": 27.7429,
+        "people": 33933,
+        "damage": 0,
+        "district": "Kathmandu"
+       }
+      ]
+     },
+     "LOW_POPULATION_HIGH_DAMAGE": {
+      "cells": 63,
+      "people": 3355,
+      "damagePoints": 906,
+      "examples": [
+       {
+        "lon": 84.7229,
+        "lat": 28.1679,
+        "people": 54,
+        "damage": 290,
+        "district": "Gorkha"
+       },
+       {
+        "lon": 84.7312,
+        "lat": 28.1346,
+        "people": 62,
+        "damage": 63,
+        "district": "Gorkha"
+       },
+       {
+        "lon": 84.8229,
+        "lat": 28.1096,
+        "people": 48,
+        "damage": 50,
+        "district": "Gorkha"
+       },
+       {
+        "lon": 84.7312,
+        "lat": 28.1513,
+        "people": 36,
+        "damage": 45,
+        "district": "Gorkha"
+       },
+       {
+        "lon": 84.7229,
+        "lat": 28.1763,
+        "people": 53,
+        "damage": 32,
+        "district": "Gorkha"
+       }
+      ]
+     },
+     "LOW_POPULATION_LOW_DAMAGE": {
+      "cells": 8181,
+      "people": 213995,
+      "damagePoints": 0,
+      "examples": [
+       {
+        "lon": 84.2146,
+        "lat": 27.9429,
+        "people": 73,
+        "damage": 0,
+        "district": "Tanahu"
+       },
+       {
+        "lon": 84.3812,
+        "lat": 27.8763,
+        "people": 73,
+        "damage": 0,
+        "district": "Tanahu"
+       },
+       {
+        "lon": 84.7646,
+        "lat": 27.7846,
+        "people": 73,
+        "damage": 0,
+        "district": "Dhading"
+       },
+       {
+        "lon": 85.6812,
+        "lat": 27.6513,
+        "people": 73,
+        "damage": 0,
+        "district": "Kavrepalanchok"
+       },
+       {
+        "lon": 85.7812,
+        "lat": 27.5763,
+        "people": 73,
+        "damage": 0,
+        "district": "Kavrepalanchok"
+       }
+      ]
+     }
+    },
+    "interpretation": {
+     "HIGH_POPULATION_HIGH_DAMAGE": "Many people, damage observed. The cells a response would prioritise, and the ones most likely to be over-represented because dense places are the ones satellites were tasked over.",
+     "HIGH_POPULATION_LOW_DAMAGE": "Many people, no damage observed. AMBIGUOUS: either the buildings held, or nobody looked here. Which of the two it is cannot be told from this dataset.",
+     "LOW_POPULATION_HIGH_DAMAGE": "Few people, damage observed. Sparse mountain settlement where a small number of structures were lost — the pattern that district totals hide.",
+     "LOW_POPULATION_LOW_DAMAGE": "Few people, no damage observed. Mostly cells that were never examined."
+    },
+    "coverageCaveat": "\"Low damage\" in this analysis means NO DAMAGE POINT WAS OBSERVED IN THIS CELL. The UNOSAT product records damaged structures only, and publishes no footprint of the area examined, so an absence of points is not evidence of intact buildings. Every quadrant containing \"LOW_DAMAGE\" inherits this ambiguity."
+   },
+   "byConcentration": {
+    "cellsAnalysed": 16501,
+    "populationThreshold": 72.8,
+    "populationThresholdBasis": "Median modelled population across the analysed cells, computed here and independent of the damage axis.",
+    "damageThreshold": 5,
+    "damageThresholdBasis": "Count of observed damage points in the cell.",
+    "quadrants": {
+     "HIGH_POPULATION_HIGH_DAMAGE": {
+      "cells": 177,
+      "people": 112737,
+      "damagePoints": 3294,
+      "examples": [
+       {
+        "lon": 85.4646,
+        "lat": 27.7263,
+        "people": 2391,
+        "damage": 207,
+        "district": "Kathmandu"
+       },
+       {
+        "lon": 85.4312,
+        "lat": 27.6679,
+        "people": 10635,
+        "damage": 149,
+        "district": "Bhaktapur"
+       },
+       {
+        "lon": 85.4396,
+        "lat": 27.6763,
+        "people": 11878,
+        "damage": 120,
+        "district": "Bhaktapur"
+       },
+       {
+        "lon": 85.4646,
+        "lat": 27.7346,
+        "people": 2075,
+        "damage": 93,
+        "district": "Kathmandu"
+       },
+       {
+        "lon": 85.4312,
+        "lat": 27.6763,
+        "people": 11579,
+        "damage": 89,
+        "district": "Bhaktapur"
+       }
+      ]
+     },
+     "HIGH_POPULATION_LOW_DAMAGE": {
+      "cells": 8080,
+      "people": 4988843,
+      "damagePoints": 372,
+      "examples": [
+       {
+        "lon": 85.5146,
+        "lat": 27.6346,
+        "people": 1990,
+        "damage": 4,
+        "district": "Kavrepalanchok"
+       },
+       {
+        "lon": 84.6396,
+        "lat": 27.8596,
+        "people": 524,
+        "damage": 4,
+        "district": "Chitawan"
+       },
+       {
+        "lon": 85.5062,
+        "lat": 27.6263,
+        "people": 354,
+        "damage": 4,
+        "district": "Kavrepalanchok"
+       },
+       {
+        "lon": 84.4562,
+        "lat": 28.0346,
+        "people": 317,
+        "damage": 4,
+        "district": "Tanahu"
+       },
+       {
+        "lon": 84.8146,
+        "lat": 28.0679,
+        "people": 266,
+        "damage": 4,
+        "district": "Gorkha"
+       }
+      ]
+     },
+     "LOW_POPULATION_HIGH_DAMAGE": {
+      "cells": 33,
+      "people": 1851,
+      "damagePoints": 850,
+      "examples": [
+       {
+        "lon": 84.7229,
+        "lat": 28.1679,
+        "people": 54,
+        "damage": 290,
+        "district": "Gorkha"
+       },
+       {
+        "lon": 84.7312,
+        "lat": 28.1346,
+        "people": 62,
+        "damage": 63,
+        "district": "Gorkha"
+       },
+       {
+        "lon": 84.8229,
+        "lat": 28.1096,
+        "people": 48,
+        "damage": 50,
+        "district": "Gorkha"
+       },
+       {
+        "lon": 84.7312,
+        "lat": 28.1513,
+        "people": 36,
+        "damage": 45,
+        "district": "Gorkha"
+       },
+       {
+        "lon": 84.7229,
+        "lat": 28.1763,
+        "people": 53,
+        "damage": 32,
+        "district": "Gorkha"
+       }
+      ]
+     },
+     "LOW_POPULATION_LOW_DAMAGE": {
+      "cells": 8211,
+      "people": 215499,
+      "damagePoints": 56,
+      "examples": [
+       {
+        "lon": 85.4646,
+        "lat": 27.6179,
+        "people": 71,
+        "damage": 4,
+        "district": "Kavrepalanchok"
+       },
+       {
+        "lon": 85.4312,
+        "lat": 27.5929,
+        "people": 59,
+        "damage": 4,
+        "district": "Kavrepalanchok"
+       },
+       {
+        "lon": 85.4146,
+        "lat": 27.6013,
+        "people": 58,
+        "damage": 4,
+        "district": "Kavrepalanchok"
+       },
+       {
+        "lon": 84.7229,
+        "lat": 28.1513,
+        "people": 46,
+        "damage": 4,
+        "district": "Gorkha"
+       },
+       {
+        "lon": 84.8396,
+        "lat": 28.1263,
+        "people": 42,
+        "damage": 4,
+        "district": "Gorkha"
+       }
+      ]
+     }
+    },
+    "interpretation": {
+     "HIGH_POPULATION_HIGH_DAMAGE": "Many people, damage observed. The cells a response would prioritise, and the ones most likely to be over-represented because dense places are the ones satellites were tasked over.",
+     "HIGH_POPULATION_LOW_DAMAGE": "Many people, no damage observed. AMBIGUOUS: either the buildings held, or nobody looked here. Which of the two it is cannot be told from this dataset.",
+     "LOW_POPULATION_HIGH_DAMAGE": "Few people, damage observed. Sparse mountain settlement where a small number of structures were lost — the pattern that district totals hide.",
+     "LOW_POPULATION_LOW_DAMAGE": "Few people, no damage observed. Mostly cells that were never examined."
+    },
+    "coverageCaveat": "\"Low damage\" in this analysis means NO DAMAGE POINT WAS OBSERVED IN THIS CELL. The UNOSAT product records damaged structures only, and publishes no footprint of the area examined, so an absence of points is not evidence of intact buildings. Every quadrant containing \"LOW_DAMAGE\" inherits this ambiguity."
+   },
+   "thresholdNote": "Two cuts are reported because one would hide the shape: presence separates examined-and-damaged from everything else, and the second cut separates cells with scattered damage from cells with a concentration of it."
+  },
+  "byDistrict": [
+   {
+    "district": "Gorkha",
+    "cells": 4786,
+    "cellsWithObservedDamage": 151,
+    "shareOfCellsWithObservedDamage": 3.2,
+    "population": 234076,
+    "populationInCellsWithObservedDamage": 20552,
+    "damagePoints": 1781,
+    "damagePointsPerThousandPeople": 7.61
+   },
+   {
+    "district": "Dhading",
+    "cells": 2514,
+    "cellsWithObservedDamage": 94,
+    "shareOfCellsWithObservedDamage": 3.7,
+    "population": 295045,
+    "populationInCellsWithObservedDamage": 18340,
+    "damagePoints": 984,
+    "damagePointsPerThousandPeople": 3.34
+   },
+   {
+    "district": "Bhaktapur",
+    "cells": 164,
+    "cellsWithObservedDamage": 11,
+    "shareOfCellsWithObservedDamage": 6.7,
+    "population": 330195,
+    "populationInCellsWithObservedDamage": 84950,
+    "damagePoints": 458,
+    "damagePointsPerThousandPeople": 1.39
+   },
+   {
+    "district": "Lamjung",
+    "cells": 2191,
+    "cellsWithObservedDamage": 55,
+    "shareOfCellsWithObservedDamage": 2.5,
+    "population": 143496,
+    "populationInCellsWithObservedDamage": 14594,
+    "damagePoints": 423,
+    "damagePointsPerThousandPeople": 2.95
+   },
+   {
+    "district": "Kavrepalanchok",
+    "cells": 1835,
+    "cellsWithObservedDamage": 63,
+    "shareOfCellsWithObservedDamage": 3.4,
+    "population": 222171,
+    "populationInCellsWithObservedDamage": 15863,
+    "damagePoints": 421,
+    "damagePointsPerThousandPeople": 1.89
+   },
+   {
+    "district": "Kathmandu",
+    "cells": 547,
+    "cellsWithObservedDamage": 2,
+    "shareOfCellsWithObservedDamage": 0.4,
+    "population": 2779012,
+    "populationInCellsWithObservedDamage": 4466,
+    "damagePoints": 300,
+    "damagePointsPerThousandPeople": 0.11
+   },
+   {
+    "district": "Tanahu",
+    "cells": 2079,
+    "cellsWithObservedDamage": 25,
+    "shareOfCellsWithObservedDamage": 1.2,
+    "population": 286655,
+    "populationInCellsWithObservedDamage": 3833,
+    "damagePoints": 94,
+    "damagePointsPerThousandPeople": 0.33
+   },
+   {
+    "district": "Lalitpur",
+    "cells": 520,
+    "cellsWithObservedDamage": 7,
+    "shareOfCellsWithObservedDamage": 1.3,
+    "population": 475235,
+    "populationInCellsWithObservedDamage": 781,
+    "damagePoints": 72,
+    "damagePointsPerThousandPeople": 0.15
+   },
+   {
+    "district": "Chitawan",
+    "cells": 1865,
+    "cellsWithObservedDamage": 5,
+    "shareOfCellsWithObservedDamage": 0.3,
+    "population": 553044,
+    "populationInCellsWithObservedDamage": 2190,
+    "damagePoints": 39,
+    "damagePointsPerThousandPeople": 0.07
+   }
+  ]
+ }
+}

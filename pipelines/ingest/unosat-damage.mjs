@@ -488,11 +488,18 @@ export async function ingestUnosatDamage({ force = false } = {}) {
       validation: output.validation,
       quality: output.quality,
     });
-    await writeRegistry(
-      Object.fromEntries(
-        Object.entries(output.artefact.source).concat([['limitations', output.artefact.limitations]]),
-      ),
-    );
+    /*
+     * `writeRegistry` files a record under `record.id`, and the artefact's
+     * source block calls that same field `datasetId`. Passing the source block
+     * straight through therefore wrote every record in this package to
+     * `registry/undefined.json`, each overwriting the last, so only the final
+     * layer's provenance survived. The id is restored explicitly.
+     */
+    await writeRegistry({
+      id: output.artefact.source.datasetId,
+      ...output.artefact.source,
+      limitations: output.artefact.limitations,
+    });
     await writeReport(`${output.artefact.source.datasetId}.quality.txt`, formatQualitySummary(output.quality));
   }
   return { written, layersInArchive: shpNames.length };
