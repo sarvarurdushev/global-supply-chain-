@@ -423,19 +423,41 @@ export function landslideRoadAssociation(
   roadFeatures,
   tolerances = ASSOCIATION_TOLERANCES_METRES,
 ) {
-  const distances = landslideFeatures.map((slide) => {
+  const nearest = landslideFeatures.map((slide) => {
     let best = Infinity;
-    for (const road of roadFeatures) {
+    let index = null;
+    roadFeatures.forEach((road, roadIndex) => {
       const distance = polylineToPolygonMetres(
         road.geometry.coordinates,
         slide.geometry,
       );
-      if (distance < best) best = distance;
-    }
-    return best;
+      if (distance < best) {
+        best = distance;
+        index = roadIndex;
+      }
+    });
+    return { distanceMetres: best, nearestRoad: index };
   });
+  const distances = nearest.map((entry) => entry.distanceMetres);
   return Object.freeze({
     landslideFeatures: landslideFeatures.length,
+    /*
+     * Per landslide, because the caller needs the TRUE nearest road for each
+     * slide. Deriving it instead by scanning the road-to-landslide table finds
+     * only the roads whose OWN nearest slide is this one, which for most
+     * slides is no road at all \u2014 and then reports that as a missing value
+     * rather than as the several-kilometre distance it actually is.
+     */
+    perLandslide: Object.freeze(
+      nearest.map((entry) =>
+        Object.freeze({
+          distanceMetres: Number.isFinite(entry.distanceMetres)
+            ? Math.round(entry.distanceMetres)
+            : null,
+          nearestRoad: entry.nearestRoad,
+        }),
+      ),
+    ),
     curve: Object.freeze(
       tolerances.map((tolerance) => {
         const matched = distances.filter(

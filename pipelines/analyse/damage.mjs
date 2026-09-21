@@ -21,8 +21,13 @@ import path from 'node:path';
 import { DataClass } from '../../src/nepal/registry.js';
 import { createSpatialAnalysisRecord } from '../../src/nepal/analysis/methodology.js';
 import { ResultClass, roundPercent } from '../../src/nepal/analysis/terminology.js';
-import { contoursToRings, intensityAt } from '../../src/nepal/analysis/exposure.js';
+import {
+  contoursToRings,
+  decodePopulationGrid,
+  intensityAt,
+} from '../../src/nepal/analysis/exposure.js';
 import { pointInPolygon } from '../../src/nepal/geo/geometry.js';
+import { toUtm } from '../../src/nepal/geo/crs.js';
 import {
   SEVERITY_SCHEMES,
   UNOSAT_CLASSES,
@@ -50,6 +55,18 @@ const read = async (name) => JSON.parse(await readFile(path.join(PROCESSED, name
 /** Cell sizes the grid analysis is reported at. The first is the headline. */
 const GRID_SIZES_METRES = [1000, 2000, 5000];
 
+/**
+ * Below this modelled population, a damage-per-head ratio is not reported as
+ * meaningful.
+ *
+ * A hundred people is roughly two WorldPop cells' worth of Gorkha's average
+ * (49 per cell). Under that, the denominator is the population model's
+ * allocation of a district total across mountain terrain rather than a count
+ * of anybody, and dividing an observed cluster of buildings by it produces
+ * arithmetic, not a rate.
+ */
+const POPULATION_BASE_FLOOR = 100;
+
 /** A rate small enough that one decimal place rounds it to zero needs more. */
 function rate(numerator, denominator) {
   if (!denominator) return null;
@@ -65,6 +82,7 @@ export async function analyseDamage() {
   const ngaFile = await read('nepal-2015-nga-infrastructure-damage.json');
   const shakemapFile = await read('nepal-2015-shakemap-contours.json');
   const boundariesFile = await read('nepal-districts-adm2-2015.json');
+  const populationFile = await read('nepal-2015-population-1km.json');
 
   const rings = contoursToRings(shakemapFile.data.features);
   const intensityOf = (lon, lat) => intensityAt(rings, lon, lat);
@@ -108,22 +126,66 @@ export async function analyseDamage() {
 
   /* ---------------- §5.3 concentration at three resolutions ---------------- */
 
+  /*
+   * Population aggregated onto the SAME square grid the damage is binned on,
+   * so a hotspot row can carry the people who lived in it.
+   *
+   * The direction of this aggregation matters. Summing population INTO a
+   * square cell assigns each ~819 m WorldPop cell to exactly one square, which
+   * is a correct aggregation. Going the other way — asking each WorldPop cell
+   * which square it sits in and giving it that square's damage count — is not,
+   * because two WorldPop cells can share a square and each would claim its
+   * whole count. §5.11 hit exactly that and bins on the WorldPop grid instead.
+   */
+  const populationCells = [...decodePopulationGrid(populationFile.data)];
+  const populationByGrid = new Map(
+    GRID_SIZES_METRES.map((cellMetres) => {
+      const table = new Map();
+      for (const cell of populationCells) {
+        const { easting, northing } = toUtm(cell.lon, cell.lat);
+        const key = `${Math.floor(easting / cellMetres)}:${Math.floor(northing / cellMetres)}`;
+        table.set(key, (table.get(key) ?? 0) + cell.people);
+      }
+      return [cellMetres, table];
+    }),
+  );
+
   const grids = GRID_SIZES_METRES.map((cellMetres) => {
     const grid = damageGrid(points, { cellMetres });
+    const populationTable = populationByGrid.get(cellMetres);
     return {
       cellMetres,
       occupiedCells: grid.occupiedCells,
       observedFootprintSqKm: grid.observedFootprintSqKm,
       meanPerOccupiedCell: Number(grid.meanPerOccupiedCell.toFixed(2)),
       concentration: damageConcentration(grid),
-      topCells: grid.cells.slice(0, 15).map((cell) => ({
-        lon: cell.lon,
-        lat: cell.lat,
-        count: cell.count,
-        counts: cell.counts,
-        mmi: intensityOf(cell.lon, cell.lat),
-        district: districtAt(districts, cell.lon, cell.lat),
-      })),
+      topCells: grid.cells.slice(0, 15).map((cell) => {
+        const people = populationTable.get(cell.id) ?? 0;
+        return {
+          lon: cell.lon,
+          lat: cell.lat,
+          count: cell.count,
+          counts: cell.counts,
+          composition: composition(cell.counts).shares,
+          mmi: intensityOf(cell.lon, cell.lat),
+          district: districtAt(districts, cell.lon, cell.lat),
+          modelledPopulation: Math.round(people),
+          damagePointsPerThousandPeople:
+            people > 0 ? Number(((cell.count / people) * 1000).toFixed(2)) : null,
+          /*
+           * The ratio is only meaningful where the population model has
+           * something to stand on. Gorkha's cells hold 49 modelled people on
+           * average, and three of the busiest damage cells hold fewer than a
+           * hundred while carrying 380 damage points between them — giving
+           * ratios above 3,500 damaged structures per thousand people, which
+           * is not a fact about Gorkha. It is what happens when a surface that
+           * spreads a district total smoothly over terrain meets buildings
+           * that cluster in villages.
+           */
+          populationBase:
+            people >= POPULATION_BASE_FLOOR ? 'SUFFICIENT' : 'TOO_SMALL_FOR_A_RATIO',
+        };
+      }),
       grid,
     };
   });
@@ -359,6 +421,25 @@ export async function analyseDamage() {
       detail: `${attribution.ledger.contained} contained, ${attribution.ledger.placedByNearestBoundary} by nearest boundary (max ${attribution.ledger.maxFallbackUsedKm} km), ${attribution.ledger.unplaced} unplaced`,
     },
     {
+      name: 'Damage-per-head ratios on a population base too small to carry them are flagged',
+      passed: grids.every((entry) =>
+        entry.topCells.every(
+          (cell) =>
+            cell.populationBase === 'SUFFICIENT' ||
+            cell.populationBase === 'TOO_SMALL_FOR_A_RATIO',
+        ),
+      ),
+      detail: `${grids[0].topCells.filter((cell) => cell.populationBase !== 'SUFFICIENT').length} of the top ${grids[0].topCells.length} 1 km cells sit below the ${POPULATION_BASE_FLOOR}-person floor and carry the flag`,
+    },
+    {
+      name: 'Hotspot rows carry population aggregated in the safe direction',
+      passed: grids.every((entry) =>
+        entry.topCells.every((cell) => Number.isFinite(cell.modelledPopulation)),
+      ),
+      detail:
+        'Population is summed INTO each square cell, so every WorldPop cell is counted once. The reverse join would let two WorldPop cells share one square and each claim its whole damage count.',
+    },
+    {
       name: 'Grid binning conserves the damage points',
       passed: grids.every(
         (entry) => entry.grid.cells.reduce((a, cell) => a + cell.count, 0) === reproduction.total,
@@ -421,7 +502,14 @@ export async function analyseDamage() {
       whyItMatters:
         'A district with no observed damage is a district no satellite product examined at this resolution. Extrapolating these counts to the country would multiply a tasking decision by a population.',
     },
-    sources: [unosatFile, copernicusFile, ngaFile, shakemapFile, boundariesFile].map((file) => ({
+    sources: [
+      unosatFile,
+      copernicusFile,
+      ngaFile,
+      shakemapFile,
+      boundariesFile,
+      populationFile,
+    ].map((file) => ({
       datasetId: file.source.datasetId,
       license: file.source.license,
       redistribution: file.source.redistribution,
@@ -450,7 +538,13 @@ export async function analyseDamage() {
       },
       spatialDistribution: {
         headlineCellMetres: GRID_SIZES_METRES[0],
-        headlineCellJustification:
+        populationBaseFloor: POPULATION_BASE_FLOOR,
+      populationBaseNote:
+        `A damage-per-head ratio is flagged TOO_SMALL_FOR_A_RATIO below ${POPULATION_BASE_FLOOR} modelled people in the cell. ` +
+        'Gorkha averages 49 modelled people per cell across 4,786 cells, and three of its busiest damage cells hold fewer than a hundred while carrying 380 damage points between them. ' +
+        'The resulting ratios above 3,500 per thousand are not a finding about Gorkha: WorldPop spreads a district total smoothly over terrain while buildings cluster in villages, and at ~1 km the two do not line up. ' +
+        'The counts in those cells are observations and stand; the ratio is suppressed as meaningless.',
+      headlineCellJustification:
           'One kilometre is the resolution of the WorldPop surface Stage 4 used, so damage counts and population totals share a unit and can be compared cell for cell. The 2 km and 5 km runs are reported beside it to show the concentration measures are not an artefact of that choice.',
         grids: grids.map(({ grid, ...rest }) => rest),
       },
@@ -572,7 +666,7 @@ function buildSourceTable({
     {
       dataset: 'NGA infrastructure damage',
       observes: 'Blocked road locations, bridges out, landslide extents',
-      coverage: `${ngaTotal} features over the central affected region; no examined-area footprint`,
+      coverage: `${ngaTotal} features over the central hill districts; no examined-area footprint`,
       date: 'Imagery 2015-04-26 to 2015-05-07; layers published 6–7 May 2015',
       classification: 'Three feature types, no severity scale',
       limitation: 'Absence of a feature is not evidence a road was open. Road features are short obstruction markers, not the extents of closed routes.',

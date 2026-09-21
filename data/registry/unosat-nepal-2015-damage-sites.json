@@ -1,0 +1,18 @@
+{
+ "id": "unosat-nepal-2015-damage-sites",
+ "datasetId": "unosat-nepal-2015-damage-sites",
+ "datasetName": "UNOSAT satellite-detected damage sites, Nepal earthquake 2015",
+ "publisher": "UNITAR/UNOSAT (package), with Copernicus EMS and NGA products inside it",
+ "sourceUrl": "https://cern.ch/unosat-maps/NP/EQ20150425NPL/EQ20150425NPL_shp.zip",
+ "license": "CC BY-NC-SA 3.0 (HDX license_other for this dataset)",
+ "redistribution": "NON_COMMERCIAL",
+ "retrievedAt": "2026-09-21",
+ "attribution": "UNITAR/UNOSAT; Copernicus EMS (EMSR125); U.S. NGA",
+ "redistributionNotice": "CC BY-NC-SA 3.0 (HDX license_other for this dataset) — UNITAR/UNOSAT; Copernicus EMS (EMSR125); U.S. NGA. This obligation applies to this derived file.",
+ "limitations": [
+  "Every record reads \"Not yet field validated\": these are remote-sensing interpretations, not ground survey.",
+  "Derived from sub-metre commercial imagery that cannot itself be redistributed; only the interpreted vectors are public.",
+  "Coverage is the areas UNOSAT analysed, not all of Nepal. Counts must never be extrapolated nationally.",
+  "Only damage visible from directly overhead is detectable; a building with intact roof and failed walls reads as undamaged."
+ ]
+}

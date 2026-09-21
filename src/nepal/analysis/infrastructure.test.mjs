@@ -187,3 +187,27 @@ test('landslide geometry reports the characteristic size the tolerance rests on'
   assert.ok(check.equivalentRadiusMetres.max > check.equivalentRadiusMetres.min);
   assert.ok(check.totalAreaHectares > 0);
 });
+
+test('the reverse association reports the true nearest road for every landslide', () => {
+  /*
+   * The bug this covers: deriving a landslide's nearest road by scanning the
+   * road-to-landslide table finds only roads whose OWN nearest slide is this
+   * one. For a slide that is nobody's nearest, that yields no value at all,
+   * and a missing value reads as "no road nearby" when the truth is "the
+   * nearest road is four kilometres away".
+   */
+  const slides = [
+    { type: 'Feature', geometry: square(85, 27, 0.002) },
+    { type: 'Feature', geometry: square(85.04, 27, 0.002) },
+  ];
+  const roads = [line([[85.0005, 27.0005], [85.0015, 27.0005]])];
+  const result = landslideRoadAssociation(slides, roads);
+  assert.equal(result.perLandslide.length, 2);
+  // The first slide contains the road.
+  assert.equal(result.perLandslide[0].distanceMetres, 0);
+  assert.equal(result.perLandslide[0].nearestRoad, 0);
+  // The second is nobody's nearest slide, and still gets a real distance.
+  assert.ok(result.perLandslide[1].distanceMetres > 3000);
+  assert.equal(result.perLandslide[1].nearestRoad, 0);
+  assert.notEqual(result.perLandslide[1].distanceMetres, null);
+});

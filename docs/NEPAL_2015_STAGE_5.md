@@ -92,6 +92,26 @@ that choice.
 | 2 km | 145 | 580 km² | 0.644 | 17 |
 | 5 km | 51 | 1,275 km² | 0.616 | 7 |
 
+The busiest 1 km cells, with the people the population surface places in them:
+
+| District | Damage points | Modelled population | Per 1,000 people | MMI |
+| --- | ---: | ---: | ---: | --- |
+| Kathmandu (Sankhu) | 295 | 2,075 | 142 | VII |
+| Bhaktapur | 261 | 10,635 | 24.5 | VII |
+| Gorkha | 188 | 53 | *(suppressed)* | VIII |
+| Gorkha | 110 | 54 | *(suppressed)* | VIII |
+| Bhaktapur | 95 | 11,579 | 8.2 | VII |
+
+**Three of the fifteen busiest cells have their ratio suppressed**, and the
+reason is worth stating rather than hiding. Those Gorkha cells hold 53–71
+modelled people while carrying 380 damage points between them, which would give
+ratios above 3,500 damaged structures per thousand people. That is not a fact
+about Gorkha. WorldPop spreads a district total smoothly across terrain —
+Gorkha averages 49 modelled people per cell over 4,786 cells — while buildings
+cluster in villages, and at ~1 km the two do not line up. The **counts** in
+those cells are observations and stand; the **ratio** is withheld below a
+stated floor of 100 modelled people.
+
 The denominator is the area in which damage **was observed**, not the area that
 was examined. A cell with no damage point may never have been looked at.
 
@@ -171,6 +191,47 @@ The features are measured before they are described:
 an analyst saw a blockage, not the extents of closed routes. Any statement about
 how much road was unusable must come from the network the marker sits on.
 
+### The infrastructure product covers a different Nepal from the building products
+
+| | Blocked roads | Landslides | UNOSAT damage points |
+| --- | ---: | ---: | ---: |
+| Sindhupalchok | **65** (5.8 km) | **23** (173.7 ha) | **0** |
+| Dolakha | 33 (3.3 km) | 4 (6.1 ha) | 0 |
+| Rasuwa | 22 (5.3 km) | 5 (103.0 ha) | 0 |
+| Gorkha | 20 (2.4 km) | 9 (34.5 ha) | **1,847** |
+| Okhaldhunga | 11 (1.1 km) | 0 | 0 |
+| Dhading | 5 (0.3 km) | 5 (2.2 ha) | 926 |
+| Bhaktapur | 0 | 0 | 458 |
+
+**Sindhupalchok — the district with the most observed road blockage and the
+largest mapped landslide area — carries not one UNOSAT damage point.** The two
+product families were tasked over different places. Any map that draws them
+together must say so, and no district ranking may be built by adding them.
+
+Blocked roads also span a wider intensity range than the building damage does:
+MMI VI 8, VI–VII 3, VII 13, **VII–VIII 114**, VIII 41 — where every one of the
+4,583 UNOSAT points sits at MMI VII or above.
+
+Bridges out: 5 features, in Okhaldhunga (MMI VI–VII), Sindhupalchok ×2 and
+Kavrepalanchok ×2 (all MMI VII–VIII), sensed between 26 April and 6 May. Three
+of the five are more than 20 km from any mapped landslide.
+
+**Do the bridge losses disconnect the network?** Tested on their own rather than
+inside the combined scenario, because 179 road markers would otherwise mask
+them. **One** of the five attaches to the 2015 strategic network at all; the
+other four are on roads it does not contain. Disabling that single edge splits
+the network from 40 components into **41** and detaches 14 nodes from the
+largest component (1,927 → 1,913). No Kathmandu-to-district pair is severed by
+it. So: yes, one mapped bridge loss isolates a small sub-network, and the other
+four are invisible to this network — which is a statement about the network, not
+about the bridges.
+
+Landslides and people: 49 of the 51 mapped slides have some modelled population
+within 1 km, and the median distance to the nearest populated cell is 0.48 km.
+These are slides in inhabited valleys, not remote terrain — though "modelled
+population within 1 km" is the whole claim, and no exposure to the slide itself
+is asserted.
+
 ## 5.7 Roads and landslides — spatially associated, not caused
 
 The tolerance is derived from the geometry, not chosen: the road lines have a
@@ -190,6 +251,16 @@ NGA mapped 51 landslides, while academic inventories of the same earthquake map
 tens of thousands. The low association measures the incompleteness of the
 landslide layer at least as much as it measures the cause of the blockages.
 
+Distance from a blocked road to the nearest mapped landslide: median **7.7 km**
+(p25 2.0 km, max 58.6 km). Most observed blockages are nowhere near a mapped
+slide.
+
+The reverse direction answers a different question and gives a different answer:
+**19.6 %** of the 51 landslides lie within 50 m of a blocked road, rising to
+41.2 % within 1 km, with a median nearest-road distance of 1.8 km. Slides are
+closer to blockages than blockages are to slides — which is what you expect when
+one layer has 51 features and the other 179.
+
 The relationship is **spatial association**. Neither product links a blockage to
 a slide, and several pairs were observed on different dates.
 
@@ -200,6 +271,10 @@ retrieved with an Overpass attic query. This matters: OpenStreetMap's Nepal
 coverage was transformed by the post-earthquake HOT activation, so today's map
 contains roads mapped *because of* the event. 2,129 ways → 2,268 junction nodes,
 5,454 directed edges, 40 components (largest 1,927 nodes).
+
+**The mapping gap is measured, not hedged.** The same query against today's
+database over the same tiles returns **7,143 ways — 3.36× more**. A route the
+2015 network cannot find is not necessarily a route that did not exist.
 
 Blockages are attached to edges at a tolerance taken from the knee of the match
 curve (25 m, capped at 100 m). Result: **21 of 184 blockages attach to the
@@ -232,6 +307,14 @@ On the strategic network, of 14 Kathmandu-to-district-centroid pairs: 8
 unchanged, 1 detour (+9.16 km), 0 severed, and **5 that could not be routed on
 the 2015 map at all** — a coverage gap, reported separately so it is never
 mistaken for damage.
+
+**Alternative routes** come from the project's existing Yen k-shortest-paths, at
+k = 4. Nine of the 14 pairs returned four alternatives; the other five are the
+unroutable ones. **No pair lost an alternative — and that is not a finding.**
+Every routable pair returned the maximum both before and after, so the counter
+measured its own cap. It supports only "at least four deviating paths existed
+either way", not "redundancy was unaffected", and the artefact says so in a
+`saturated` flag rather than reporting the zero bare.
 
 **No travel time is reported anywhere.** No road speed or condition dataset for
 April 2015 exists in any source this project holds.
@@ -287,6 +370,42 @@ Gini over identical cells: **population 0.836, observed damage 0.991.** Observed
 damage is far more concentrated than the population it sits among. Spearman
 between the two is only 0.122.
 
+### "Kathmandu was worst" is what the map looks like, not what the metric says
+
+Normalising observed damage by the modelled population of the same cells
+reverses the ranking the raw counts suggest:
+
+| District | Damage points | Population | **Points per 1,000 people** | Cells examined |
+| --- | ---: | ---: | ---: | ---: |
+| Gorkha | 1,781 | 234,076 | **7.61** | 151 of 4,786 (3.2 %) |
+| Dhading | 984 | 295,045 | 3.34 | 94 of 2,514 (3.7 %) |
+| Lamjung | 423 | 143,496 | 2.95 | 55 of 2,191 (2.5 %) |
+| Kavrepalanchok | 421 | 222,171 | 1.89 | 63 of 1,835 (3.4 %) |
+| Bhaktapur | 458 | 330,195 | 1.39 | 11 of 164 (6.7 %) |
+| Tanahu | 94 | 286,655 | 0.33 | 25 of 2,079 (1.2 %) |
+| Lalitpur | 72 | 475,235 | 0.15 | 7 of 520 (1.3 %) |
+| **Kathmandu** | 300 | 2,779,012 | **0.11** | **2 of 547 (0.4 %)** |
+| Chitawan | 39 | 553,044 | 0.07 | 5 of 1,865 (0.3 %) |
+
+**Kathmandu ranks eighth of nine on observed damage per head** — and the last
+column says why that must not be read as "Kathmandu was fine": UNOSAT examined
+0.4 % of its cells.
+
+This is the clearest case in the whole project for keeping the products apart.
+Copernicus **did** grade Kathmandu, and found **19.5 % of graded structures
+completely destroyed — the highest rate of any area of interest.** UNOSAT makes
+Kathmandu look barely touched; Copernicus makes it the worst-hit place graded.
+Both are true statements about different products, and averaging them would
+produce a number that is true of neither.
+
+Concentration in unit terms: half the observed damage sits in **40 cells**
+(0.24 % of the analysed cells); half the population in **153 cells** (0.93 %).
+
+(§5.3 reports 37 cells for the same half of the damage. The two are not in
+conflict: §5.3 bins onto a 1 km UTM grid over the 362 cells that contain damage,
+§5.11 bins onto the WorldPop grid's own ~819 m cells over all 16,501 analysed
+cells. Different unit, different universe, same story.)
+
 **"None observed" is ambiguous** between "the buildings held" and "nobody looked
 here", and the dataset cannot separate them. Every quadrant containing it
 inherits that ambiguity.
@@ -306,6 +425,11 @@ mapping lag cannot be measured and is left null rather than inferred. The NGA
 layers carry `sensedOn` and `producedOn` separately, plus a publication date in
 the layer name (6–7 May 2015), and ship the same column in mixed `M/D/YYYY` and
 ISO formats — parsed explicitly, with anything ambiguous refused.
+
+Measured lags: earthquake → imagery **median 4 days** (range 1–12, over 4,818
+observations); imagery → mapping **median 0 days** (max 3, NGA only); mapping →
+publication **median 3 days**; earthquake → publication **median 12 days** (NGA
+only — UNOSAT publishes no publication date).
 
 **These dates must not be animated as the progress of the disaster.** Cloud
 cover, satellite revisit intervals and tasking priorities drive the sequence at
@@ -336,6 +460,26 @@ counted), and only Copernicus carries a denominator.
 
 ## Artefacts
 
+The eight required outputs, and where each one lives:
+
+| | Output | File | Path inside it |
+| --- | --- | --- | --- |
+| **A** | Damage summary by severity | `nepal-2015-damage-analysis.json` | `results.unosat` |
+| **B** | Damage spatial distribution | `nepal-2015-damage-analysis.json` | `results.spatialDistribution` |
+| **C** | Damage × intensity | `nepal-2015-damage-analysis.json` | `results.damageByIntensity`, `results.copernicus.doseResponse` |
+| **D** | Landslide × road blockage | `nepal-2015-infrastructure-analysis.json` | `results.landslideRoadAssociation` |
+| **E** | Network disruption | `nepal-2015-infrastructure-analysis.json` | `results.network` |
+| **F** | Population × observed damage | `nepal-2015-damage-population.json` | `results.populationNearObservedDamage` |
+| **G** | Damage vs population concentration | `nepal-2015-damage-population.json` | `results.concentration`, `results.quadrants` |
+| **H** | Cross-source comparison | `nepal-2015-damage-analysis.json` | `results.crossSource` |
+
+Each file also carries a `methodology` array whose records state, for every
+analysis: research question, input datasets with their role, spatial coverage,
+processing, algorithm, outputs, validation, limitations, data class and result
+class. `createSpatialAnalysisRecord` refuses a record missing spatial coverage
+or validation, so no Stage 5 result can be written without them.
+
+
 | File | Contents |
 | --- | --- |
 | `data/analysis/nepal-2015-damage-analysis.json` | 5.1–5.5, 5.12, 5.13 |
@@ -343,3 +487,32 @@ counted), and only Copernicus carries a denominator.
 | `data/analysis/nepal-2015-damage-population.json` | 5.10–5.11 |
 | `data/processed/nepal-2015-osm-roads.json` | 2015-04-24 strategic road network (ODbL) |
 | `data/processed/nepal-2015-osm-blockage-context.json` | all-class roads beneath the blockages (ODbL) |
+
+---
+
+## Which of these belongs in the presentation
+
+**Headline — these carry the argument.**
+
+| Analysis | Why it is strong | What must be said with it |
+| --- | --- | --- |
+| **5.4 + 5.5 together** — the dose-response pair | It is the same question asked of two products and answered differently, because one has a denominator and one does not. Copernicus shows 0.055 % → 1.0 % → 5.0 % destroyed across MMI VI–VII to VII–VIII; UNOSAT, held to within-place comparisons, shows no rise at all. | That no Copernicus area of interest spans two bands, so intensity and town are the same variable there. |
+| **The per-capita table** — "Kathmandu was worst" tested | It replaces an impression with a metric and the metric reverses it: Kathmandu is 8th of 9 on observed damage per head, while being the **highest** Copernicus destruction rate at 19.5 %. | That UNOSAT examined 0.4 % of Kathmandu's cells. The contradiction is the point, not a flaw. |
+| **5.6 cross-product geography** | Sindhupalchok has 65 blocked roads, 23 landslides and **zero** UNOSAT damage points. One table makes coverage visible as a decision. | That absence of observation is not absence of damage. |
+| **5.9 + 5.8 diagnostic** — "179 blocked roads is 20 km of geometry" | Memorable, verifiable, and it teaches the map/territory distinction: 70 of 184 markers sit where OpenStreetMap had drawn no road at all. | That the 2015 network holds 3.36× fewer ways than today's. |
+| **5.1 + 5.2** — reproduction and rank stability | The right opening: the published counts are reproduced exactly, and the district ordering survives four weightings including the weightless one. | That the severity score is an index this analysis supplies, not a UNOSAT measurement. |
+
+**Supporting — keep in the methodology section or the appendix.**
+
+| Analysis | Why it is not a headline |
+| --- | --- |
+| 5.3 grid concentration and Gini | A correct technical measure, but "Gini 0.650" does not land with an audience; the concentration curve inside 5.11 already says it in cells. |
+| 5.7 road–landslide association | The 9.5 % figure is genuine, but it is dominated by the incompleteness of a 51-polygon landslide layer, and it needs more caveat than headline. |
+| 5.8 routing results proper | 8 unchanged, 1 detour, 5 unroutable on the 2015 map is too thin to carry a slide. The diagnostic is the finding; the routes are not. |
+| 5.10 population proximity bands | Useful for scale, but the figure moves from 169,000 to 2.64 million across the bands, so it can only honestly be shown as a curve. |
+| 5.12 timeline lags | A good context slide — median 4 days to first imagery, 12 to publication — rather than a finding about the earthquake. |
+| 5.13 cross-source table | Methodology appendix. It is the justification for everything above it, not a result. |
+
+**Not presentable as a result at all:** anything requiring casualties, displacement,
+destroyed-house counts outside the observed points, economic loss, travel times,
+or infrastructure recovery. Those are recorded as data gaps and stay that way.

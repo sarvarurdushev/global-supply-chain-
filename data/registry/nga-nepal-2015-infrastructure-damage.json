@@ -1,0 +1,17 @@
+{
+ "id": "nga-nepal-2015-infrastructure-damage",
+ "datasetId": "nga-nepal-2015-infrastructure-damage",
+ "datasetName": "NGA observed infrastructure damage, Nepal earthquake 2015",
+ "publisher": "U.S. National Geospatial-Intelligence Agency, distributed in the UNOSAT package",
+ "sourceUrl": "https://cern.ch/unosat-maps/NP/EQ20150425NPL/EQ20150425NPL_shp.zip",
+ "license": "CC BY-NC-SA 3.0 (HDX license_other for this dataset)",
+ "redistribution": "NON_COMMERCIAL",
+ "retrievedAt": "2026-09-21",
+ "attribution": "UNITAR/UNOSAT; Copernicus EMS (EMSR125); U.S. NGA",
+ "redistributionNotice": "CC BY-NC-SA 3.0 (HDX license_other for this dataset) — UNITAR/UNOSAT; Copernicus EMS (EMSR125); U.S. NGA. This obligation applies to this derived file.",
+ "limitations": [
+  "A single-date snapshot (6-7 May 2015), not a time series: it cannot show when a road closed or reopened.",
+  "Absence of a feature is not evidence a road was open; it means no closure was observed in the imagery analysed.",
+  "Road closures are line segments without an OpenStreetMap identifier, so matching them to a routable network is a spatial join with its own tolerance, not a key lookup."
+ ]
+}

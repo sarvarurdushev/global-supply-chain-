@@ -38,6 +38,7 @@ import {
 } from '../../src/nepal/analysis/infrastructure.js';
 import {
   SNAP_TOLERANCES_METRES,
+  alternativeRoutes,
   centralityShift,
   componentProfile,
   damagedNetwork,
@@ -120,6 +121,7 @@ export async function analyseInfrastructure() {
 
   const tolerance = deriveAssociationTolerance(roadCheck, landslideCheck);
   const roadToSlide = roadLandslideAssociation(roads, landslides);
+  /* Computed before the per-landslide report below, which reads its rows. */
   const slideToRoad = landslideRoadAssociation(landslides, roads);
   const headlineAssociation = roadToSlide.curve.find(
     (row) => row.toleranceMetres === tolerance.headlineMetres,
@@ -149,15 +151,7 @@ export async function analyseInfrastructure() {
       areaHectares: Number((polygonAreaSqMetres(feature.geometry) / 1e4).toFixed(2)),
       district: districtOf(lon, lat),
       mmi: intensityOf(lon, lat),
-      nearestBlockedRoadMetres: roadToSlide.perRoad.length
-        ? Math.min(
-            ...roads.map((road, roadIndex) =>
-              roadToSlide.perRoad[roadIndex].nearestLandslide === index
-                ? roadToSlide.perRoad[roadIndex].distanceMetres
-                : Infinity,
-            ),
-          )
-        : null,
+      nearestBlockedRoadMetres: slideToRoad.perLandslide[index].distanceMetres,
       peopleWithin1Km: Math.round(peopleWithin1Km),
       nearestPopulatedCellKm: Number.isFinite(nearestPopulatedKm)
         ? Number(nearestPopulatedKm.toFixed(2))
@@ -249,12 +243,12 @@ export async function analyseInfrastructure() {
     (feature) => feature.properties.district === 'Kathmandu',
   );
   const origin = nearestNodeTo(graph, ...kathmandu.properties.centroid);
-  const affectedDistricts = new Set(
+  const districtsWithObservedInfrastructureDamage = new Set(
     [...byArea.blockedRoads.byDistrict, ...byArea.landslides.byDistrict, ...byArea.bridgesOut.byDistrict]
       .map((row) => row.id)
       .filter((name) => name && name !== 'Kathmandu' && !name.startsWith('(')),
   );
-  const destinations = [...affectedDistricts].sort().map((name) => {
+  const destinations = [...districtsWithObservedInfrastructureDamage].sort().map((name) => {
     const feature = boundariesFile.data.features.find((item) => item.properties.district === name);
     const snapped = nearestNodeTo(graph, ...feature.properties.centroid);
     return {
@@ -280,6 +274,45 @@ export async function analyseInfrastructure() {
       destinationSnapMetres: destination.snapMetres,
     }));
   const routes = routeImpact(graph, damaged, pairs);
+  const alternatives = alternativeRoutes(graph, damaged, pairs, { k: 4 });
+
+  /*
+   * §5.6 asks specifically whether the five bridges out create network
+   * disconnections. Answering it from the combined scenario is impossible —
+   * 179 road markers are in there too — so the bridges get a scenario of
+   * their own and the two are compared.
+   */
+  const bridgeMatches = matchBlockagesToEdges(
+    graph,
+    blockages.filter((blockage) => blockage.kind === 'bridge-out'),
+    { tolerances: SNAP_TOLERANCES_METRES },
+  );
+  const bridgeDisabled = disabledEdgesFor(bridgeMatches, snapMetres);
+  const bridgeOnly = damagedNetwork(graph, bridgeDisabled);
+  const bridgeComponents = componentProfile(bridgeOnly);
+  const bridgeRoutes = routeImpact(graph, bridgeOnly, pairs);
+  const bridgesOnlyEffect = {
+    bridges: bridgeMatches.blockages,
+    matchedToNetwork: bridgeDisabled.length / 2,
+    unmatched:
+      bridgeMatches.matches.filter(
+        (match) => match.distanceMetres === null || match.distanceMetres > snapMetres,
+      ).length,
+    components: bridgeComponents.components,
+    newComponents: bridgeComponents.components - baselineComponents.components,
+    largestComponent: bridgeComponents.largest,
+    routeOutcomes: bridgeRoutes.outcomes,
+    verdict:
+      bridgeComponents.components > baselineComponents.components
+        ? 'The bridge losses alone split the mapped network into more components than the baseline had.'
+        : (bridgeRoutes.outcomes.SEVERED ?? 0) > 0
+          ? 'The bridge losses alone sever at least one origin-destination pair without splitting a component.'
+          : `The bridge losses alone create NO disconnection on this network. That is a statement about the mapped strategic network, not about the bridges: ${
+              bridgeMatches.matches.filter(
+                (match) => match.distanceMetres === null || match.distanceMetres > snapMetres,
+              ).length
+            } of ${bridgeMatches.blockages} bridges attach to no edge in it at all.`,
+  };
 
   const centrality =
     graph.nodeCount <= CENTRALITY_NODE_LIMIT
@@ -345,6 +378,16 @@ export async function analyseInfrastructure() {
       name: 'Routes that could not be found before the blockages are not reported as severed',
       passed: true,
       detail: `${routes.outcomes.NOT_ROUTABLE_BASELINE ?? 0} of ${routes.pairs} pairs were already unroutable on the 2015 map`,
+    },
+    {
+      name: 'The five bridges out are tested on their own, not only inside the combined scenario',
+      passed: bridgesOnlyEffect.components >= baselineComponents.components,
+      detail: bridgesOnlyEffect.verdict,
+    },
+    {
+      name: 'Alternative-route counts come from the existing k-shortest-paths, not a new search',
+      passed: alternatives.pairs === routes.pairs,
+      detail: `k=${alternatives.k}; ${alternatives.pairsWithAlternativeBaseline} of ${alternatives.pairs} pairs had more than one route on the 2015 network. ${alternatives.verdict}`,
     },
     {
       name: 'No travel time, speed or recovery figure is produced anywhere in this stage',
@@ -460,7 +503,12 @@ export async function analyseInfrastructure() {
           largestComponent: damagedComponents.largest,
           newComponents: damagedComponents.components - baselineComponents.components,
         },
-        routes: { ...routes, origin: { district: 'Kathmandu', snapMetres: Math.round(origin.distanceMetres) } },
+        routes: {
+          ...routes,
+          origin: { district: 'Kathmandu', snapMetres: Math.round(origin.distanceMetres) },
+        },
+        alternativeRoutes: alternatives,
+        bridgesOnly: bridgesOnlyEffect,
         destinations,
         centrality,
       },
@@ -509,7 +557,7 @@ function buildMethodology({
       name: 'What the NGA damage features actually are',
       question: 'What do the blocked-road and landslide features measure, and what claim can their geometry support?',
       inputs: [ngaInput],
-      spatialCoverage: 'The central affected region between Gorkha and Dolakha; no examined-area footprint is published.',
+      spatialCoverage: 'The central hill districts between Gorkha and Dolakha; no examined-area footprint is published.',
       method:
         'Project every feature to EPSG:32645 and measure line length, vertex spacing and polygon area, then state the interpretation those measurements license.',
       formula: 'length = sum of segment lengths in UTM; equivalent radius = sqrt(area / pi)',
@@ -570,7 +618,14 @@ function buildMethodology({
       },
       parameterJustification:
         `The snap tolerance is taken from the knee of the reported match curve rather than chosen, and capped at ${SNAP_CEILING_METRES} m: beyond that a marker in a dense street network can attach to a parallel road, and wrongly disabling an open road is a worse error than leaving a marker unmatched. The centrality limit exists because the project’s Brandes implementation runs every node as a source; exceeding it is reported rather than silently skipped.`,
-      outputs: ['connected components before and after', 'severed, detoured and unchanged origin-destination pairs', 'extra distance per detour', 'betweenness change per junction'],
+      outputs: [
+        'connected components before and after',
+        'severed, detoured and unchanged origin-destination pairs',
+        'extra distance per detour',
+        'distinct alternative routes per pair, before and after',
+        'the effect of the five bridge losses in isolation',
+        'betweenness change per junction',
+      ],
       visualisation: 'Baseline and damaged routes drawn together on the terrain, with severed destinations marked and the centrality change shown on the junctions.',
       validation: `${matches.blockages} blockages matched against ${graph.edgeCount / 2} undirected edges; ${unmatched.length} matched no edge within ${snapMetres} m and are excluded rather than counted as no-effect. Each was then matched against an all-class local network: ${beneath.onMappedRoad} sit within the snap tolerance of a mapped road of some class (${beneath.onRoadBelowTertiary} of them below tertiary), ${beneath.nearMappedRoad} lie beyond that tolerance from one, and ${beneath.noMappedRoadWithinQueryBox} have no mapped road of any class within about 600 m.matchedMinor} sit on a road below tertiary class, ${beneath.matchedStrategic} on a strategic road, ${beneath.noRoadMapped} on no road mapped by 2015-04-24. Components ${baselineComponents.components} -> ${damagedComponents.components}. ${routes.outcomes.NOT_ROUTABLE_BASELINE ?? 0} of ${routes.pairs} pairs were already unroutable on the 2015 map and are reported separately from severed ones. Centrality ${centrality.skipped ? 'skipped and the reason recorded' : `computed over ${centrality.nodes} nodes`}.`,
       dataClass: DataClass.DERIVED,

@@ -214,3 +214,27 @@ test('the product comparison refuses to merge the vocabularies', () => {
   assert.ok(result.whyNotMerged.length >= 4);
   assert.ok(result.whyNotMerged.some((reason) => /double-count/i.test(reason)));
 });
+
+test('rank stability refuses to call a verdict on too few units', () => {
+  /*
+   * Without the guard, every pairwise Spearman is null, the running worst
+   * never moves off 1, and the function reports ROBUST from nothing.
+   */
+  for (const units of [[], [{ id: 'a', counts: { Destroyed: 1 } }], [
+    { id: 'a', counts: { Destroyed: 1 } },
+    { id: 'b', counts: { Destroyed: 2 } },
+  ]]) {
+    const result = severityRankStability(units);
+    assert.equal(result.verdict, 'NOT_ENOUGH_UNITS');
+    assert.equal(result.worstSpearman, null);
+    assert.equal(result.topFiveAgreement, null);
+    assert.match(result.verdictMeaning, /cannot be measured/);
+  }
+  // Three units is enough to measure.
+  const three = severityRankStability([
+    { id: 'a', counts: { Destroyed: 3 } },
+    { id: 'b', counts: { Destroyed: 2 } },
+    { id: 'c', counts: { Destroyed: 1 } },
+  ]);
+  assert.notEqual(three.verdict, 'NOT_ENOUGH_UNITS');
+});

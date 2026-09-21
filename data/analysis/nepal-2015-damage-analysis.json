@@ -39,6 +39,12 @@
    "license": "CC BY-IGO 3.0",
    "redistribution": "SHARE_ALIKE",
    "attribution": "UN OCHA (data.humdata.org), CC BY-IGO"
+  },
+  {
+   "datasetId": "worldpop-npl-2015-unadj",
+   "license": "CC BY 4.0",
+   "redistribution": "SHARE_ALIKE",
+   "attribution": "WorldPop (www.worldpop.org), CC BY 4.0"
   }
  ],
  "validation": {
@@ -53,6 +59,16 @@
     "name": "Every damage point is accounted for by the district attribution",
     "passed": true,
     "detail": "4582 contained, 1 by nearest boundary (max 0.01 km), 0 unplaced"
+   },
+   {
+    "name": "Damage-per-head ratios on a population base too small to carry them are flagged",
+    "passed": true,
+    "detail": "3 of the top 15 1 km cells sit below the 100-person floor and carry the flag"
+   },
+   {
+    "name": "Hotspot rows carry population aggregated in the safe direction",
+    "passed": true,
+    "detail": "Population is summed INTO each square cell, so every WorldPop cell is counted once. The reverse join would let two WorldPop cells share one square and each claim its whole damage count."
    },
    {
     "name": "Grid binning conserves the damage points",
@@ -2375,6 +2391,8 @@
   },
   "spatialDistribution": {
    "headlineCellMetres": 1000,
+   "populationBaseFloor": 100,
+   "populationBaseNote": "A damage-per-head ratio is flagged TOO_SMALL_FOR_A_RATIO below 100 modelled people in the cell. Gorkha averages 49 modelled people per cell across 4,786 cells, and three of its busiest damage cells hold fewer than a hundred while carrying 380 damage points between them. The resulting ratios above 3,500 per thousand are not a finding about Gorkha: WorldPop spreads a district total smoothly over terrain while buildings cluster in villages, and at ~1 km the two do not line up. The counts in those cells are observations and stand; the ratio is suppressed as meaningless.",
    "headlineCellJustification": "One kilometre is the resolution of the WorldPop surface Stage 4 used, so damage counts and population totals share a unit and can be compared cell for cell. The 2 km and 5 km runs are reported beside it to show the concentration measures are not an artefact of that choice.",
    "grids": [
     {
@@ -2430,8 +2448,16 @@
         "Moderate Damage": 35,
         "Severe Damage": 95
        },
+       "composition": {
+        "Destroyed": 55.9,
+        "Moderate Damage": 11.9,
+        "Severe Damage": 32.2
+       },
        "mmi": 7,
-       "district": "Kathmandu"
+       "district": "Kathmandu",
+       "modelledPopulation": 2075,
+       "damagePointsPerThousandPeople": 142.18,
+       "populationBase": "SUFFICIENT"
       },
       {
        "lon": 85.4338,
@@ -2442,8 +2468,16 @@
         "Destroyed": 80,
         "Moderate Damage": 76
        },
+       "composition": {
+        "Severe Damage": 40.2,
+        "Destroyed": 30.7,
+        "Moderate Damage": 29.1
+       },
        "mmi": 7,
-       "district": "Bhaktapur"
+       "district": "Bhaktapur",
+       "modelledPopulation": 10635,
+       "damagePointsPerThousandPeople": 24.54,
+       "populationBase": "SUFFICIENT"
       },
       {
        "lon": 84.72227,
@@ -2454,8 +2488,16 @@
         "Moderate Damage": 4,
         "Severe Damage": 28
        },
+       "composition": {
+        "Destroyed": 83,
+        "Moderate Damage": 2.1,
+        "Severe Damage": 14.9
+       },
        "mmi": 8,
-       "district": "Gorkha"
+       "district": "Gorkha",
+       "modelledPopulation": 53,
+       "damagePointsPerThousandPeople": 3553.88,
+       "populationBase": "TOO_SMALL_FOR_A_RATIO"
       },
       {
        "lon": 84.72267,
@@ -2466,8 +2508,16 @@
         "Destroyed": 70,
         "Moderate Damage": 2
        },
+       "composition": {
+        "Severe Damage": 34.5,
+        "Destroyed": 63.6,
+        "Moderate Damage": 1.8
+       },
        "mmi": 8,
-       "district": "Gorkha"
+       "district": "Gorkha",
+       "modelledPopulation": 54,
+       "damagePointsPerThousandPeople": 2037.04,
+       "populationBase": "TOO_SMALL_FOR_A_RATIO"
       },
       {
        "lon": 85.43409,
@@ -2478,8 +2528,16 @@
         "Severe Damage": 35,
         "Moderate Damage": 41
        },
+       "composition": {
+        "Destroyed": 20,
+        "Severe Damage": 36.8,
+        "Moderate Damage": 43.2
+       },
        "mmi": 7,
-       "district": "Bhaktapur"
+       "district": "Bhaktapur",
+       "modelledPopulation": 11579,
+       "damagePointsPerThousandPeople": 8.2,
+       "populationBase": "SUFFICIENT"
       },
       {
        "lon": 84.72674,
@@ -2490,8 +2548,16 @@
         "Destroyed": 39,
         "Moderate Damage": 10
        },
+       "composition": {
+        "Severe Damage": 40.2,
+        "Destroyed": 47.6,
+        "Moderate Damage": 12.2
+       },
        "mmi": 8,
-       "district": "Gorkha"
+       "district": "Gorkha",
+       "modelledPopulation": 71,
+       "damagePointsPerThousandPeople": 1153.31,
+       "populationBase": "TOO_SMALL_FOR_A_RATIO"
       },
       {
        "lon": 84.86864,
@@ -2502,8 +2568,16 @@
         "Moderate Damage": 14,
         "Severe Damage": 8
        },
+       "composition": {
+        "Destroyed": 70.7,
+        "Moderate Damage": 18.7,
+        "Severe Damage": 10.7
+       },
        "mmi": 8,
-       "district": "Dhading"
+       "district": "Dhading",
+       "modelledPopulation": 272,
+       "damagePointsPerThousandPeople": 275.33,
+       "populationBase": "SUFFICIENT"
       },
       {
        "lon": 84.81636,
@@ -2514,8 +2588,16 @@
         "Destroyed": 22,
         "Moderate Damage": 28
        },
+       "composition": {
+        "Severe Damage": 30.6,
+        "Destroyed": 30.6,
+        "Moderate Damage": 38.9
+       },
        "mmi": 8,
-       "district": "Gorkha"
+       "district": "Gorkha",
+       "modelledPopulation": 584,
+       "damagePointsPerThousandPeople": 123.37,
+       "populationBase": "SUFFICIENT"
       },
       {
        "lon": 84.81929,
@@ -2526,8 +2608,16 @@
         "Moderate Damage": 12,
         "Destroyed": 32
        },
+       "composition": {
+        "Severe Damage": 24.1,
+        "Moderate Damage": 20.7,
+        "Destroyed": 55.2
+       },
        "mmi": 8,
-       "district": "Dhading"
+       "district": "Dhading",
+       "modelledPopulation": 1042,
+       "damagePointsPerThousandPeople": 55.69,
+       "populationBase": "SUFFICIENT"
       },
       {
        "lon": 84.5122,
@@ -2538,8 +2628,16 @@
         "Moderate Damage": 29,
         "Destroyed": 7
        },
+       "composition": {
+        "Severe Damage": 36.8,
+        "Moderate Damage": 50.9,
+        "Destroyed": 12.3
+       },
        "mmi": 7.5,
-       "district": "Lamjung"
+       "district": "Lamjung",
+       "modelledPopulation": 355,
+       "damagePointsPerThousandPeople": 160.43,
+       "populationBase": "SUFFICIENT"
       },
       {
        "lon": 84.82491,
@@ -2550,8 +2648,16 @@
         "Destroyed": 25,
         "Moderate Damage": 5
        },
+       "composition": {
+        "Severe Damage": 47.4,
+        "Destroyed": 43.9,
+        "Moderate Damage": 8.8
+       },
        "mmi": 8,
-       "district": "Gorkha"
+       "district": "Gorkha",
+       "modelledPopulation": 104,
+       "damagePointsPerThousandPeople": 548.6,
+       "populationBase": "SUFFICIENT"
       },
       {
        "lon": 84.68398,
@@ -2563,8 +2669,17 @@
         "Severe Damage": 10,
         "Possible Damage": 4
        },
+       "composition": {
+        "Moderate Damage": 3.7,
+        "Destroyed": 70.4,
+        "Severe Damage": 18.5,
+        "Possible Damage": 7.4
+       },
        "mmi": 8,
-       "district": "Gorkha"
+       "district": "Gorkha",
+       "modelledPopulation": 237,
+       "damagePointsPerThousandPeople": 227.56,
+       "populationBase": "SUFFICIENT"
       },
       {
        "lon": 84.81162,
@@ -2575,8 +2690,16 @@
         "Severe Damage": 22,
         "Destroyed": 10
        },
+       "composition": {
+        "Moderate Damage": 37.3,
+        "Severe Damage": 43.1,
+        "Destroyed": 19.6
+       },
        "mmi": 8,
-       "district": "Dhading"
+       "district": "Dhading",
+       "modelledPopulation": 264,
+       "damagePointsPerThousandPeople": 193.4,
+       "populationBase": "SUFFICIENT"
       },
       {
        "lon": 84.82069,
@@ -2587,8 +2710,16 @@
         "Severe Damage": 5,
         "Destroyed": 37
        },
+       "composition": {
+        "Moderate Damage": 14.3,
+        "Severe Damage": 10.2,
+        "Destroyed": 75.5
+       },
        "mmi": 8,
-       "district": "Gorkha"
+       "district": "Gorkha",
+       "modelledPopulation": 266,
+       "damagePointsPerThousandPeople": 184.35,
+       "populationBase": "SUFFICIENT"
       },
       {
        "lon": 85.42609,
@@ -2599,8 +2730,16 @@
         "Moderate Damage": 31,
         "Destroyed": 2
        },
+       "composition": {
+        "Severe Damage": 31.3,
+        "Moderate Damage": 64.6,
+        "Destroyed": 4.2
+       },
        "mmi": 7,
-       "district": "Bhaktapur"
+       "district": "Bhaktapur",
+       "modelledPopulation": 10353,
+       "damagePointsPerThousandPeople": 4.64,
+       "populationBase": "SUFFICIENT"
       }
      ]
     },
@@ -2657,8 +2796,16 @@
         "Moderate Damage": 107,
         "Destroyed": 82
        },
+       "composition": {
+        "Severe Damage": 38.8,
+        "Moderate Damage": 34.6,
+        "Destroyed": 26.5
+       },
        "mmi": 7,
-       "district": "Bhaktapur"
+       "district": "Bhaktapur",
+       "modelledPopulation": 26356,
+       "damagePointsPerThousandPeople": 11.72,
+       "populationBase": "SUFFICIENT"
       },
       {
        "lon": 85.46352,
@@ -2669,8 +2816,16 @@
         "Moderate Damage": 35,
         "Severe Damage": 95
        },
+       "composition": {
+        "Destroyed": 55.9,
+        "Moderate Damage": 11.9,
+        "Severe Damage": 32.2
+       },
        "mmi": 7,
-       "district": "Kathmandu"
+       "district": "Kathmandu",
+       "modelledPopulation": 4500,
+       "damagePointsPerThousandPeople": 65.56,
+       "populationBase": "SUFFICIENT"
       },
       {
        "lon": 84.72283,
@@ -2681,8 +2836,16 @@
         "Moderate Damage": 4,
         "Severe Damage": 32
        },
+       "composition": {
+        "Destroyed": 83.9,
+        "Moderate Damage": 1.8,
+        "Severe Damage": 14.3
+       },
        "mmi": 8,
-       "district": "Gorkha"
+       "district": "Gorkha",
+       "modelledPopulation": 236,
+       "damagePointsPerThousandPeople": 950.36,
+       "populationBase": "SUFFICIENT"
       },
       {
        "lon": 84.72502,
@@ -2693,8 +2856,16 @@
         "Destroyed": 112,
         "Moderate Damage": 5
        },
+       "composition": {
+        "Severe Damage": 25.9,
+        "Destroyed": 70.9,
+        "Moderate Damage": 3.2
+       },
        "mmi": 8,
-       "district": "Gorkha"
+       "district": "Gorkha",
+       "modelledPopulation": 255,
+       "damagePointsPerThousandPeople": 618.64,
+       "populationBase": "SUFFICIENT"
       },
       {
        "lon": 84.81463,
@@ -2705,8 +2876,16 @@
         "Destroyed": 56,
         "Moderate Damage": 50
        },
+       "composition": {
+        "Severe Damage": 27.4,
+        "Destroyed": 38.4,
+        "Moderate Damage": 34.2
+       },
        "mmi": 8,
-       "district": "Gorkha"
+       "district": "Gorkha",
+       "modelledPopulation": 1374,
+       "damagePointsPerThousandPeople": 106.3,
+       "populationBase": "SUFFICIENT"
       },
       {
        "lon": 84.81509,
@@ -2717,8 +2896,16 @@
         "Destroyed": 45,
         "Severe Damage": 45
        },
+       "composition": {
+        "Moderate Damage": 32.8,
+        "Destroyed": 33.6,
+        "Severe Damage": 33.6
+       },
        "mmi": 8,
-       "district": "Dhading"
+       "district": "Dhading",
+       "modelledPopulation": 3198,
+       "damagePointsPerThousandPeople": 41.9,
+       "populationBase": "SUFFICIENT"
       },
       {
        "lon": 84.72899,
@@ -2729,8 +2916,16 @@
         "Destroyed": 54,
         "Moderate Damage": 13
        },
+       "composition": {
+        "Severe Damage": 46,
+        "Destroyed": 43.5,
+        "Moderate Damage": 10.5
+       },
        "mmi": 8,
-       "district": "Gorkha"
+       "district": "Gorkha",
+       "modelledPopulation": 282,
+       "damagePointsPerThousandPeople": 439.72,
+       "populationBase": "SUFFICIENT"
       },
       {
        "lon": 84.83,
@@ -2741,8 +2936,16 @@
         "Destroyed": 57,
         "Moderate Damage": 15
        },
+       "composition": {
+        "Severe Damage": 35.7,
+        "Destroyed": 50.9,
+        "Moderate Damage": 13.4
+       },
        "mmi": 8,
-       "district": "Gorkha"
+       "district": "Gorkha",
+       "modelledPopulation": 519,
+       "damagePointsPerThousandPeople": 215.92,
+       "populationBase": "SUFFICIENT"
       },
       {
        "lon": 85.43297,
@@ -2753,8 +2956,16 @@
         "Severe Damage": 38,
         "Moderate Damage": 48
        },
+       "composition": {
+        "Destroyed": 19.6,
+        "Severe Damage": 35.5,
+        "Moderate Damage": 44.9
+       },
        "mmi": 7,
-       "district": "Bhaktapur"
+       "district": "Bhaktapur",
+       "modelledPopulation": 22830,
+       "damagePointsPerThousandPeople": 4.69,
+       "populationBase": "SUFFICIENT"
       },
       {
        "lon": 84.81413,
@@ -2765,8 +2976,16 @@
         "Severe Damage": 23,
         "Destroyed": 53
        },
+       "composition": {
+        "Moderate Damage": 24.8,
+        "Severe Damage": 22.8,
+        "Destroyed": 52.5
+       },
        "mmi": 7.5,
-       "district": "Dhading"
+       "district": "Dhading",
+       "modelledPopulation": 1991,
+       "damagePointsPerThousandPeople": 50.72,
+       "populationBase": "SUFFICIENT"
       },
       {
        "lon": 84.68374,
@@ -2778,8 +2997,17 @@
         "Moderate Damage": 10,
         "Severe Damage": 11
        },
+       "composition": {
+        "Possible Damage": 14.6,
+        "Destroyed": 61.8,
+        "Moderate Damage": 11.2,
+        "Severe Damage": 12.4
+       },
        "mmi": 8,
-       "district": "Gorkha"
+       "district": "Gorkha",
+       "modelledPopulation": 1122,
+       "damagePointsPerThousandPeople": 79.31,
+       "populationBase": "SUFFICIENT"
       },
       {
        "lon": 84.66569,
@@ -2791,8 +3019,17 @@
         "Possible Damage": 1,
         "Destroyed": 54
        },
+       "composition": {
+        "Severe Damage": 29.4,
+        "Moderate Damage": 5.9,
+        "Possible Damage": 1.2,
+        "Destroyed": 63.5
+       },
        "mmi": 8,
-       "district": "Gorkha"
+       "district": "Gorkha",
+       "modelledPopulation": 674,
+       "damagePointsPerThousandPeople": 126.06,
+       "populationBase": "SUFFICIENT"
       },
       {
        "lon": 84.86841,
@@ -2803,8 +3040,16 @@
         "Moderate Damage": 18,
         "Severe Damage": 10
        },
+       "composition": {
+        "Destroyed": 66.3,
+        "Moderate Damage": 21.7,
+        "Severe Damage": 12
+       },
        "mmi": 8,
-       "district": "Dhading"
+       "district": "Dhading",
+       "modelledPopulation": 1106,
+       "damagePointsPerThousandPeople": 75.05,
+       "populationBase": "SUFFICIENT"
       },
       {
        "lon": 84.4412,
@@ -2815,8 +3060,16 @@
         "Moderate Damage": 31,
         "Destroyed": 5
        },
+       "composition": {
+        "Severe Damage": 56.1,
+        "Moderate Damage": 37.8,
+        "Destroyed": 6.1
+       },
        "mmi": 7.5,
-       "district": "Lamjung"
+       "district": "Lamjung",
+       "modelledPopulation": 1727,
+       "damagePointsPerThousandPeople": 47.49,
+       "populationBase": "SUFFICIENT"
       },
       {
        "lon": 84.70735,
@@ -2827,8 +3080,16 @@
         "Severe Damage": 27,
         "Moderate Damage": 13
        },
+       "composition": {
+        "Destroyed": 51.2,
+        "Severe Damage": 32.9,
+        "Moderate Damage": 15.9
+       },
        "mmi": 8,
-       "district": "Gorkha"
+       "district": "Gorkha",
+       "modelledPopulation": 432,
+       "damagePointsPerThousandPeople": 189.86,
+       "populationBase": "SUFFICIENT"
       }
      ]
     },
@@ -2885,8 +3146,16 @@
         "Severe Damage": 91,
         "Moderate Damage": 11
        },
+       "composition": {
+        "Destroyed": 76.4,
+        "Severe Damage": 21,
+        "Moderate Damage": 2.5
+       },
        "mmi": 8,
-       "district": "Gorkha"
+       "district": "Gorkha",
+       "modelledPopulation": 1841,
+       "damagePointsPerThousandPeople": 235.2,
+       "populationBase": "SUFFICIENT"
       },
       {
        "lon": 85.43457,
@@ -2897,8 +3166,16 @@
         "Severe Damage": 150,
         "Moderate Damage": 129
        },
+       "composition": {
+        "Destroyed": 28.5,
+        "Severe Damage": 38.5,
+        "Moderate Damage": 33.1
+       },
        "mmi": 7,
-       "district": "Bhaktapur"
+       "district": "Bhaktapur",
+       "modelledPopulation": 85195,
+       "damagePointsPerThousandPeople": 4.58,
+       "populationBase": "SUFFICIENT"
       },
       {
        "lon": 84.82967,
@@ -2909,8 +3186,16 @@
         "Moderate Damage": 102,
         "Destroyed": 195
        },
+       "composition": {
+        "Severe Damage": 22.7,
+        "Moderate Damage": 26.6,
+        "Destroyed": 50.8
+       },
        "mmi": 8,
-       "district": "Dhading"
+       "district": "Dhading",
+       "modelledPopulation": 7630,
+       "damagePointsPerThousandPeople": 50.33,
+       "populationBase": "SUFFICIENT"
       },
       {
        "lon": 84.67986,
@@ -2922,8 +3207,17 @@
         "Moderate Damage": 39,
         "Possible Damage": 17
        },
+       "composition": {
+        "Severe Damage": 23.3,
+        "Destroyed": 58,
+        "Moderate Damage": 13,
+        "Possible Damage": 5.7
+       },
        "mmi": 8,
-       "district": "Gorkha"
+       "district": "Gorkha",
+       "modelledPopulation": 3918,
+       "damagePointsPerThousandPeople": 76.57,
+       "populationBase": "SUFFICIENT"
       },
       {
        "lon": 85.46351,
@@ -2934,8 +3228,16 @@
         "Moderate Damage": 37,
         "Severe Damage": 97
        },
+       "composition": {
+        "Destroyed": 55.3,
+        "Moderate Damage": 12.3,
+        "Severe Damage": 32.3
+       },
        "mmi": 7,
-       "district": "Kathmandu"
+       "district": "Kathmandu",
+       "modelledPopulation": 37169,
+       "damagePointsPerThousandPeople": 8.07,
+       "populationBase": "SUFFICIENT"
       },
       {
        "lon": 84.82523,
@@ -2946,8 +3248,16 @@
         "Destroyed": 115,
         "Severe Damage": 77
        },
+       "composition": {
+        "Moderate Damage": 26.7,
+        "Destroyed": 43.9,
+        "Severe Damage": 29.4
+       },
        "mmi": 8,
-       "district": "Gorkha"
+       "district": "Gorkha",
+       "modelledPopulation": 5818,
+       "damagePointsPerThousandPeople": 45.04,
+       "populationBase": "SUFFICIENT"
       },
       {
        "lon": 85.45391,
@@ -2958,8 +3268,16 @@
         "Destroyed": 135,
         "Moderate Damage": 47
        },
+       "composition": {
+        "Severe Damage": 23.2,
+        "Destroyed": 57,
+        "Moderate Damage": 19.8
+       },
        "mmi": 7,
-       "district": "Kavrepalanchok"
+       "district": "Kavrepalanchok",
+       "modelledPopulation": 3803,
+       "damagePointsPerThousandPeople": 62.31,
+       "populationBase": "SUFFICIENT"
       },
       {
        "lon": 84.84229,
@@ -2970,8 +3288,16 @@
         "Severe Damage": 43,
         "Destroyed": 116
        },
+       "composition": {
+        "Moderate Damage": 21.3,
+        "Severe Damage": 21.3,
+        "Destroyed": 57.4
+       },
        "mmi": 7.5,
-       "district": "Dhading"
+       "district": "Dhading",
+       "modelledPopulation": 5883,
+       "damagePointsPerThousandPeople": 34.34,
+       "populationBase": "SUFFICIENT"
       },
       {
        "lon": 84.82843,
@@ -2982,8 +3308,16 @@
         "Destroyed": 96,
         "Moderate Damage": 25
        },
+       "composition": {
+        "Severe Damage": 38.3,
+        "Destroyed": 49,
+        "Moderate Damage": 12.8
+       },
        "mmi": 8,
-       "district": "Gorkha"
+       "district": "Gorkha",
+       "modelledPopulation": 2469,
+       "damagePointsPerThousandPeople": 79.39,
+       "populationBase": "SUFFICIENT"
       },
       {
        "lon": 84.80264,
@@ -2994,8 +3328,16 @@
         "Destroyed": 74,
         "Severe Damage": 42
        },
+       "composition": {
+        "Moderate Damage": 29.7,
+        "Destroyed": 44.8,
+        "Severe Damage": 25.5
+       },
        "mmi": 8,
-       "district": "Gorkha"
+       "district": "Gorkha",
+       "modelledPopulation": 4877,
+       "damagePointsPerThousandPeople": 33.83,
+       "populationBase": "SUFFICIENT"
       },
       {
        "lon": 84.43184,
@@ -3006,8 +3348,16 @@
         "Moderate Damage": 44,
         "Destroyed": 22
        },
+       "composition": {
+        "Severe Damage": 58.8,
+        "Moderate Damage": 27.5,
+        "Destroyed": 13.8
+       },
        "mmi": 7,
-       "district": "Lamjung"
+       "district": "Lamjung",
+       "modelledPopulation": 8385,
+       "damagePointsPerThousandPeople": 19.08,
+       "populationBase": "SUFFICIENT"
       },
       {
        "lon": 84.63248,
@@ -3019,8 +3369,17 @@
         "Moderate Damage": 52,
         "Destroyed": 26
        },
+       "composition": {
+        "Possible Damage": 8.2,
+        "Severe Damage": 33.6,
+        "Moderate Damage": 38.8,
+        "Destroyed": 19.4
+       },
        "mmi": 7.5,
-       "district": "Gorkha"
+       "district": "Gorkha",
+       "modelledPopulation": 4468,
+       "damagePointsPerThousandPeople": 29.99,
+       "populationBase": "SUFFICIENT"
       },
       {
        "lon": 84.72849,
@@ -3031,8 +3390,16 @@
         "Destroyed": 58,
         "Moderate Damage": 13
        },
+       "composition": {
+        "Severe Damage": 44.5,
+        "Destroyed": 45.3,
+        "Moderate Damage": 10.2
+       },
        "mmi": 8,
-       "district": "Gorkha"
+       "district": "Gorkha",
+       "modelledPopulation": 3410,
+       "damagePointsPerThousandPeople": 37.53,
+       "populationBase": "SUFFICIENT"
       },
       {
        "lon": 84.522,
@@ -3043,8 +3410,16 @@
         "Severe Damage": 43,
         "Destroyed": 16
        },
+       "composition": {
+        "Moderate Damage": 47.8,
+        "Severe Damage": 38.1,
+        "Destroyed": 14.2
+       },
        "mmi": 7.5,
-       "district": "Lamjung"
+       "district": "Lamjung",
+       "modelledPopulation": 5248,
+       "damagePointsPerThousandPeople": 21.53,
+       "populationBase": "SUFFICIENT"
       },
       {
        "lon": 84.86871,
@@ -3055,8 +3430,16 @@
         "Moderate Damage": 25,
         "Severe Damage": 13
        },
+       "composition": {
+        "Destroyed": 64.8,
+        "Moderate Damage": 23.1,
+        "Severe Damage": 12
+       },
        "mmi": 7.5,
-       "district": "Dhading"
+       "district": "Dhading",
+       "modelledPopulation": 5349,
+       "damagePointsPerThousandPeople": 20.19,
+       "populationBase": "SUFFICIENT"
       }
      ]
     }
@@ -3974,7 +4357,7 @@
     {
      "dataset": "NGA infrastructure damage",
      "observes": "Blocked road locations, bridges out, landslide extents",
-     "coverage": "235 features over the central affected region; no examined-area footprint",
+     "coverage": "235 features over the central hill districts; no examined-area footprint",
      "date": "Imagery 2015-04-26 to 2015-05-07; layers published 6–7 May 2015",
      "classification": "Three feature types, no severity scale",
      "limitation": "Absence of a feature is not evidence a road was open. Road features are short obstruction markers, not the extents of closed routes.",

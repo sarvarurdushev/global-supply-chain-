@@ -230,6 +230,25 @@ export function severityScore(counts, weights) {
  * with a hidden judgement.
  */
 export function severityRankStability(units, schemes = SEVERITY_SCHEMES) {
+  /*
+   * Too few units to rank. Without this, every pairwise Spearman comes back
+   * null, `worst` never moves off its initial 1, and the function reports
+   * ROBUST — a confident verdict computed from nothing, which is the exact
+   * failure this module exists to prevent.
+   */
+  if (!Array.isArray(units) || units.length < 3) {
+    return Object.freeze({
+      units: units?.length ?? 0,
+      schemes: Object.freeze([]),
+      pairwise: Object.freeze([]),
+      worstSpearman: null,
+      topFiveByScheme: Object.freeze([]),
+      topFiveAgreement: null,
+      verdict: 'NOT_ENOUGH_UNITS',
+      verdictMeaning:
+        'Fewer than three units were supplied, so rank agreement between weighting schemes cannot be measured. No ordering is reported.',
+    });
+  }
   const scored = schemes.map((scheme) => ({
     scheme: scheme.id,
     label: scheme.label,

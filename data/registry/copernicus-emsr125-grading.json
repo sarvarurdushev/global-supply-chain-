@@ -1,0 +1,17 @@
+{
+ "id": "copernicus-emsr125-grading",
+ "datasetId": "copernicus-emsr125-grading",
+ "datasetName": "Copernicus EMS EMSR125 grading points, Nepal earthquake 2015",
+ "publisher": "Copernicus Emergency Management Service, distributed in the UNOSAT package",
+ "sourceUrl": "https://cern.ch/unosat-maps/NP/EQ20150425NPL/EQ20150425NPL_shp.zip",
+ "license": "CC BY-NC-SA 3.0 (HDX license_other for this dataset)",
+ "redistribution": "NON_COMMERCIAL",
+ "retrievedAt": "2026-09-21",
+ "attribution": "UNITAR/UNOSAT; Copernicus EMS (EMSR125); U.S. NGA",
+ "redistributionNotice": "CC BY-NC-SA 3.0 (HDX license_other for this dataset) — UNITAR/UNOSAT; Copernicus EMS (EMSR125); U.S. NGA. This obligation applies to this derived file.",
+ "limitations": [
+  "Covers eight areas of interest only. A district with no AOI has no grading, which is not the same as no damage.",
+  "The grading vocabulary is Copernicus’s own and is NOT interchangeable with UNOSAT’s damage classes; the two are kept separate deliberately.",
+  "Some records carry an empty, \"Null\" or \"Not Applicable\" grading; these are retained and reported rather than dropped, because dropping them would overstate the proportion of graded structures."
+ ]
+}

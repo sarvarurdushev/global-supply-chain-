@@ -28,7 +28,11 @@
  */
 
 import { withScenario } from '../../supplychain/graph.js';
-import { shortestPath, routeDistanceKm } from '../../supplychain/routing.js';
+import {
+  shortestPath,
+  routeDistanceKm,
+  kShortestPaths,
+} from '../../supplychain/routing.js';
 import { betweennessCentrality } from '../../supplychain/centrality.js';
 import {
   polylineToPolygonMetres,
@@ -453,6 +457,82 @@ export function centralityShift(
         }),
       ),
     ),
+  });
+}
+
+/**
+ * How many genuinely distinct routes exist between a pair, before and after.
+ *
+ * Uses the project's existing Yen k-shortest-paths rather than a new search.
+ * "Distinct" is Yen's own definition: each successive route deviates from
+ * every accepted one, so two routes sharing all but one edge count as two.
+ * That is generous, and it is why the number reported alongside is how many
+ * of them survive the blockages, which is the question that matters: a pair
+ * with four alternatives on paper and one in practice is fragile.
+ *
+ * @param {object} baseline
+ * @param {object} damaged
+ * @param {Array<object>} pairs
+ * @param {object} [options]
+ * @param {number} [options.k] how many alternatives to look for per pair
+ */
+export function alternativeRoutes(baseline, damaged, pairs, { k = 4 } = {}) {
+  const rows = pairs.map((pair) => {
+    const before = kShortestPaths(baseline, pair.from, pair.to, k);
+    const after = kShortestPaths(damaged, pair.from, pair.to, k);
+    const bestBefore = before[0] ? routeDistanceKm(baseline, before[0]) : null;
+    return Object.freeze({
+      ...pair,
+      alternativesBaseline: before.length,
+      alternativesDamaged: after.length,
+      lost: before.length - after.length,
+      /*
+       * The spread between the shortest route and the kth: a pair whose
+       * alternatives are all about the same length has real redundancy, one
+       * whose second option is three times longer has an alternative only in
+       * the sense that a graph search can find it.
+       */
+      baselineKm: bestBefore === null ? null : Number(bestBefore.toFixed(2)),
+      baselineLongestAlternativeKm:
+        before.length > 1
+          ? Number(
+              routeDistanceKm(baseline, before[before.length - 1]).toFixed(2),
+            )
+          : null,
+    });
+  });
+  const withAny = rows.filter((row) => row.alternativesBaseline > 0);
+  /*
+   * Saturation check, and it decides how the result may be read. When every
+   * routable pair returns exactly k alternatives both before and after, the
+   * counter has hit its own ceiling and is measuring the cap rather than the
+   * network: "nothing lost an alternative" then means only "at least k
+   * deviating paths existed either way". Reporting the first without the
+   * second turns a saturated counter into a finding.
+   */
+  const routable = rows.filter((row) => row.alternativesBaseline > 0);
+  const saturated =
+    routable.length > 0 &&
+    routable.every(
+      (row) => row.alternativesBaseline === k && row.alternativesDamaged === k,
+    );
+  const lost = rows.filter((row) => row.lost > 0).length;
+  return Object.freeze({
+    k,
+    pairs: rows.length,
+    routes: Object.freeze(rows),
+    pairsWithAlternativeBaseline: withAny.filter(
+      (row) => row.alternativesBaseline > 1,
+    ).length,
+    pairsThatLostAnAlternative: lost,
+    routablePairs: routable.length,
+    saturated,
+    verdict: saturated
+      ? `Every routable pair returned the maximum ${k} alternatives both before and after, so this counter measured its own cap rather than the network. It supports only "at least ${k} deviating paths existed either way" \u2014 NOT that redundancy was unaffected.`
+      : routable.length === 0
+        ? 'No pair was routable on the baseline network, so no alternative-route comparison is possible.'
+        : `${lost} of ${routable.length} routable pairs lost at least one distinct alternative.`,
+    note: 'Route counts come from the project\u2019s Yen k-shortest-paths, which counts a route as distinct if it deviates anywhere from the ones already accepted. On a sparse mountain network many of those "alternatives" share almost all their length, so the count is an upper bound on redundancy, not a measure of it.',
   });
 }
 

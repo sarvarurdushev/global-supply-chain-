@@ -85,6 +85,16 @@
     "detail": "5 of 14 pairs were already unroutable on the 2015 map"
    },
    {
+    "name": "The five bridges out are tested on their own, not only inside the combined scenario",
+    "passed": true,
+    "detail": "The bridge losses alone split the mapped network into more components than the baseline had."
+   },
+   {
+    "name": "Alternative-route counts come from the existing k-shortest-paths, not a new search",
+    "passed": true,
+    "detail": "k=4; 9 of 14 pairs had more than one route on the 2015 network. Every routable pair returned the maximum 4 alternatives both before and after, so this counter measured its own cap rather than the network. It supports only \"at least 4 deviating paths existed either way\" — NOT that redundancy was unaffected."
+   },
+   {
     "name": "No travel time, speed or recovery figure is produced anywhere in this stage",
     "passed": true,
     "detail": "Distances only. No speed dataset exists for April 2015 in any source this project holds."
@@ -104,7 +114,7 @@
      "role": "observed blockages, bridges and landslides"
     }
    ],
-   "spatialCoverage": "The central affected region between Gorkha and Dolakha; no examined-area footprint is published.",
+   "spatialCoverage": "The central hill districts between Gorkha and Dolakha; no examined-area footprint is published.",
    "method": "Project every feature to EPSG:32645 and measure line length, vertex spacing and polygon area, then state the interpretation those measurements license.",
    "formula": "length = sum of segment lengths in UTM; equivalent radius = sqrt(area / pi)",
    "outputs": [
@@ -206,6 +216,8 @@
     "connected components before and after",
     "severed, detoured and unchanged origin-destination pairs",
     "extra distance per detour",
+    "distinct alternative routes per pair, before and after",
+    "the effect of the five bridge losses in isolation",
     "betweenness change per junction"
    ],
    "visualisation": "Baseline and damaged routes drawn together on the terrain, with severed destinations marked and the centrality change shown on the junctions.",
@@ -619,6 +631,212 @@
    },
    "landslideToRoad": {
     "landslideFeatures": 51,
+    "perLandslide": [
+     {
+      "distanceMetres": 0,
+      "nearestRoad": 147
+     },
+     {
+      "distanceMetres": 8627,
+      "nearestRoad": 177
+     },
+     {
+      "distanceMetres": 12736,
+      "nearestRoad": 177
+     },
+     {
+      "distanceMetres": 3854,
+      "nearestRoad": 117
+     },
+     {
+      "distanceMetres": 5752,
+      "nearestRoad": 32
+     },
+     {
+      "distanceMetres": 370,
+      "nearestRoad": 40
+     },
+     {
+      "distanceMetres": 291,
+      "nearestRoad": 36
+     },
+     {
+      "distanceMetres": 0,
+      "nearestRoad": 40
+     },
+     {
+      "distanceMetres": 434,
+      "nearestRoad": 36
+     },
+     {
+      "distanceMetres": 533,
+      "nearestRoad": 36
+     },
+     {
+      "distanceMetres": 0,
+      "nearestRoad": 36
+     },
+     {
+      "distanceMetres": 478,
+      "nearestRoad": 40
+     },
+     {
+      "distanceMetres": 8934,
+      "nearestRoad": 47
+     },
+     {
+      "distanceMetres": 0,
+      "nearestRoad": 45
+     },
+     {
+      "distanceMetres": 11745,
+      "nearestRoad": 47
+     },
+     {
+      "distanceMetres": 15664,
+      "nearestRoad": 47
+     },
+     {
+      "distanceMetres": 13343,
+      "nearestRoad": 47
+     },
+     {
+      "distanceMetres": 3619,
+      "nearestRoad": 67
+     },
+     {
+      "distanceMetres": 3374,
+      "nearestRoad": 67
+     },
+     {
+      "distanceMetres": 2299,
+      "nearestRoad": 67
+     },
+     {
+      "distanceMetres": 2174,
+      "nearestRoad": 67
+     },
+     {
+      "distanceMetres": 1763,
+      "nearestRoad": 67
+     },
+     {
+      "distanceMetres": 2155,
+      "nearestRoad": 67
+     },
+     {
+      "distanceMetres": 3084,
+      "nearestRoad": 67
+     },
+     {
+      "distanceMetres": 2693,
+      "nearestRoad": 67
+     },
+     {
+      "distanceMetres": 2628,
+      "nearestRoad": 67
+     },
+     {
+      "distanceMetres": 2337,
+      "nearestRoad": 62
+     },
+     {
+      "distanceMetres": 822,
+      "nearestRoad": 60
+     },
+     {
+      "distanceMetres": 82,
+      "nearestRoad": 60
+     },
+     {
+      "distanceMetres": 89,
+      "nearestRoad": 59
+     },
+     {
+      "distanceMetres": 4742,
+      "nearestRoad": 111
+     },
+     {
+      "distanceMetres": 4428,
+      "nearestRoad": 111
+     },
+     {
+      "distanceMetres": 1186,
+      "nearestRoad": 68
+     },
+     {
+      "distanceMetres": 928,
+      "nearestRoad": 68
+     },
+     {
+      "distanceMetres": 482,
+      "nearestRoad": 68
+     },
+     {
+      "distanceMetres": 742,
+      "nearestRoad": 69
+     },
+     {
+      "distanceMetres": 0,
+      "nearestRoad": 68
+     },
+     {
+      "distanceMetres": 3163,
+      "nearestRoad": 71
+     },
+     {
+      "distanceMetres": 1773,
+      "nearestRoad": 69
+     },
+     {
+      "distanceMetres": 0,
+      "nearestRoad": 80
+     },
+     {
+      "distanceMetres": 10178,
+      "nearestRoad": 81
+     },
+     {
+      "distanceMetres": 1565,
+      "nearestRoad": 116
+     },
+     {
+      "distanceMetres": 1332,
+      "nearestRoad": 116
+     },
+     {
+      "distanceMetres": 0,
+      "nearestRoad": 115
+     },
+     {
+      "distanceMetres": 0,
+      "nearestRoad": 116
+     },
+     {
+      "distanceMetres": 0,
+      "nearestRoad": 140
+     },
+     {
+      "distanceMetres": 0,
+      "nearestRoad": 138
+     },
+     {
+      "distanceMetres": 4609,
+      "nearestRoad": 138
+     },
+     {
+      "distanceMetres": 3897,
+      "nearestRoad": 138
+     },
+     {
+      "distanceMetres": 3786,
+      "nearestRoad": 138
+     },
+     {
+      "distanceMetres": 6421,
+      "nearestRoad": 138
+     }
+    ],
     "curve": [
      {
       "toleranceMetres": 0,
@@ -701,7 +919,7 @@
     "areaHectares": 3.2,
     "district": null,
     "mmi": 7,
-    "nearestBlockedRoadMetres": null,
+    "nearestBlockedRoadMetres": 12736,
     "peopleWithin1Km": 0,
     "nearestPopulatedCellKm": null
    },
@@ -734,7 +952,7 @@
     "areaHectares": 0.2,
     "district": "Gorkha",
     "mmi": 8,
-    "nearestBlockedRoadMetres": null,
+    "nearestBlockedRoadMetres": 370,
     "peopleWithin1Km": 307,
     "nearestPopulatedCellKm": 0.43
    },
@@ -745,7 +963,7 @@
     "areaHectares": 0.6,
     "district": "Gorkha",
     "mmi": 8,
-    "nearestBlockedRoadMetres": null,
+    "nearestBlockedRoadMetres": 291,
     "peopleWithin1Km": 345,
     "nearestPopulatedCellKm": 0.37
    },
@@ -767,7 +985,7 @@
     "areaHectares": 0.18,
     "district": "Gorkha",
     "mmi": 8,
-    "nearestBlockedRoadMetres": null,
+    "nearestBlockedRoadMetres": 434,
     "peopleWithin1Km": 307,
     "nearestPopulatedCellKm": 0.44
    },
@@ -778,7 +996,7 @@
     "areaHectares": 0.3,
     "district": "Gorkha",
     "mmi": 8,
-    "nearestBlockedRoadMetres": null,
+    "nearestBlockedRoadMetres": 533,
     "peopleWithin1Km": 346,
     "nearestPopulatedCellKm": 0.29
    },
@@ -800,7 +1018,7 @@
     "areaHectares": 0.28,
     "district": "Gorkha",
     "mmi": 8,
-    "nearestBlockedRoadMetres": null,
+    "nearestBlockedRoadMetres": 478,
     "peopleWithin1Km": 307,
     "nearestPopulatedCellKm": 0.28
    },
@@ -811,7 +1029,7 @@
     "areaHectares": 8.14,
     "district": "Rasuwa",
     "mmi": 7.5,
-    "nearestBlockedRoadMetres": null,
+    "nearestBlockedRoadMetres": 8934,
     "peopleWithin1Km": 6,
     "nearestPopulatedCellKm": 11.1
    },
@@ -833,7 +1051,7 @@
     "areaHectares": 25.31,
     "district": "Rasuwa",
     "mmi": 7.5,
-    "nearestBlockedRoadMetres": null,
+    "nearestBlockedRoadMetres": 11745,
     "peopleWithin1Km": 6,
     "nearestPopulatedCellKm": null
    },
@@ -844,7 +1062,7 @@
     "areaHectares": 11.5,
     "district": "Rasuwa",
     "mmi": 7.5,
-    "nearestBlockedRoadMetres": null,
+    "nearestBlockedRoadMetres": 15664,
     "peopleWithin1Km": 6,
     "nearestPopulatedCellKm": null
    },
@@ -855,7 +1073,7 @@
     "areaHectares": 57.37,
     "district": "Rasuwa",
     "mmi": 7.5,
-    "nearestBlockedRoadMetres": null,
+    "nearestBlockedRoadMetres": 13343,
     "peopleWithin1Km": 5,
     "nearestPopulatedCellKm": null
    },
@@ -866,7 +1084,7 @@
     "areaHectares": 0.91,
     "district": "Sindhupalchok",
     "mmi": 7.5,
-    "nearestBlockedRoadMetres": null,
+    "nearestBlockedRoadMetres": 3619,
     "peopleWithin1Km": 46,
     "nearestPopulatedCellKm": 3.7
    },
@@ -877,7 +1095,7 @@
     "areaHectares": 0.76,
     "district": "Sindhupalchok",
     "mmi": 7.5,
-    "nearestBlockedRoadMetres": null,
+    "nearestBlockedRoadMetres": 3374,
     "peopleWithin1Km": 46,
     "nearestPopulatedCellKm": 3.43
    },
@@ -888,7 +1106,7 @@
     "areaHectares": 3.12,
     "district": "Sindhupalchok",
     "mmi": 7.5,
-    "nearestBlockedRoadMetres": null,
+    "nearestBlockedRoadMetres": 2299,
     "peopleWithin1Km": 69,
     "nearestPopulatedCellKm": 2.49
    },
@@ -899,7 +1117,7 @@
     "areaHectares": 0.81,
     "district": "Sindhupalchok",
     "mmi": 7.5,
-    "nearestBlockedRoadMetres": 5533,
+    "nearestBlockedRoadMetres": 2174,
     "peopleWithin1Km": 69,
     "nearestPopulatedCellKm": 2.55
    },
@@ -921,7 +1139,7 @@
     "areaHectares": 1.4,
     "district": "Sindhupalchok",
     "mmi": 7.5,
-    "nearestBlockedRoadMetres": null,
+    "nearestBlockedRoadMetres": 2155,
     "peopleWithin1Km": 69,
     "nearestPopulatedCellKm": 2.27
    },
@@ -932,7 +1150,7 @@
     "areaHectares": 0.07,
     "district": "Sindhupalchok",
     "mmi": 7.5,
-    "nearestBlockedRoadMetres": null,
+    "nearestBlockedRoadMetres": 3084,
     "peopleWithin1Km": 46,
     "nearestPopulatedCellKm": 3.14
    },
@@ -943,7 +1161,7 @@
     "areaHectares": 0.75,
     "district": "Sindhupalchok",
     "mmi": 7.5,
-    "nearestBlockedRoadMetres": null,
+    "nearestBlockedRoadMetres": 2693,
     "peopleWithin1Km": 69,
     "nearestPopulatedCellKm": 2.85
    },
@@ -954,7 +1172,7 @@
     "areaHectares": 3.32,
     "district": "Sindhupalchok",
     "mmi": 7.5,
-    "nearestBlockedRoadMetres": null,
+    "nearestBlockedRoadMetres": 2628,
     "peopleWithin1Km": 66,
     "nearestPopulatedCellKm": 2.7
    },
@@ -965,7 +1183,7 @@
     "areaHectares": 0.94,
     "district": "Sindhupalchok",
     "mmi": 7.5,
-    "nearestBlockedRoadMetres": null,
+    "nearestBlockedRoadMetres": 2337,
     "peopleWithin1Km": 83,
     "nearestPopulatedCellKm": 2.28
    },
@@ -976,7 +1194,7 @@
     "areaHectares": 3.23,
     "district": "Sindhupalchok",
     "mmi": 7.5,
-    "nearestBlockedRoadMetres": null,
+    "nearestBlockedRoadMetres": 822,
     "peopleWithin1Km": 73,
     "nearestPopulatedCellKm": 2.23
    },
@@ -998,7 +1216,7 @@
     "areaHectares": 0.79,
     "district": "Sindhupalchok",
     "mmi": 7.5,
-    "nearestBlockedRoadMetres": 194,
+    "nearestBlockedRoadMetres": 89,
     "peopleWithin1Km": 126,
     "nearestPopulatedCellKm": 1.52
    },
@@ -1009,7 +1227,7 @@
     "areaHectares": 0.71,
     "district": "Sindhupalchok",
     "mmi": 7.5,
-    "nearestBlockedRoadMetres": null,
+    "nearestBlockedRoadMetres": 4742,
     "peopleWithin1Km": 19,
     "nearestPopulatedCellKm": 5.1
    },
@@ -1031,7 +1249,7 @@
     "areaHectares": 0.44,
     "district": "Sindhupalchok",
     "mmi": 7.5,
-    "nearestBlockedRoadMetres": null,
+    "nearestBlockedRoadMetres": 1186,
     "peopleWithin1Km": 311,
     "nearestPopulatedCellKm": 0.46
    },
@@ -1042,7 +1260,7 @@
     "areaHectares": 2.44,
     "district": "Sindhupalchok",
     "mmi": 7.5,
-    "nearestBlockedRoadMetres": null,
+    "nearestBlockedRoadMetres": 928,
     "peopleWithin1Km": 311,
     "nearestPopulatedCellKm": 0.48
    },
@@ -1053,7 +1271,7 @@
     "areaHectares": 5.54,
     "district": "Sindhupalchok",
     "mmi": 7.5,
-    "nearestBlockedRoadMetres": null,
+    "nearestBlockedRoadMetres": 482,
     "peopleWithin1Km": 399,
     "nearestPopulatedCellKm": 0.18
    },
@@ -1064,7 +1282,7 @@
     "areaHectares": 1.06,
     "district": "Sindhupalchok",
     "mmi": 7.5,
-    "nearestBlockedRoadMetres": null,
+    "nearestBlockedRoadMetres": 742,
     "peopleWithin1Km": 463,
     "nearestPopulatedCellKm": 0.36
    },
@@ -1086,7 +1304,7 @@
     "areaHectares": 2.26,
     "district": "Sindhupalchok",
     "mmi": 7.5,
-    "nearestBlockedRoadMetres": 7797,
+    "nearestBlockedRoadMetres": 3163,
     "peopleWithin1Km": 497,
     "nearestPopulatedCellKm": 0.36
    },
@@ -1097,7 +1315,7 @@
     "areaHectares": 0.26,
     "district": "Sindhupalchok",
     "mmi": 7.5,
-    "nearestBlockedRoadMetres": null,
+    "nearestBlockedRoadMetres": 1773,
     "peopleWithin1Km": 258,
     "nearestPopulatedCellKm": 0.45
    },
@@ -1130,7 +1348,7 @@
     "areaHectares": 1.07,
     "district": "Dhading",
     "mmi": 8,
-    "nearestBlockedRoadMetres": 5667,
+    "nearestBlockedRoadMetres": 1565,
     "peopleWithin1Km": 1299,
     "nearestPopulatedCellKm": 0.31
    },
@@ -1141,7 +1359,7 @@
     "areaHectares": 0.54,
     "district": "Dhading",
     "mmi": 8,
-    "nearestBlockedRoadMetres": null,
+    "nearestBlockedRoadMetres": 1332,
     "peopleWithin1Km": 783,
     "nearestPopulatedCellKm": 0.22
    },
@@ -1196,7 +1414,7 @@
     "areaHectares": 1.14,
     "district": "Dolakha",
     "mmi": 7.5,
-    "nearestBlockedRoadMetres": 51883,
+    "nearestBlockedRoadMetres": 4609,
     "peopleWithin1Km": 636,
     "nearestPopulatedCellKm": 0.36
    },
@@ -1207,7 +1425,7 @@
     "areaHectares": 0.88,
     "district": "Ramechhap",
     "mmi": 7.5,
-    "nearestBlockedRoadMetres": null,
+    "nearestBlockedRoadMetres": 3897,
     "peopleWithin1Km": 1097,
     "nearestPopulatedCellKm": 0.38
    },
@@ -1218,7 +1436,7 @@
     "areaHectares": 0.57,
     "district": "Ramechhap",
     "mmi": 7.5,
-    "nearestBlockedRoadMetres": null,
+    "nearestBlockedRoadMetres": 3786,
     "peopleWithin1Km": 430,
     "nearestPopulatedCellKm": 0.49
    },
@@ -1229,7 +1447,7 @@
     "areaHectares": 3.38,
     "district": "Dolakha",
     "mmi": 7.5,
-    "nearestBlockedRoadMetres": null,
+    "nearestBlockedRoadMetres": 6421,
     "peopleWithin1Km": 597,
     "nearestPopulatedCellKm": 0.45
    }
@@ -1520,6 +1738,199 @@
      "district": "Kathmandu",
      "snapMetres": 478
     }
+   },
+   "alternativeRoutes": {
+    "k": 4,
+    "pairs": 14,
+    "routes": [
+     {
+      "from": "n:190042:61679",
+      "to": "n:189333:62008",
+      "label": "Kathmandu → Dhading",
+      "district": "Dhading",
+      "destinationSnapMetres": 7259,
+      "alternativesBaseline": 4,
+      "alternativesDamaged": 4,
+      "lost": 0,
+      "baselineKm": 61.74,
+      "baselineLongestAlternativeKm": 61.74
+     },
+     {
+      "from": "n:190042:61679",
+      "to": "n:191908:61802",
+      "label": "Kathmandu → Dolakha",
+      "district": "Dolakha",
+      "destinationSnapMetres": 4044,
+      "alternativesBaseline": 4,
+      "alternativesDamaged": 4,
+      "lost": 0,
+      "baselineKm": 170.1,
+      "baselineLongestAlternativeKm": 170.1
+     },
+     {
+      "from": "n:190042:61679",
+      "to": "n:188825:62440",
+      "label": "Kathmandu → Gorkha",
+      "district": "Gorkha",
+      "destinationSnapMetres": 30390,
+      "alternativesBaseline": 0,
+      "alternativesDamaged": 0,
+      "lost": 0,
+      "baselineKm": null,
+      "baselineLongestAlternativeKm": null
+     },
+     {
+      "from": "n:190042:61679",
+      "to": "n:190638:61358",
+      "label": "Kathmandu → Kavrepalanchok",
+      "district": "Kavrepalanchok",
+      "destinationSnapMetres": 4014,
+      "alternativesBaseline": 4,
+      "alternativesDamaged": 4,
+      "lost": 0,
+      "baselineKm": 46.89,
+      "baselineLongestAlternativeKm": 46.9
+     },
+     {
+      "from": "n:190042:61679",
+      "to": "n:190009:61374",
+      "label": "Kathmandu → Lalitpur",
+      "district": "Lalitpur",
+      "destinationSnapMetres": 1821,
+      "alternativesBaseline": 4,
+      "alternativesDamaged": 4,
+      "lost": 0,
+      "baselineKm": 67.14,
+      "baselineLongestAlternativeKm": 67.18
+     },
+     {
+      "from": "n:190042:61679",
+      "to": "n:187846:62867",
+      "label": "Kathmandu → Lamjung",
+      "district": "Lamjung",
+      "destinationSnapMetres": 5254,
+      "alternativesBaseline": 4,
+      "alternativesDamaged": 4,
+      "lost": 0,
+      "baselineKm": 179.89,
+      "baselineLongestAlternativeKm": 179.89
+     },
+     {
+      "from": "n:190042:61679",
+      "to": "n:189341:61131",
+      "label": "Kathmandu → Makwanpur",
+      "district": "Makwanpur",
+      "destinationSnapMetres": 4105,
+      "alternativesBaseline": 4,
+      "alternativesDamaged": 4,
+      "lost": 0,
+      "baselineKm": 84.43,
+      "baselineLongestAlternativeKm": 84.43
+     },
+     {
+      "from": "n:190042:61679",
+      "to": "n:189704:62116",
+      "label": "Kathmandu → Nuwakot",
+      "district": "Nuwakot",
+      "destinationSnapMetres": 1066,
+      "alternativesBaseline": 4,
+      "alternativesDamaged": 4,
+      "lost": 0,
+      "baselineKm": 74.33,
+      "baselineLongestAlternativeKm": 74.36
+     },
+     {
+      "from": "n:190042:61679",
+      "to": "n:192295:60536",
+      "label": "Kathmandu → Okhaldhunga",
+      "district": "Okhaldhunga",
+      "destinationSnapMetres": 14449,
+      "alternativesBaseline": 0,
+      "alternativesDamaged": 0,
+      "lost": 0,
+      "baselineKm": null,
+      "baselineLongestAlternativeKm": null
+     },
+     {
+      "from": "n:190042:61679",
+      "to": "n:191735:61174",
+      "label": "Kathmandu → Ramechhap",
+      "district": "Ramechhap",
+      "destinationSnapMetres": 7804,
+      "alternativesBaseline": 0,
+      "alternativesDamaged": 0,
+      "lost": 0,
+      "baselineKm": null,
+      "baselineLongestAlternativeKm": null
+     },
+     {
+      "from": "n:190042:61679",
+      "to": "n:190006:62709",
+      "label": "Kathmandu → Rasuwa",
+      "district": "Rasuwa",
+      "destinationSnapMetres": 4792,
+      "alternativesBaseline": 0,
+      "alternativesDamaged": 0,
+      "lost": 0,
+      "baselineKm": null,
+      "baselineLongestAlternativeKm": null
+     },
+     {
+      "from": "n:190042:61679",
+      "to": "n:191310:60546",
+      "label": "Kathmandu → Sindhuli",
+      "district": "Sindhuli",
+      "destinationSnapMetres": 1447,
+      "alternativesBaseline": 0,
+      "alternativesDamaged": 0,
+      "lost": 0,
+      "baselineKm": null,
+      "baselineLongestAlternativeKm": null
+     },
+     {
+      "from": "n:190042:61679",
+      "to": "n:190749:61873",
+      "label": "Kathmandu → Sindhupalchok",
+      "district": "Sindhupalchok",
+      "destinationSnapMetres": 6786,
+      "alternativesBaseline": 4,
+      "alternativesDamaged": 4,
+      "lost": 0,
+      "baselineKm": 87.54,
+      "baselineLongestAlternativeKm": 87.55
+     },
+     {
+      "from": "n:190042:61679",
+      "to": "n:187579:62295",
+      "label": "Kathmandu → Tanahu",
+      "district": "Tanahu",
+      "destinationSnapMetres": 2891,
+      "alternativesBaseline": 4,
+      "alternativesDamaged": 4,
+      "lost": 0,
+      "baselineKm": 156.03,
+      "baselineLongestAlternativeKm": 156.03
+     }
+    ],
+    "pairsWithAlternativeBaseline": 9,
+    "pairsThatLostAnAlternative": 0,
+    "routablePairs": 9,
+    "saturated": true,
+    "verdict": "Every routable pair returned the maximum 4 alternatives both before and after, so this counter measured its own cap rather than the network. It supports only \"at least 4 deviating paths existed either way\" — NOT that redundancy was unaffected.",
+    "note": "Route counts come from the project’s Yen k-shortest-paths, which counts a route as distinct if it deviates anywhere from the ones already accepted. On a sparse mountain network many of those \"alternatives\" share almost all their length, so the count is an upper bound on redundancy, not a measure of it."
+   },
+   "bridgesOnly": {
+    "bridges": 5,
+    "matchedToNetwork": 1,
+    "unmatched": 4,
+    "components": 41,
+    "newComponents": 1,
+    "largestComponent": 1913,
+    "routeOutcomes": {
+     "UNCHANGED": 9,
+     "NOT_ROUTABLE_BASELINE": 5
+    },
+    "verdict": "The bridge losses alone split the mapped network into more components than the baseline had."
    },
    "destinations": [
     {

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { buildRoadGraph } from '../../disaster/response.js';
 import {
   SNAP_TOLERANCES_METRES,
+  alternativeRoutes,
   centralityShift,
   componentProfile,
   damagedNetwork,
@@ -181,4 +182,55 @@ test('centrality is read from the project engine envelope, not assumed to be a m
   assert.ok(shift.mostCentralBaseline[0].node.lon !== undefined);
   assert.match(shift.variant, /unweighted/);
   assert.ok(shift.engineLimitations.length > 0);
+});
+
+test('alternative routes come from the existing k-shortest-paths and count what is lost', () => {
+  const graph = fixture();
+  const west = graph.nodes().find((node) => node.lon < 85.05 && node.lat > 26.995).id;
+  const east = graph.nodes().find((node) => node.lon > 85.15 && node.lat > 26.995).id;
+  const matched = matchBlockagesToEdges(graph, [
+    {
+      id: 'b',
+      kind: 'blocked-road',
+      geometry: { type: 'LineString', coordinates: [[85.15, 27.0], [85.16, 27.0]] },
+    },
+  ]);
+  const damaged = damagedNetwork(graph, disabledEdgesFor(matched, 50));
+  const result = alternativeRoutes(graph, damaged, [
+    { from: west, to: east, label: 'west to east' },
+  ]);
+  const row = result.routes[0];
+  // Two ways round the loop on the baseline; blocking the direct road leaves one.
+  assert.ok(row.alternativesBaseline >= 2);
+  assert.ok(row.alternativesDamaged < row.alternativesBaseline);
+  assert.equal(row.lost, row.alternativesBaseline - row.alternativesDamaged);
+  assert.equal(result.pairsThatLostAnAlternative, 1);
+  // The detour is longer than the direct route, and both are reported.
+  assert.ok(row.baselineLongestAlternativeKm > row.baselineKm);
+  assert.match(result.note, /upper bound on redundancy/);
+});
+
+test('a saturated alternative-route count says so instead of reading as a finding', () => {
+  /*
+   * A ring of four nodes: Yen finds plenty of deviating paths, so a small k
+   * saturates. The counter must then report that it measured its own cap,
+   * because "no pair lost an alternative" would otherwise read as evidence
+   * that redundancy survived.
+   */
+  const graph = buildRoadGraph({
+    segments: [
+      { osmId: 1, coordinates: [[85.0, 27.0], [85.1, 27.0]], tags: { highway: 'primary' } },
+      { osmId: 2, coordinates: [[85.1, 27.0], [85.1, 27.1]], tags: { highway: 'primary' } },
+      { osmId: 3, coordinates: [[85.1, 27.1], [85.0, 27.1]], tags: { highway: 'primary' } },
+      { osmId: 4, coordinates: [[85.0, 27.1], [85.0, 27.0]], tags: { highway: 'primary' } },
+    ],
+  });
+  const ids = graph.nodeIds();
+  const result = alternativeRoutes(graph, damagedNetwork(graph, []), [
+    { from: ids[0], to: ids[2], label: 'across the ring' },
+  ], { k: 2 });
+  assert.equal(result.saturated, true);
+  assert.equal(result.pairsThatLostAnAlternative, 0);
+  assert.match(result.verdict, /measured its own cap/);
+  assert.match(result.verdict, /NOT that redundancy was unaffected/);
 });
