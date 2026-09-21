@@ -42,6 +42,31 @@ test('explicit build inputs preserve browser-only defines, plugin order and loop
   );
 });
 
+test('the preview server binds the host and port a platform assigns', () => {
+  /*
+   * Vite does not inherit `server.port` into preview. Without an explicit
+   * block a hosted deployment binds 4173 while the platform waits on $PORT,
+   * and the service is marked unhealthy while the process runs perfectly.
+   */
+  const hosted = createBrowserViteConfig({ host: '0.0.0.0', port: '10000' });
+  assert.equal(hosted.preview.host, '0.0.0.0');
+  assert.equal(hosted.preview.port, 10_000);
+  assert.equal(hosted.preview.port, hosted.server.port);
+  /* A bound host answers on a domain nothing here can enumerate. */
+  assert.equal(hosted.preview.allowedHosts, true);
+  assert.equal(hosted.preview.headers['X-Frame-Options'], 'DENY');
+
+  /* Bound to loopback the allowlist stays closed, in preview as in dev. */
+  const local = createBrowserViteConfig();
+  assert.equal(local.preview.host, 'localhost');
+  assert.equal(local.preview.port, 4173);
+  assert.deepEqual(local.preview.allowedHosts, [
+    'localhost',
+    '127.0.0.1',
+    '.local',
+  ]);
+});
+
 test('build helper does not discover environment values or construct local providers', () => {
   const before = process.env.GOOGLE_MAPS_API_KEY;
   process.env.GOOGLE_MAPS_API_KEY = 'environment-fixture';

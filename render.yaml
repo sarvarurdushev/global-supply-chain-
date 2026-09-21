@@ -1,0 +1,59 @@
+# Render blueprint — https://render.com/docs/blueprint-spec
+#
+# One web service. Not a static site: the map layers reach live APIs through
+# this app's own /api proxies (Overpass, OSRM routing, TomTom, FIRMS, OpenSky,
+# AIS, GTFS, the supply-chain and terrain proxies), and those run in the
+# Node process. Deployed as a static site every one of those layers 404s.
+#
+# `npm start` is `vite preview`, which serves the built bundle together with
+# every provider plugin — they all register `configurePreviewServer`. The
+# Provider Settings panel is the one thing deliberately absent in preview, so
+# a hosted instance takes its keys from the environment below and cannot be
+# asked which keys it holds.
+services:
+  - type: web
+    name: disaster-intelligence-platform
+    runtime: node
+    plan: starter # `free` works; it sleeps when idle and the first load is slow
+    region: oregon
+    branch: claude/supply-chain-intelligence-platform-5u3va2
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm start
+    healthCheckPath: /
+    autoDeployTrigger: commit
+    envVars:
+      # The app's engines field wants 24.x or 26.x. Render defaults lower.
+      - key: NODE_VERSION
+        value: '24.14.0'
+      # Render sets NODE_ENV=production, which makes npm skip devDependencies.
+      # Vite IS a devDependency and is what serves the app, so keep them.
+      - key: NPM_CONFIG_PRODUCTION
+        value: 'false'
+      # Puppeteer is a devDependency used only by the QA script. Without this
+      # it downloads a ~200 MB Chromium on every build, for nothing.
+      - key: PUPPETEER_SKIP_DOWNLOAD
+        value: 'true'
+      # Bind every interface and the port Render assigns. Both are read by
+      # server/standalone/vite.config.js and passed into the preview server.
+      - key: HOST
+        value: '0.0.0.0'
+      # PORT is injected by Render; it is listed here only as documentation
+      # that the app reads it. Do not set a literal value.
+      #
+      # --- Optional provider keys. Every one of these is optional: the app
+      # --- states in the interface which layers a missing key holds back,
+      # --- rather than failing. Set them in the Render dashboard, not here.
+      - key: GOOGLE_MAPS_API_KEY
+        sync: false # photorealistic 3D tiles, places, geocoding
+      - key: CESIUM_ION_TOKEN
+        sync: false # Cesium World Terrain; without it terrain comes from Mapterhorn
+      - key: TOMTOM_API_KEY
+        sync: false # live road traffic tiles
+      - key: FIRMS_MAP_KEY
+        sync: false # NASA FIRMS active fire detections
+      - key: AISSTREAM_API_KEY
+        sync: false # live vessel positions
+      - key: OPENAI_API_KEY
+        sync: false # voice control only
+      # OPENSKY_CLIENT_ID / OPENSKY_CLIENT_SECRET, GOOGLE_MAPS_SERVER_API_KEY
+      # and LL2_API_TOKEN are read too. Add them the same way if you have them.
