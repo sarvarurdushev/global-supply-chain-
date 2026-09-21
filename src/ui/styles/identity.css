@@ -702,3 +702,135 @@ body.ws-docked .sc-console {
 .gx-ladder .gx-row-value {
   font-variant-numeric: tabular-nums;
 }
+
+/* ==================================================================
+ * Natural Disaster Intelligence — the Nepal case
+ *
+ * Two additions, and both carry meaning rather than decoration.
+ *
+ * THE HAZARD RAMP IS DELIBERATELY NOT GREEN. Green is the interface in this
+ * kit — borders, labels, controls. A shaking field drawn in interface colour
+ * reads as chrome, and the one thing the map must never blur is the line
+ * between "the system" and "the earth". So intensity runs pale cyan through
+ * amber to red, and green is left alone.
+ *
+ * RESULT CLASSES GET SURFACES, NOT JUST COLOURS. A reader should be able to
+ * tell an observation from a scenario without reading the chip, so each class
+ * also owns an edge and a fill treatment. The hatches are what make a derived
+ * polygon legible as derived on a dark map at a glance.
+ * ================================================================== */
+
+:root {
+  /* ---- MMI ramp. Eight steps, matching the closed ShakeMap levels. ---- */
+  --gx-mmi-4: #7fd4e8;
+  --gx-mmi-4-5: #96dcd8;
+  --gx-mmi-5: #a8e6c4;
+  --gx-mmi-5-5: #d8e8a0;
+  --gx-mmi-6: #ffd166;
+  --gx-mmi-6-5: #ffb020;
+  --gx-mmi-7: #ff8c42;
+  --gx-mmi-7-5: #f4713b;
+  --gx-mmi-8: #ff4d4d;
+
+  /* ---- result-class accents ---- */
+  --gx-observed: var(--gx-neon);
+  --gx-official: var(--gx-cyan);
+  --gx-derived: var(--gx-green);
+  --gx-modelfit: #c4a7f5;
+  --gx-estimate: var(--gx-amber);
+  --gx-scenario: var(--gx-violet);
+  /* Desaturated on purpose: a gap is not an alarm. */
+  --gx-gap: #5b6b66;
+
+  /* ---- surface treatments that survive on a dark map ---- */
+  --gx-hatch-derived: repeating-linear-gradient(
+    45deg,
+    rgba(34, 217, 127, 0.16) 0 2px,
+    transparent 2px 6px
+  );
+  --gx-hatch-scenario: repeating-linear-gradient(
+    -45deg,
+    rgba(167, 139, 250, 0.2) 0 2px,
+    transparent 2px 6px
+  );
+  --gx-hatch-gap: repeating-linear-gradient(
+    90deg,
+    rgba(91, 107, 102, 0.24) 0 1px,
+    transparent 1px 5px
+  );
+}
+
+/* ---- the chip ---- */
+.ndi-class {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 7px;
+  border: 1px solid var(--chip, var(--gx-gap));
+  border-radius: 2px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--chip, var(--gx-gap));
+  background: color-mix(in srgb, var(--chip, var(--gx-gap)) 10%, transparent);
+  white-space: nowrap;
+}
+.ndi-class__glyph {
+  font-size: 9px;
+  line-height: 1;
+}
+.ndi-class__plain {
+  color: var(--gx-text-dim);
+  text-transform: none;
+  letter-spacing: 0;
+  font-family: var(--font-sans);
+  font-size: 11px;
+}
+
+/* ---- the scenario band: impossible to screenshot without it ---- */
+.ndi-scenario-band {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 3px 0;
+  background: var(--gx-hatch-scenario),
+    color-mix(in srgb, var(--gx-violet) 12%, transparent);
+  border-block: 1px solid color-mix(in srgb, var(--gx-violet) 42%, transparent);
+  color: var(--gx-violet);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+/* ---- a card carries its class as a left stripe ---- */
+.ndi-card {
+  position: relative;
+  border: 1px solid var(--gx-line);
+  border-left: 3px solid var(--stripe, var(--gx-line));
+  background: var(--gx-panel);
+  border-radius: 4px;
+  padding: 12px 14px;
+}
+
+/* ---- numbers are machine-read; language is not ---- */
+.ndi-figure {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 26px;
+  line-height: 1.1;
+  color: var(--gx-text);
+}
+.ndi-figure__unit {
+  font-size: 0.72em;
+  color: var(--gx-text-dim);
+  margin-inline-start: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ndi-scenario-band {
+    animation: none;
+  }
+}

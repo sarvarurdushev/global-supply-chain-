@@ -697,7 +697,32 @@ export const DATA_CLASS_PRESENTATION = Object.freeze({
   },
 });
 
-/** Presentation for a data class, falling back to UNKNOWN. */
+/**
+ * Presentation for a data class, falling back to UNKNOWN.
+ *
+ * Accepts the analytical vocabulary as well as this module's own. The Stage 3-5
+ * artefacts carry OBSERVED / OFFICIAL / DERIVED / MODEL_FIT / ESTIMATE /
+ * SCENARIO, which predate nothing here but describe the same idea more
+ * precisely; a panel handed one of those must not fall through to "No data".
+ * The canonical presentation lives in `src/nepal/story/resultClass.js`; this
+ * map is the older five-class view of the same thing, kept so every existing
+ * badge keeps rendering.
+ */
+const ANALYTICAL_TO_LEGACY = Object.freeze({
+  OBSERVED: 'HISTORICAL',
+  OFFICIAL: 'HISTORICAL',
+  DESCRIPTIVE_STATISTIC: 'INFERRED',
+  DERIVED: 'INFERRED',
+  MODEL_FIT: 'SIMULATED',
+  ESTIMATE: 'INFERRED',
+  SCENARIO: 'SIMULATED',
+  DATA_GAP: 'UNKNOWN',
+});
+
 export function dataClassPresentation(dataClass) {
-  return DATA_CLASS_PRESENTATION[dataClass] ?? DATA_CLASS_PRESENTATION.UNKNOWN;
+  if (DATA_CLASS_PRESENTATION[dataClass])
+    return DATA_CLASS_PRESENTATION[dataClass];
+  const legacy = ANALYTICAL_TO_LEGACY[dataClass];
+  if (legacy) return DATA_CLASS_PRESENTATION[legacy];
+  return DATA_CLASS_PRESENTATION.UNKNOWN;
 }
