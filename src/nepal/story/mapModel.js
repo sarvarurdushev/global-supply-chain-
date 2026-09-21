@@ -335,3 +335,95 @@ export function drawablesForScene({ state, intelligence, data = {} }) {
   }
   return out;
 }
+
+/**
+ * Where the camera should look for a named scene target.
+ *
+ * Targets are NAMES in the scene list rather than coordinate pairs, so the
+ * choreography reads as a descent and the positions come from the artefacts —
+ * the epicentre is wherever USGS put it, not wherever someone once typed it.
+ *
+ * An unresolvable target falls back to the country rather than to 0,0. A
+ * camera that flies to the Gulf of Guinea because a lookup missed is a very
+ * loud bug with a very quiet cause, and the fallback keeps it on screen.
+ */
+export const NEPAL_CENTRE = Object.freeze({ lon: 84.1, lat: 28.4 });
+
+export function resolveTarget(
+  name,
+  { intelligence = null, data = {}, selection = {} } = {},
+) {
+  const shock = intelligence?.seismic?.mainShock;
+  if (!name || name === 'globe' || name === 'nepal') return { ...NEPAL_CENTRE };
+  if (name === 'epicentre' || name === 'rupture') {
+    return shock
+      ? { lon: shock.longitude, lat: shock.latitude }
+      : { ...NEPAL_CENTRE };
+  }
+  if (name.startsWith('district:')) {
+    const wanted = name.slice('district:'.length);
+    const feature = (data.districts ?? []).find(
+      (entry) => entry.properties?.district === wanted,
+    );
+    const centroid = feature?.properties?.centroid;
+    if (centroid) return { lon: centroid[0], lat: centroid[1] };
+    return { ...NEPAL_CENTRE };
+  }
+  if (name === 'district') {
+    return resolveTarget(
+      selection.district ? `district:${selection.district}` : 'nepal',
+      { intelligence, data, selection },
+    );
+  }
+  if (name === 'damage-centroid' || name === 'straddling-areas') {
+    return centroidOf(data.unosat) ?? { ...NEPAL_CENTRE };
+  }
+  if (
+    name === 'infrastructure-extent' ||
+    name === 'network-extent' ||
+    name === 'route'
+  ) {
+    return (
+      centroidOfLines(data.nga?.blockedRoads?.features) ?? { ...NEPAL_CENTRE }
+    );
+  }
+  if (name === 'coverage-contrast') {
+    return resolveTarget('district:Sindhupalchok', {
+      intelligence,
+      data,
+      selection,
+    });
+  }
+  if (name === 'aoi-pair') {
+    const aoi = data.copernicusAois?.[0]?.properties?.centroid;
+    if (aoi) return { lon: aoi[0], lat: aoi[1] };
+    return { ...NEPAL_CENTRE };
+  }
+  return { ...NEPAL_CENTRE };
+}
+
+function centroidOf(features) {
+  if (!features?.length) return null;
+  let lon = 0;
+  let lat = 0;
+  for (const feature of features) {
+    lon += feature.geometry.coordinates[0];
+    lat += feature.geometry.coordinates[1];
+  }
+  return { lon: lon / features.length, lat: lat / features.length };
+}
+
+function centroidOfLines(features) {
+  if (!features?.length) return null;
+  let lon = 0;
+  let lat = 0;
+  let count = 0;
+  for (const feature of features) {
+    for (const position of feature.geometry.coordinates) {
+      lon += position[0];
+      lat += position[1];
+      count += 1;
+    }
+  }
+  return count > 0 ? { lon: lon / count, lat: lat / count } : null;
+}
