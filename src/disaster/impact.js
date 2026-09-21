@@ -166,7 +166,19 @@ export function affectedCities({ cityIntensities, minMmi = 6 }) {
  * @param {number} [input.riskThreshold] zone value above which a road is AT_RISK
  * @returns {Readonly<object>}
  */
-export function roadExposure({ segments, hazardZones, riskThreshold = 0.1 }) {
+export function roadExposure({ segments, hazardZones, riskThreshold = 0.55 }) {
+  /*
+   * The threshold is 0.55, not 0.1, and that matters.
+   *
+   * Measured on the real Gorkha data: the MMI VI contour covers the whole
+   * Kathmandu-to-Langtang region, so at a low threshold all 367 mapped trunk
+   * segments came back exposed — 177 km of 177 km. "Everything is at risk" is
+   * not a finding, it is a map with one colour.
+   *
+   * At 0.55 only the MMI VIII and above bands qualify, which is where
+   * structures and slopes actually fail. A caller wanting the wider picture
+   * passes a lower threshold deliberately.
+   */
   const zones = (hazardZones ?? []).filter(
     (zone) => Array.isArray(zone?.ring) && zone.ring.length >= 3,
   );
@@ -188,6 +200,14 @@ export function roadExposure({ segments, hazardZones, riskThreshold = 0.1 }) {
       const lengthKm = segmentLengthKm(segment.coordinates);
       return Object.freeze({
         id: segment.osmId ?? `segment:${segment.coordinates[0].join(',')}`,
+        /*
+         * Carried through, not just folded into `id`. The routing graph keys
+         * its edges on `osmId`, and an earlier version returned only `id` —
+         * so every blocked-edge lookup came back empty and a severed corridor
+         * silently routed as if nothing were closed.
+         */
+        osmId: segment.osmId ?? null,
+        tags: segment.tags ?? null,
         name: segment.tags?.name ?? null,
         ref: segment.tags?.ref ?? null,
         coordinates: segment.coordinates,
@@ -270,6 +290,109 @@ export function facilityExposure({
     ),
     withCapacity: rated.filter((item) => item.capacity != null).length,
     basis: STATE_BASIS.MODELLED,
+  });
+}
+
+/**
+ * The OBSERVED-status adapter (§7's recovery arc, §20's clean interface).
+ *
+ * `roadExposure` and `facilityExposure` above can only ever produce
+ * `OPERATIONAL` and `AT_RISK`, both on a `MODELLED` basis, because a hazard
+ * model is all they are given. `CLOSED` and `RECOVERING` are different claims
+ * — somebody went and looked — and no open feed publishes them per asset
+ * (`DATA_AVAILABILITY_MATRIX.md` register row 17).
+ *
+ * So rather than leave those two states as vocabulary nothing can reach, or
+ * fake them off the model and colour a guess as a report, this is the adapter
+ * a real damage register would arrive through. It takes cited records, applies
+ * the ones in force at the phase being viewed, and returns the counts. Ship it
+ * with no records and the counts say so: every asset is modelled, nothing is
+ * observed, and the interface prints that instead of implying a survey.
+ *
+ * A record is `{ osmId | id, state, source, fromHours, untilHours? }`.
+ * `fromHours` and `untilHours` are hours from origin time, so the same record
+ * set drives the whole timeline: a bridge cited closed from T+0 and cited
+ * partially reopened at T+240 is `CLOSED` at T+24h and `RECOVERING` at T+14d
+ * without anything recomputing it.
+ *
+ * @param {object} input
+ * @param {Array<object>} input.items rated assets from roadExposure/facilityExposure
+ * @param {Array<object>} [input.citedStatus] observed records, if any exist
+ * @param {number} [input.phaseHours] hours from origin time being viewed
+ * @returns {Readonly<object>}
+ */
+export function applyCitedStatus({ items, citedStatus = [], phaseHours = 0 }) {
+  const hours = Number.isFinite(phaseHours) ? phaseHours : 0;
+  const inForce = new Map();
+  for (const record of citedStatus ?? []) {
+    const key = record?.osmId ?? record?.id ?? null;
+    const state = record?.state ?? null;
+    /*
+     * A record without a source is refused, not defaulted. An observed state
+     * whose origin nobody can check is exactly the claim this project exists
+     * not to make, and letting one through would put an uncitable "CLOSED"
+     * on the map wearing an OBSERVED badge.
+     */
+    if (key == null || !record?.source) continue;
+    if (state !== INFRA_STATE.CLOSED && state !== INFRA_STATE.RECOVERING) {
+      continue;
+    }
+    const from = Number.isFinite(record.fromHours) ? record.fromHours : 0;
+    const until = Number.isFinite(record.untilHours) ? record.untilHours : null;
+    if (hours < from) continue;
+    if (until !== null && hours >= until) continue;
+    /* The latest record in force wins, so a reopening supersedes a closure. */
+    const held = inForce.get(key);
+    if (!held || from >= held.fromHours) {
+      inForce.set(key, { ...record, fromHours: from, untilHours: until });
+    }
+  }
+
+  const applied = (items ?? []).map((item) => {
+    const key = item?.osmId ?? item?.id ?? null;
+    const record = key == null ? null : inForce.get(key);
+    if (!record) return item;
+    return Object.freeze({
+      ...item,
+      state: record.state,
+      basis: STATE_BASIS.OBSERVED,
+      availability: AVAILABILITY.CONFIRMED,
+      citedSource: record.source,
+      citedFromHours: record.fromHours,
+      caveat:
+        record.state === INFRA_STATE.CLOSED
+          ? `Reported closed by ${record.source}. This is an observation, not the hazard model.`
+          : `Reported partially back in service by ${record.source}. Capacity is not stated, so "reopened" does not mean "as before".`,
+    });
+  });
+
+  const counts = Object.freeze(
+    Object.fromEntries(
+      Object.values(INFRA_STATE).map((state) => [
+        state,
+        applied.filter((item) => item.state === state).length,
+      ]),
+    ),
+  );
+  const observed = applied.filter(
+    (item) => item.basis === STATE_BASIS.OBSERVED,
+  ).length;
+
+  return Object.freeze({
+    items: Object.freeze(applied),
+    counts,
+    observed,
+    modelled: applied.length - observed,
+    phaseHours: hours,
+    /*
+     * Printed in the panel. With an empty register this is the whole finding
+     * about infrastructure state, and it is a more useful sentence than any
+     * number of modelled closures would have been.
+     */
+    note:
+      observed === 0
+        ? `No cited per-asset status applies at this point in the timeline, so all ${applied.length} assets carry modelled exposure only. Damage per asset is not published for these events; a national road-authority register or an OSM-id-keyed assessment layer would supply it.`
+        : `${observed} of ${applied.length} assets carry a cited status at this point; the remaining ${applied.length - observed} are modelled exposure.`,
   });
 }
 

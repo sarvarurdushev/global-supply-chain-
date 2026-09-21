@@ -64,6 +64,14 @@ export const NAV_SECTIONS = Object.freeze([
         status: 'ready',
       }),
       Object.freeze({
+        id: 'guided-demo',
+        name: 'Guided Demonstration',
+        icon: '▶',
+        summary: 'The whole concept in sixteen scenes, on one real earthquake.',
+        view: 'demo',
+        status: 'ready',
+      }),
+      Object.freeze({
         id: 'live-hazards',
         name: 'Live Hazards',
         icon: '⚠',
@@ -507,7 +515,12 @@ export const NEXT_STEPS = Object.freeze({
    * order: you cannot read impact before you know where you are, and response
    * only means something once you know what broke.
    */
+  demo: Object.freeze([
+    { id: 'case-explorer', question: 'Investigate a case yourself' },
+    { id: 'provenance', question: 'Where did all of this come from?' },
+  ]),
   cases: Object.freeze([
+    { id: 'guided-demo', question: 'Or watch the guided demonstration' },
     { id: 'descent', question: 'Descend into the one you picked' },
     { id: 'live-hazards', question: 'What is happening right now?' },
   ]),

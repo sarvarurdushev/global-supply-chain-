@@ -64,7 +64,10 @@ export const DATA_CREDITS = [
   },
   {
     key: 'usgs',
-    html: 'Earthquakes: Data courtesy of the U.S. Geological Survey',
+    html:
+      'Earthquakes, and the event products behind the disaster investigations ' +
+      '(ShakeMap, PAGER, finite fault, ground failure, DYFI): ' +
+      '<a href="https://earthquake.usgs.gov" target="_blank" rel="noopener">Data courtesy of the U.S. Geological Survey</a>',
   },
   {
     key: 'overpass',

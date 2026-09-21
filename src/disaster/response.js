@@ -75,17 +75,49 @@ export const ROUTE_PURPOSE = Object.freeze({
  * @returns {object} a graph `shortestPath` can traverse
  */
 export function buildRoadGraph({ segments, snapMetres = 50 }) {
-  const nodeById = new Map();
-  const edges = [];
   const precision = snapMetres / 111_320; // degrees, near enough at these scales
   const key = (lon, lat) =>
     `n:${Math.round(lon / precision)}:${Math.round(lat / precision)}`;
 
+  const usable = (segments ?? []).filter(
+    (segment) =>
+      Array.isArray(segment?.coordinates) && segment.coordinates.length >= 2,
+  );
+
+  /*
+   * PASS 1 — find the junctions.
+   *
+   * This pass is the whole correctness of the graph, and leaving it out was a
+   * real bug: an earlier version created nodes only at each way's ENDPOINTS,
+   * which is wrong because OSM ways meet at shared INTERMEDIATE vertices. A
+   * road that joins another halfway along it shared no node, so the network
+   * fragmented into 42 disconnected components and Kathmandu could not be
+   * routed to the Langtang corridor at all — measured on the real data before
+   * this pass existed.
+   *
+   * A coordinate is a junction if it appears in more than one way, or if it is
+   * a way's own endpoint. Everything else is shape, not topology.
+   */
+  const seenIn = new Map();
+  for (const segment of usable) {
+    const local = new Set();
+    for (const [lon, lat] of segment.coordinates) {
+      local.add(key(lon, lat));
+    }
+    for (const id of local) {
+      seenIn.set(id, (seenIn.get(id) ?? 0) + 1);
+    }
+  }
+  const isJunction = (id) => (seenIn.get(id) ?? 0) > 1;
+
+  /* PASS 2 — split each way at its junctions and build the edges. */
+  const nodeById = new Map();
+  const edges = [];
   const addNode = (lon, lat) => {
     const id = key(lon, lat);
     if (!nodeById.has(id)) {
       /*
-       * `position` is the field `edgeDistanceKm` falls back to and the one
+       * `position` is what `edgeDistanceKm` falls back to and what
        * `greatCircleHeuristic` reads, so it is not optional decoration.
        */
       nodeById.set(id, { id, position: { lat, lon }, lat, lon });
@@ -94,71 +126,103 @@ export function buildRoadGraph({ segments, snapMetres = 50 }) {
   };
 
   let counter = 0;
-  for (const segment of segments ?? []) {
-    const coords = segment?.coordinates;
-    if (!Array.isArray(coords) || coords.length < 2) continue;
-    const distanceKm = segmentLengthKm(coords);
-    if (!(distanceKm > 0)) continue;
-    /*
-     * Validated BEFORE any node is created. An earlier version added the
-     * endpoints first and then dropped the segment, which left orphan nodes in
-     * a graph with no edges — and two far-apart endpoints could then snap to
-     * the same orphan and report a zero-kilometre route between them.
-     */
-    const startKey = key(coords[0][0], coords[0][1]);
-    const endKey = key(
-      coords[coords.length - 1][0],
-      coords[coords.length - 1][1],
-    );
-    // A loop that snaps to one node carries no connectivity.
-    if (startKey === endKey) continue;
-    const from = addNode(coords[0][0], coords[0][1]);
-    const to = addNode(
-      coords[coords.length - 1][0],
-      coords[coords.length - 1][1],
-    );
+  for (const segment of usable) {
+    const coords = segment.coordinates;
     const shared = {
       osmId: segment.osmId ?? null,
       name: segment.tags?.name ?? null,
       ref: segment.tags?.ref ?? null,
       highway: segment.tags?.highway ?? null,
-      distanceKm,
       state: segment.state ?? null,
       hazardValue: segment.hazardValue ?? null,
     };
-    /*
-     * Both directions. A blocked road blocks both ways, and an evacuation runs
-     * against the direction aid arrives on, so a directed-only graph would
-     * solve one of those two and silently fail the other.
-     *
-     * Edge ids are sequential rather than derived from the OSM id, because a
-     * single OSM way can be split into several segments and createGraph
-     * rejects duplicate ids.
-     */
-    counter += 1;
-    edges.push({
-      id: `e${counter}f`,
-      from,
-      to,
-      coordinates: coords,
-      ...shared,
-    });
-    edges.push({
-      id: `e${counter}r`,
-      from: to,
-      to: from,
-      coordinates: [...coords].reverse(),
-      ...shared,
-    });
+
+    /* Cut points: both ends, plus every junction in between. */
+    const cuts = [0];
+    for (let i = 1; i < coords.length - 1; i += 1) {
+      if (isJunction(key(coords[i][0], coords[i][1]))) cuts.push(i);
+    }
+    cuts.push(coords.length - 1);
+
+    for (let c = 0; c < cuts.length - 1; c += 1) {
+      const slice = coords.slice(cuts[c], cuts[c + 1] + 1);
+      if (slice.length < 2) continue;
+      const distanceKm = segmentLengthKm(slice);
+      if (!(distanceKm > 0)) continue;
+      const startKey = key(slice[0][0], slice[0][1]);
+      const endKey = key(
+        slice[slice.length - 1][0],
+        slice[slice.length - 1][1],
+      );
+      // A piece that snaps to a single node carries no connectivity.
+      if (startKey === endKey) continue;
+      const from = addNode(slice[0][0], slice[0][1]);
+      const to = addNode(
+        slice[slice.length - 1][0],
+        slice[slice.length - 1][1],
+      );
+      counter += 1;
+      /*
+       * Both directions. A blocked road blocks both ways, and an evacuation
+       * runs against the direction aid arrives on, so a directed-only graph
+       * would solve one of those and silently fail the other.
+       *
+       * Edge ids are sequential rather than derived from the OSM id: one way
+       * now yields several edges, and createGraph rejects duplicate ids.
+       */
+      edges.push({
+        id: `e${counter}f`,
+        from,
+        to,
+        coordinates: slice,
+        distanceKm,
+        ...shared,
+      });
+      edges.push({
+        id: `e${counter}r`,
+        from: to,
+        to: from,
+        coordinates: [...slice].reverse(),
+        distanceKm,
+        ...shared,
+      });
+    }
   }
 
   /*
    * Built with the project's own createGraph rather than a hand-rolled object.
-   * An earlier version of this function invented its own interface and
-   * shortestPath rejected it at `graph.hasNode` — the router's contract is
-   * hasNode / node / outEdges / penaltyFor, and guessing at it wasted a cycle.
+   * An earlier version invented its own interface and shortestPath rejected it
+   * at `graph.hasNode` — the router's contract is hasNode / node / outEdges /
+   * penaltyFor, and guessing at it wasted a cycle.
    */
   return createGraph({ nodes: [...nodeById.values()], edges });
+}
+
+/**
+ * How many nodes are reachable from one node.
+ *
+ * Used to tell a COVERAGE gap from a DISRUPTION finding. An endpoint whose
+ * nearest mapped node sits in a two-node island is not severed by the
+ * disaster — OpenStreetMap simply has no road network there, which is a fact
+ * about the map rather than about the event. Measured on the real data: the
+ * Langtang corridor's nearest primary-class node is 15 km away in a 2-node
+ * component, because mountain Nepal is sparsely mapped at this road class.
+ *
+ * Reporting that as "severed" would be misleading in the opposite direction to
+ * the usual failure: it would turn a data gap into a dramatic finding.
+ */
+export function componentSize(graph, nodeId, limit = 64) {
+  const seen = new Set([nodeId]);
+  const stack = [nodeId];
+  while (stack.length > 0 && seen.size < limit) {
+    const current = stack.pop();
+    for (const edge of graph.outEdges(current)) {
+      if (seen.has(edge.to)) continue;
+      seen.add(edge.to);
+      stack.push(edge.to);
+    }
+  }
+  return seen.size;
 }
 
 /** The graph node nearest a coordinate, or null when nothing is close. */
@@ -232,14 +296,52 @@ export function solveRoute({
       label,
     });
   }
+  /*
+   * A poorly mapped endpoint is reported BEFORE any path attempt.
+   *
+   * Otherwise a coverage gap and a disaster-caused severance produce the same
+   * message, and the more dramatic reading is the wrong one.
+   */
+  const MIN_COMPONENT = 8;
+  const ISOLATED_ACCESS_KM = 5;
+  for (const [end, point] of [
+    [origin, from],
+    [destination, to],
+  ]) {
+    const size = componentSize(graph, end.node.id, MIN_COMPONENT + 1);
+    if (size <= MIN_COMPONENT && end.distanceKm > ISOLATED_ACCESS_KM) {
+      return Object.freeze({
+        ok: false,
+        reason: 'ENDPOINT_POORLY_MAPPED',
+        detail: `${point.label ?? 'This endpoint'} has no usable mapped road network: its nearest road is ${end.distanceKm.toFixed(0)} km away and connects to only ${size} junctions. That is a gap in OpenStreetMap's coverage at this road class, not a route the disaster closed.`,
+        purpose,
+        label,
+        accessKm: end.distanceKm,
+        componentSize: size,
+      });
+    }
+  }
+
   const result = shortestPath(graph, origin.node.id, destination.node.id, {
     blockedEdges: new Set(blockedEdges),
   });
   if (!result) {
+    const unblocked =
+      [...blockedEdges].length > 0
+        ? shortestPath(graph, origin.node.id, destination.node.id, {})
+        : null;
+    /*
+     * Was there ever a route? If not, the closures are irrelevant and saying
+     * "no route remains with these closures" blames the disaster for a
+     * disconnected network.
+     */
+    const neverConnected = [...blockedEdges].length > 0 && !unblocked;
     return Object.freeze({
       ok: false,
-      reason: 'NO_PATH',
-      detail: `No route remains between ${from.label ?? 'origin'} and ${to.label ?? 'destination'} with these closures. On this network that is isolation, not a detour.`,
+      reason: neverConnected ? 'NEVER_CONNECTED' : 'NO_PATH',
+      detail: neverConnected
+        ? `${from.label ?? 'Origin'} and ${to.label ?? 'destination'} are not connected on this road network even with nothing closed. The closures are not the cause.`
+        : `No route remains between ${from.label ?? 'origin'} and ${to.label ?? 'destination'} with these closures. On this network that is isolation, not a detour.`,
       purpose,
       label,
       blockedCount: [...blockedEdges].length,

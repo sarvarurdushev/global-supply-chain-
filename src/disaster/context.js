@@ -18,8 +18,9 @@
  */
 
 import { buildCatalogue } from './catalogue.js';
+import { createDemoPlayback, demo } from './demo.js';
 import { createDisasterSession } from './session.js';
-import { roadExposure } from './impact.js';
+import { applyCitedStatus, roadExposure } from './impact.js';
 import {
   ASSUMED_SPEEDS,
   buildRoadGraph,
@@ -42,10 +43,12 @@ export function createDisasterContext({
   layers,
   globe,
   refresh,
+  navigate: navigateTo = () => {},
   hazardLayer = null,
   liveRecords = [],
 }) {
   let session = null;
+  let demoPlayback = null;
   let live = [...liveRecords];
   /** Cached per (case, phase) so a re-render does not re-solve routes. */
   let analysisCache = new Map();
@@ -76,7 +79,15 @@ export function createDisasterContext({
    * that is the contract every layer in this project already exposes.
    */
   function roadSegments() {
-    for (const layerId of ['freight-roads', 'freight-rail']) {
+    /*
+     * Order matters. `access-roads` is motorway down to secondary, which is
+     * what a relief convoy actually drives on; `freight-roads` is
+     * motorway|trunk, the long-haul network, which in mountain terrain does
+     * not reach the settlements this half of the app is about. Preferring the
+     * freight network here was the reason Kathmandu could not route to the
+     * Langtang corridor at all.
+     */
+    for (const layerId of ['access-roads', 'freight-roads', 'freight-rail']) {
       const layer = layers.get?.(layerId);
       const stats = layer?.getStats?.();
       if (!stats?.count) continue;
@@ -155,7 +166,23 @@ export function createDisasterContext({
       const segments = roadSegments();
       const zones = hazardZones();
       if (!segments || !zones) return null;
-      return roadExposure({ segments, hazardZones: zones });
+      const exposure = roadExposure({ segments, hazardZones: zones });
+      /*
+       * The modelled exposure is then passed through the observed-status
+       * adapter, at the phase currently being viewed. With no cited register
+       * for these events it returns the same segments plus a count that says
+       * nothing is observed — which is the honest answer to §7's
+       * normal → damaged → recovery, and the point where a real damage
+       * register would attach without touching anything else.
+       */
+      const phaseHours =
+        session?.investigation?.getState?.()?.phase?.offsetHours ?? 0;
+      const lifecycle = applyCitedStatus({
+        items: exposure.segments,
+        citedStatus: session?.case?.citedInfrastructureStatus ?? [],
+        phaseHours,
+      });
+      return Object.freeze({ ...exposure, lifecycle });
     });
   }
 
@@ -329,7 +356,31 @@ export function createDisasterContext({
       return true;
     },
 
+    /** The running demo, or null. */
+    demoPlayback: () => demoPlayback,
+
+    /**
+     * Start (or restart) the guided demonstration on the open case.
+     *
+     * It drives the same session the user drives, so there is no separate
+     * rendering path and nothing the demo shows is unavailable by hand.
+     */
+    startDemo(demoId = 'nepal-gorkha-demo') {
+      const script = demo(demoId);
+      if (!script || !session) return false;
+      demoPlayback?.destroy();
+      demoPlayback = createDemoPlayback({
+        demo: script,
+        session,
+        navigate: (itemId) => navigateTo(itemId),
+        onChange: () => refresh(),
+      });
+      return demoPlayback.play();
+    },
+
     close() {
+      demoPlayback?.destroy();
+      demoPlayback = null;
       session?.destroy();
       session = null;
       invalidate();

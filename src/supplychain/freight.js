@@ -136,6 +136,34 @@ export const FREIGHT_NETWORKS = Object.freeze({
     wouldNeed:
       'Operator SCADA data or a regulator’s nomination system (for example ENTSOG’s transparency platform for EU gas). Nothing equivalent is published globally.',
   }),
+  /**
+   * The access network, for disaster routing rather than freight.
+   *
+   * `motorway|trunk` is the right query for long-haul freight corridors and
+   * the wrong one for reaching a mountain village: measured on the real data,
+   * a trunk-only network could not connect Kathmandu to the Langtang corridor
+   * at all, because the Pasang Lhamu Highway — the only road north — is
+   * tagged `primary`. Rescue and evacuation route over this instead.
+   */
+  access: Object.freeze({
+    id: 'access-roads',
+    name: 'Access Roads',
+    kind: 'line',
+    icon: '⤫',
+    query: (bbox, timeoutSec) =>
+      `[out:json][timeout:${timeoutSec}];(way["highway"~"^(motorway|trunk|primary|secondary)$"](${bboxArgs(bbox)}););out geom qt;`,
+    reads:
+      'Every road a vehicle can use to reach a settlement, as surveyed by OpenStreetMap contributors.',
+    affectsSupplyChain:
+      'After a disaster the question is not which road carries the most freight, it is which road still reaches the village. In mountain terrain that is usually a single primary road with no alternative.',
+    measures: ['where the usable roads are', 'their classification and name'],
+    missing: [
+      'whether any given road is currently passable',
+      'bridge load limits and seasonal closures',
+    ],
+    wouldNeed:
+      'A national road-authority status feed. None is published openly for any country this platform covers.',
+  }),
   production: Object.freeze({
     id: 'production-sites',
     name: 'Mines, Quarries & Refineries',

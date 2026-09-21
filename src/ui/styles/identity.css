@@ -312,6 +312,14 @@ body::after {
 .gx-state-observed {
   color: var(--gx-neon);
 }
+/*
+ * A state nothing reached. Kept in the legend at low contrast rather than
+ * dropped, because "zero assets are reported closed" is the finding and a
+ * missing row reads as a row that was never offered.
+ */
+.gx-state-empty {
+  color: var(--gx-text-dim, rgba(190, 220, 205, 0.45));
+}
 
 /* ------------------------------------------------------------------ *
  * The intel HUD — a monitoring frame rather than a classification banner

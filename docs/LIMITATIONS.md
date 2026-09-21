@@ -268,7 +268,12 @@ country property.** China's national withdrawal figure averages the water-rich
 south with the water-scarce north, and the north is where the wheat is. A
 national average can therefore read "medium" for a country with a severe regional
 problem. WRI Aqueduct publishes water stress by basin, which is the right
-resolution, and is a bulk download rather than an API. It is not integrated.
+resolution. **That sentence used to end "and is a bulk download rather than an
+API. It is not integrated," and both halves are now wrong:** Esri's Living Atlas
+serves Aqueduct 4.0 as a keyless, CORS-open feature service, and
+`Analyze → Water Stress by Basin` queries it directly. Both resolutions are
+shown together and the gap between them — Beijing's basin at 93.7% against
+China's national 20.2% — is stated as the finding.
 
 Two readings that look like errors and are not:
 
@@ -282,3 +287,86 @@ Two readings that look like errors and are not:
 No causal claim is made anywhere in this view. The indicators describe exposure.
 Whether a given harvest or shipment actually fails depends on weather, storage
 and policy this project does not model.
+
+---
+
+## 17. The disaster platform: what it knows, and what it only models
+
+This is the most important section for anyone reading the disaster half of the
+application, and the shortest honest summary of it is this:
+
+> **The hazard, the population and the infrastructure are open data. What
+> happened to them at a given hour is not.**
+
+Everything below follows from that one sentence.
+
+### 17.1 Shaking is measured; damage is not
+
+USGS ShakeMap gives a real, revised, agency-published intensity field, and PAGER
+gives real exposed-population counts by intensity band. Both are used unmodified.
+
+What no open source gives is the state of an individual road, bridge, hospital
+or school after the event. So `roadExposure` and `facilityExposure` can only
+produce two states — `OPERATIONAL` and `AT_RISK` — both on a `MODELLED` basis,
+and both say so on every row. `CLOSED` and `RECOVERING` are reachable **only**
+through `applyCitedStatus`, which requires a per-asset record carrying a source,
+and **no such register is shipped, because none is published for these events.**
+The infrastructure panel prints all five states with their counts, and with an
+empty register four of those counts are structural zeroes. That is the finding.
+
+A hazard zone crossing a road means the road was exposed to the thing that
+breaks roads. It is not a report that the road broke.
+
+### 17.2 Casualties are national ranges, not a map
+
+PAGER publishes fatality and loss **ranges with probabilities**, for the event as
+a whole. It does not publish them by district, by city or by hour, and the
+eventual official district-level toll appears weeks later in an assessment
+document rather than in any feed.
+
+The platform therefore never draws a casualty figure on the map. It draws
+**exposed population by shaking band**, which is a measured geographic quantity,
+and states next to it that how harm distributed inside those bands is not
+published. The timeline's human-impact rung is explicitly declared unavailable
+per phase, naming what would supply it.
+
+### 17.3 Economic loss is one cited national total, openly apportioned
+
+The Nepal case carries the Government of Nepal PDNA 2015 figure — about USD 7.0
+billion, roughly a third of GDP — as a cited constant. Spreading it across the
+shaking bands by exposed population is a **model**, labelled as one, shown with
+its caveat and a sensitivity range. Nobody published district-level loss for this
+event, and the apportionment does not become one by being drawn on a map.
+
+### 17.4 Routes are geography and assumed speeds, not operations
+
+`solveRoute`, `routeAlternatives`, `evacuationScenarios` and `aidCorridors` run
+over the real OSM road network with **stated assumed speeds** (`ASSUMED_SPEEDS`:
+45 km/h clear trunk, 20 degraded, 15 mountain, 4 on foot, 180 by helicopter).
+Those speeds are printed beside every duration. They are not measured travel
+times, they do not know about checkpoints, convoy scheduling, fuel, weather or
+who has permission to move, and a route the model calls open may be impassable
+for a dozen reasons the model cannot see.
+
+Three verdicts exist precisely so that a data gap is never sold as a finding:
+`ENDPOINT_POORLY_MAPPED` (the destination has no mapped road within reach),
+`NEVER_CONNECTED` (the two points were never connected before the event either)
+and `SEVERED` (they were connected, and the hazard broke it). Only the third is
+a disaster result.
+
+### 17.5 Supply-chain consequence is topology, not tonnage
+
+The disaster→supply-chain chain inherits every limitation in §7 above. It shows
+which corridors and facilities sit in the hazard's path and what the network
+looks like without them. It does not know what was actually moving, what it was
+worth, or whether a shipment was re-routed successfully — and the inherited
+BLOCKED register (per-vessel cargo, freight throughput, firm-level production)
+still applies unchanged.
+
+### 17.6 The demo is scripted; the data underneath it is not
+
+The 16-beat Nepal demo drives the real session against the real USGS products.
+If a product fails to load, the beat still runs and says which sources are
+missing, because a demo that silently skips its failures demonstrates a
+platform that does not exist. Each beat carries the single claim it is making,
+so a viewer can check the claim against what is on screen.

@@ -60,6 +60,8 @@ redistributing them silently. Anyone taking this repository commercially must ac
 | CelesTrak | US-government-origin, no licence; citation requested | ✅ | No | "CelesTrak (celestrak.org), Dr. T.S. Kelso" |
 | The Space Devs Launch Library 2 | TSD terms; attribution encouraged; 15 calls/hr unauthenticated | ✅ | Optional | "Launch Library 2 — The Space Devs" |
 | USGS | **US public domain** | ✅ | No | "Data courtesy of the U.S. Geological Survey" |
+| USGS ComCat event products (ShakeMap `cont_mmi.json`, PAGER `pager.xml`/`exposure.xml`, finite-fault `FFM.geojson`, ground-failure, DYFI, poster PDF) | **US public domain** | ✅ | No | "Data courtesy of the U.S. Geological Survey" — products are cited individually in the SOURCES panel |
+| OSM Overpass — `access` road network (motorway/trunk/primary/secondary, for disaster routing) | **ODbL 1.0** | ✅ | No | "© OpenStreetMap contributors" + share-alike on any derived database |
 | NASA FIRMS | **CC0** / US public domain | ✅ | No | Citation requested |
 | OSM Overpass | **ODbL 1.0** | ✅ | No | "© OpenStreetMap contributors" |
 | OSM Overpass — freight rail, trunk road, pipelines, production sites | **ODbL 1.0** | ✅ | No | "© OpenStreetMap contributors" + share-alike on any derived database |
@@ -91,6 +93,7 @@ redistributing them silently. Anyone taking this repository commercially must ac
 | **Natural Earth** (ports, countries) | Reference geometry | **Public domain** | ✅ | ✅ | No | "Made with Natural Earth" (courtesy) |
 | **Curated chokepoint geometry** | Strait/canal polygons + dependency notes | Authored by this project (MIT) from cited public sources | ✅ | ✅ | No | Per-record `sources[]` citation |
 | **Curated disruption timeline** | Historical documented disruptions | Authored by this project (MIT); each entry cites a public source | ✅ | ✅ | No | Per-record `sources[]` citation |
+| **Curated disaster cases** (`src/disaster/catalogue.js`) | Case metadata, the zoom ladder, and cited published totals such as the Government of Nepal PDNA 2015 loss figure | Authored by this project (MIT). The cited figures are **facts reported from named public assessments**, not a redistributed dataset — each carries its `source` string | ✅ | ✅ | No | The `source` string on each figure, shown in the panel beside the number |
 
 ### 3.1 Sources deliberately NOT used, and why
 

@@ -162,8 +162,8 @@ test('production registry is exact, canonical, and rejects incomplete contracts'
   // supply-ports, chokepoints, supply-events, country-borders, supply-chain),
   // the five inland-freight layers (freight-rail, freight-roads, pipelines,
   // production-sites, air-cargo-hubs) and the hazard geometry layer.
-  assert.equal(REGISTERED_LAYER_IDS.length, 33);
-  assert.equal(new Set(REGISTERED_LAYER_IDS).size, 33);
+  assert.equal(REGISTERED_LAYER_IDS.length, 35);
+  assert.equal(new Set(REGISTERED_LAYER_IDS).size, 35);
   assert.ok(REGISTERED_LAYER_IDS.includes('country-borders'));
   assert.ok(REGISTERED_LAYER_IDS.includes('supply-chain'));
   assert.ok(REGISTERED_LAYER_IDS.includes('transit'));

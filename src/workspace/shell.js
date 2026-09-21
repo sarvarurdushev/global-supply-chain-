@@ -194,6 +194,8 @@ export function createWorkspace({
     layers,
     globe,
     refresh: () => render(),
+    // The demo navigates the panel between scenes, which is the shell's job.
+    navigate: (itemId) => navigate(itemId),
     hazardLayer: layers.get?.('hazard-geometry') ?? null,
   });
 
@@ -690,6 +692,13 @@ export function createWorkspace({
       }),
     /** For a host that changed something the workspace renders. */
     refresh: render,
+    /**
+     * The disaster investigation, for a host driving the platform from
+     * outside the panel — the QA script opens a case and walks the ladder
+     * through this, which is the only way a browser run can prove the
+     * descent and the phase machine behave against live agency data.
+     */
+    disaster,
     /** For a host that picked an entity itself. */
     select: handleSelection,
     destroy() {

@@ -407,6 +407,39 @@ export const LAYER_NAMES = Object.freeze([
     caveat:
       'NOT a cargo ranking. No open source publishes airport freight tonnage, so every marker is the same size and none is marked busier than another.',
   }),
+  Object.freeze({
+    id: 'access-roads',
+    name: 'Access Roads',
+    group: 'Inland Freight',
+    summary:
+      'Every road a vehicle can reach a settlement on \u2014 motorway down to secondary.',
+    icon: '\u2aeb',
+    available: true,
+    caveat:
+      'The network rescue and evacuation route over, not the freight network. It says where roads are, never whether one is currently passable.',
+  }),
+  // --- the disaster investigation ---
+  Object.freeze({
+    id: 'hazard-geometry',
+    name: 'Hazard',
+    group: 'Disaster',
+    summary:
+      'The open event\u2019s own shape: shaking bands, rupture, flood path, burn perimeter.',
+    icon: '\u25c8',
+    available: true,
+    caveat:
+      'Drawn from the responsible agency\u2019s published geometry for the open case, and empty until one is open. It is the hazard\u2019s extent, never a map of damage.',
+  }),
+  Object.freeze({
+    id: 'terrain-3d',
+    name: 'Terrain & Elevation',
+    group: 'Disaster',
+    summary: 'Real elevation under the map, so a valley reads as a valley.',
+    icon: '\u26f0',
+    available: true,
+    caveat:
+      'Vertical exaggeration above 1\u00d7 makes slopes readable and makes every height wrong by that multiplier. The active multiplier is stated in the reading.',
+  }),
   // --- gaps, shown rather than hidden ---
   Object.freeze({
     id: 'gap:freight-volume',

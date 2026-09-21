@@ -39,17 +39,22 @@ test('catalogs construct distinct layers and classification from their supplied 
     signal: b.signal,
     surface: fixtureSurface(b.signal),
   });
-  // 21 inherited God's Eye View layers, the six supply-chain layers and the
-  // five inland-freight layers.
-  assert.equal(first.layers.length, 33);
+  // 21 inherited God's Eye View layers, the six supply-chain layers, the five
+  // inland-freight layers and the access network the disaster response routes
+  // over.
+  assert.equal(first.layers.length, 35);
   assert.ok(first.get('country-borders'));
   assert.ok(first.get('supply-chain'));
   assert.ok(first.get('transit'));
-  // All four OpenStreetMap freight networks and the bundled air gateways are
-  // constructed, not just declared in the taxonomy.
+  // All five OpenStreetMap networks and the bundled air gateways are
+  // constructed, not just declared in the taxonomy. `access-roads` is in this
+  // list because it was declared in FREIGHT_NETWORKS and never constructed,
+  // which left the rescue and evacuation solvers routing over the long-haul
+  // freight network instead of the roads that reach a village.
   for (const id of [
     'freight-rail',
     'freight-roads',
+    'access-roads',
     'pipelines',
     'production-sites',
     'air-cargo-hubs',

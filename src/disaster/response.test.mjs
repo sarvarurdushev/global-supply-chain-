@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   ASSUMED_SPEEDS,
+  componentSize,
   ROUTE_PURPOSE,
   aidCorridors,
   buildRoadGraph,
@@ -24,6 +25,136 @@ const VILLAGE = { lat: 28.1, lon: 85.2, label: 'Affected village' };
 
 const graph = () => buildRoadGraph({ segments: SEGMENTS });
 const edgesNamed = (g, name) => g.edges().filter((e) => e.name === name).map((e) => e.id);
+
+test('ways are split at shared intermediate vertices, not only at endpoints', () => {
+  /*
+   * THE BUG THIS PINS DOWN, measured on the real Nepal network before it was
+   * fixed: an earlier version created nodes only at each way's endpoints, so a
+   * road joining another halfway along it shared no node. The network
+   * fragmented into 42 components, only 80% of nodes were reachable from each
+   * other, and Kathmandu could not be routed to the Langtang corridor at all.
+   *
+   * Here a spur meets a through-road at its midpoint. Without junction
+   * splitting the spur is an island; with it the three ends connect.
+   */
+  const g = buildRoadGraph({
+    segments: [
+      {
+        osmId: 'w/through',
+        coordinates: [[85.0, 28.0], [85.1, 28.0], [85.2, 28.0]],
+        tags: { name: 'Through road' },
+      },
+      {
+        osmId: 'w/spur',
+        // Starts at the through-road's MIDDLE vertex, not at either end.
+        coordinates: [[85.1, 28.0], [85.1, 28.1]],
+        tags: { name: 'Spur' },
+      },
+    ],
+  });
+  // The through road is now two edges, so the junction is addressable.
+  assert.equal(g.nodeCount, 4);
+  const route = solveRoute({
+    graph: g,
+    from: { lat: 28.0, lon: 85.0, label: 'West end' },
+    to: { lat: 28.1, lon: 85.1, label: 'Spur end' },
+  });
+  assert.equal(route.ok, true, 'the spur is reachable from the through road');
+  assert.deepEqual([...route.roads].sort(), ['Spur', 'Through road']);
+});
+
+test('a shape vertex that is not a junction does not become a node', () => {
+  // Otherwise every bend in every road is a graph node and the network is
+  // thousands of times larger than its topology.
+  const g = buildRoadGraph({
+    segments: [
+      {
+        osmId: 'w/1',
+        coordinates: [[85.0, 28.0], [85.05, 28.02], [85.1, 28.0]],
+        tags: { name: 'Curved road' },
+      },
+    ],
+  });
+  assert.equal(g.nodeCount, 2, 'only the two ends');
+  assert.equal(g.edgeCount, 2, 'one edge, both directions');
+});
+
+test('a poorly mapped endpoint is a coverage gap, not disaster severance', () => {
+  /*
+   * The opposite failure to the usual one: reporting a gap in OpenStreetMap's
+   * coverage as a route the disaster closed turns a data limitation into a
+   * dramatic finding. Measured on the real network — the Langtang corridor's
+   * nearest primary-class road is 15 km away and connects to two junctions,
+   * because mountain Nepal is sparsely mapped at this class.
+   */
+  const g = buildRoadGraph({
+    segments: [
+      // A well-connected cluster.
+      { osmId: 'w/1', coordinates: [[85.0, 28.0], [85.05, 28.0]], tags: { name: 'A' } },
+      { osmId: 'w/2', coordinates: [[85.05, 28.0], [85.1, 28.0]], tags: { name: 'B' } },
+      { osmId: 'w/3', coordinates: [[85.05, 28.0], [85.05, 28.05]], tags: { name: 'C' } },
+      { osmId: 'w/4', coordinates: [[85.05, 28.05], [85.1, 28.05]], tags: { name: 'D' } },
+      { osmId: 'w/5', coordinates: [[85.1, 28.0], [85.1, 28.05]], tags: { name: 'E' } },
+      // A far-off two-node island.
+      { osmId: 'w/x', coordinates: [[86.0, 28.5], [86.01, 28.5]], tags: { name: 'Island' } },
+    ],
+  });
+  const route = solveRoute({
+    graph: g,
+    from: { lat: 28.0, lon: 85.0, label: 'Town' },
+    to: { lat: 28.6, lon: 86.05, label: 'Remote valley' },
+  });
+  assert.equal(route.ok, false);
+  assert.equal(route.reason, 'ENDPOINT_POORLY_MAPPED');
+  assert.match(route.detail, /gap in OpenStreetMap/);
+  assert.match(route.detail, /not a route the disaster closed/);
+  assert.ok(route.componentSize <= 8);
+});
+
+test('closures are not blamed for a network that was never connected', () => {
+  /*
+   * With blocked edges supplied, "no route remains with these closures" reads
+   * as the disaster's doing. It is checked against the unblocked network
+   * first, so a permanently disconnected pair says so instead.
+   */
+  const g = buildRoadGraph({
+    segments: [
+      { osmId: 'w/1', coordinates: [[85.0, 28.0], [85.05, 28.0]], tags: { name: 'A' } },
+      { osmId: 'w/2', coordinates: [[85.05, 28.0], [85.1, 28.0]], tags: { name: 'B' } },
+      { osmId: 'w/3', coordinates: [[85.05, 28.0], [85.05, 28.05]], tags: { name: 'C' } },
+      { osmId: 'w/4', coordinates: [[85.05, 28.05], [85.1, 28.05]], tags: { name: 'D' } },
+      { osmId: 'w/5', coordinates: [[85.2, 28.0], [85.25, 28.0]], tags: { name: 'Far A' } },
+      { osmId: 'w/6', coordinates: [[85.25, 28.0], [85.3, 28.0]], tags: { name: 'Far B' } },
+      { osmId: 'w/7', coordinates: [[85.25, 28.0], [85.25, 28.05]], tags: { name: 'Far C' } },
+      { osmId: 'w/8', coordinates: [[85.25, 28.05], [85.3, 28.05]], tags: { name: 'Far D' } },
+      { osmId: 'w/9', coordinates: [[85.3, 28.0], [85.3, 28.05]], tags: { name: 'Far E' } },
+      { osmId: 'w/10', coordinates: [[85.2, 28.0], [85.2, 28.05]], tags: { name: 'Far F' } },
+    ],
+  });
+  const route = solveRoute({
+    graph: g,
+    from: { lat: 28.0, lon: 85.0, label: 'West cluster' },
+    to: { lat: 28.0, lon: 85.3, label: 'East cluster' },
+    blockedEdges: g.edges().filter((e) => e.name === 'A').map((e) => e.id),
+  });
+  assert.equal(route.ok, false);
+  assert.equal(route.reason, 'NEVER_CONNECTED');
+  assert.match(route.detail, /not connected .* even with nothing closed/);
+  assert.match(route.detail, /closures are not the cause/);
+});
+
+test('componentSize stops counting at its limit', () => {
+  const g = buildRoadGraph({
+    segments: Array.from({ length: 20 }, (_, i) => ({
+      osmId: `w/${i}`,
+      coordinates: [[85 + i * 0.01, 28], [85 + (i + 1) * 0.01, 28]],
+      tags: { name: 'Chain' },
+    })),
+  });
+  const first = g.nodes()[0];
+  assert.equal(componentSize(g, first.id, 5), 5, 'bounded work, not a full scan');
+  assert.ok(componentSize(g, first.id, 999) > 15);
+});
 
 test('the graph is undirected, because a closure blocks both ways', () => {
   /*

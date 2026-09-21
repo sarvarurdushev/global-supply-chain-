@@ -48,6 +48,8 @@ import {
 const NETWORK_COLOURS = Object.freeze({
   'freight-rail': '#c6a0f6',
   'freight-roads': '#8aa8c8',
+  /* Brighter than the freight roads: this is the network relief drives on. */
+  'access-roads': '#7fd4b0',
   pipelines: '#e0975b',
   'production-sites': '#d98e73',
 });
@@ -76,7 +78,7 @@ const MAX_FETCH_HEIGHT_M = 3_000_000;
  * Create a freight infrastructure layer.
  *
  * @param {object} deps
- * @param {'rail'|'roads'|'pipelines'|'production'} deps.network
+ * @param {'rail'|'roads'|'access'|'pipelines'|'production'} deps.network
  * @param {(query:string, options?:object)=>Promise<object>} deps.fetchOverpass
  *   returns parsed Overpass JSON, or throws
  * @param {(reason:string)=>void} [deps.governorRequestRender]

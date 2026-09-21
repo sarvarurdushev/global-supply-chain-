@@ -324,3 +324,108 @@ Measured 2026-09-17:
 `bws_raw` is a fraction, not a percentage: 0.937 is 93.7%. Bands come from
 Aqueduct's own `bws_label` rather than being recomputed, so the project reports
 their classification instead of inventing a parallel one.
+
+---
+
+# Disaster investigation sources (added 2026-09-17)
+
+The platform's disaster half rests on one agency feed for the hazard itself and
+on OpenStreetMap for everything the hazard hits. Nothing else is fetched, and
+nothing is modelled into a number that an agency has not published.
+
+## USGS Earthquake Hazards Program — FDSN event service + ComCat products
+
+| | |
+| --- | --- |
+| **Used for** | The event, its shaking field, its rupture, its exposed population, its ground failure and its citizen-reported intensity |
+| **Endpoint** | `https://earthquake.usgs.gov/fdsnws/event/1/query` (`format=geojson`) |
+| **Products** | Fetched from `properties.products` on a `&eventid=…&format=geojson` detail response |
+| **API key** | **Not required** |
+| **Licence** | **US public domain** |
+| **Attribution** | `Data courtesy of the U.S. Geological Survey` — registered in `src/data/dataCredits.js` (`usgs`) |
+| **Redistribution** | Unrestricted |
+| **Client** | `src/disaster/sources/usgs.js` |
+
+Six products are read, each answering one question the interface asks:
+
+| Product | File read | Answers |
+| --- | --- | --- |
+| `shakemap` | `download/cont_mmi.json` | Where the ground shook, as MMI contour bands |
+| `losspager` | `pager.xml` | The alert level and the **published casualty/loss ranges** |
+| `losspager` | `exposure.xml` | Population by MMI band, and per-city intensity |
+| `finite-fault` | `FFM.geojson` | The rupture plane — which fault moved, and how far |
+| `ground-failure` | product **properties** | Modelled landslide and liquefaction alert level and aggregate hazard |
+| `dyfi`, `losspager`, `poster` | published PNG/JPG/PDF | The agency's own figures, shown as evidence (`getVisualProducts`) |
+
+**Measured constraints, and the traps they set** (Nepal `us20002926`, 2026-09-17):
+
+- **PAGER publishes ranges, never point estimates.** `pager.xml` gives
+  `1,000+`-style bands with a probability per band. `PAGER_ALERTS` in the client
+  returns the published range; the interface has no code path that can turn one
+  into a single number.
+- **`<georss:point>` is `"lat lon"`** — the opposite order from GeoJSON. Read the
+  GeoJSON way, Kathmandu lands in the Indian Ocean. The city parser in
+  `readCityExposureXml` takes latitude first, and a test asserts the hemisphere.
+- **`population="0"` is a placeholder, not a measurement.** Bhaktapur — a city of
+  roughly 80,000 — is published with `population="0"` in this event's exposure
+  file. Zero is read as `null` with a note, because a city cannot be rendered as
+  empty on the strength of a formatting artefact.
+- **Ground failure is an alert, not a raster.** The product publishes landslide
+  and liquefaction alert colours and an aggregate hazard value as properties;
+  the modelled rasters behind them are not served as geometry, so the layer
+  renders susceptibility from those published values and says so.
+- **Products are per-event and optional.** A magnitude-5 event has no PAGER and no
+  finite fault. Each product loads independently with its own status
+  (`LOAD_STATUS` in `src/disaster/session.js`), so five succeeding and one absent
+  is a partial session, not a failed one.
+- **Contour files are large.** `cont_mmi.json` for a major event is several MB of
+  MultiLineString; it is fetched once per case and held on the session.
+
+**Reachability note.** `earthquake.usgs.gov` is reachable from Node in this
+sandbox but **not from the headless browser** (TLS interception on the agent
+proxy). `scripts/qa-workspace.mjs` therefore probes it from Node and reports
+`SKIPPED` rather than failing when the in-page fetch cannot complete — the same
+treatment already given to the Aqueduct feature service.
+
+## OpenStreetMap `access` road network (added to `FREIGHT_NETWORKS`)
+
+| | |
+| --- | --- |
+| **Used for** | Reaching a village, not moving freight: rescue routing, evacuation, aid corridors |
+| **Endpoint** | The app's own `/api/overpass` proxy (see the Overpass section above) |
+| **Query** | `highway~"^(motorway|trunk|primary|secondary)$"` within the viewport bbox |
+| **Licence** | **ODbL 1.0** — attribution **and** share-alike on any derived database |
+| **Attribution** | `© OpenStreetMap contributors` |
+| **Client** | `src/supplychain/freight.js` (`FREIGHT_NETWORKS.access`), consumed by `src/disaster/response.js` |
+
+The pre-existing `freight-roads` network is `motorway|trunk` — correct for
+container freight and wrong for reaching Langtang, which no trunk road goes
+near. The `access` network adds `primary|secondary`, which is what a relief
+convoy actually drives on.
+
+**Two measured properties of OSM road data that changed the routing code:**
+
+1. **Ways join at shared intermediate vertices, not only at endpoints.** Noding
+   on endpoints alone fragmented the Kathmandu valley into **42 components**
+   (80% of nodes reachable) and made Kathmandu→Bhaktapur — 11 km apart on a
+   continuously mapped highway — unroutable. `buildRoadGraph` in
+   `src/disaster/response.js` runs a two-pass junction split: pass one counts
+   vertex occurrences across all ways, pass two splits each way at every vertex
+   seen more than once. Result: **14 components, 95% reachable**, and
+   Kathmandu→Bhaktapur solves as 11.3 km / 34 min over named Nepali roads.
+2. **Coverage gaps look exactly like disaster damage.** Langtang's nearest mapped
+   primary road is 15 km away, in a two-node island. Reported as severance that
+   is a dramatic false finding. `solveRoute` distinguishes
+   `ENDPOINT_POORLY_MAPPED` and `NEVER_CONNECTED` from a genuine post-event
+   `SEVERED`, and the interface says which it is.
+
+## Nepal 2015 reference figures (cited, not fetched)
+
+The Gorkha case carries published totals — the Government of Nepal Post Disaster
+Needs Assessment (2015) national loss figure, and the official casualty count —
+as **cited constants** in `src/disaster/catalogue.js`, each with its source
+string. They are eleven-year-old published findings, not an API response, and
+they are badged `HISTORICAL` wherever they appear. Per-district apportionment of
+the national total is computed as an explicit **model** with its caveat and
+sensitivity shown beside it (`economicApportionment` in `src/disaster/impact.js`),
+never presented as a district-level published figure.

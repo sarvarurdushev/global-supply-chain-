@@ -312,6 +312,17 @@ export const LAYER_STATE_REGISTRY = Object.freeze([
    * drawn over it. Each entry sits in its alphabetical slot because the
    * registry's order is asserted and the canonical encoding depends on it.
    */
+  /*
+   * The access network the disaster response routes over. Registered with its
+   * own token rather than folded into `freight-roads`: they answer different
+   * questions and a share link that turned on the freight network when the
+   * sender had the access network on would put the reader on the wrong roads.
+   */
+  Object.freeze({
+    id: 'access-roads',
+    token: '9',
+    disposition: 'enabled-only',
+  }),
   Object.freeze({
     id: 'air-cargo-hubs',
     token: '6',
@@ -444,6 +455,12 @@ export const LAYER_STATE_REGISTRY = Object.freeze([
     token: 'u',
     disposition: 'enabled-only',
   }),
+  /*
+   * Terrain. `enabled-only` — the exaggeration is a reading aid rather than
+   * authored state, so a share link restores that relief was on and lets the
+   * recipient choose how much of it to read.
+   */
+  Object.freeze({ id: 'terrain-3d', token: '8', disposition: 'enabled-only' }),
   Object.freeze({ id: 'trade-flows', token: 'o', disposition: 'enabled-only' }),
   Object.freeze({ id: 'traffic', token: 't', disposition: 'enabled-only' }),
   Object.freeze({ id: 'transit', token: 'j', disposition: 'enabled-only' }),

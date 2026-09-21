@@ -4,6 +4,7 @@ import {
   INFRA_STATE,
   STATE_BASIS,
   affectedCities,
+  applyCitedStatus,
   economicApportionment,
   facilityExposure,
   humanImpactBands,
@@ -114,7 +115,7 @@ test('an exposed road is AT_RISK and MODELLED, never reported as closed', () => 
       { osmId: 'w/1', coordinates: [[85.1, 28.1], [85.2, 28.2]], tags: { name: 'Inside' } },
       { osmId: 'w/2', coordinates: [[80.0, 20.0], [80.1, 20.1]], tags: { name: 'Far away' } },
     ],
-    hazardZones: [{ ring: SQUARE, value: 0.4, label: 'High' }],
+    hazardZones: [{ ring: SQUARE, value: 0.8, label: 'High' }],
   });
   const inside = out.segments.find((item) => item.name === 'Inside');
   const outside = out.segments.find((item) => item.name === 'Far away');
@@ -143,7 +144,7 @@ test('a road clipping the corner of a zone counts as exposed', () => {
         tags: { name: 'Clipper' },
       },
     ],
-    hazardZones: [{ ring: SQUARE, value: 0.4 }],
+    hazardZones: [{ ring: SQUARE, value: 0.8 }],
   });
   assert.equal(out.segments[0].state, INFRA_STATE.AT_RISK);
 });
@@ -156,6 +157,51 @@ test('a zone below the risk threshold does not mark a road', () => {
   });
   assert.equal(out.segments[0].state, INFRA_STATE.OPERATIONAL);
   assert.equal(out.atRisk.length, 0);
+});
+
+test('the default threshold is high enough for "exposed" to mean something', () => {
+  /*
+   * Measured on the real Gorkha data: the MMI VI contour covers the whole
+   * Kathmandu-to-Langtang region, so at the original 0.1 threshold all 367
+   * mapped trunk segments came back exposed — 177 km of 177 km. A map with one
+   * colour is not a finding.
+   *
+   * At the current default only the severe bands qualify. On the same real
+   * network that is 43 of 1,691 segments, 39 km of 1,088 km.
+   */
+  const segments = [{ osmId: 'w/1', coordinates: [[85.1, 28.1], [85.2, 28.2]] }];
+  const moderate = [{ ring: SQUARE, value: 0.4, label: 'MMI VII' }];
+  assert.equal(
+    roadExposure({ segments, hazardZones: moderate }).atRisk.length,
+    0,
+    'a moderate band alone must not mark every road',
+  );
+  assert.equal(
+    roadExposure({ segments, hazardZones: [{ ring: SQUARE, value: 0.8 }] }).atRisk.length,
+    1,
+    'a severe band does',
+  );
+  // And a caller wanting the wider picture can still ask for it.
+  assert.equal(
+    roadExposure({ segments, hazardZones: moderate, riskThreshold: 0.2 }).atRisk.length,
+    1,
+  );
+});
+
+test('an exposed segment keeps its osmId, so it can be blocked in routing', () => {
+  /*
+   * The bug this pins down: roadExposure folded osmId into `id` and dropped
+   * it, so every blocked-edge lookup against the routing graph came back
+   * empty and a severed corridor routed as if nothing were closed.
+   */
+  const out = roadExposure({
+    segments: [
+      { osmId: 'way/12345', coordinates: [[85.1, 28.1], [85.2, 28.2]], tags: { name: 'X' } },
+    ],
+    hazardZones: [{ ring: SQUARE, value: 0.9 }],
+  });
+  assert.equal(out.atRisk[0].osmId, 'way/12345');
+  assert.ok(out.atRisk[0].tags, 'and its tags, so the graph can read highway class');
 });
 
 test('the worst intersecting zone wins, and lengths accumulate', () => {
@@ -242,4 +288,112 @@ test('segment length is great-circle, not planar', () => {
   const km = segmentLengthKm([[-0.1278, 51.5074], [2.3522, 48.8566]]);
   assert.ok(km > 330 && km < 355, `got ${km}`);
   assert.equal(segmentLengthKm([[0, 0]]), 0);
+});
+
+/* ------------------------------------------------------------------ *
+ * The observed-status adapter
+ * ------------------------------------------------------------------ */
+
+/** Three modelled segments, as roadExposure would hand them over. */
+const RATED = [
+  { osmId: 'way/1', state: INFRA_STATE.AT_RISK, basis: STATE_BASIS.MODELLED },
+  { osmId: 'way/2', state: INFRA_STATE.OPERATIONAL, basis: STATE_BASIS.MODELLED },
+  { osmId: 'way/3', state: INFRA_STATE.OPERATIONAL, basis: STATE_BASIS.MODELLED },
+];
+
+test('with no cited register every asset stays modelled, and the note says so', () => {
+  const out = applyCitedStatus({ items: RATED, citedStatus: [], phaseHours: 24 });
+  assert.equal(out.observed, 0);
+  assert.equal(out.modelled, 3);
+  assert.equal(out.counts[INFRA_STATE.CLOSED], 0);
+  assert.equal(out.counts[INFRA_STATE.RECOVERING], 0);
+  assert.equal(out.counts[INFRA_STATE.AT_RISK], 1);
+  assert.equal(out.counts[INFRA_STATE.OPERATIONAL], 2);
+  assert.match(out.note, /modelled exposure only/);
+  // Every state in the vocabulary is counted, so the legend can print zeroes.
+  for (const state of Object.values(INFRA_STATE)) {
+    assert.equal(typeof out.counts[state], 'number', state);
+  }
+});
+
+test('a cited closure overrides the model, and is badged OBSERVED', () => {
+  const out = applyCitedStatus({
+    items: RATED,
+    citedStatus: [
+      {
+        osmId: 'way/2',
+        state: INFRA_STATE.CLOSED,
+        source: 'Example road authority bulletin',
+        fromHours: 0,
+      },
+    ],
+    phaseHours: 24,
+  });
+  const hit = out.items.find((item) => item.osmId === 'way/2');
+  assert.equal(hit.state, INFRA_STATE.CLOSED);
+  assert.equal(hit.basis, STATE_BASIS.OBSERVED);
+  assert.equal(hit.availability, AVAILABILITY.CONFIRMED);
+  assert.match(hit.caveat, /Example road authority bulletin/);
+  assert.equal(out.observed, 1);
+  assert.equal(out.modelled, 2);
+  assert.match(out.note, /1 of 3/);
+});
+
+test('a record without a source is refused, however complete it looks', () => {
+  // An uncitable "CLOSED" wearing an OBSERVED badge is the exact claim this
+  // project exists not to make.
+  const out = applyCitedStatus({
+    items: RATED,
+    citedStatus: [{ osmId: 'way/2', state: INFRA_STATE.CLOSED, fromHours: 0 }],
+    phaseHours: 24,
+  });
+  assert.equal(out.observed, 0);
+  assert.equal(out.items.find((i) => i.osmId === 'way/2').state, INFRA_STATE.OPERATIONAL);
+});
+
+test('a modelled state cannot be smuggled in through the cited register', () => {
+  const out = applyCitedStatus({
+    items: RATED,
+    citedStatus: [
+      { osmId: 'way/1', state: INFRA_STATE.OPERATIONAL, source: 'somebody', fromHours: 0 },
+    ],
+    phaseHours: 24,
+  });
+  assert.equal(out.items.find((i) => i.osmId === 'way/1').state, INFRA_STATE.AT_RISK);
+  assert.equal(out.observed, 0);
+});
+
+test('the same register reads differently at different points in the timeline', () => {
+  const register = [
+    {
+      osmId: 'way/1',
+      state: INFRA_STATE.CLOSED,
+      source: 'Bulletin A',
+      fromHours: 0,
+      untilHours: 240,
+    },
+    {
+      osmId: 'way/1',
+      state: INFRA_STATE.RECOVERING,
+      source: 'Bulletin B',
+      fromHours: 240,
+    },
+  ];
+  const before = applyCitedStatus({ items: RATED, citedStatus: register, phaseHours: -24 });
+  assert.equal(before.observed, 0, 'nothing is closed before the event');
+  assert.equal(before.items[0].state, INFRA_STATE.AT_RISK);
+
+  const during = applyCitedStatus({ items: RATED, citedStatus: register, phaseHours: 48 });
+  assert.equal(during.items[0].state, INFRA_STATE.CLOSED);
+
+  const after = applyCitedStatus({ items: RATED, citedStatus: register, phaseHours: 720 });
+  assert.equal(after.items[0].state, INFRA_STATE.RECOVERING);
+  assert.match(after.items[0].caveat, /does not mean "as before"/);
+});
+
+test('the adapter tolerates being handed nothing', () => {
+  const out = applyCitedStatus({ items: null, citedStatus: null });
+  assert.deepEqual(out.items, []);
+  assert.equal(out.observed, 0);
+  assert.equal(out.phaseHours, 0);
 });

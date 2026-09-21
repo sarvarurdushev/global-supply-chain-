@@ -38,7 +38,9 @@ import { AVAILABILITY, DIMENSIONS, dataClassFor } from './catalogue.js';
 import { HAZARD_LIST, allAdapters, phasesFor } from './hazards.js';
 import { UNAVAILABLE_REASONS } from './timeline.js';
 import { formatHours } from './response.js';
+import { INFRA_STATE, STATE_BASIS } from './impact.js';
 import { LOAD_STATUS } from './session.js';
+import { demo, runtimeMinutes } from './demo.js';
 
 /* ------------------------------------------------------------------ *
  * Shared primitives
@@ -885,6 +887,25 @@ function humanView(ctx) {
  * 6. Infrastructure (§7)
  * ------------------------------------------------------------------ */
 
+/** Printed names for the five infrastructure states, and what each claims. */
+const STATE_LABELS = Object.freeze({
+  [INFRA_STATE.OPERATIONAL]: 'Normal',
+  [INFRA_STATE.AT_RISK]: 'Exposed',
+  [INFRA_STATE.CLOSED]: 'Damaged / closed',
+  [INFRA_STATE.RECOVERING]: 'Recovering',
+  [INFRA_STATE.UNKNOWN]: 'Unknown',
+});
+
+const STATE_MEANS = Object.freeze({
+  [INFRA_STATE.OPERATIONAL]:
+    'No modelled hazard zone crosses it. Not a survey.',
+  [INFRA_STATE.AT_RISK]: 'Inside a hazard zone the model rates high.',
+  [INFRA_STATE.CLOSED]: `Needs a cited report. Basis would read ${STATE_BASIS.OBSERVED}.`,
+  [INFRA_STATE.RECOVERING]:
+    'Needs a cited reopening, with the capacity it reopened at.',
+  [INFRA_STATE.UNKNOWN]: 'Outside the loaded network.',
+});
+
 function infrastructureView(ctx) {
   const session = sessionOf(ctx);
   if (!session) return needsCase(ctx, 'Infrastructure', 'infrastructure');
@@ -957,6 +978,47 @@ function infrastructureView(ctx) {
         ],
       }),
     );
+
+    /*
+     * §7 asks for normal → damaged → recovery. The first state is
+     * modelled and the other two are observations nobody publishes per asset,
+     * so the lifecycle card prints all five states with their real counts and
+     * says in one line which of them anything actually reached. A legend with
+     * a zero in it is the finding; a legend with invented closures would not
+     * be.
+     */
+    const lifecycle = exposure.lifecycle;
+    if (lifecycle) {
+      cards.push(
+        card({
+          title: 'Asset state at this point in the timeline',
+          children: [
+            ...Object.entries(lifecycle.counts).map(([state, count]) =>
+              mapRow({
+                label: STATE_LABELS[state] ?? state,
+                value: String(count),
+                note: STATE_MEANS[state] ?? null,
+                tone:
+                  count === 0
+                    ? 'empty'
+                    : state === INFRA_STATE.AT_RISK
+                      ? 'warning'
+                      : state === INFRA_STATE.CLOSED
+                        ? 'blocked'
+                        : state === INFRA_STATE.OPERATIONAL
+                          ? 'operational'
+                          : null,
+              }),
+            ),
+            h('p', { class: 'gx-prose', text: lifecycle.note }),
+            h('p', {
+              class: 'ws-field-hint',
+              text: `Observed: ${lifecycle.observed} · modelled: ${lifecycle.modelled} · evaluated at T${lifecycle.phaseHours >= 0 ? '+' : ''}${formatHours(Math.abs(lifecycle.phaseHours))}.`,
+            }),
+          ],
+        }),
+      );
+    }
   }
 
   pushNext(cards, ctx, 'infrastructure');
@@ -1059,19 +1121,42 @@ function economicView(ctx) {
         }),
         h('div', { class: 'gx-figure-source', text: econ.totalSource }),
         ...econ.slices.map((slice) =>
-          h('div', { class: 'gx-bar-row' }, [
-            h('span', { class: 'gx-mono', text: `MMI ${slice.label}` }),
-            h('span', { class: 'gx-bar' }, [
+          h(
+            'div',
+            {
+              class: 'gx-bar-row ws-clickable',
+              role: 'button',
+              tabindex: '0',
+              title: `Highlight MMI ${slice.label} on the map`,
+              /*
+               * §13's bidirectional linkage. The bar and the contour band are
+               * the same object, so clicking the chart selects the geometry
+               * rather than opening a separate panel.
+               */
+              onClick: () =>
+                session.investigation.select({
+                  kind: 'hazard-band',
+                  label: `MMI ${slice.label}`,
+                  band: slice,
+                }),
+            },
+            [
+              h('span', { class: 'gx-mono', text: `MMI ${slice.label}` }),
+              h('span', { class: 'gx-bar' }, [
+                h('span', {
+                  class: 'gx-bar-fill',
+                  style: {
+                    width: `${(slice.shareOfTotal * 100).toFixed(1)}%`,
+                    background: slice.colour ?? 'var(--gx-green)',
+                  },
+                }),
+              ]),
               h('span', {
-                class: 'gx-bar-fill',
-                style: {
-                  width: `${(slice.shareOfTotal * 100).toFixed(1)}%`,
-                  background: slice.colour ?? 'var(--gx-green)',
-                },
+                class: 'gx-mono',
+                text: fmtUsd(slice.apportionedUsd),
               }),
-            ]),
-            h('span', { class: 'gx-mono', text: fmtUsd(slice.apportionedUsd) }),
-          ]),
+            ],
+          ),
         ),
       ],
     }),
@@ -1513,11 +1598,140 @@ function sourcesView(ctx) {
 }
 
 /* ------------------------------------------------------------------ *
+ * 13. The guided demonstration (§24)
+ * ------------------------------------------------------------------ */
+
+function demoView(ctx) {
+  const session = sessionOf(ctx);
+  const playback = ctx?.disaster?.demoPlayback?.() ?? null;
+  const script = demo('nepal-gorkha-demo');
+  const cards = [
+    card({
+      children: [
+        whyThisMatters({
+          what: 'The whole concept in sixteen scenes, on one real event.',
+          why: 'It drives the same session, views and layers you drive by hand. There is no demo mode with its own rendering path, because a demo that shows something the product cannot do is a lie about the product.',
+          dataClass: 'HISTORICAL',
+        }),
+        h('p', { class: 'gx-prose', text: script.premise }),
+        metricRow([
+          metric({ value: String(script.beats.length), label: 'scenes' }),
+          metric({ value: `${runtimeMinutes(script)} min`, label: 'runtime' }),
+        ]),
+      ],
+    }),
+  ];
+
+  if (!session || session.case.id !== script.caseId) {
+    cards.push(
+      card({
+        children: [
+          emptyState({
+            what: 'the demonstration case open',
+            suggestion:
+              'The demo runs on Gorkha 2015. Opening it loads the same sources the demo narrates.',
+          }),
+          button({
+            label: 'Open Gorkha 2015 and start',
+            tone: 'primary',
+            onClick: async () => {
+              await ctx.disaster.open(script.caseId);
+              ctx.disaster.startDemo();
+            },
+          }),
+        ],
+      }),
+    );
+    pushNext(cards, ctx, 'demo');
+    return { title: 'Guided Demonstration', summary: script.name, cards };
+  }
+
+  const state = playback?.getState?.() ?? null;
+  cards.push(
+    card({
+      title: state?.beat
+        ? `Scene ${state.beat.scene} — ${state.beat.title}`
+        : 'Ready',
+      tone: 'accent',
+      children: [
+        state?.beat
+          ? h('p', { class: 'gx-prose', text: state.beat.claim })
+          : null,
+        state?.missing?.length
+          ? h('p', {
+              class: 'ws-field-hint',
+              text: `This scene’s sources did not all load (${state.missing.join(', ')}). It still runs and says so, because skipping it would demonstrate a rosier platform than the real one.`,
+            })
+          : null,
+        h('div', { class: 'gx-controls' }, [
+          button({
+            label: '◀ Previous scene',
+            onClick: () => {
+              playback?.previous();
+              ctx.refresh();
+            },
+            disabled: !state?.canPrevious,
+          }),
+          button({
+            label: state?.status === 'playing' ? '❚❚ Pause' : '▶ Play',
+            tone: 'primary',
+            onClick: () => {
+              if (state?.status === 'playing') playback.pause();
+              else ctx.disaster.startDemo();
+              ctx.refresh();
+            },
+          }),
+          button({
+            label: 'Next scene ▶',
+            onClick: () => {
+              playback?.next();
+              ctx.refresh();
+            },
+            disabled: !state?.canNext,
+          }),
+          button({
+            label: '■ Stop',
+            onClick: () => {
+              playback?.stop();
+              ctx.refresh();
+            },
+          }),
+        ]),
+      ].filter(Boolean),
+    }),
+    card({
+      title: 'The sixteen scenes',
+      children: script.beats.map((item) =>
+        mapRow({
+          label: `${item.scene}. ${item.title}`,
+          value: state?.index === item.scene - 1 ? '● NOW' : (item.view ?? ''),
+          note: item.claim,
+          tone: state?.index === item.scene - 1 ? 'observed' : null,
+          onClick: () => {
+            playback?.goTo(item.scene - 1);
+            ctx.refresh();
+          },
+        }),
+      ),
+    }),
+  );
+  pushNext(cards, ctx, 'demo');
+  return {
+    title: 'Guided Demonstration',
+    summary: state?.beat
+      ? `Scene ${state.beat.scene} of ${state.total}`
+      : script.name,
+    cards,
+  };
+}
+
+/* ------------------------------------------------------------------ *
  * Registry
  * ------------------------------------------------------------------ */
 
 export const DISASTER_VIEWS = Object.freeze({
   cases: casesView,
+  demo: demoView,
   descent: descentView,
   timeline: timelineView,
   hazard: hazardView,
