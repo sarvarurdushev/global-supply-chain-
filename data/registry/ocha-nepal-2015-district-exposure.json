@@ -1,0 +1,32 @@
+{
+ "id": "ocha-nepal-2015-district-exposure",
+ "datasetName": "Estimated Population Exposed to Nepal Earthquake shaking",
+ "publisher": "UN OCHA, Needs Assessment and Analysis Section",
+ "sourceUrl": "https://data.humdata.org/dataset/4ae4f428-f959-4413-b752-5736f19ed70d/resource/3165c3f0-eb74-4d7b-bb8e-a1ae9e9c6586/download/pga-affecteddistricts-pop.csv",
+ "license": "CC BY-IGO 3.0",
+ "redistribution": "SHARE_ALIKE",
+ "retrievedAt": "2026-09-21",
+ "originalFormat": "CSV",
+ "temporalCoverage": "2015-04-25 event; published April 2015",
+ "geographicCoverage": "66 Nepali districts",
+ "coordinateSystem": "n/a (tabular, keyed on district)",
+ "description": "District population against modelled peak ground acceleration and a severity class, published by OCHA days after the earthquake. Used as the official comparator for this project’s own population-exposure calculation.",
+ "dataClass": "OFFICIAL",
+ "attribution": "UN OCHA (data.humdata.org), CC BY-IGO",
+ "discoveredVia": "https://data.humdata.org/dataset/estimated-population-exposed-to-earthquake-shaking",
+ "fields": [
+  "district",
+  "zone",
+  "population",
+  "pga_value",
+  "severity_class",
+  "ocha_pcode"
+ ],
+ "limitations": [
+  "Peak ground acceleration, not Modified Mercalli intensity: PGA and MMI are different measures and the two must not be plotted on one scale.",
+  "District population is a pre-event estimate, so \"exposed\" means resident in a district with that PGA, not present at the moment of shaking.",
+  "Covers 66 districts, not all 75: districts OCHA judged unaffected are absent, and absence is not a zero.",
+  "A district-level figure cannot say where inside a district the exposed people were."
+ ],
+ "schemaVersion": 1
+}

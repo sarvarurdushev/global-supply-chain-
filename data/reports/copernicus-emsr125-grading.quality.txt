@@ -1,0 +1,7 @@
+copernicus-emsr125-grading: read 41093, kept 41050, dropped 43 (retention 99.90%)
+  DUPLICATE_RECORD x44
+    - Copernicus_EMSR125_04BIDUR_02GRADING_v2_10000_crisis_information_point_grading.shp: identical geometry already present
+    - Copernicus_EMSR125_03POKHARA_02GRADING_v1_10000_crisis_information_point_grading.shp: identical geometry already present
+    - Copernicus_EMSR125_01KATHMANDU_02GRADING_v3_10000_crisis_information_point_grading.shp: identical geometry already present
+    - Copernicus_EMSR125_02BHARATPUR_02GRADING_v3_10000_crisis_information_point_grading.shp: identical geometry already present
+    - Copernicus_EMSR125_04BIDUR_02GRADING_v1_10000_crisis_information_point_grading.shp: superseded by a later revision of the same AOI and not read

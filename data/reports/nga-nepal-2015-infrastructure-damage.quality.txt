@@ -1,0 +1,1 @@
+nga-nepal-2015-infrastructure-damage: read 235, kept 235, dropped 0 (retention 100.00%)

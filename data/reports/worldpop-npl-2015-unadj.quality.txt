@@ -1,0 +1,5 @@
+worldpop-npl-2015-unadj: read 481176, kept 177679, dropped 303497 (retention 36.93%)
+  MISSING_VALUE x303497
+    - aggregated cell holds under 0.5 people
+  NODATA_CELL x1
+    - 28542878 source cells carry the nodata value and were excluded rather than summed as zero

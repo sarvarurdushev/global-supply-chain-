@@ -1,0 +1,80 @@
+ocha-nepal-2015-district-exposure: read 66, kept 66, dropped 0 (retention 100.00%)
+  REPAIRED x73
+    - population thousands separator removed for Arghakhanchi
+    - population thousands separator removed for Baglung
+    - population thousands separator removed for Bajura
+    - population thousands separator removed for Banke
+    - population thousands separator removed for Bara
+    - population thousands separator removed for Bardiya
+    - population thousands separator removed for Bhaktapur
+    - population thousands separator removed for Bhojpur
+    - population thousands separator removed for Chitawan
+    - district "Chitawan" resolved to "chitwan" (1 edit(s))
+    - population thousands separator removed for Dailekh
+    - population thousands separator removed for Dang
+    - population thousands separator removed for Dhading
+    - population thousands separator removed for Dhankuta
+    - population thousands separator removed for Dolakha
+    - population thousands separator removed for Dolpa
+    - population thousands separator removed for Gorkha
+    - population thousands separator removed for Gulmi
+    - population thousands separator removed for Humla
+    - population thousands separator removed for Ilam
+    - population thousands separator removed for Jajarkot
+    - population thousands separator removed for Jhapa
+    - population thousands separator removed for Jumla
+    - population thousands separator removed for Kabhrepalanchok
+    - district "Kabhrepalanchok" resolved to "kavrepalanchok" (2 edit(s))
+    - population thousands separator removed for Kalikot
+    - population thousands separator removed for Kapilbastu
+    - district "Kapilbastu" resolved to "kapilvastu" (1 edit(s))
+    - population thousands separator removed for Kaski
+    - population thousands separator removed for Kathmandu
+    - population thousands separator removed for Khotang
+    - population thousands separator removed for Lalitpur
+    - population thousands separator removed for Lamjung
+    - population thousands separator removed for Mahottari
+    - population thousands separator removed for Makawanpur
+    - district "Makawanpur" resolved to "makwanpur" (1 edit(s))
+    - population thousands separator removed for Manang
+    - population thousands separator removed for Morang
+    - population thousands separator removed for Mugu
+    - population thousands separator removed for Mustang
+    - population thousands separator removed for Myagdi
+    - population thousands separator removed for Nawalparasi
+    - population thousands separator removed for Nuwakot
+    - population thousands separator removed for Okhaldhunga
+    - population thousands separator removed for Palpa
+    - population thousands separator removed for Panchthar
+    - population thousands separator removed for Parbat
+    - population thousands separator removed for Parsa
+    - population thousands separator removed for Pyuthan
+    - population thousands separator removed for Ramechhap
+    - population thousands separator removed for Rasuwa
+    - population thousands separator removed for Rautahat
+    - population thousands separator removed for Rolpa
+    - population thousands separator removed for Rukum
+    - population thousands separator removed for Rupandehi
+    - population thousands separator removed for Salyan
+    - population thousands separator removed for Sankhuwasabha
+    - population thousands separator removed for Saptari
+    - population thousands separator removed for Sarlahi
+    - population thousands separator removed for Sindhuli
+    - population thousands separator removed for Sindhupalchok
+    - district "Sindhupalchok" resolved to "sindhupalchowk" (1 edit(s))
+    - population thousands separator removed for Siraha
+    - population thousands separator removed for Solukhumbu
+    - population thousands separator removed for Sunsari
+    - population thousands separator removed for Surkhet
+    - population thousands separator removed for Syangja
+    - population thousands separator removed for Tanahu
+    - district "Tanahu" resolved to "tanahun" (1 edit(s))
+    - population thousands separator removed for Taplejung
+    - population thousands separator removed for Terhathum
+    - district "Terhathum" resolved to "tehrathum" (2 edit(s))
+    - population thousands separator removed for Udayapur
+  UNEXPECTED_CATEGORY x4
+    - district "Jajarkot" does not resolve to a boundary polygon: nearest candidate "nuwakot" is 4 edits away, beyond the 2-edit limit
+    - district "Nawalparasi" does not resolve to a boundary polygon: nearest candidate "nawalpur" is 4 edits away, beyond the 2-edit limit
+    - district "Rukum" does not resolve to a boundary polygon: nearest candidate "mugu" is 3 edits away, beyond the 2-edit limit
+    - district "Rupandehi" does not resolve to a boundary polygon: nearest candidate "myagdi" is 6 edits away, beyond the 2-edit limit

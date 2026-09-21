@@ -1,0 +1,31 @@
+{
+ "id": "usgs-nepal-2015-seismic",
+ "datasetName": "USGS FDSN event query — Nepal 2015 sequence",
+ "publisher": "U.S. Geological Survey, Earthquake Hazards Program",
+ "sourceUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=2015-04-25&endtime=2016-04-25&latitude=28.147&longitude=84.708&maxradiuskm=300&minmagnitude=2.5&orderby=time-asc",
+ "license": "US Government public domain (17 U.S.C. §105)",
+ "redistribution": "OPEN",
+ "retrievedAt": "2026-09-21",
+ "originalFormat": "GeoJSON FeatureCollection",
+ "temporalCoverage": "2015-04-25 to 2016-04-25",
+ "geographicCoverage": "300 km radius of 28.147 N, 84.708 E",
+ "coordinateSystem": "EPSG:4326",
+ "description": "Every catalogued earthquake of M2.5 or greater within 300 km of the Gorkha epicentre in the year following 25 April 2015, including the M7.8 main shock and the M7.3 of 12 May.",
+ "dataClass": "OBSERVED",
+ "attribution": "Data courtesy of the U.S. Geological Survey",
+ "fields": [
+  "id",
+  "time",
+  "longitude",
+  "latitude",
+  "depthKm",
+  "magnitude",
+  "magType",
+  "place"
+ ],
+ "limitations": [
+  "Catalogue completeness falls off below about M4 in the days right after the main shock, when small events are masked by the coda of larger ones. Counts of small aftershocks are therefore a lower bound.",
+  "Depths for shallow continental events carry uncertainties of several kilometres and some are fixed by the analyst rather than solved."
+ ],
+ "schemaVersion": 1
+}

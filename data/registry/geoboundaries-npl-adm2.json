@@ -1,0 +1,27 @@
+{
+ "id": "geoboundaries-npl-adm2",
+ "datasetName": "geoBoundaries gbOpen NPL ADM2 (Districts)",
+ "publisher": "geoBoundaries, William & Mary geoLab",
+ "sourceUrl": "https://github.com/wmgeolab/geoBoundaries/raw/9469f09/releaseData/gbOpen/NPL/ADM2/geoBoundaries-NPL-ADM2_simplified.geojson",
+ "license": "Public domain (geoBoundaries gbOpen, CC0-equivalent)",
+ "redistribution": "OPEN",
+ "retrievedAt": "2026-09-21",
+ "originalFormat": "GeoJSON (simplified geometry)",
+ "temporalCoverage": "boundary vintage 2006",
+ "geographicCoverage": "Nepal, all districts",
+ "coordinateSystem": "EPSG:4326",
+ "description": "Nepal district boundaries at the 2006 vintage — the 75-district system in force when the 2015 earthquake happened and the frame its official statistics are reported against.",
+ "dataClass": "OFFICIAL",
+ "attribution": "geoBoundaries (geoboundaries.org)",
+ "discoveredVia": "https://www.geoboundaries.org/api/current/gbOpen/NPL/ADM2/",
+ "fields": [
+  "shapeName",
+  "shapeISO",
+  "shapeID"
+ ],
+ "limitations": [
+  "Simplified geometry: adequate for choropleths, district joins and area context, not for cadastral or boundary-dispute work.",
+  "Nepal restructured into 7 provinces and 753 local units in 2015-2017. These 75 districts are the pre-restructuring system and cannot be joined to post-2017 statistics without a crosswalk."
+ ],
+ "schemaVersion": 1
+}

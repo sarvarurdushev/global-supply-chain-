@@ -1,0 +1,28 @@
+{
+ "id": "usgs-nepal-2015-shakemap-contours",
+ "datasetName": "USGS ShakeMap MMI contours, Gorkha earthquake 2015",
+ "publisher": "U.S. Geological Survey",
+ "sourceUrl": "https://earthquake.usgs.gov/product/shakemap/us20002926/atlas/1594162031303/download/cont_mmi.json",
+ "license": "US Government public domain (17 U.S.C. §105)",
+ "redistribution": "OPEN",
+ "retrievedAt": "2026-09-21",
+ "originalFormat": "GeoJSON (MultiLineString contours)",
+ "temporalCoverage": "2015-04-25 event; ShakeMap revised after the event",
+ "geographicCoverage": "Nepal and surrounding region",
+ "coordinateSystem": "EPSG:4326",
+ "description": "Contours of Modified Mercalli Intensity for the M7.8 Gorkha earthquake, as modelled by USGS ShakeMap from instrumental recordings, felt reports and ground-motion prediction equations.",
+ "dataClass": "OBSERVED",
+ "attribution": "Data courtesy of the U.S. Geological Survey",
+ "fields": [
+  "value",
+  "units",
+  "geometry"
+ ],
+ "limitations": [
+  "ShakeMap is a model constrained by observations, not a dense measurement grid. Intensity between stations is interpolated, and Nepal had few strong-motion instruments in 2015.",
+  "The product is revised after an event; this is the current revision, not what responders saw on 25 April.",
+  "Contours are lines of equal intensity, not filled areas. Any \"population inside MMI VIII\" figure requires converting them to bands first, which is a stated analysis step.",
+  "MMI is a measure of shaking severity, not of damage. A building’s fate depends on its construction."
+ ],
+ "schemaVersion": 1
+}

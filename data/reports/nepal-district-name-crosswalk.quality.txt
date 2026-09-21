@@ -1,0 +1,16 @@
+nepal-district-name-crosswalk: read 75, kept 75, dropped 0 (retention 100.00%)
+  UNEXPECTED_CATEGORY x14
+    - geoBoundaries labels this polygon "Saptari" but OpenStreetMap places its centroid in "Siraha"
+    - geoBoundaries labels this polygon "Sindhupalchok" but OpenStreetMap places its centroid in "Sindhupalchowk"
+    - geoBoundaries labels this polygon "Nawalparasi" but OpenStreetMap places its centroid in "Nawalpur District"
+    - geoBoundaries labels this polygon "Tanahu" but OpenStreetMap places its centroid in "Tanahun"
+    - geoBoundaries labels this polygon "Synagja" but OpenStreetMap places its centroid in "Syangja"
+    - geoBoundaries labels this polygon "Kapilbastu" but OpenStreetMap places its centroid in "Kapilvastu"
+    - geoBoundaries labels this polygon "Jajarkot" but OpenStreetMap places its centroid in "Dailekh"
+    - geoBoundaries labels this polygon "Baijura" but OpenStreetMap places its centroid in "Bajura"
+    - geoBoundaries labels this polygon "Dadeidhura" but OpenStreetMap places its centroid in "Dadeldhura"
+    - geoBoundaries labels this polygon "Chitawan" but OpenStreetMap places its centroid in "Chitwan"
+    - geoBoundaries labels this polygon "Bara" but OpenStreetMap places its centroid in "Parsa"
+    - geoBoundaries labels this polygon "Makawanpur" but OpenStreetMap places its centroid in "Makwanpur"
+    - geoBoundaries labels this polygon "Kabherepalanchok" but OpenStreetMap places its centroid in "Kavrepalanchok"
+    - geoBoundaries labels this polygon "Terhathum" but OpenStreetMap places its centroid in "Tehrathum"

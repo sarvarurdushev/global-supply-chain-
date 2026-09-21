@@ -1,0 +1,26 @@
+{
+ "id": "worldpop-npl-2015-unadj",
+ "datasetName": "WorldPop Global Project Population Data, Nepal 2015, UN-adjusted",
+ "publisher": "WorldPop, University of Southampton",
+ "sourceUrl": "https://data.worldpop.org/GIS/Population/Global_2000_2020/2015/NPL/npl_ppp_2015_UNadj.tif",
+ "license": "CC BY 4.0",
+ "redistribution": "SHARE_ALIKE",
+ "retrievedAt": "2026-09-21",
+ "originalFormat": "BigTIFF (LZW, horizontal differencing, float32)",
+ "temporalCoverage": "2015",
+ "geographicCoverage": "Nepal",
+ "coordinateSystem": "EPSG:4326",
+ "description": "Modelled population count per ~100 m cell for Nepal in 2015, adjusted to match UN national population estimates. Aggregated here to ~1 km cells, which preserves population totals exactly.",
+ "dataClass": "ESTIMATE",
+ "attribution": "WorldPop (www.worldpop.org), CC BY 4.0",
+ "fields": [
+  "population per cell"
+ ],
+ "limitations": [
+  "A MODELLED distribution, not a census. People are allocated to cells from covariates such as built-up area and roads; a cell value is an expectation, not a count of residents.",
+  "The 2015 layer represents the year, not the moment of the earthquake, and captures neither seasonal labour migration nor the population present at 11:56 on a Saturday morning.",
+  "Aggregating to ~1 km preserves totals exactly but not sub-kilometre detail; do not use it for building-level questions.",
+  "The UN adjustment targets the UN World Population Prospects estimate, which differs from the World Bank series by a few per cent. A small residual against any single national figure is expected."
+ ],
+ "schemaVersion": 1
+}

@@ -12,3 +12,7 @@ output/
 3d-models/
 pinokio/ENVIRONMENT
 pinokio/.installed
+
+# Nepal ingestion: raw downloads are reproducible, large, and in one case
+# NonCommercial. The pipeline re-fetches them; the processed artefacts are committed.
+data/raw

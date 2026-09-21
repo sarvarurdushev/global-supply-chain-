@@ -17,10 +17,11 @@ matrix is the compliance view.
 | # | Encumbrance | Effect |
 | --- | --- | --- |
 | 1 | **TeleGeography Submarine Cable Map — CC BY-NC-SA 3.0** | `src/data/local_data/telegeography_submarine_cables/` is **NonCommercial + ShareAlike**. As shipped, **this repository is not usable commercially** without deleting that folder or licensing the data from TeleGeography. |
-| 2 | **Bhote Koshi event imagery — CC BY-NC 4.0** (Vantor / GeoPera) | `public/events/bhote-koshi-2026/` and the derived river centreline embedded in `src/data/bhoteKoshiFloodPath.js` are **NonCommercial**. The derived coordinates remain third-party data *even though they live inside a `.js` source file* — the MIT grant does not cover them. |
-| 3 | **ODbL share-alike** (datacenters, dams, OSM/Overpass, adsb.lol, Photon, Nominatim, OSRM) | Attribution **and** database share-alike obligations attach to derived databases. |
-| 4 | **OpenSky — non-commercial research/education only** | The primary live-flight source cannot be used commercially. |
-| 5 | **Google Maps Platform** | Proprietary; requires the operator's own key and billing; the Google credit must remain visible. |
+| 2 | **UNOSAT / Copernicus EMSR125 / NGA Nepal 2015 damage package — CC BY-NC-SA 3.0** | `data/processed/nepal-2015-unosat-damage-sites.json`, `nepal-2015-copernicus-grading.json` and `nepal-2015-nga-infrastructure-damage.json` derive from `EQ20150425NPL_shp.zip`. **HDX shows `license_title: "Other"`; the real terms are in `license_other` and they are NonCommercial + ShareAlike.** A university or demonstration deployment is fine; a commercial one needs those three files removed or the data separately licensed. Attribution: UNITAR/UNOSAT; Copernicus EMS (EMSR125); U.S. NGA. |
+| 3 | **Bhote Koshi event imagery — CC BY-NC 4.0** (Vantor / GeoPera) | `public/events/bhote-koshi-2026/` and the derived river centreline embedded in `src/data/bhoteKoshiFloodPath.js` are **NonCommercial**. The derived coordinates remain third-party data *even though they live inside a `.js` source file* — the MIT grant does not cover them. |
+| 4 | **ODbL share-alike** (datacenters, dams, OSM/Overpass, adsb.lol, Photon, Nominatim, OSRM) | Attribution **and** database share-alike obligations attach to derived databases. |
+| 5 | **OpenSky — non-commercial research/education only** | The primary live-flight source cannot be used commercially. |
+| 6 | **Google Maps Platform** | Proprietary; requires the operator's own key and billing; the Google credit must remain visible. |
 
 **Neither NonCommercial dataset can simply be deleted.** Both are woven into code *and tests*
 — the TeleGeography dataset alone is referenced from 30+ files including
