@@ -126,9 +126,14 @@ area was tasked at lower intensity.
 | VII–VIII (7.5) | 895 | 31.1 % |
 | VIII | 2,209 | 55.8 % |
 
+"Destroyed share" here means the share of **observations in that band classed
+Destroyed** — not the share of buildings destroyed, which UNOSAT cannot give.
+
 Class and band are not independent (χ² = 255.5, df = 6, p ≈ 3 × 10⁻⁵², Cramér's
-V = 0.167, Cochran's rule holds). But **the share of destroyed buildings is not
-monotonic in intensity**, and the reason is visible in the data: each band
+V = 0.167, Cochran's rule holds). Read the effect size, not the p-value: with
+4,583 observations a trivial departure from independence is "significant", and
+V = 0.167 on a 3 × 4 table is a small association. And **the destroyed share is
+not monotonic in intensity**, with the reason visible in the data: each band
 contains different places. MMI VII is Bhaktapur and Sankhu; MMI VII–VIII is the
 Chepe valley and Manbu; MMI VIII is the Daraudi valley and Manbu.
 
@@ -153,8 +158,8 @@ usable grading at all).
 
 | Area of interest | Records | Graded | Damaged | Destroyed | Destroyed / graded |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| BHARATPUR | 18,076 | 18,076 | 50 | 6 | 0.03 % |
-| POKHARA | 16,192 | 14,542 | 42 | 8 | 0.06 % |
+| BHARATPUR | 18,076 | 18,076 | 50 | 6 | 0.033 % |
+| POKHARA | 16,192 | 14,542 | 42 | 8 | 0.055 % |
 | BIDUR | 4,791 | 4,128 | 180 | 120 | 2.9 % |
 | KATHMANDU | 958 | 939 | 723 | 183 | 19.5 % |
 | CHILIME | 859 | 859 | 200 | 129 | 15.0 % |
