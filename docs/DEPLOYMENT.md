@@ -52,6 +52,7 @@ fixes one of them.
 | `NODE_VERSION` | `24.14.0` | `engines` requires `>=24.14.0 <25 \|\| >=26 <27`. Render defaults lower and the install fails the engine check. |
 | `NPM_CONFIG_PRODUCTION` | `false` | Render sets `NODE_ENV=production`, which makes npm skip `devDependencies`. **Vite is a devDependency and Vite is what serves the app** — without this the build has no bundler and the start command has no server. |
 | `PUPPETEER_SKIP_DOWNLOAD` | `true` | Puppeteer is a devDependency used only by the QA script. Without this it downloads a ~200 MB Chromium on every build, for nothing. |
+| `NODE_OPTIONS` | `--max-old-space-size=512` | The build's default heap growth peaks around **760 MB RSS** (measured). A small builder refuses that. Capping the old space makes V8 collect inside 512 MB instead of growing past it — 512 builds cleanly in the same ~9 s, 420 dies in a `JSON.parse` of the bundled geometry, so this is near the floor rather than an arbitrary number. |
 | `HOST` | `0.0.0.0` | Binds every interface. It also switches `allowedHosts` to `true`, which is what lets the service answer on Render's generated domain instead of refusing it as an unknown host. |
 | `PORT` | *(set by Render — do not set it yourself)* | Read by `server/standalone/vite.config.js` and passed into the preview server. |
 
@@ -83,6 +84,7 @@ one. `build/vite.js` now sets an explicit `preview` block.
 
 | Field | Value |
 | --- | --- |
+| Instance type | **Free** |
 | Language | Node |
 | Branch | `claude/supply-chain-intelligence-platform-5u3va2` |
 | Build command | `npm ci --include=dev && npm run build` |
@@ -119,12 +121,34 @@ deploy it, or leave it unset.
 
 ---
 
-## 5. Plan sizing
+## 5. Plan sizing, and the one thing that can go wrong on free
 
-- **Free** works. It sleeps after ~15 minutes idle and takes 30–60 s to wake,
-  and free builds are slow — this bundle is large (Cesium alone is ~3 MB).
-- **Starter** is what the blueprint requests: no sleeping, and the build has
-  enough memory to be comfortable.
+The blueprint requests **`plan: free`** — no card, no charge. The trade-offs
+are real and worth knowing before you pick it:
+
+- The service **sleeps after about 15 minutes idle** and takes 30–60 s to wake
+  on the next visit. For a demo link somebody opens occasionally, that first
+  load is slow and then everything is normal.
+- **Free builders are small.** This is the one genuine risk. `vite build`
+  bundles Cesium and several megabytes of geometry; measured here it peaks
+  around 760 MB RSS with the default heap. `NODE_OPTIONS=--max-old-space-size=512`
+  in the blueprint is what brings that inside a small builder's limit, and it
+  costs nothing in build time.
+
+**If the build still fails with an out-of-memory error**, you have two options
+and only one of them costs money:
+
+1. **Build locally, let Render skip it (free).** `dist/` is gitignored, so:
+   ```bash
+   npm run build
+   git add -f dist && git commit -m "Ship a prebuilt bundle for deployment"
+   git push
+   ```
+   Then change the service's build command to `npm ci --include=dev` — no
+   `npm run build`. The start command still serves the API proxies, because
+   those run from source, not from `dist/`. The cost is that you must rebuild
+   and recommit whenever you change the app. `dist/` is about 32 MB.
+2. **Move to `starter`.** No sleeping and a comfortable builder.
 
 The Overpass disk cache writes to `.gev-cache/overpass` under the working
 directory. Render's filesystem is ephemeral, so that cache resets on every

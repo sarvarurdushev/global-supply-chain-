@@ -14,13 +14,17 @@ services:
   - type: web
     name: disaster-intelligence-platform
     runtime: node
-    plan: starter # `free` works; it sleeps when idle and the first load is slow
+    # Free. No card, no charge. The trade-off is real and worth knowing: the
+    # service sleeps after about 15 minutes idle and takes 30-60s to wake on
+    # the next visit, and free builds are slower. Change this to `starter` only
+    # if you decide the sleeping is a problem.
+    plan: free
     region: oregon
     branch: claude/supply-chain-intelligence-platform-5u3va2
     buildCommand: npm ci --include=dev && npm run build
     startCommand: npm start
     healthCheckPath: /
-    autoDeployTrigger: commit
+    autoDeploy: true
     envVars:
       # The app's engines field wants 24.x or 26.x. Render defaults lower.
       - key: NODE_VERSION
@@ -33,6 +37,14 @@ services:
       # it downloads a ~200 MB Chromium on every build, for nothing.
       - key: PUPPETEER_SKIP_DOWNLOAD
         value: 'true'
+      # Measured, not guessed: the build's default heap growth peaks around
+      # 760 MB RSS, which a small builder refuses. Capping the old space makes
+      # V8 collect inside 512 MB instead of growing past it. 512 builds
+      # cleanly in the same ~9s; 420 dies in a JSON.parse of the bundled
+      # geometry, so this is close to the floor rather than an arbitrary
+      # number.
+      - key: NODE_OPTIONS
+        value: '--max-old-space-size=512'
       # Bind every interface and the port Render assigns. Both are read by
       # server/standalone/vite.config.js and passed into the preview server.
       - key: HOST
