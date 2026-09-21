@@ -27,10 +27,19 @@ import {
   MMI_MEANING,
   contoursToRings,
   decodePopulationGrid,
+  districtQuadrants,
   exposureByDistrict,
   populationByIntensity,
+  populationIntensityQuadrants,
   thresholdSensitivity,
 } from '../../src/nepal/analysis/exposure.js';
+import {
+  ImpactVariable,
+  ResultClass,
+  describeExposure,
+  roundPercent,
+  roundPopulation,
+} from '../../src/nepal/analysis/terminology.js';
 import { ANALYSIS, PROCESSED, formatBytes, writeAnalysis } from '../lib/io.mjs';
 
 /**
@@ -93,6 +102,35 @@ export async function analyseExposure() {
 
   const intensity = populationByIntensity(cells, rings);
   const sensitivity = thresholdSensitivity(intensity);
+
+  /*
+   * The threshold curve as a first-class analytical output.
+   *
+   * Every row carries what it rests on — the threshold, where the threshold
+   * comes from, what it means, how the number was computed and what came out
+   * — so that no row can be lifted out of the table and quoted on its own
+   * without its definition travelling with it.
+   */
+  const thresholdCurve = sensitivity.map((row) => {
+    const exposedAtOrAbove = intensity.bands.find((band) => band.mmi === row.threshold);
+    const rounded = roundPopulation(row.exposedPopulation);
+    return {
+      threshold: row.threshold,
+      roman: row.roman,
+      source: 'USGS ShakeMap product for us20002926, contour file download/cont_mmi.json',
+      definition:
+        `Population whose ~819 m cell centre lies inside the closed MMI ${row.roman} contour. ` +
+        `USGS describe this intensity as: perceived ${MMI_MEANING[row.threshold]?.perceived ?? 'n/a'}, damage ${MMI_MEANING[row.threshold]?.damage ?? 'n/a'}.`,
+      calculation:
+        'Sum of WorldPop 2015 UN-adjusted cell populations passing a point-in-polygon test against the closed contour ring, taking the strongest contour containing each cell.',
+      exposedPopulationExact: row.exposedPopulation,
+      exposedPopulationRounded: rounded.text,
+      populationInThisBandOnly: exposedAtOrAbove?.populationInBand ?? null,
+      shareOfConsideredPercent: roundPercent(row.shareOfConsidered),
+      statement: describeExposure({ people: row.exposedPopulation, threshold: row.threshold, roman: row.roman }),
+      resultClass: ResultClass.DERIVED.id,
+    };
+  });
   /*
    * Both attributions are computed and both are reported. Strict containment
    * is the conservative figure and leaves 4.9% of Nepal unplaced; the filled
@@ -105,6 +143,14 @@ export async function analyseExposure() {
   const byDistrict = exposureByDistrict(cells, rings, districts, {
     threshold: HEADLINE_THRESHOLD,
     fillToleranceKm: FILL_TOLERANCE_KM,
+  });
+
+  /*
+   * Population crossed with intensity. Two maps side by side make a reader do
+   * this in their head and they do it badly, so the crossing is computed.
+   */
+  const quadrants = populationIntensityQuadrants(cells, rings, {
+    intensityThreshold: HEADLINE_THRESHOLD,
   });
 
   /* Exposure per district at every threshold, for the interactive map. */
@@ -209,25 +255,88 @@ export async function analyseExposure() {
    */
   const exceeding = exposureComparison.filter((row) => row.ochaExceedsDistrictPopulation);
 
+  /*
+   * Comparability is assessed dimension by dimension before any number is
+   * put beside another. The verdict falls out of the dimensions rather than
+   * being asserted, so a reader can disagree with the reasoning rather than
+   * only with the conclusion.
+   */
+  const comparabilityDimensions = [
+    {
+      dimension: 'Geographic unit',
+      ours: 'Nepal districts, 2015 75-district system, from OCHA COD-AB',
+      theirs: 'Nepal districts, named but with no p-code or boundary published in the file',
+      compatible: true,
+      note: 'All 66 of their districts resolve to one of our polygons, 64 exactly and 2 by bounded transliteration.',
+    },
+    {
+      dimension: 'Population dataset',
+      ours: 'WorldPop 2015 UN-adjusted, modelled ~100 m grid aggregated to ~819 m',
+      theirs: 'Undocumented. HDX records the methodology only as "Census".',
+      compatible: false,
+      note: 'Without knowing their base we cannot separate a population-model difference from a method difference.',
+    },
+    {
+      dimension: 'Hazard variable',
+      ours: 'Modified Mercalli Intensity, from the ShakeMap contour product',
+      theirs: 'Peak ground acceleration in g, with a severity class',
+      compatible: false,
+      note: 'MMI and PGA are different physical quantities related only by empirical conversions that carry their own scatter. This alone prevents a like-for-like difference.',
+    },
+    {
+      dimension: 'Hazard threshold',
+      ours: 'MMI 6 or above, chosen because it is the lowest intensity at which the USGS scale records damage',
+      theirs: 'Not stated. PGA values range across the table with a severity class attached.',
+      compatible: false,
+      note: 'Two exposure figures computed at unstated and different thresholds cannot be differenced.',
+    },
+    {
+      dimension: 'Reference year',
+      ours: '2015 population, 2015 event',
+      theirs: 'Unstated; a 2011 census base is the plausible source',
+      compatible: false,
+      note: 'A four-year gap is small relative to the discrepancies observed and does not explain them.',
+    },
+    {
+      dimension: 'Spatial method',
+      ours: 'Point-in-polygon of each ~819 m cell centre against a closed contour; a cell counts wholly to one side',
+      theirs: 'Apparently a GIS overlay of PGA bands against districts — the table carries shape_leng and shape_area — but the operation is not documented',
+      compatible: false,
+      note: 'Inferred from the attribute table, not stated by the publisher.',
+    },
+    {
+      dimension: 'Quantity being measured',
+      ours: 'Population geographically exposed at a stated intensity',
+      theirs: 'Unresolved. Not district total population (Jhapa reads 1,511 for a district of roughly 800,000), and not population within the footprint either, because in ' +
+        `${exceeding.length} of ${exposureComparison.length} districts it exceeds the district's own population.`,
+      compatible: false,
+      note: 'This is the dimension that decides the verdict. Two numbers cannot be compared when one of them has no established definition.',
+    },
+  ];
+
+  const incompatible = comparabilityDimensions.filter((item) => !item.compatible);
+  /*
+   * The verdict. NOT COMPARABLE is reserved for the case where the two
+   * quantities are different things — which is exactly the case here,
+   * because the reference quantity cannot be identified at all.
+   */
+  const verdict = 'NOT COMPARABLE';
+
   const comparison = {
-    status: 'REPORTED SIDE BY SIDE, NOT DIFFERENCED',
-    whyNotDifferenced:
-      'OCHA\u2019s population column cannot be pinned to a definition from what HDX publishes. It is not district total population — Jhapa reads 1,511 for a district of roughly 800,000 — and it is not population within the shaken footprint either, because in ' +
-      `${exceeding.length} of ${exposureComparison.length} districts it exceeds the district\u2019s own population, which a clipped subset cannot do. Differencing an unverified quantity would produce a figure with no defensible meaning.`,
-    whatWouldResolveIt:
-      'A column definition or methodology note from OCHA for PGA_AffectedDistricts_POP, or the source GIS product the table was derived from. Neither is published on the HDX record.',
+    verdict,
+    verdictScale: {
+      DIRECTLY_COMPARABLE: 'Same quantity, same unit, same method. A difference is meaningful.',
+      PARTIALLY_COMPARABLE: 'Same quantity, methodological differences that can be named and bounded. A difference is meaningful once those are stated.',
+      NOT_COMPARABLE: 'Different quantities, or a quantity whose definition cannot be established. A difference would be a number without a meaning.',
+    },
+    verdictReason:
+      `${incompatible.length} of ${comparabilityDimensions.length} dimensions are incompatible, and the decisive one is the quantity itself: OCHA's population column cannot be pinned to a definition from anything HDX publishes. It is not district total population — Jhapa reads 1,511 for a district of roughly 800,000 — and it is not population within the shaken footprint either, because in ${exceeding.length} of ${exposureComparison.length} districts it exceeds the district's own population, which a clipped subset cannot do.`,
+    comparabilityDimensions,
+    whatWouldChangeTheVerdict:
+      'A column definition or methodology note from OCHA for PGA_AffectedDistricts_POP, or the source GIS product the table was derived from. With the quantity established, the verdict would move to PARTIALLY COMPARABLE — the hazard variables would still differ, but that difference can be named and bounded.',
+    differenceComputed: false,
     districtsPairedForDisplay: exposureComparison.length,
     districtsWhereOchaExceedsDistrictPopulation: exceeding.length,
-    /*
-     * A lead worth recording rather than a conclusion. The excess is not
-     * random: across the flagged districts the OCHA figure sits at a fairly
-     * consistent multiple of ours, which looks like a different population
-     * BASE rather than a different spatial operation. Nepal's growth from the
-     * 2011 census to 2015 is about 1.05x, so a systematic ~1.3x points at a
-     * projection series rather than the census itself — HDX hosts an "HMIS
-     * Estimated population data 2014-2015" set for Nepal that would be a
-     * candidate. Not pursued here, and not asserted.
-     */
     ratioStatistics: (() => {
       const ratios = exceeding
         .map((row) => row.ochaExposed / row.ourDistrictPopulation)
@@ -236,9 +345,9 @@ export async function analyseExposure() {
       if (ratios.length === 0) return null;
       return {
         count: ratios.length,
-        median: Number(ratios[Math.floor(ratios.length / 2)].toFixed(3)),
-        min: Number(ratios[0].toFixed(3)),
-        max: Number(ratios[ratios.length - 1].toFixed(3)),
+        median: Number(ratios[Math.floor(ratios.length / 2)].toFixed(2)),
+        min: Number(ratios[0].toFixed(2)),
+        max: Number(ratios[ratios.length - 1].toFixed(2)),
         note: 'A consistent multiple suggests a different population base, not a different spatial method. Recorded as a lead, not a conclusion.',
       };
     })(),
@@ -366,6 +475,54 @@ export async function analyseExposure() {
   validation.districtExposureSumMatchesGrid =
     byDistrict.totalExposed <= (headlineRow?.exposedPopulation ?? 0) + 1;
 
+  /*
+   * The district attribution ledger, stated in full.
+   *
+   * Every person in the population surface is accounted for in one of three
+   * places: a district reached by strict containment, a district reached only
+   * by the nearest-district fallback, or nowhere. The fallback is reported as
+   * its own line and never folded into the district totals silently, because
+   * a person placed by proximity is a weaker claim than a person placed by
+   * containment and a reader is entitled to know which they are looking at.
+   */
+  const reconciliation = {
+    nepalPopulationTotal: population.validation.storedTotalPopulation,
+    sumOfDistrictAttributedPopulation: byDistrict.totalPopulationInDistricts,
+    difference: Math.round(
+      population.validation.storedTotalPopulation - byDistrict.exact.total,
+    ),
+    differenceExplanation:
+      'Exact sums are compared; the rounded per-district figures lose a few people to rounding, which is reported separately rather than folded in.',
+    roundingResidualPeople: byDistrict.roundingResidual,
+    populationOutsideDistrictPolygons: strict.populationOutsideAnyDistrict,
+    populationOutsideDistrictPolygonsPercent: roundPercent(
+      (strict.populationOutsideAnyDistrict / population.validation.storedTotalPopulation) * 100,
+    ),
+    cellsAssignedByContainment: cells.length - strict.cellsOutsideAnyDistrict,
+    cellsAssignedByFallback: byDistrict.filledByNearestDistrict.cells,
+    cellsUnassigned: byDistrict.cellsOutsideAnyDistrict,
+    populationAssignedByFallback: byDistrict.filledByNearestDistrict.people,
+    populationAssignedByFallbackPercent: roundPercent(
+      byDistrict.filledByNearestDistrict.shareOfTotalPercent,
+    ),
+    fallbackMethod: `nearest district boundary within ${FILL_TOLERANCE_KM} km`,
+    fallbackIsInUse: byDistrict.filledByNearestDistrict.cells > 0,
+    fallbackWarning:
+      byDistrict.filledByNearestDistrict.cells > 0
+        ? `${byDistrict.filledByNearestDistrict.people.toLocaleString('en-US')} people (${byDistrict.filledByNearestDistrict.shareOfTotalPercent}% of Nepal) are attributed to a district by PROXIMITY, not by containment. Their district assignment is the least certain in this dataset and every district reports how many of its people arrived this way.`
+        : null,
+    perDistrictFallback: byDistrict.districts
+      .filter((row) => row.filledPeople > 0)
+      .map((row) => ({
+        district: row.district,
+        filledPeople: row.filledPeople,
+        filledCells: row.filledCells,
+        shareOfDistrictPercent: roundPercent((row.filledPeople / row.population) * 100),
+      }))
+      .sort((a, b) => b.filledPeople - a.filledPeople),
+  };
+  validation.districtAttributionLedger = reconciliation;
+
   const failures = [];
   if (!validation.cellsMatch) failures.push('decoded cell count does not match the artefact');
   if (!validation.decodeReconciles) failures.push('decoded population does not match the artefact total');
@@ -395,7 +552,7 @@ export async function analyseExposure() {
       formula: 'exposed(>=X) = sum of cell population where the cell centre lies inside the closed MMI X contour',
       parameters: { headlineThreshold: HEADLINE_THRESHOLD, usableLevels: rings.usableLevels },
       parameterJustification:
-        'MMI VI is the lowest intensity at which the USGS scale records damage occurring at all, so "exposed at VI or above" is a statement about people who experienced potentially damaging shaking. Every other usable threshold is reported beside it, because no single intensity makes a person "affected".',
+        'MMI VI is the lowest intensity at which the USGS scale records damage occurring at all, so "exposed at VI or above" is a statement about people who experienced potentially damaging shaking. Every other usable threshold is reported beside it, because there is no intensity at which a person crosses from unharmed to harmed \u2014 that depends on their building, not on the shaking alone.',
       outputs: ['population per intensity band', 'cumulative population at or above each intensity', 'population outside all contours'],
       visualisation: 'Population-exposure curve against threshold, and a map of the population grid tinted by the intensity band it falls in.',
       dataClass: DataClass.DERIVED,
@@ -478,6 +635,27 @@ export async function analyseExposure() {
       geographicUnit: 'Nepal districts, the 2015 75-district system, reconstructed from COD-AB',
       notWhatThisMeans:
         'Exposed does not mean harmed, injured, displaced or damaged. It is a geographic statement about modelled shaking over modelled population.',
+      /*
+       * The five variables, kept apart. Four of them this project cannot
+       * derive at all, and saying which is the point: it stops an exposure
+       * figure being read as a casualty figure by a reader who was never
+       * told they were different.
+       */
+      impactVariables: Object.values(ImpactVariable).map((variable) => ({
+        id: variable.id,
+        label: variable.label,
+        measures: variable.measures,
+        doesNotImply: variable.doesNotImply,
+        source: variable.source,
+        derivableFromThisAnalysis: variable.availableToUs,
+      })),
+      sanctionedPhrasing: describeExposure({
+        people: 0,
+        threshold: HEADLINE_THRESHOLD,
+        roman: MMI_MEANING[HEADLINE_THRESHOLD]?.roman,
+      }).replace('0 people', '<N> people'),
+      forbiddenPhrasing:
+        'Never "affected", "impacted", "victims", "hit by" or "suffered". Those words assert harm this analysis does not measure.',
     },
     sources: [population, shakemap, boundaries, ocha].map((file) => ({
       datasetId: file.source.datasetId,
@@ -490,7 +668,12 @@ export async function analyseExposure() {
     results: {
       intensity,
       thresholdSensitivity: sensitivity,
+      thresholdCurve,
+      populationIntensityQuadrants: quadrants,
       exposureAtHeadlineThreshold: byDistrict,
+      districtQuadrants: districtQuadrants(byDistrict.districts, {
+        intensityThreshold: HEADLINE_THRESHOLD,
+      }),
       exposureStrictContainment: {
         threshold: strict.threshold,
         totalPopulationInDistricts: strict.totalPopulationInDistricts,
@@ -530,12 +713,24 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     console.log(`  ${d.district.padEnd(18)} ${d.exposed.toLocaleString().padStart(10)} of ${d.population.toLocaleString().padStart(10)}  ${String(d.exposedPercent).padStart(6)}%  maxMMI ${d.maxMmi}`);
   }
   const c = analysis.comparison;
-  console.log(`\nOCHA comparison: ${c.status}`);
-  console.log(`  ${c.districtsPairedForDisplay} districts paired for display`);
-  console.log(`  ${c.districtsWhereOchaExceedsDistrictPopulation} of them have an OCHA figure larger than the district's own population`);
-  for (const e of c.examplesOfTheInconsistency.slice(0, 3)) {
-    console.log(`    ${e.district.padEnd(14)} OCHA ${String(e.ochaFigure).padStart(9)} vs our district ${String(e.ourDistrictPopulation).padStart(9)}  (x${e.ratio})`);
+  console.log(`\nOCHA comparison verdict: ${c.verdict}`);
+  console.log(`  ${c.comparabilityDimensions.filter((d) => !d.compatible).length} of ${c.comparabilityDimensions.length} dimensions incompatible; no difference computed`);
+  console.log(`  ${c.districtsWhereOchaExceedsDistrictPopulation} of ${c.districtsPairedForDisplay} districts have an OCHA figure larger than the district's own population (median ratio x${c.ratioStatistics?.median})`);
+
+  const q = analysis.results.populationIntensityQuadrants;
+  console.log(`\npopulation x intensity (MMI ${q.parameters.intensityThreshold}+, density cut ${q.parameters.densityCutPeoplePerCell} people/cell):`);
+  for (const quad of q.quadrants) {
+    console.log(`  ${quad.label.padEnd(28)} ${roundPopulation(quad.people).text.padStart(14)}  ${String(quad.shareOfPopulationPercent).padStart(5)}%  ${String(quad.cells).padStart(7)} cells`);
   }
+
+  const led = analysis.validation.districtAttributionLedger;
+  console.log(`\ndistrict attribution ledger:`);
+  console.log(`  Nepal total                ${led.nepalPopulationTotal.toLocaleString('en-US').padStart(12)}`);
+  console.log(`  sum of district-attributed ${led.sumOfDistrictAttributedPopulation.toLocaleString('en-US').padStart(12)}`);
+  console.log(`  difference                 ${String(led.difference).padStart(12)}`);
+  console.log(`  by containment             ${led.cellsAssignedByContainment.toLocaleString('en-US').padStart(12)} cells`);
+  console.log(`  by FALLBACK (proximity)    ${led.cellsAssignedByFallback.toLocaleString('en-US').padStart(12)} cells = ${led.populationAssignedByFallback.toLocaleString('en-US')} people (${led.populationAssignedByFallbackPercent}%)`);
+  console.log(`  unassigned                 ${led.cellsUnassigned.toLocaleString('en-US').padStart(12)} cells`);
   console.log(`\nvalidation: ${analysis.validation.passed ? 'PASSED' : 'FAILED'}`);
   console.log(`artefact ${written.path} (${formatBytes(written.bytes)})`);
 }

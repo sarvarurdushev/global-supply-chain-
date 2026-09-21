@@ -74,8 +74,14 @@ export function createAnalysisRecord(input) {
         'but no justification for their values.',
     );
   }
+  /*
+   * `resultClass` separates an observation from a statistic from a fitted
+   * model parameter. It defaults to the data class only where the two mean
+   * the same thing; an analysis that fits a model must say so explicitly.
+   */
   return Object.freeze({
     schemaVersion: 1,
+    resultClass: input.resultClass ?? input.dataClass,
     ...input,
     inputs: Object.freeze(
       input.inputs.map((item) => Object.freeze({ ...item })),

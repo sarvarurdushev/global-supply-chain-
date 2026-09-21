@@ -16,7 +16,51 @@
   "populationDataset": "WorldPop 2015 UN-adjusted, aggregated to ~819 m cells",
   "populationYear": 2015,
   "geographicUnit": "Nepal districts, the 2015 75-district system, reconstructed from COD-AB",
-  "notWhatThisMeans": "Exposed does not mean harmed, injured, displaced or damaged. It is a geographic statement about modelled shaking over modelled population."
+  "notWhatThisMeans": "Exposed does not mean harmed, injured, displaced or damaged. It is a geographic statement about modelled shaking over modelled population.",
+  "impactVariables": [
+   {
+    "id": "EXPOSURE",
+    "label": "Geographic exposure",
+    "measures": "People whose location lies inside a modelled hazard footprint at a stated intensity.",
+    "doesNotImply": "Injury, death, building damage, displacement or need. It is a statement about where people and shaking overlap.",
+    "source": "Derived here from a population surface and a hazard model.",
+    "derivableFromThisAnalysis": true
+   },
+   {
+    "id": "DAMAGE",
+    "label": "Physical damage",
+    "measures": "Structures or infrastructure observed to be damaged or destroyed.",
+    "doesNotImply": "That anyone inside was harmed, or that an undamaged building was safe to occupy.",
+    "source": "Satellite interpretation (UNOSAT, Copernicus EMSR125) or field assessment. Never inferred from exposure.",
+    "derivableFromThisAnalysis": true
+   },
+   {
+    "id": "CASUALTIES",
+    "label": "Human casualties",
+    "measures": "People killed or injured.",
+    "doesNotImply": "Anything about the distribution of damage or need.",
+    "source": "Government and agency counts, published as national or district totals. Not derivable from exposure or damage.",
+    "derivableFromThisAnalysis": false
+   },
+   {
+    "id": "HUMANITARIAN_NEED",
+    "label": "Humanitarian need",
+    "measures": "People assessed as requiring assistance.",
+    "doesNotImply": "That they were exposed to the strongest shaking, or that their home fell.",
+    "source": "Cluster assessments and needs surveys. An assessment, not a measurement.",
+    "derivableFromThisAnalysis": false
+   },
+   {
+    "id": "DISPLACEMENT",
+    "label": "Displacement",
+    "measures": "People who left their homes and where they went.",
+    "doesNotImply": "That their house was destroyed; people leave undamaged homes for fear of aftershocks.",
+    "source": "IOM Displacement Tracking Matrix and shelter cluster site reports.",
+    "derivableFromThisAnalysis": false
+   }
+  ],
+  "sanctionedPhrasing": "<N> people were geographically exposed to modelled shaking of MMI VI or greater",
+  "forbiddenPhrasing": "Never \"affected\", \"impacted\", \"victims\", \"hit by\" or \"suffered\". Those words assert harm this analysis does not measure."
  },
  "sources": [
   {
@@ -75,9 +119,6 @@
   "districtKeysDistinct": 75,
   "districtsMergedFromPost2017Splits": 2,
   "usableContourLevels": [
-   3,
-   3.5,
-   4,
    4.5,
    5,
    5.5,
@@ -87,7 +128,7 @@
    7.5,
    8
   ],
-  "excludedContourParts": 20,
+  "excludedContourParts": 23,
   "excludedContourLevels": [
    3,
    3.5,
@@ -101,12 +142,332 @@
   "headlineThreshold": 6,
   "headlineExposed": 13835518,
   "districtExposureSumMatchesGrid": true,
+  "districtAttributionLedger": {
+   "nepalPopulationTotal": 27010569,
+   "sumOfDistrictAttributedPopulation": 27010569,
+   "difference": 0,
+   "differenceExplanation": "Exact sums are compared; the rounded per-district figures lose a few people to rounding, which is reported separately rather than folded in.",
+   "roundingResidualPeople": 1.9,
+   "populationOutsideDistrictPolygons": 119471,
+   "populationOutsideDistrictPolygonsPercent": 0.4,
+   "cellsAssignedByContainment": 176431,
+   "cellsAssignedByFallback": 1248,
+   "cellsUnassigned": 0,
+   "populationAssignedByFallback": 119471,
+   "populationAssignedByFallbackPercent": 0.4,
+   "fallbackMethod": "nearest district boundary within 20 km",
+   "fallbackIsInUse": true,
+   "fallbackWarning": "119,471 people (0.44% of Nepal) are attributed to a district by PROXIMITY, not by containment. Their district assignment is the least certain in this dataset and every district reports how many of its people arrived this way.",
+   "perDistrictFallback": [
+    {
+     "district": "Dhanusa",
+     "filledPeople": 13715,
+     "filledCells": 36,
+     "shareOfDistrictPercent": 2
+    },
+    {
+     "district": "Jhapa",
+     "filledPeople": 11221,
+     "filledCells": 95,
+     "shareOfDistrictPercent": 1.5
+    },
+    {
+     "district": "Kanchanpur",
+     "filledPeople": 9734,
+     "filledCells": 64,
+     "shareOfDistrictPercent": 1.4
+    },
+    {
+     "district": "Sarlahi",
+     "filledPeople": 8626,
+     "filledCells": 32,
+     "shareOfDistrictPercent": 1.2
+    },
+    {
+     "district": "Sunsari",
+     "filledPeople": 7461,
+     "filledCells": 37,
+     "shareOfDistrictPercent": 0.5
+    },
+    {
+     "district": "Bara",
+     "filledPeople": 6585,
+     "filledCells": 37,
+     "shareOfDistrictPercent": 1
+    },
+    {
+     "district": "Parsa",
+     "filledPeople": 6436,
+     "filledCells": 48,
+     "shareOfDistrictPercent": 0.7
+    },
+    {
+     "district": "Lalitpur",
+     "filledPeople": 6349,
+     "filledCells": 2,
+     "shareOfDistrictPercent": 1.3
+    },
+    {
+     "district": "Morang",
+     "filledPeople": 5607,
+     "filledCells": 41,
+     "shareOfDistrictPercent": 0.6
+    },
+    {
+     "district": "Siraha",
+     "filledPeople": 5283,
+     "filledCells": 24,
+     "shareOfDistrictPercent": 0.7
+    },
+    {
+     "district": "Rupandehi",
+     "filledPeople": 5133,
+     "filledCells": 46,
+     "shareOfDistrictPercent": 0.6
+    },
+    {
+     "district": "Rautahat",
+     "filledPeople": 4975,
+     "filledCells": 20,
+     "shareOfDistrictPercent": 0.8
+    },
+    {
+     "district": "Kailali",
+     "filledPeople": 3933,
+     "filledCells": 52,
+     "shareOfDistrictPercent": 0.4
+    },
+    {
+     "district": "Mahottari",
+     "filledPeople": 3162,
+     "filledCells": 21,
+     "shareOfDistrictPercent": 0.5
+    },
+    {
+     "district": "Kapilbastu",
+     "filledPeople": 3069,
+     "filledCells": 38,
+     "shareOfDistrictPercent": 0.5
+    },
+    {
+     "district": "Saptari",
+     "filledPeople": 3007,
+     "filledCells": 33,
+     "shareOfDistrictPercent": 0.5
+    },
+    {
+     "district": "Nawalparasi",
+     "filledPeople": 2747,
+     "filledCells": 32,
+     "shareOfDistrictPercent": 0.5
+    },
+    {
+     "district": "Banke",
+     "filledPeople": 1997,
+     "filledCells": 42,
+     "shareOfDistrictPercent": 0.4
+    },
+    {
+     "district": "Ilam",
+     "filledPeople": 1862,
+     "filledCells": 40,
+     "shareOfDistrictPercent": 0.7
+    },
+    {
+     "district": "Bardiya",
+     "filledPeople": 1777,
+     "filledCells": 40,
+     "shareOfDistrictPercent": 0.5
+    },
+    {
+     "district": "Dang",
+     "filledPeople": 1300,
+     "filledCells": 52,
+     "shareOfDistrictPercent": 0.2
+    },
+    {
+     "district": "Darchula",
+     "filledPeople": 1145,
+     "filledCells": 55,
+     "shareOfDistrictPercent": 0.9
+    },
+    {
+     "district": "Chitawan",
+     "filledPeople": 914,
+     "filledCells": 20,
+     "shareOfDistrictPercent": 0.2
+    },
+    {
+     "district": "Baitadi",
+     "filledPeople": 806,
+     "filledCells": 27,
+     "shareOfDistrictPercent": 0.4
+    },
+    {
+     "district": "Sindhupalchok",
+     "filledPeople": 461,
+     "filledCells": 26,
+     "shareOfDistrictPercent": 0.2
+    },
+    {
+     "district": "Tanahu",
+     "filledPeople": 315,
+     "filledCells": 2,
+     "shareOfDistrictPercent": 0.1
+    },
+    {
+     "district": "Dadeldhura",
+     "filledPeople": 272,
+     "filledCells": 21,
+     "shareOfDistrictPercent": 0.2
+    },
+    {
+     "district": "Panchthar",
+     "filledPeople": 186,
+     "filledCells": 36,
+     "shareOfDistrictPercent": 0.1
+    },
+    {
+     "district": "Achham",
+     "filledPeople": 183,
+     "filledCells": 2,
+     "shareOfDistrictPercent": 0.1
+    },
+    {
+     "district": "Ramechhap",
+     "filledPeople": 178,
+     "filledCells": 1,
+     "shareOfDistrictPercent": 0.1
+    },
+    {
+     "district": "Nuwakot",
+     "filledPeople": 152,
+     "filledCells": 1,
+     "shareOfDistrictPercent": 0.1
+    },
+    {
+     "district": "Arghakhanchi",
+     "filledPeople": 152,
+     "filledCells": 2,
+     "shareOfDistrictPercent": 0.1
+    },
+    {
+     "district": "Bhojpur",
+     "filledPeople": 144,
+     "filledCells": 2,
+     "shareOfDistrictPercent": 0.1
+    },
+    {
+     "district": "Palpa",
+     "filledPeople": 127,
+     "filledCells": 1,
+     "shareOfDistrictPercent": 0.1
+    },
+    {
+     "district": "Gorkha",
+     "filledPeople": 74,
+     "filledCells": 38,
+     "shareOfDistrictPercent": 0
+    },
+    {
+     "district": "Sankhuwasabha",
+     "filledPeople": 74,
+     "filledCells": 24,
+     "shareOfDistrictPercent": 0.1
+    },
+    {
+     "district": "Doti",
+     "filledPeople": 59,
+     "filledCells": 1,
+     "shareOfDistrictPercent": 0
+    },
+    {
+     "district": "Solukhumbu",
+     "filledPeople": 40,
+     "filledCells": 28,
+     "shareOfDistrictPercent": 0.1
+    },
+    {
+     "district": "Humla",
+     "filledPeople": 40,
+     "filledCells": 40,
+     "shareOfDistrictPercent": 0.1
+    },
+    {
+     "district": "Rasuwa",
+     "filledPeople": 35,
+     "filledCells": 16,
+     "shareOfDistrictPercent": 0.1
+    },
+    {
+     "district": "Dolakha",
+     "filledPeople": 27,
+     "filledCells": 20,
+     "shareOfDistrictPercent": 0
+    },
+    {
+     "district": "Mustang",
+     "filledPeople": 26,
+     "filledCells": 13,
+     "shareOfDistrictPercent": 0.2
+    },
+    {
+     "district": "Myagdi",
+     "filledPeople": 22,
+     "filledCells": 1,
+     "shareOfDistrictPercent": 0
+    },
+    {
+     "district": "Surkhet",
+     "filledPeople": 18,
+     "filledCells": 1,
+     "shareOfDistrictPercent": 0
+    },
+    {
+     "district": "Taplejung",
+     "filledPeople": 15,
+     "filledCells": 18,
+     "shareOfDistrictPercent": 0
+    },
+    {
+     "district": "Dhading",
+     "filledPeople": 11,
+     "filledCells": 2,
+     "shareOfDistrictPercent": 0
+    },
+    {
+     "district": "Mugu",
+     "filledPeople": 10,
+     "filledCells": 9,
+     "shareOfDistrictPercent": 0
+    },
+    {
+     "district": "Dolpa",
+     "filledPeople": 4,
+     "filledCells": 7,
+     "shareOfDistrictPercent": 0
+    },
+    {
+     "district": "Rukum",
+     "filledPeople": 2,
+     "filledCells": 1,
+     "shareOfDistrictPercent": 0
+    },
+    {
+     "district": "Manang",
+     "filledPeople": 1,
+     "filledCells": 1,
+     "shareOfDistrictPercent": 0
+    }
+   ]
+  },
   "failures": [],
   "passed": true
  },
  "methodology": [
   {
    "schemaVersion": 1,
+   "resultClass": "DERIVED",
    "id": "exposure-population-by-intensity",
    "name": "Population by shaking intensity",
    "question": "How many people were geographically exposed to each level of earthquake shaking?",
@@ -133,9 +494,6 @@
    "parameters": {
     "headlineThreshold": 6,
     "usableLevels": [
-     3,
-     3.5,
-     4,
      4.5,
      5,
      5.5,
@@ -146,7 +504,7 @@
      8
     ]
    },
-   "parameterJustification": "MMI VI is the lowest intensity at which the USGS scale records damage occurring at all, so \"exposed at VI or above\" is a statement about people who experienced potentially damaging shaking. Every other usable threshold is reported beside it, because no single intensity makes a person \"affected\".",
+   "parameterJustification": "MMI VI is the lowest intensity at which the USGS scale records damage occurring at all, so \"exposed at VI or above\" is a statement about people who experienced potentially damaging shaking. Every other usable threshold is reported beside it, because there is no intensity at which a person crosses from unharmed to harmed — that depends on their building, not on the shaking alone.",
    "outputs": [
     "population per intensity band",
     "cumulative population at or above each intensity",
@@ -164,6 +522,7 @@
   },
   {
    "schemaVersion": 1,
+   "resultClass": "DERIVED",
    "id": "exposure-by-district",
    "name": "Population exposure by district",
    "question": "Which districts held the exposed population, and what share of each district was exposed?",
@@ -211,6 +570,7 @@
   },
   {
    "schemaVersion": 1,
+   "resultClass": "DERIVED",
    "id": "exposure-threshold-sensitivity",
    "name": "Sensitivity of the exposure estimate to the intensity threshold",
    "question": "How much does the exposed-population figure depend on where the threshold is set?",
@@ -238,6 +598,7 @@
   },
   {
    "schemaVersion": 1,
+   "resultClass": "DERIVED",
    "id": "exposure-ocha-comparison",
    "name": "Comparison against OCHA’s 2015 district figures",
    "question": "Does our independently computed district population agree with the official figures published in 2015?",
@@ -279,28 +640,6 @@
  "results": {
   "intensity": {
    "bands": [
-    {
-     "mmi": 3,
-     "meaning": null,
-     "populationInBand": 0,
-     "populationAtOrAbove": 20846924
-    },
-    {
-     "mmi": 3.5,
-     "meaning": null,
-     "populationInBand": 0,
-     "populationAtOrAbove": 20846924
-    },
-    {
-     "mmi": 4,
-     "meaning": {
-      "roman": "IV",
-      "perceived": "Light",
-      "damage": "None"
-     },
-     "populationInBand": 0,
-     "populationAtOrAbove": 20846924
-    },
     {
      "mmi": 4.5,
      "meaning": {
@@ -387,27 +726,6 @@
   },
   "thresholdSensitivity": [
    {
-    "threshold": 3,
-    "roman": null,
-    "damageAtThisIntensity": null,
-    "exposedPopulation": 20846924,
-    "shareOfConsidered": 77.18
-   },
-   {
-    "threshold": 3.5,
-    "roman": null,
-    "damageAtThisIntensity": null,
-    "exposedPopulation": 20846924,
-    "shareOfConsidered": 77.18
-   },
-   {
-    "threshold": 4,
-    "roman": "IV",
-    "damageAtThisIntensity": "None",
-    "exposedPopulation": 20846924,
-    "shareOfConsidered": 77.18
-   },
-   {
     "threshold": 4.5,
     "roman": "IV-V",
     "damageAtThisIntensity": "None to very light",
@@ -464,6 +782,180 @@
     "shareOfConsidered": 0.87
    }
   ],
+  "thresholdCurve": [
+   {
+    "threshold": 4.5,
+    "roman": "IV-V",
+    "source": "USGS ShakeMap product for us20002926, contour file download/cont_mmi.json",
+    "definition": "Population whose ~819 m cell centre lies inside the closed MMI IV-V contour. USGS describe this intensity as: perceived Light to moderate, damage None to very light.",
+    "calculation": "Sum of WorldPop 2015 UN-adjusted cell populations passing a point-in-polygon test against the closed contour ring, taking the strongest contour containing each cell.",
+    "exposedPopulationExact": 20846924,
+    "exposedPopulationRounded": "20.85 million",
+    "populationInThisBandOnly": 1916035,
+    "shareOfConsideredPercent": 77.2,
+    "statement": "20.85 million people were geographically exposed to modelled shaking of MMI IV-V or greater",
+    "resultClass": "DERIVED"
+   },
+   {
+    "threshold": 5,
+    "roman": "V",
+    "source": "USGS ShakeMap product for us20002926, contour file download/cont_mmi.json",
+    "definition": "Population whose ~819 m cell centre lies inside the closed MMI V contour. USGS describe this intensity as: perceived Moderate, damage Very light.",
+    "calculation": "Sum of WorldPop 2015 UN-adjusted cell populations passing a point-in-polygon test against the closed contour ring, taking the strongest contour containing each cell.",
+    "exposedPopulationExact": 18930889,
+    "exposedPopulationRounded": "18.93 million",
+    "populationInThisBandOnly": 3021948,
+    "shareOfConsideredPercent": 70.1,
+    "statement": "18.93 million people were geographically exposed to modelled shaking of MMI V or greater",
+    "resultClass": "DERIVED"
+   },
+   {
+    "threshold": 5.5,
+    "roman": "V-VI",
+    "source": "USGS ShakeMap product for us20002926, contour file download/cont_mmi.json",
+    "definition": "Population whose ~819 m cell centre lies inside the closed MMI V-VI contour. USGS describe this intensity as: perceived Moderate to strong, damage Very light to light.",
+    "calculation": "Sum of WorldPop 2015 UN-adjusted cell populations passing a point-in-polygon test against the closed contour ring, taking the strongest contour containing each cell.",
+    "exposedPopulationExact": 15908941,
+    "exposedPopulationRounded": "15.91 million",
+    "populationInThisBandOnly": 2073423,
+    "shareOfConsideredPercent": 58.9,
+    "statement": "15.91 million people were geographically exposed to modelled shaking of MMI V-VI or greater",
+    "resultClass": "DERIVED"
+   },
+   {
+    "threshold": 6,
+    "roman": "VI",
+    "source": "USGS ShakeMap product for us20002926, contour file download/cont_mmi.json",
+    "definition": "Population whose ~819 m cell centre lies inside the closed MMI VI contour. USGS describe this intensity as: perceived Strong, damage Light — the lowest intensity at which damage occurs at all.",
+    "calculation": "Sum of WorldPop 2015 UN-adjusted cell populations passing a point-in-polygon test against the closed contour ring, taking the strongest contour containing each cell.",
+    "exposedPopulationExact": 13835518,
+    "exposedPopulationRounded": "13.84 million",
+    "populationInThisBandOnly": 2146812,
+    "shareOfConsideredPercent": 51.2,
+    "statement": "13.84 million people were geographically exposed to modelled shaking of MMI VI or greater",
+    "resultClass": "DERIVED"
+   },
+   {
+    "threshold": 6.5,
+    "roman": "VI-VII",
+    "source": "USGS ShakeMap product for us20002926, contour file download/cont_mmi.json",
+    "definition": "Population whose ~819 m cell centre lies inside the closed MMI VI-VII contour. USGS describe this intensity as: perceived Strong to very strong, damage Light to moderate.",
+    "calculation": "Sum of WorldPop 2015 UN-adjusted cell populations passing a point-in-polygon test against the closed contour ring, taking the strongest contour containing each cell.",
+    "exposedPopulationExact": 11688706,
+    "exposedPopulationRounded": "11.69 million",
+    "populationInThisBandOnly": 4235172,
+    "shareOfConsideredPercent": 43.3,
+    "statement": "11.69 million people were geographically exposed to modelled shaking of MMI VI-VII or greater",
+    "resultClass": "DERIVED"
+   },
+   {
+    "threshold": 7,
+    "roman": "VII",
+    "source": "USGS ShakeMap product for us20002926, contour file download/cont_mmi.json",
+    "definition": "Population whose ~819 m cell centre lies inside the closed MMI VII contour. USGS describe this intensity as: perceived Very strong, damage Moderate — general in poorly built structures.",
+    "calculation": "Sum of WorldPop 2015 UN-adjusted cell populations passing a point-in-polygon test against the closed contour ring, taking the strongest contour containing each cell.",
+    "exposedPopulationExact": 7453534,
+    "exposedPopulationRounded": "7.45 million",
+    "populationInThisBandOnly": 6021640,
+    "shareOfConsideredPercent": 27.6,
+    "statement": "7.45 million people were geographically exposed to modelled shaking of MMI VII or greater",
+    "resultClass": "DERIVED"
+   },
+   {
+    "threshold": 7.5,
+    "roman": "VII-VIII",
+    "source": "USGS ShakeMap product for us20002926, contour file download/cont_mmi.json",
+    "definition": "Population whose ~819 m cell centre lies inside the closed MMI VII-VIII contour. USGS describe this intensity as: perceived Very strong to severe, damage Moderate to heavy.",
+    "calculation": "Sum of WorldPop 2015 UN-adjusted cell populations passing a point-in-polygon test against the closed contour ring, taking the strongest contour containing each cell.",
+    "exposedPopulationExact": 1431894,
+    "exposedPopulationRounded": "1.43 million",
+    "populationInThisBandOnly": 1196778,
+    "shareOfConsideredPercent": 5.3,
+    "statement": "1.43 million people were geographically exposed to modelled shaking of MMI VII-VIII or greater",
+    "resultClass": "DERIVED"
+   },
+   {
+    "threshold": 8,
+    "roman": "VIII",
+    "source": "USGS ShakeMap product for us20002926, contour file download/cont_mmi.json",
+    "definition": "Population whose ~819 m cell centre lies inside the closed MMI VIII contour. USGS describe this intensity as: perceived Severe, damage Heavy — considerable in ordinary buildings, partial collapse.",
+    "calculation": "Sum of WorldPop 2015 UN-adjusted cell populations passing a point-in-polygon test against the closed contour ring, taking the strongest contour containing each cell.",
+    "exposedPopulationExact": 235116,
+    "exposedPopulationRounded": "235,000",
+    "populationInThisBandOnly": 235116,
+    "shareOfConsideredPercent": 0.9,
+    "statement": "235,000 people were geographically exposed to modelled shaking of MMI VIII or greater",
+    "resultClass": "DERIVED"
+   }
+  ],
+  "populationIntensityQuadrants": {
+   "parameters": {
+    "intensityThreshold": 6,
+    "densityQuantile": 0.75,
+    "densityCutPeoplePerCell": 134.1,
+    "populatedCells": 177679,
+    "justification": "The intensity split is the documented damage threshold. The density split is a quantile of POPULATED cells, so it adapts to how this country is settled instead of importing a people-per-square-kilometre figure from somewhere else. Both are reported because the classification is only meaningful with them."
+   },
+   "quadrants": [
+    {
+     "id": "HIGH_INTENSITY_HIGH_DENSITY",
+     "label": "High shaking, high density",
+     "meaning": "Where the most people met the strongest shaking. The first place to look, and the place a single figure hides.",
+     "cells": 18788,
+     "people": 11834041,
+     "maxMmi": 8,
+     "densestCellPeople": 36255.1,
+     "densestCellAt": [
+      85.3146,
+      27.7346
+     ],
+     "shareOfPopulationPercent": 43.8
+    },
+    {
+     "id": "HIGH_INTENSITY_LOW_DENSITY",
+     "label": "High shaking, low density",
+     "meaning": "Severe shaking over few people. Small absolute numbers, and often the hardest ground to reach.",
+     "cells": 42673,
+     "people": 2001478,
+     "maxMmi": 8,
+     "densestCellPeople": 134,
+     "densestCellAt": [
+      83.8812,
+      28.1596
+     ],
+     "shareOfPopulationPercent": 7.4
+    },
+    {
+     "id": "LOW_INTENSITY_HIGH_DENSITY",
+     "label": "Low shaking, high density",
+     "meaning": "Many people, little shaking. Large absolute populations that a threshold-based exposure figure correctly excludes.",
+     "cells": 25667,
+     "people": 9467957,
+     "maxMmi": 5.5,
+     "densestCellPeople": 23958.6,
+     "densestCellAt": [
+      87.2812,
+      26.5679
+     ],
+     "shareOfPopulationPercent": 35.1
+    },
+    {
+     "id": "LOW_INTENSITY_LOW_DENSITY",
+     "label": "Low shaking, low density",
+     "meaning": "The remainder of the country.",
+     "cells": 90551,
+     "people": 3707094,
+     "maxMmi": 5.5,
+     "densestCellPeople": 134,
+     "densestCellAt": [
+      80.4896,
+      29.7263
+     ],
+     "shareOfPopulationPercent": 13.7
+    }
+   ],
+   "totalPopulationClassified": 27010569
+  },
   "exposureAtHeadlineThreshold": {
    "threshold": 6,
    "fillToleranceKm": 20,
@@ -1462,6 +1954,833 @@
    },
    "roundingResidual": 1.9
   },
+  "districtQuadrants": [
+   {
+    "district": "Kathmandu",
+    "districtKey": "kathmandu",
+    "population": 2779012,
+    "exposed": 2779012,
+    "exposedPercent": 100,
+    "maxMmi": 7.5,
+    "densityPerSqKm": 6718.8,
+    "reachedThreshold": true,
+    "majorityExposed": true
+   },
+   {
+    "district": "Parsa",
+    "districtKey": "parsa",
+    "population": 896158,
+    "exposed": 896158,
+    "exposedPercent": 100,
+    "maxMmi": 7,
+    "densityPerSqKm": 636.6,
+    "reachedThreshold": true,
+    "majorityExposed": true
+   },
+   {
+    "district": "Siraha",
+    "districtKey": "siraha",
+    "population": 753897,
+    "exposed": 748962,
+    "exposedPercent": 99.35,
+    "maxMmi": 6.5,
+    "densityPerSqKm": 662.4,
+    "reachedThreshold": true,
+    "majorityExposed": true
+   },
+   {
+    "district": "Sarlahi",
+    "districtKey": "sarlahi",
+    "population": 730125,
+    "exposed": 730125,
+    "exposedPercent": 100,
+    "maxMmi": 7.5,
+    "densityPerSqKm": 578,
+    "reachedThreshold": true,
+    "majorityExposed": true
+   },
+   {
+    "district": "Dhanusa",
+    "districtKey": "dhanusa",
+    "population": 701731,
+    "exposed": 701731,
+    "exposedPercent": 100,
+    "maxMmi": 7,
+    "densityPerSqKm": 590.8,
+    "reachedThreshold": true,
+    "majorityExposed": true
+   },
+   {
+    "district": "Rautahat",
+    "districtKey": "rautahat",
+    "population": 663222,
+    "exposed": 663222,
+    "exposedPercent": 100,
+    "maxMmi": 7,
+    "densityPerSqKm": 639.1,
+    "reachedThreshold": true,
+    "majorityExposed": true
+   },
+   {
+    "district": "Bara",
+    "districtKey": "bara",
+    "population": 657572,
+    "exposed": 657572,
+    "exposedPercent": 100,
+    "maxMmi": 7,
+    "densityPerSqKm": 516.5,
+    "reachedThreshold": true,
+    "majorityExposed": true
+   },
+   {
+    "district": "Nawalparasi",
+    "districtKey": "nawalparasi",
+    "population": 609012,
+    "exposed": 608969,
+    "exposedPercent": 99.99,
+    "maxMmi": 7,
+    "densityPerSqKm": 282.7,
+    "reachedThreshold": true,
+    "majorityExposed": true
+   },
+   {
+    "district": "Mahottari",
+    "districtKey": "mahottari",
+    "population": 576228,
+    "exposed": 576228,
+    "exposedPercent": 100,
+    "maxMmi": 7.5,
+    "densityPerSqKm": 576,
+    "reachedThreshold": true,
+    "majorityExposed": true
+   },
+   {
+    "district": "Chitawan",
+    "districtKey": "chitawan",
+    "population": 553958,
+    "exposed": 553958,
+    "exposedPercent": 100,
+    "maxMmi": 7.5,
+    "densityPerSqKm": 247.1,
+    "reachedThreshold": true,
+    "majorityExposed": true
+   },
+   {
+    "district": "Lalitpur",
+    "districtKey": "lalitpur",
+    "population": 481584,
+    "exposed": 481584,
+    "exposedPercent": 100,
+    "maxMmi": 7,
+    "densityPerSqKm": 1214.4,
+    "reachedThreshold": true,
+    "majorityExposed": true
+   },
+   {
+    "district": "Kaski",
+    "districtKey": "kaski",
+    "population": 436075,
+    "exposed": 433509,
+    "exposedPercent": 99.41,
+    "maxMmi": 7,
+    "densityPerSqKm": 208.9,
+    "reachedThreshold": true,
+    "majorityExposed": true
+   },
+   {
+    "district": "Makwanpur",
+    "districtKey": "makwanpur",
+    "population": 378031,
+    "exposed": 378031,
+    "exposedPercent": 100,
+    "maxMmi": 7.5,
+    "densityPerSqKm": 154.7,
+    "reachedThreshold": true,
+    "majorityExposed": true
+   },
+   {
+    "district": "Bhaktapur",
+    "districtKey": "bhaktapur",
+    "population": 330195,
+    "exposed": 330195,
+    "exposedPercent": 100,
+    "maxMmi": 7.5,
+    "densityPerSqKm": 2691.3,
+    "reachedThreshold": true,
+    "majorityExposed": true
+   },
+   {
+    "district": "Dhading",
+    "districtKey": "dhading",
+    "population": 295056,
+    "exposed": 295056,
+    "exposedPercent": 100,
+    "maxMmi": 8,
+    "densityPerSqKm": 154.7,
+    "reachedThreshold": true,
+    "majorityExposed": true
+   },
+   {
+    "district": "Tanahu",
+    "districtKey": "tanahu",
+    "population": 286970,
+    "exposed": 286970,
+    "exposedPercent": 100,
+    "maxMmi": 7.5,
+    "densityPerSqKm": 182.3,
+    "reachedThreshold": true,
+    "majorityExposed": true
+   },
+   {
+    "district": "Sindhupalchok",
+    "districtKey": "sindhupalchok",
+    "population": 255630,
+    "exposed": 255630,
+    "exposedPercent": 100,
+    "maxMmi": 8,
+    "densityPerSqKm": 102.7,
+    "reachedThreshold": true,
+    "majorityExposed": true
+   },
+   {
+    "district": "Sindhuli",
+    "districtKey": "sindhuli",
+    "population": 253059,
+    "exposed": 253059,
+    "exposedPercent": 100,
+    "maxMmi": 7.5,
+    "densityPerSqKm": 102,
+    "reachedThreshold": true,
+    "majorityExposed": true
+   },
+   {
+    "district": "Nuwakot",
+    "districtKey": "nuwakot",
+    "population": 240044,
+    "exposed": 240044,
+    "exposedPercent": 100,
+    "maxMmi": 8,
+    "densityPerSqKm": 201.3,
+    "reachedThreshold": true,
+    "majorityExposed": true
+   },
+   {
+    "district": "Gorkha",
+    "districtKey": "gorkha",
+    "population": 234151,
+    "exposed": 234151,
+    "exposedPercent": 100,
+    "maxMmi": 8,
+    "densityPerSqKm": 64.2,
+    "reachedThreshold": true,
+    "majorityExposed": true
+   },
+   {
+    "district": "Syangja",
+    "districtKey": "syangja",
+    "population": 253597,
+    "exposed": 230505,
+    "exposedPercent": 90.89,
+    "maxMmi": 6.5,
+    "densityPerSqKm": 244,
+    "reachedThreshold": true,
+    "majorityExposed": true
+   },
+   {
+    "district": "Kavrepalanchok",
+    "districtKey": "kavrepalanchok",
+    "population": 222171,
+    "exposed": 222171,
+    "exposedPercent": 100,
+    "maxMmi": 7.5,
+    "densityPerSqKm": 159.4,
+    "reachedThreshold": true,
+    "majorityExposed": true
+   },
+   {
+    "district": "Rupandehi",
+    "districtKey": "rupandehi",
+    "population": 833505,
+    "exposed": 219392,
+    "exposedPercent": 26.32,
+    "maxMmi": 6,
+    "densityPerSqKm": 637.4,
+    "reachedThreshold": true,
+    "majorityExposed": false
+   },
+   {
+    "district": "Ramechhap",
+    "districtKey": "ramechhap",
+    "population": 175583,
+    "exposed": 175583,
+    "exposedPercent": 100,
+    "maxMmi": 7.5,
+    "densityPerSqKm": 112.3,
+    "reachedThreshold": true,
+    "majorityExposed": true
+   },
+   {
+    "district": "Udayapur",
+    "districtKey": "udayapur",
+    "population": 289674,
+    "exposed": 159235,
+    "exposedPercent": 54.97,
+    "maxMmi": 6.5,
+    "densityPerSqKm": 126.2,
+    "reachedThreshold": true,
+    "majorityExposed": true
+   },
+   {
+    "district": "Dolakha",
+    "districtKey": "dolakha",
+    "population": 159133,
+    "exposed": 159133,
+    "exposedPercent": 100,
+    "maxMmi": 7.5,
+    "densityPerSqKm": 74.2,
+    "reachedThreshold": true,
+    "majorityExposed": true
+   },
+   {
+    "district": "Lamjung",
+    "districtKey": "lamjung",
+    "population": 143496,
+    "exposed": 143496,
+    "exposedPercent": 100,
+    "maxMmi": 8,
+    "densityPerSqKm": 86.2,
+    "reachedThreshold": true,
+    "majorityExposed": true
+   },
+   {
+    "district": "Okhaldhunga",
+    "districtKey": "okhaldhunga",
+    "population": 127293,
+    "exposed": 127293,
+    "exposedPercent": 100,
+    "maxMmi": 7,
+    "densityPerSqKm": 118.4,
+    "reachedThreshold": true,
+    "majorityExposed": true
+   },
+   {
+    "district": "Palpa",
+    "districtKey": "palpa",
+    "population": 227705,
+    "exposed": 96405,
+    "exposedPercent": 42.34,
+    "maxMmi": 6.5,
+    "densityPerSqKm": 155.4,
+    "reachedThreshold": true,
+    "majorityExposed": false
+   },
+   {
+    "district": "Khotang",
+    "districtKey": "khotang",
+    "population": 174382,
+    "exposed": 47039,
+    "exposedPercent": 26.97,
+    "maxMmi": 6,
+    "densityPerSqKm": 109.8,
+    "reachedThreshold": true,
+    "majorityExposed": false
+   },
+   {
+    "district": "Solukhumbu",
+    "districtKey": "solukhumbu",
+    "population": 47867,
+    "exposed": 46297,
+    "exposedPercent": 96.72,
+    "maxMmi": 7,
+    "densityPerSqKm": 14.3,
+    "reachedThreshold": true,
+    "majorityExposed": true
+   },
+   {
+    "district": "Rasuwa",
+    "districtKey": "rasuwa",
+    "population": 38197,
+    "exposed": 38197,
+    "exposedPercent": 100,
+    "maxMmi": 8,
+    "densityPerSqKm": 25.5,
+    "reachedThreshold": true,
+    "majorityExposed": true
+   },
+   {
+    "district": "Saptari",
+    "districtKey": "saptari",
+    "population": 589363,
+    "exposed": 35622,
+    "exposedPercent": 6.04,
+    "maxMmi": 6,
+    "densityPerSqKm": 460.5,
+    "reachedThreshold": true,
+    "majorityExposed": false
+   },
+   {
+    "district": "Parbat",
+    "districtKey": "parbat",
+    "population": 82328,
+    "exposed": 26121,
+    "exposedPercent": 31.73,
+    "maxMmi": 6,
+    "densityPerSqKm": 151.9,
+    "reachedThreshold": true,
+    "majorityExposed": false
+   },
+   {
+    "district": "Manang",
+    "districtKey": "manang",
+    "population": 4639,
+    "exposed": 4594,
+    "exposedPercent": 99.02,
+    "maxMmi": 7.5,
+    "densityPerSqKm": 2,
+    "reachedThreshold": true,
+    "majorityExposed": true
+   },
+   {
+    "district": "Sankhuwasabha",
+    "districtKey": "sankhuwasabha",
+    "population": 139341,
+    "exposed": 217,
+    "exposedPercent": 0.16,
+    "maxMmi": 6,
+    "densityPerSqKm": 40.2,
+    "reachedThreshold": true,
+    "majorityExposed": false
+   },
+   {
+    "district": "Mustang",
+    "districtKey": "mustang",
+    "population": 10968,
+    "exposed": 51,
+    "exposedPercent": 0.47,
+    "maxMmi": 6,
+    "densityPerSqKm": 3.1,
+    "reachedThreshold": true,
+    "majorityExposed": false
+   },
+   {
+    "district": "Taplejung",
+    "districtKey": "taplejung",
+    "population": 109021,
+    "exposed": 0,
+    "exposedPercent": 0,
+    "maxMmi": 5,
+    "densityPerSqKm": 30,
+    "reachedThreshold": false,
+    "majorityExposed": false
+   },
+   {
+    "district": "Panchthar",
+    "districtKey": "panchthar",
+    "population": 164412,
+    "exposed": 0,
+    "exposedPercent": 0,
+    "maxMmi": 4.5,
+    "densityPerSqKm": 131.9,
+    "reachedThreshold": false,
+    "majorityExposed": false
+   },
+   {
+    "district": "Ilam",
+    "districtKey": "ilam",
+    "population": 262369,
+    "exposed": 0,
+    "exposedPercent": 0,
+    "maxMmi": 4.5,
+    "densityPerSqKm": 155.8,
+    "reachedThreshold": false,
+    "majorityExposed": false
+   },
+   {
+    "district": "Jhapa",
+    "districtKey": "jhapa",
+    "population": 765601,
+    "exposed": 0,
+    "exposedPercent": 0,
+    "maxMmi": 4.5,
+    "densityPerSqKm": 477.6,
+    "reachedThreshold": false,
+    "majorityExposed": false
+   },
+   {
+    "district": "Morang",
+    "districtKey": "morang",
+    "population": 943889,
+    "exposed": 0,
+    "exposedPercent": 0,
+    "maxMmi": 5,
+    "densityPerSqKm": 518.3,
+    "reachedThreshold": false,
+    "majorityExposed": false
+   },
+   {
+    "district": "Sunsari",
+    "districtKey": "sunsari",
+    "population": 1417173,
+    "exposed": 0,
+    "exposedPercent": 0,
+    "maxMmi": 5.5,
+    "densityPerSqKm": 1189.7,
+    "reachedThreshold": false,
+    "majorityExposed": false
+   },
+   {
+    "district": "Dhankuta",
+    "districtKey": "dhankuta",
+    "population": 142692,
+    "exposed": 0,
+    "exposedPercent": 0,
+    "maxMmi": 5,
+    "densityPerSqKm": 158.8,
+    "reachedThreshold": false,
+    "majorityExposed": false
+   },
+   {
+    "district": "Terhathum",
+    "districtKey": "terhathum",
+    "population": 86068,
+    "exposed": 0,
+    "exposedPercent": 0,
+    "maxMmi": 4.5,
+    "densityPerSqKm": 128.5,
+    "reachedThreshold": false,
+    "majorityExposed": false
+   },
+   {
+    "district": "Bhojpur",
+    "districtKey": "bhojpur",
+    "population": 153208,
+    "exposed": 0,
+    "exposedPercent": 0,
+    "maxMmi": 5.5,
+    "densityPerSqKm": 100.6,
+    "reachedThreshold": false,
+    "majorityExposed": false
+   },
+   {
+    "district": "Baglung",
+    "districtKey": "baglung",
+    "population": 235503,
+    "exposed": 0,
+    "exposedPercent": 0,
+    "maxMmi": 5.5,
+    "densityPerSqKm": 128,
+    "reachedThreshold": false,
+    "majorityExposed": false
+   },
+   {
+    "district": "Myagdi",
+    "districtKey": "myagdi",
+    "population": 99200,
+    "exposed": 0,
+    "exposedPercent": 0,
+    "maxMmi": 5.5,
+    "densityPerSqKm": 43.3,
+    "reachedThreshold": false,
+    "majorityExposed": false
+   },
+   {
+    "district": "Kapilbastu",
+    "districtKey": "kapilbastu",
+    "population": 590309,
+    "exposed": 0,
+    "exposedPercent": 0,
+    "maxMmi": 5.5,
+    "densityPerSqKm": 356.5,
+    "reachedThreshold": false,
+    "majorityExposed": false
+   },
+   {
+    "district": "Arghakhanchi",
+    "districtKey": "arghakhanchi",
+    "population": 170840,
+    "exposed": 0,
+    "exposedPercent": 0,
+    "maxMmi": 5,
+    "densityPerSqKm": 137.5,
+    "reachedThreshold": false,
+    "majorityExposed": false
+   },
+   {
+    "district": "Gulmi",
+    "districtKey": "gulmi",
+    "population": 238589,
+    "exposed": 0,
+    "exposedPercent": 0,
+    "maxMmi": 5.5,
+    "densityPerSqKm": 214.9,
+    "reachedThreshold": false,
+    "majorityExposed": false
+   },
+   {
+    "district": "Rukum",
+    "districtKey": "rukum",
+    "population": 193233,
+    "exposed": 0,
+    "exposedPercent": 0,
+    "maxMmi": 4.5,
+    "densityPerSqKm": 66.5,
+    "reachedThreshold": false,
+    "majorityExposed": false
+   },
+   {
+    "district": "Rolpa",
+    "districtKey": "rolpa",
+    "population": 203040,
+    "exposed": 0,
+    "exposedPercent": 0,
+    "maxMmi": 4.5,
+    "densityPerSqKm": 107.3,
+    "reachedThreshold": false,
+    "majorityExposed": false
+   },
+   {
+    "district": "Pyuthan",
+    "districtKey": "pyuthan",
+    "population": 206158,
+    "exposed": 0,
+    "exposedPercent": 0,
+    "maxMmi": 5,
+    "densityPerSqKm": 155.6,
+    "reachedThreshold": false,
+    "majorityExposed": false
+   },
+   {
+    "district": "Dang",
+    "districtKey": "dang",
+    "population": 521639,
+    "exposed": 0,
+    "exposedPercent": 0,
+    "maxMmi": 4.5,
+    "densityPerSqKm": 169.8,
+    "reachedThreshold": false,
+    "majorityExposed": false
+   },
+   {
+    "district": "Banke",
+    "districtKey": "banke",
+    "population": 478011,
+    "exposed": 0,
+    "exposedPercent": 0,
+    "maxMmi": null,
+    "densityPerSqKm": 252.7,
+    "reachedThreshold": false,
+    "majorityExposed": false
+   },
+   {
+    "district": "Bardiya",
+    "districtKey": "bardiya",
+    "population": 394396,
+    "exposed": 0,
+    "exposedPercent": 0,
+    "maxMmi": null,
+    "densityPerSqKm": 195.8,
+    "reachedThreshold": false,
+    "majorityExposed": false
+   },
+   {
+    "district": "Salyan",
+    "districtKey": "salyan",
+    "population": 222146,
+    "exposed": 0,
+    "exposedPercent": 0,
+    "maxMmi": null,
+    "densityPerSqKm": 117.6,
+    "reachedThreshold": false,
+    "majorityExposed": false
+   },
+   {
+    "district": "Surkhet",
+    "districtKey": "surkhet",
+    "population": 244961,
+    "exposed": 0,
+    "exposedPercent": 0,
+    "maxMmi": null,
+    "densityPerSqKm": 98,
+    "reachedThreshold": false,
+    "majorityExposed": false
+   },
+   {
+    "district": "Jajarkot",
+    "districtKey": "jajarkot",
+    "population": 164271,
+    "exposed": 0,
+    "exposedPercent": 0,
+    "maxMmi": null,
+    "densityPerSqKm": 73.6,
+    "reachedThreshold": false,
+    "majorityExposed": false
+   },
+   {
+    "district": "Dailekh",
+    "districtKey": "dailekh",
+    "population": 244719,
+    "exposed": 0,
+    "exposedPercent": 0,
+    "maxMmi": null,
+    "densityPerSqKm": 163.9,
+    "reachedThreshold": false,
+    "majorityExposed": false
+   },
+   {
+    "district": "Dolpa",
+    "districtKey": "dolpa",
+    "population": 34147,
+    "exposed": 0,
+    "exposedPercent": 0,
+    "maxMmi": 5,
+    "densityPerSqKm": 4.3,
+    "reachedThreshold": false,
+    "majorityExposed": false
+   },
+   {
+    "district": "Jumla",
+    "districtKey": "jumla",
+    "population": 103730,
+    "exposed": 0,
+    "exposedPercent": 0,
+    "maxMmi": null,
+    "densityPerSqKm": 40.4,
+    "reachedThreshold": false,
+    "majorityExposed": false
+   },
+   {
+    "district": "Kalikot",
+    "districtKey": "kalikot",
+    "population": 65570,
+    "exposed": 0,
+    "exposedPercent": 0,
+    "maxMmi": null,
+    "densityPerSqKm": 39.8,
+    "reachedThreshold": false,
+    "majorityExposed": false
+   },
+   {
+    "district": "Mugu",
+    "districtKey": "mugu",
+    "population": 53594,
+    "exposed": 0,
+    "exposedPercent": 0,
+    "maxMmi": null,
+    "densityPerSqKm": 16.5,
+    "reachedThreshold": false,
+    "majorityExposed": false
+   },
+   {
+    "district": "Humla",
+    "districtKey": "humla",
+    "population": 47753,
+    "exposed": 0,
+    "exposedPercent": 0,
+    "maxMmi": null,
+    "densityPerSqKm": 7.9,
+    "reachedThreshold": false,
+    "majorityExposed": false
+   },
+   {
+    "district": "Bajhang",
+    "districtKey": "bajhang",
+    "population": 183007,
+    "exposed": 0,
+    "exposedPercent": 0,
+    "maxMmi": null,
+    "densityPerSqKm": 52.5,
+    "reachedThreshold": false,
+    "majorityExposed": false
+   },
+   {
+    "district": "Bajura",
+    "districtKey": "bajura",
+    "population": 128988,
+    "exposed": 0,
+    "exposedPercent": 0,
+    "maxMmi": null,
+    "densityPerSqKm": 55.8,
+    "reachedThreshold": false,
+    "majorityExposed": false
+   },
+   {
+    "district": "Achham",
+    "districtKey": "achham",
+    "population": 236293,
+    "exposed": 0,
+    "exposedPercent": 0,
+    "maxMmi": null,
+    "densityPerSqKm": 138.1,
+    "reachedThreshold": false,
+    "majorityExposed": false
+   },
+   {
+    "district": "Doti",
+    "districtKey": "doti",
+    "population": 188315,
+    "exposed": 0,
+    "exposedPercent": 0,
+    "maxMmi": null,
+    "densityPerSqKm": 91.1,
+    "reachedThreshold": false,
+    "majorityExposed": false
+   },
+   {
+    "district": "Kailali",
+    "districtKey": "kailali",
+    "population": 901546,
+    "exposed": 0,
+    "exposedPercent": 0,
+    "maxMmi": null,
+    "densityPerSqKm": 272.3,
+    "reachedThreshold": false,
+    "majorityExposed": false
+   },
+   {
+    "district": "Kanchanpur",
+    "districtKey": "kanchanpur",
+    "population": 707888,
+    "exposed": 0,
+    "exposedPercent": 0,
+    "maxMmi": null,
+    "densityPerSqKm": 433.2,
+    "reachedThreshold": false,
+    "majorityExposed": false
+   },
+   {
+    "district": "Dadeldhura",
+    "districtKey": "dadeldhura",
+    "population": 130227,
+    "exposed": 0,
+    "exposedPercent": 0,
+    "maxMmi": null,
+    "densityPerSqKm": 85.9,
+    "reachedThreshold": false,
+    "majorityExposed": false
+   },
+   {
+    "district": "Baitadi",
+    "districtKey": "baitadi",
+    "population": 225974,
+    "exposed": 0,
+    "exposedPercent": 0,
+    "maxMmi": null,
+    "densityPerSqKm": 150,
+    "reachedThreshold": false,
+    "majorityExposed": false
+   },
+   {
+    "district": "Darchula",
+    "districtKey": "darchula",
+    "population": 121135,
+    "exposed": 0,
+    "exposedPercent": 0,
+    "maxMmi": null,
+    "densityPerSqKm": 51.4,
+    "reachedThreshold": false,
+    "majorityExposed": false
+   }
+  ],
   "exposureStrictContainment": {
    "threshold": 6,
    "totalPopulationInDistricts": 26891098,
@@ -1470,16 +2789,6 @@
    "districtsWithExposure": 37
   },
   "exposureTotalsByThreshold": {
-   "3": {
-    "threshold": 3,
-    "totalExposed": 20846924,
-    "districtsWithExposure": 56
-   },
-   "4": {
-    "threshold": 4,
-    "totalExposed": 20846924,
-    "districtsWithExposure": 56
-   },
    "5": {
     "threshold": 5,
     "totalExposed": 18930889,
@@ -1499,11 +2808,6 @@
     "threshold": 8,
     "totalExposed": 235116,
     "districtsWithExposure": 6
-   },
-   "3.5": {
-    "threshold": 3.5,
-    "totalExposed": 20846924,
-    "districtsWithExposure": 56
    },
    "4.5": {
     "threshold": 4.5,
@@ -1528,9 +2832,6 @@
   },
   "contours": {
    "usableLevels": [
-    3,
-    3.5,
-    4,
     4.5,
     5,
     5.5,
@@ -1555,6 +2856,11 @@
      "mmi": 3,
      "reason": "contour is not closed; it runs beyond the ShakeMap grid",
      "positions": 4
+    },
+    {
+     "mmi": 3,
+     "reason": "LEVEL DROPPED: 3 of 4 parts run beyond the ShakeMap grid and cannot be closed, so a containment count here would silently omit the rest of the area at this intensity",
+     "positions": null
     },
     {
      "mmi": 3.5,
@@ -1597,6 +2903,11 @@
      "positions": 2
     },
     {
+     "mmi": 3.5,
+     "reason": "LEVEL DROPPED: 7 of 16 parts run beyond the ShakeMap grid and cannot be closed, so a containment count here would silently omit the rest of the area at this intensity",
+     "positions": null
+    },
+    {
      "mmi": 4,
      "reason": "contour is not closed; it runs beyond the ShakeMap grid",
      "positions": 363
@@ -1610,6 +2921,11 @@
      "mmi": 4,
      "reason": "fewer positions than a ring needs",
      "positions": 3
+    },
+    {
+     "mmi": 4,
+     "reason": "LEVEL DROPPED: 1 of 14 parts run beyond the ShakeMap grid and cannot be closed, so a containment count here would silently omit the rest of the area at this intensity",
+     "positions": null
     },
     {
      "mmi": 4.5,
@@ -1645,16 +2961,73 @@
   }
  },
  "comparison": {
-  "status": "REPORTED SIDE BY SIDE, NOT DIFFERENCED",
-  "whyNotDifferenced": "OCHA’s population column cannot be pinned to a definition from what HDX publishes. It is not district total population — Jhapa reads 1,511 for a district of roughly 800,000 — and it is not population within the shaken footprint either, because in 52 of 66 districts it exceeds the district’s own population, which a clipped subset cannot do. Differencing an unverified quantity would produce a figure with no defensible meaning.",
-  "whatWouldResolveIt": "A column definition or methodology note from OCHA for PGA_AffectedDistricts_POP, or the source GIS product the table was derived from. Neither is published on the HDX record.",
+  "verdict": "NOT COMPARABLE",
+  "verdictScale": {
+   "DIRECTLY_COMPARABLE": "Same quantity, same unit, same method. A difference is meaningful.",
+   "PARTIALLY_COMPARABLE": "Same quantity, methodological differences that can be named and bounded. A difference is meaningful once those are stated.",
+   "NOT_COMPARABLE": "Different quantities, or a quantity whose definition cannot be established. A difference would be a number without a meaning."
+  },
+  "verdictReason": "6 of 7 dimensions are incompatible, and the decisive one is the quantity itself: OCHA's population column cannot be pinned to a definition from anything HDX publishes. It is not district total population — Jhapa reads 1,511 for a district of roughly 800,000 — and it is not population within the shaken footprint either, because in 52 of 66 districts it exceeds the district's own population, which a clipped subset cannot do.",
+  "comparabilityDimensions": [
+   {
+    "dimension": "Geographic unit",
+    "ours": "Nepal districts, 2015 75-district system, from OCHA COD-AB",
+    "theirs": "Nepal districts, named but with no p-code or boundary published in the file",
+    "compatible": true,
+    "note": "All 66 of their districts resolve to one of our polygons, 64 exactly and 2 by bounded transliteration."
+   },
+   {
+    "dimension": "Population dataset",
+    "ours": "WorldPop 2015 UN-adjusted, modelled ~100 m grid aggregated to ~819 m",
+    "theirs": "Undocumented. HDX records the methodology only as \"Census\".",
+    "compatible": false,
+    "note": "Without knowing their base we cannot separate a population-model difference from a method difference."
+   },
+   {
+    "dimension": "Hazard variable",
+    "ours": "Modified Mercalli Intensity, from the ShakeMap contour product",
+    "theirs": "Peak ground acceleration in g, with a severity class",
+    "compatible": false,
+    "note": "MMI and PGA are different physical quantities related only by empirical conversions that carry their own scatter. This alone prevents a like-for-like difference."
+   },
+   {
+    "dimension": "Hazard threshold",
+    "ours": "MMI 6 or above, chosen because it is the lowest intensity at which the USGS scale records damage",
+    "theirs": "Not stated. PGA values range across the table with a severity class attached.",
+    "compatible": false,
+    "note": "Two exposure figures computed at unstated and different thresholds cannot be differenced."
+   },
+   {
+    "dimension": "Reference year",
+    "ours": "2015 population, 2015 event",
+    "theirs": "Unstated; a 2011 census base is the plausible source",
+    "compatible": false,
+    "note": "A four-year gap is small relative to the discrepancies observed and does not explain them."
+   },
+   {
+    "dimension": "Spatial method",
+    "ours": "Point-in-polygon of each ~819 m cell centre against a closed contour; a cell counts wholly to one side",
+    "theirs": "Apparently a GIS overlay of PGA bands against districts — the table carries shape_leng and shape_area — but the operation is not documented",
+    "compatible": false,
+    "note": "Inferred from the attribute table, not stated by the publisher."
+   },
+   {
+    "dimension": "Quantity being measured",
+    "ours": "Population geographically exposed at a stated intensity",
+    "theirs": "Unresolved. Not district total population (Jhapa reads 1,511 for a district of roughly 800,000), and not population within the footprint either, because in 52 of 66 districts it exceeds the district's own population.",
+    "compatible": false,
+    "note": "This is the dimension that decides the verdict. Two numbers cannot be compared when one of them has no established definition."
+   }
+  ],
+  "whatWouldChangeTheVerdict": "A column definition or methodology note from OCHA for PGA_AffectedDistricts_POP, or the source GIS product the table was derived from. With the quantity established, the verdict would move to PARTIALLY COMPARABLE — the hazard variables would still differ, but that difference can be named and bounded.",
+  "differenceComputed": false,
   "districtsPairedForDisplay": 66,
   "districtsWhereOchaExceedsDistrictPopulation": 52,
   "ratioStatistics": {
    "count": 52,
-   "median": 1.355,
-   "min": 1.118,
-   "max": 2.713,
+   "median": 1.35,
+   "min": 1.12,
+   "max": 2.71,
    "note": "A consistent multiple suggests a different population base, not a different spatial method. Recorded as a lead, not a conclusion."
   },
   "examplesOfTheInconsistency": [

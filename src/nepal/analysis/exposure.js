@@ -127,7 +127,36 @@ export function contoursToRings(features, { minRingPositions = 4 } = {}) {
       }
       rings.push(part);
     }
-    if (rings.length > 0) levels.set(mmi, rings);
+    /*
+     * A level is usable only if EVERY part of it is closed.
+     *
+     * Keeping the closed parts of a partly open level looks harmless and is
+     * not: the MMI 3 contour for this event has one closed part out of four,
+     * so counting population inside that one part reports a figure for "MMI 3
+     * and above" that silently omits most of the area at that intensity. A
+     * partial answer presented as a whole one is worse than no answer, so the
+     * level is dropped and the reason recorded.
+     */
+    const partsSeen = parts.length;
+    /*
+     * Only an UNCLOSED part disqualifies a level. A part with fewer positions
+     * than a ring needs is a two- or three-vertex fragment — digitising noise
+     * with no area — and dropping a whole intensity level because of one
+     * would discard nearly every contour this product publishes.
+     */
+    const openParts = excluded.filter(
+      (item) =>
+        item.mmi === mmi && item.reason.startsWith('contour is not closed'),
+    ).length;
+    if (rings.length > 0 && openParts === 0) {
+      levels.set(mmi, rings);
+    } else if (rings.length > 0) {
+      excluded.push({
+        mmi,
+        reason: `LEVEL DROPPED: ${openParts} of ${partsSeen} parts run beyond the ShakeMap grid and cannot be closed, so a containment count here would silently omit the rest of the area at this intensity`,
+        positions: null,
+      });
+    }
   }
   return Object.freeze({
     levels: Object.freeze(
@@ -431,6 +460,164 @@ export function thresholdSensitivity(intensitySummary) {
             100
           ).toFixed(2),
         ),
+      }),
+    ),
+  );
+}
+
+/**
+ * Population density crossed with shaking intensity.
+ *
+ * Two maps side by side make a reader do the crossing in their head, and they
+ * do it badly: the eye goes to the darkest patch on either map rather than to
+ * where the two coincide. This puts every populated cell in one of four
+ * quadrants so the coincidence is the thing being shown.
+ *
+ * The quadrants answer different questions and none of them is "the worst
+ * place":
+ *
+ *   HIGH intensity + HIGH density  where the most people met the most shaking
+ *   HIGH intensity + LOW density   severe shaking over few people — remote,
+ *                                  and often the hardest to reach
+ *   LOW intensity + HIGH density   many people, little shaking — usually the
+ *                                  cities that absorbed displacement rather
+ *                                  than damage
+ *   LOW intensity + LOW density    the rest of the country
+ *
+ * The density split is a QUANTILE of populated cells, not a round number, so
+ * it adapts to the country rather than importing a threshold from elsewhere.
+ * The intensity split is the headline damage threshold, which is documented.
+ * Both are returned so a reader can see what the classification rests on.
+ */
+export function populationIntensityQuadrants(
+  cells,
+  rings,
+  { intensityThreshold = 6, densityQuantile = 0.75 } = {},
+) {
+  const populated = cells.filter((cell) => cell.people > 0);
+  if (populated.length === 0) return null;
+
+  /*
+   * The density cut is taken over POPULATED cells only. Including the empty
+   * two-thirds of Nepal would drag the quantile to zero and put every
+   * inhabited cell in the "high density" half, which classifies nothing.
+   */
+  const sorted = [...populated]
+    .map((cell) => cell.people)
+    .sort((a, b) => a - b);
+  const index = Math.min(
+    sorted.length - 1,
+    Math.floor(sorted.length * densityQuantile),
+  );
+  const densityCut = sorted[index];
+
+  const quadrants = {
+    HIGH_INTENSITY_HIGH_DENSITY: emptyQuadrant(
+      'High shaking, high density',
+      'Where the most people met the strongest shaking. The first place to look, and the place a single figure hides.',
+    ),
+    HIGH_INTENSITY_LOW_DENSITY: emptyQuadrant(
+      'High shaking, low density',
+      'Severe shaking over few people. Small absolute numbers, and often the hardest ground to reach.',
+    ),
+    LOW_INTENSITY_HIGH_DENSITY: emptyQuadrant(
+      'Low shaking, high density',
+      'Many people, little shaking. Large absolute populations that a threshold-based exposure figure correctly excludes.',
+    ),
+    LOW_INTENSITY_LOW_DENSITY: emptyQuadrant(
+      'Low shaking, low density',
+      'The remainder of the country.',
+    ),
+  };
+
+  for (const cell of populated) {
+    const mmi = intensityAt(rings, cell.lon, cell.lat);
+    const highIntensity = mmi !== null && mmi >= intensityThreshold;
+    const highDensity = cell.people >= densityCut;
+    const key = `${highIntensity ? 'HIGH' : 'LOW'}_INTENSITY_${highDensity ? 'HIGH' : 'LOW'}_DENSITY`;
+    const quadrant = quadrants[key];
+    quadrant.cells += 1;
+    quadrant.people += cell.people;
+    if (mmi !== null && (quadrant.maxMmi === null || mmi > quadrant.maxMmi)) {
+      quadrant.maxMmi = mmi;
+    }
+    if (cell.people > quadrant.densestCellPeople) {
+      quadrant.densestCellPeople = cell.people;
+      quadrant.densestCellAt = [
+        Number(cell.lon.toFixed(4)),
+        Number(cell.lat.toFixed(4)),
+      ];
+    }
+  }
+
+  const totalPeople = populated.reduce((sum, cell) => sum + cell.people, 0);
+  return Object.freeze({
+    parameters: Object.freeze({
+      intensityThreshold,
+      densityQuantile,
+      densityCutPeoplePerCell: Number(densityCut.toFixed(1)),
+      populatedCells: populated.length,
+      justification:
+        'The intensity split is the documented damage threshold. The density split is a quantile of POPULATED cells, so it adapts to how this country is settled instead of importing a people-per-square-kilometre figure from somewhere else. Both are reported because the classification is only meaningful with them.',
+    }),
+    quadrants: Object.freeze(
+      Object.entries(quadrants).map(([id, quadrant]) =>
+        Object.freeze({
+          id,
+          ...quadrant,
+          people: Math.round(quadrant.people),
+          shareOfPopulationPercent: Number(
+            ((quadrant.people / totalPeople) * 100).toFixed(1),
+          ),
+        }),
+      ),
+    ),
+    totalPopulationClassified: Math.round(totalPeople),
+  });
+}
+
+function emptyQuadrant(label, meaning) {
+  return {
+    label,
+    meaning,
+    cells: 0,
+    people: 0,
+    maxMmi: null,
+    densestCellPeople: 0,
+    densestCellAt: null,
+  };
+}
+
+/**
+ * The same crossing, per district.
+ *
+ * Lets a reader ask which districts are in which quadrant rather than only
+ * seeing the national split, which is what makes the classification
+ * actionable instead of decorative.
+ */
+export function districtQuadrants(
+  districtRows,
+  { intensityThreshold = 6, exposureShareCut = 50 } = {},
+) {
+  return Object.freeze(
+    districtRows.map((row) =>
+      Object.freeze({
+        district: row.district,
+        districtKey: row.districtKey,
+        population: row.population,
+        exposed: row.exposed,
+        exposedPercent: row.exposedPercent,
+        maxMmi: row.maxMmi,
+        densityPerSqKm: row.populationDensityPerSqKm,
+        /*
+         * A district is classified by whether its STRONGEST shaking reached
+         * the threshold and whether most of its people were inside it. A
+         * district can touch high intensity in one corner and still have most
+         * of its population outside, which the two flags separate.
+         */
+        reachedThreshold:
+          row.maxMmi !== null && row.maxMmi >= intensityThreshold,
+        majorityExposed: row.exposedPercent >= exposureShareCut,
       }),
     ),
   );

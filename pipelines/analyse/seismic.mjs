@@ -15,6 +15,7 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { DataClass } from '../../src/nepal/registry.js';
 import { createAnalysisRecord } from '../../src/nepal/analysis/methodology.js';
+import { ResultClass } from '../../src/nepal/analysis/terminology.js';
 import {
   completenessMagnitude,
   depthDistribution,
@@ -146,6 +147,7 @@ export async function analyseSeismic() {
       formula: 'count(M in [min, max)) per band',
       outputs: ['count per magnitude band', 'min', 'max', 'mean', 'median'],
       visualisation: 'Histogram, with the main shock marked separately from the aftershocks.',
+      resultClass: ResultClass.DESCRIPTIVE_STATISTIC.id,
       dataClass: DataClass.DERIVED,
       limitations: [
         'The catalogue is complete only above its completeness magnitude; counts in the lowest band are a lower bound, not a measurement.',
@@ -160,6 +162,7 @@ export async function analyseSeismic() {
       method: 'Events counted into seismological depth bands. Events without a reported depth are counted separately and never treated as zero.',
       outputs: ['count per depth band', 'events with depth', 'events missing depth', 'min', 'max', 'mean', 'median'],
       visualisation: 'Histogram, with a stated count of events carrying no depth.',
+      resultClass: ResultClass.DESCRIPTIVE_STATISTIC.id,
       dataClass: DataClass.DERIVED,
       limitations: [
         'Depths for shallow continental earthquakes carry uncertainties of several kilometres, and some are fixed by the analyst rather than solved from the data. The distribution is coarser than its decimal places suggest.',
@@ -174,6 +177,7 @@ export async function analyseSeismic() {
       method: 'Events bucketed by hours from the main shock for the first three days and by days thereafter, with a running cumulative count. Bucket width changes because the rate falls by orders of magnitude over the window.',
       outputs: ['events per hour for 72 hours', 'events per day', 'cumulative count', 'first-day count', 'first-week count'],
       visualisation: 'Timeline driven by the real timestamps, with the main shock and the 12 May aftershock marked.',
+      resultClass: ResultClass.DESCRIPTIVE_STATISTIC.id,
       dataClass: DataClass.DERIVED,
       limitations: [
         'Small aftershocks in the hours immediately after the main shock are masked by its coda and are missing from the catalogue, so the first buckets understate the true rate most severely.',
@@ -191,8 +195,9 @@ export async function analyseSeismic() {
       parameterJustification:
         'The completeness magnitude is estimated from the catalogue itself rather than chosen, by the maximum-curvature method. The 0.1 bin width matches the precision magnitudes are reported to.',
       outputs: ['b-value', 'a-value', 'R-squared', 'completeness magnitude', 'events used'],
-      visualisation: 'Log-linear plot of cumulative count against magnitude with the fitted line.',
+      visualisation: 'Log-linear plot of cumulative count against magnitude with the fitted line. The plot must be labelled as a MODEL FIT, not as observed data.',
       dataClass: DataClass.DERIVED,
+      resultClass: ResultClass.MODEL_FIT.id,
       limitations: [
         'Maximum curvature returns Mc = 4.0 for this catalogue, but the magnitude histogram has a cliff at exactly M4.0 — 41 events at 4.0 against 2 at 3.9 — which is the signature of a REPORTING threshold, not a detection limit. The true completeness is higher, so the b fitted at 4.0 is probably biased.',
         'Because of that, b is reported across a range of plausible completeness cuts as well as at the estimated Mc. The spread across those cuts is the honest uncertainty; a single value to three decimals is false precision.',
@@ -211,8 +216,9 @@ export async function analyseSeismic() {
       parameterJustification:
         'c is held at 0.1 days rather than fitted: three free parameters against a few dozen daily counts would produce a number with no meaning. Holding it and reporting that is more honest than fitting it and not.',
       outputs: ['p-value', 'K', 'R-squared', 'days fitted', 'daily counts'],
-      visualisation: 'Log-log plot of daily rate against time with the fitted decay curve.',
+      visualisation: 'Log-log plot of daily rate against time with the fitted decay curve. The observed daily counts and the fitted curve must be drawn distinguishably; they are different kinds of thing.',
       dataClass: DataClass.DERIVED,
+      resultClass: ResultClass.MODEL_FIT.id,
       limitations: [
         'A single fit across the whole year returns p = 0.42 with R-squared 0.44. That is not noise: Omori describes decay from ONE main shock, and the M7.3 of 12 May restarted the sequence seventeen days in. The segmented fits are the defensible numbers and the whole-window fit is retained only as the evidence for splitting.',
         'The window after 12 May is superimposed on the continuing decay from 25 April, so re-zeroing it on the M7.3 is itself an approximation, and its fit is correspondingly poor.',
@@ -228,6 +234,7 @@ export async function analyseSeismic() {
       method: 'Distance from the main-shock epicentre computed for every event in EPSG:32645 metres; bounding box and east-west and north-south extents derived.',
       outputs: ['bounding box', 'extent in km', 'distance distribution', 'counts within 50/100/200 km'],
       visualisation: 'Map with magnitude-scaled markers, the main shock distinguished from aftershocks.',
+      resultClass: ResultClass.DESCRIPTIVE_STATISTIC.id,
       dataClass: DataClass.DERIVED,
       limitations: [
         'Epicentres are horizontal projections of hypocentres; two events 5 km apart on the map may be 30 km apart in the rock.',
@@ -250,6 +257,33 @@ export async function analyseSeismic() {
     },
     validation,
     methodology: records,
+    /*
+     * What kind of claim each result is.
+     *
+     * A magnitude is a measurement. A count of events per band is arithmetic
+     * on measurements. A b-value is neither: it is a parameter of a model
+     * fitted to those measurements, and it moves when the fitting window
+     * moves. Listing them together without this distinction is how a fitted
+     * parameter ends up quoted as a property of the crust.
+     */
+    resultClassification: {
+      mainShock: ResultClass.OBSERVED.id,
+      counts: ResultClass.DESCRIPTIVE_STATISTIC.id,
+      magnitude: ResultClass.DESCRIPTIVE_STATISTIC.id,
+      aftershockMagnitude: ResultClass.DESCRIPTIVE_STATISTIC.id,
+      depth: ResultClass.DESCRIPTIVE_STATISTIC.id,
+      temporal: ResultClass.DESCRIPTIVE_STATISTIC.id,
+      spatial: ResultClass.DESCRIPTIVE_STATISTIC.id,
+      largestEvents: ResultClass.OBSERVED.id,
+      completeness: ResultClass.MODEL_FIT.id,
+      reportingThreshold: ResultClass.DESCRIPTIVE_STATISTIC.id,
+      gutenbergRichter: ResultClass.MODEL_FIT.id,
+      bValueSensitivity: ResultClass.MODEL_FIT.id,
+      omori: ResultClass.MODEL_FIT.id,
+    },
+    resultClassMeanings: Object.fromEntries(
+      Object.values(ResultClass).map((entry) => [entry.id, entry.means]),
+    ),
     results: {
       mainShock: {
         id: mainShock.id,

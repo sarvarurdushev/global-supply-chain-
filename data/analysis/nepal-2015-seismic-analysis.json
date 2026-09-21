@@ -46,6 +46,7 @@
  "methodology": [
   {
    "schemaVersion": 1,
+   "resultClass": "DESCRIPTIVE_STATISTIC",
    "id": "seismic-magnitude-distribution",
    "name": "Magnitude distribution of the Gorkha sequence",
    "question": "How were the magnitudes of the 2015 Nepal earthquake sequence distributed?",
@@ -73,6 +74,7 @@
   },
   {
    "schemaVersion": 1,
+   "resultClass": "DESCRIPTIVE_STATISTIC",
    "id": "seismic-depth-distribution",
    "name": "Depth distribution of the Gorkha sequence",
    "question": "At what depths did the 2015 Nepal earthquake sequence occur?",
@@ -101,6 +103,7 @@
   },
   {
    "schemaVersion": 1,
+   "resultClass": "DESCRIPTIVE_STATISTIC",
    "id": "seismic-temporal-series",
    "name": "Temporal evolution of the sequence",
    "question": "How did seismic activity evolve in the hours, days and months after the main shock?",
@@ -127,6 +130,7 @@
   },
   {
    "schemaVersion": 1,
+   "resultClass": "MODEL_FIT",
    "id": "seismic-gutenberg-richter",
    "name": "Gutenberg-Richter b-value for the aftershock sequence",
    "question": "Does the aftershock sequence follow the standard magnitude-frequency relation, and with what b-value?",
@@ -150,7 +154,7 @@
     "completeness magnitude",
     "events used"
    ],
-   "visualisation": "Log-linear plot of cumulative count against magnitude with the fitted line.",
+   "visualisation": "Log-linear plot of cumulative count against magnitude with the fitted line. The plot must be labelled as a MODEL FIT, not as observed data.",
    "dataClass": "DERIVED",
    "limitations": [
     "Maximum curvature returns Mc = 4.0 for this catalogue, but the magnitude histogram has a cliff at exactly M4.0 — 41 events at 4.0 against 2 at 3.9 — which is the signature of a REPORTING threshold, not a detection limit. The true completeness is higher, so the b fitted at 4.0 is probably biased.",
@@ -161,6 +165,7 @@
   },
   {
    "schemaVersion": 1,
+   "resultClass": "MODEL_FIT",
    "id": "seismic-omori-decay",
    "name": "Omori decay of the aftershock rate",
    "question": "How quickly did the aftershock rate decay after the main shock?",
@@ -184,7 +189,7 @@
     "days fitted",
     "daily counts"
    ],
-   "visualisation": "Log-log plot of daily rate against time with the fitted decay curve.",
+   "visualisation": "Log-log plot of daily rate against time with the fitted decay curve. The observed daily counts and the fitted curve must be drawn distinguishably; they are different kinds of thing.",
    "dataClass": "DERIVED",
    "limitations": [
     "A single fit across the whole year returns p = 0.42 with R-squared 0.44. That is not noise: Omori describes decay from ONE main shock, and the M7.3 of 12 May restarted the sequence seventeen days in. The segmented fits are the defensible numbers and the whole-window fit is retained only as the evidence for splitting.",
@@ -195,6 +200,7 @@
   },
   {
    "schemaVersion": 1,
+   "resultClass": "DESCRIPTIVE_STATISTIC",
    "id": "seismic-spatial-distribution",
    "name": "Spatial distribution of the sequence",
    "question": "Where did the aftershocks occur relative to the epicentre, and over what extent?",
@@ -220,6 +226,30 @@
    ]
   }
  ],
+ "resultClassification": {
+  "mainShock": "OBSERVED",
+  "counts": "DESCRIPTIVE_STATISTIC",
+  "magnitude": "DESCRIPTIVE_STATISTIC",
+  "aftershockMagnitude": "DESCRIPTIVE_STATISTIC",
+  "depth": "DESCRIPTIVE_STATISTIC",
+  "temporal": "DESCRIPTIVE_STATISTIC",
+  "spatial": "DESCRIPTIVE_STATISTIC",
+  "largestEvents": "OBSERVED",
+  "completeness": "MODEL_FIT",
+  "reportingThreshold": "DESCRIPTIVE_STATISTIC",
+  "gutenbergRichter": "MODEL_FIT",
+  "bValueSensitivity": "MODEL_FIT",
+  "omori": "MODEL_FIT"
+ },
+ "resultClassMeanings": {
+  "OBSERVED": "Recorded by an instrument or read from an agency catalogue. Not computed here.",
+  "DESCRIPTIVE_STATISTIC": "A count, median or distribution computed directly from observations. It adds no assumptions; re-running it on the same catalogue gives the same answer.",
+  "MODEL_FIT": "A parameter of a statistical model fitted to observations. It depends on the model chosen, the window fitted and the data excluded, and it is NOT a measurement of the earth.",
+  "DERIVED": "Computed here by combining datasets, with no free parameters.",
+  "ESTIMATE": "Computed here, and a stated assumption changes the answer.",
+  "OFFICIAL": "Published by an authoritative body. Reported as published.",
+  "SCENARIO": "A hypothetical constructed to explore response. Never a claim about what happened."
+ },
  "results": {
   "mainShock": {
    "id": "us20002926",

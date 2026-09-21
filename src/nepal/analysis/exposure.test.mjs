@@ -4,9 +4,11 @@ import {
   MMI_MEANING,
   contoursToRings,
   decodePopulationGrid,
+  districtQuadrants,
   exposureByDistrict,
   intensityAt,
   populationByIntensity,
+  populationIntensityQuadrants,
   thresholdSensitivity,
 } from './exposure.js';
 
@@ -193,4 +195,86 @@ test('every usable intensity carries its published damage meaning', () => {
     assert.equal(band.meaning, MMI_MEANING[band.mmi]);
   }
   assert.match(MMI_MEANING[6].damage, /lowest intensity at which damage occurs/);
+});
+
+/* ------------------------------------------------------------------ *
+ * Population crossed with intensity
+ * ------------------------------------------------------------------ */
+
+test('the four quadrants partition the populated cells exactly', () => {
+  const rings = contoursToRings(CONTOURS);
+  const cells = [
+    { lon: 85.5, lat: 27.5, people: 1000 }, // MMI 7, dense
+    { lon: 85.45, lat: 27.45, people: 900 }, // MMI 7, dense
+    { lon: 85.52, lat: 27.52, people: 5 }, // MMI 7, sparse
+    { lon: 85.1, lat: 27.1, people: 800 }, // MMI 6, dense
+    { lon: 85.2, lat: 27.2, people: 3 }, // MMI 6, sparse
+    { lon: 84.5, lat: 26.5, people: 700 }, // no contour, dense
+    { lon: 84.4, lat: 26.4, people: 2 }, // no contour, sparse
+    { lon: 84.3, lat: 26.3, people: 0 }, // empty: excluded entirely
+  ];
+  const result = populationIntensityQuadrants(cells, rings, {
+    intensityThreshold: 6,
+    densityQuantile: 0.5,
+  });
+  assert.equal(result.quadrants.length, 4);
+  const cellsClassified = result.quadrants.reduce((sum, q) => sum + q.cells, 0);
+  assert.equal(cellsClassified, 7, 'the zero-population cell is not classified');
+  const peopleClassified = result.quadrants.reduce((sum, q) => sum + q.people, 0);
+  assert.equal(peopleClassified, 3410);
+  assert.equal(result.totalPopulationClassified, 3410);
+  const shares = result.quadrants.reduce((sum, q) => sum + q.shareOfPopulationPercent, 0);
+  assert.ok(Math.abs(shares - 100) < 0.5, `shares sum to ${shares}`);
+});
+
+test('the density cut is taken over populated cells, not over the whole grid', () => {
+  // Nepal is two-thirds empty. Including empty cells drags the quantile to
+  // zero and puts every inhabited cell in the "high density" half, which
+  // classifies nothing.
+  const rings = contoursToRings(CONTOURS);
+  const cells = [
+    { lon: 85.5, lat: 27.5, people: 100 },
+    { lon: 85.45, lat: 27.45, people: 200 },
+    { lon: 85.42, lat: 27.42, people: 300 },
+    { lon: 85.41, lat: 27.41, people: 400 },
+  ];
+  const result = populationIntensityQuadrants(cells, rings, { densityQuantile: 0.75 });
+  assert.equal(result.parameters.populatedCells, 4);
+  assert.equal(result.parameters.densityCutPeoplePerCell, 400);
+  assert.ok(result.parameters.justification.includes('POPULATED cells'));
+});
+
+test('a quadrant records where its densest cell is, so the map can go there', () => {
+  const rings = contoursToRings(CONTOURS);
+  const result = populationIntensityQuadrants(
+    [{ lon: 85.5, lat: 27.5, people: 1000 }, { lon: 85.45, lat: 27.45, people: 10 }],
+    rings,
+    { intensityThreshold: 6, densityQuantile: 0.5 },
+  );
+  const high = result.quadrants.find((q) => q.id === 'HIGH_INTENSITY_HIGH_DENSITY');
+  assert.equal(high.densestCellPeople, 1000);
+  assert.deepEqual(high.densestCellAt, [85.5, 27.5]);
+  assert.equal(high.maxMmi, 7);
+});
+
+test('quadrants of an empty grid are nothing, not zeroes', () => {
+  assert.equal(populationIntensityQuadrants([], contoursToRings(CONTOURS)), null);
+  assert.equal(populationIntensityQuadrants([{ lon: 85, lat: 27, people: 0 }], contoursToRings(CONTOURS)), null);
+});
+
+test('district quadrants separate reaching a threshold from most people being inside it', () => {
+  // A district can touch severe shaking in one corner and still have most of
+  // its population outside it. One flag cannot say both.
+  const rows = [
+    { district: 'Corner', districtKey: 'corner', population: 1000, exposed: 50, exposedPercent: 5, maxMmi: 7, populationDensityPerSqKm: 100 },
+    { district: 'Whole', districtKey: 'whole', population: 1000, exposed: 950, exposedPercent: 95, maxMmi: 7, populationDensityPerSqKm: 100 },
+    { district: 'Away', districtKey: 'away', population: 1000, exposed: 0, exposedPercent: 0, maxMmi: 5, populationDensityPerSqKm: 100 },
+  ];
+  const [corner, whole, away] = districtQuadrants(rows, { intensityThreshold: 6, exposureShareCut: 50 });
+  assert.equal(corner.reachedThreshold, true);
+  assert.equal(corner.majorityExposed, false);
+  assert.equal(whole.reachedThreshold, true);
+  assert.equal(whole.majorityExposed, true);
+  assert.equal(away.reachedThreshold, false);
+  assert.equal(away.majorityExposed, false);
 });
