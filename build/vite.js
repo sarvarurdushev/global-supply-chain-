@@ -1,4 +1,5 @@
 import { applicationHtmlPlugin } from './application-html.js';
+import { nepalDataPlugin } from './nepal-data.js';
 import cesium from 'vite-plugin-cesium';
 
 /** Build browser assets with explicit inputs; never load environment or providers. */
@@ -23,7 +24,12 @@ export function createBrowserViteConfig({
       ? true
       : ['localhost', '127.0.0.1', '.local'];
   return {
-    plugins: [cesium(), applicationHtmlPlugin(), ...plugins],
+    /*
+     * `nepalDataPlugin` is core rather than injected: the case artefacts are
+     * the application's subject matter, not an optional provider, and a build
+     * that shipped without them would start and then fail on the first panel.
+     */
+    plugins: [cesium(), applicationHtmlPlugin(), nepalDataPlugin(), ...plugins],
     ...(publicDir === undefined ? {} : { publicDir }),
     server: {
       host: resolvedHost,

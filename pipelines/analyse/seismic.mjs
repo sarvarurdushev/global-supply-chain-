@@ -15,6 +15,7 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { DataClass } from '../../src/nepal/registry.js';
 import { createAnalysisRecord } from '../../src/nepal/analysis/methodology.js';
+import { createCheckList } from '../../src/nepal/analysis/validation.js';
 import { ResultClass } from '../../src/nepal/analysis/terminology.js';
 import {
   completenessMagnitude,
@@ -118,18 +119,55 @@ export async function analyseSeismic() {
     depthAccountedFor: depth.withDepth + depth.missingDepth === events.length,
   };
 
-  const failures = [];
-  if (!validation.eventCountMatches) failures.push(`event count ${events.length} != 316`);
-  if (!validation.mainShock.matchesPublished) failures.push('main shock does not match the published record');
-  if (!validation.may12Aftershock?.matchesExpected) failures.push('the 12 May M7.3 aftershock is missing or of the wrong magnitude');
-  if (validation.duplicateIds.length > 0) failures.push(`duplicate event ids: ${validation.duplicateIds.join(', ')}`);
-  if (!validation.partition.reconciles) failures.push('foreshock/main/aftershock partition does not reconcile');
-  if (!validation.magnitudeBandsSumToTotal) failures.push('magnitude bands do not sum to the event count');
-  if (!validation.depthAccountedFor) failures.push('depth counts do not account for every event');
-  validation.failures = failures;
-  validation.passed = failures.length === 0;
+  /*
+   * The same conditions, as a named check list. Emitted beside the booleans
+   * above rather than replacing them, so the interface can count checks across
+   * all five artefacts without knowing which stage wrote each one.
+   */
+  const checkList = createCheckList([
+    {
+      name: 'Event count matches the catalogue query',
+      passed: validation.eventCountMatches,
+      detail: `${events.length} events, expected 316`,
+    },
+    {
+      name: 'Main shock matches the published record',
+      passed: validation.mainShock.matchesPublished,
+      detail: `M${validation.mainShock.magnitude} at ${validation.mainShock.time}`,
+    },
+    {
+      name: 'The 12 May M7.3 aftershock is present at the right magnitude',
+      passed: Boolean(validation.may12Aftershock?.matchesExpected),
+      detail: validation.may12Aftershock
+        ? `M${validation.may12Aftershock.magnitude} at ${validation.may12Aftershock.time}`
+        : 'not found in the catalogue',
+    },
+    {
+      name: 'No duplicate event ids',
+      passed: validation.duplicateIds.length === 0,
+      detail: `${validation.duplicateIds.length} duplicates`,
+    },
+    {
+      name: 'Foreshock, main shock and aftershock partition reconciles',
+      passed: validation.partition.reconciles,
+      detail: `${validation.partition.foreshocks} + 1 + ${validation.partition.aftershocks} of ${events.length}`,
+    },
+    {
+      name: 'Magnitude bands sum to the event count',
+      passed: validation.magnitudeBandsSumToTotal,
+      detail: `${magnitude.bands.length} bands`,
+    },
+    {
+      name: 'Depth counts account for every event',
+      passed: validation.depthAccountedFor,
+      detail: `${depth.withDepth} with depth, ${depth.missingDepth} without`,
+    },
+  ]);
+  validation.checks = checkList.checks;
+  validation.failures = [...checkList.failures];
+  validation.passed = checkList.passed;
   if (!validation.passed) {
-    throw new Error(`Stage 3 validation failed: ${failures.join('; ')}`);
+    throw new Error(`Stage 3 validation failed: ${validation.failures.join('; ')}`);
   }
 
   /* ---------------- methodology records ---------------- */
@@ -255,6 +293,21 @@ export async function analyseSeismic() {
       license: source.source.license,
       attribution: source.source.attribution,
     },
+    /*
+     * The same provenance as an ARRAY, because Stage 4 and Stage 5 emit
+     * `sources` and this stage emitted only the singular `source`. A consumer
+     * counting datasets across all five artefacts silently skipped this one and
+     * reported eight where the registry holds ten. Both fields are emitted;
+     * nothing that read `source` breaks.
+     */
+    sources: [
+      {
+        datasetId: source.source.datasetId,
+        license: source.source.license,
+        redistribution: source.source.redistribution ?? null,
+        attribution: source.source.attribution ?? null,
+      },
+    ],
     validation,
     methodology: records,
     /*

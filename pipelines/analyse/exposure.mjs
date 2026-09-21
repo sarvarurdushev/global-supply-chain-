@@ -23,6 +23,7 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { DataClass } from '../../src/nepal/registry.js';
 import { createAnalysisRecord } from '../../src/nepal/analysis/methodology.js';
+import { createCheckList } from '../../src/nepal/analysis/validation.js';
 import {
   MMI_MEANING,
   contoursToRings,
@@ -523,15 +524,42 @@ export async function analyseExposure() {
   };
   validation.districtAttributionLedger = reconciliation;
 
-  const failures = [];
-  if (!validation.cellsMatch) failures.push('decoded cell count does not match the artefact');
-  if (!validation.decodeReconciles) failures.push('decoded population does not match the artefact total');
-  if (!validation.districtAssignmentReconciles) failures.push('district assignment lost or duplicated population');
-  if (!validation.sensitivityIsMonotonic) failures.push('cumulative exposure rises with the threshold, which is impossible');
-  if (!validation.districtExposureSumMatchesGrid) failures.push('district exposure exceeds grid exposure: a cell was counted twice');
-  validation.failures = failures;
-  validation.passed = failures.length === 0;
-  if (!validation.passed) throw new Error(`Stage 4 validation failed: ${failures.join('; ')}`);
+  /*
+   * The same conditions as a named check list, emitted beside the booleans
+   * rather than replacing them, so all five artefacts can be counted together.
+   */
+  const checkList = createCheckList([
+    {
+      name: 'Decoded cell count matches the population artefact',
+      passed: validation.cellsMatch,
+      detail: `${validation.cellsProcessed} of ${validation.expectedCells}`,
+    },
+    {
+      name: 'Decoded population reconciles with the artefact total',
+      passed: validation.decodeReconciles,
+      detail: `${validation.populationDecoded} against ${validation.populationInArtefact}`,
+    },
+    {
+      name: 'District assignment neither loses nor duplicates population',
+      passed: validation.districtAssignmentReconciles,
+      detail: `${validation.populationInDistricts} placed, ${validation.populationOutsideAnyDistrict} outside every district`,
+    },
+    {
+      name: 'Cumulative exposure falls as the threshold rises',
+      passed: validation.sensitivityIsMonotonic,
+      detail: 'a rise would mean a stronger contour contains more people than a weaker one',
+    },
+    {
+      name: 'District exposure does not exceed grid exposure',
+      passed: validation.districtExposureSumMatchesGrid,
+      detail: 'an excess would mean a cell was counted in two districts',
+    },
+  ]);
+  validation.checks = checkList.checks;
+  validation.failures = [...checkList.failures];
+  validation.passed = checkList.passed;
+  if (!validation.passed)
+    throw new Error(`Stage 4 validation failed: ${validation.failures.join('; ')}`);
 
   /* ---------------- methodology ---------------- */
 

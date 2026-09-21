@@ -461,6 +461,33 @@
     }
    ]
   },
+  "checks": [
+   {
+    "name": "Decoded cell count matches the population artefact",
+    "passed": true,
+    "detail": "177679 of 177679"
+   },
+   {
+    "name": "Decoded population reconciles with the artefact total",
+    "passed": true,
+    "detail": "27010569 against 27010569"
+   },
+   {
+    "name": "District assignment neither loses nor duplicates population",
+    "passed": true,
+    "detail": "27010569 placed, 0 outside every district"
+   },
+   {
+    "name": "Cumulative exposure falls as the threshold rises",
+    "passed": true,
+    "detail": "a rise would mean a stronger contour contains more people than a weaker one"
+   },
+   {
+    "name": "District exposure does not exceed grid exposure",
+    "passed": true,
+    "detail": "an excess would mean a cell was counted in two districts"
+   }
+  ],
   "failures": [],
   "passed": true
  },

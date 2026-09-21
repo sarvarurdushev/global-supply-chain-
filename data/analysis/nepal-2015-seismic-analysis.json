@@ -9,6 +9,14 @@
   "license": "US Government public domain (17 U.S.C. §105)",
   "attribution": "Data courtesy of the U.S. Geological Survey"
  },
+ "sources": [
+  {
+   "datasetId": "usgs-nepal-2015-seismic",
+   "license": "US Government public domain (17 U.S.C. §105)",
+   "redistribution": "OPEN",
+   "attribution": "Data courtesy of the U.S. Geological Survey"
+  }
+ ],
  "validation": {
   "eventCount": 316,
   "expectedEventCount": 316,
@@ -40,6 +48,43 @@
   },
   "magnitudeBandsSumToTotal": true,
   "depthAccountedFor": true,
+  "checks": [
+   {
+    "name": "Event count matches the catalogue query",
+    "passed": true,
+    "detail": "316 events, expected 316"
+   },
+   {
+    "name": "Main shock matches the published record",
+    "passed": true,
+    "detail": "M7.8 at 2015-04-25T06:11:25.950Z"
+   },
+   {
+    "name": "The 12 May M7.3 aftershock is present at the right magnitude",
+    "passed": true,
+    "detail": "M7.3 at 2015-05-12T07:05:19.730Z"
+   },
+   {
+    "name": "No duplicate event ids",
+    "passed": true,
+    "detail": "0 duplicates"
+   },
+   {
+    "name": "Foreshock, main shock and aftershock partition reconciles",
+    "passed": true,
+    "detail": "0 + 1 + 315 of 316"
+   },
+   {
+    "name": "Magnitude bands sum to the event count",
+    "passed": true,
+    "detail": "5 bands"
+   },
+   {
+    "name": "Depth counts account for every event",
+    "passed": true,
+    "detail": "316 with depth, 0 without"
+   }
+  ],
   "failures": [],
   "passed": true
  },

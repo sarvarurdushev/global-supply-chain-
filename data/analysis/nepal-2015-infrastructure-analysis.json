@@ -23,6 +23,12 @@
    "attribution": "© OpenStreetMap contributors, ODbL"
   },
   {
+   "datasetId": "osm-nepal-2015-blockage-context",
+   "license": "Open Database License (ODbL) 1.0",
+   "redistribution": "SHARE_ALIKE",
+   "attribution": "© OpenStreetMap contributors, ODbL"
+  },
+  {
    "datasetId": "usgs-nepal-2015-shakemap-contours",
    "license": "US Government public domain (17 U.S.C. §105)",
    "redistribution": "OPEN",

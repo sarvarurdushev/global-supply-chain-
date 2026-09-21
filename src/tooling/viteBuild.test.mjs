@@ -12,7 +12,21 @@ test('explicit build inputs preserve browser-only defines, plugin order and loop
     googleApiKey: 'browser-fixture',
     cesiumToken: 'ion-fixture',
   });
-  assert.equal(config.plugins[2], plugin);
+  /*
+   * Injected provider plugins come after the three core ones: cesium, the
+   * application templates, and the Nepal case artefacts. The artefact plugin
+   * is core rather than injected because the committed Stage 0-5 data is the
+   * application's subject matter, not an optional provider.
+   */
+  assert.deepEqual(
+    config.plugins.slice(0, 3).map((entry) => entry?.name ?? null),
+    [
+      'vite-plugin-cesium',
+      'application-component-templates',
+      'nepal-case-artefacts',
+    ],
+  );
+  assert.equal(config.plugins[3], plugin);
   assert.equal(config.server.host, 'localhost');
   assert.equal(config.server.port, 4173);
   assert.deepEqual(config.server.allowedHosts, [
@@ -76,7 +90,7 @@ test('build helper does not discover environment values or construct local provi
       config.define['import.meta.env.GOOGLE_MAPS_API_KEY'],
       undefined,
     );
-    assert.equal(config.plugins.length, 2);
+    assert.equal(config.plugins.length, 3);
   } finally {
     if (before === undefined) delete process.env.GOOGLE_MAPS_API_KEY;
     else process.env.GOOGLE_MAPS_API_KEY = before;
@@ -88,7 +102,7 @@ test('root config retains existing named exports and standalone provider order',
     assert.equal(compatibility[name], value, name);
   const config = standaloneConfig({ mode: 'test' });
   assert.deepEqual(
-    config.plugins.slice(2, -1).map((plugin) => plugin.name),
+    config.plugins.slice(3, -1).map((plugin) => plugin.name),
     providers.localProviderPlugins().map((plugin) => plugin.name),
   );
   assert.equal(config.plugins.at(-2).name, 'gev-key-setup');

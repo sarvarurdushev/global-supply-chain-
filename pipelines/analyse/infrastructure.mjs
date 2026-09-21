@@ -410,7 +410,20 @@ export async function analyseInfrastructure() {
       networkIsAsMapped:
         'The baseline network is OpenStreetMap as it stood on 2015-04-24. Rural Nepal was incompletely mapped then, so a route this analysis cannot find is not necessarily a route that did not exist.',
     },
-    sources: [ngaFile, roadsFile, shakemapFile, boundariesFile, populationFile].map((file) => ({
+    /*
+     * contextFile is cited because this stage READS it — the all-class local
+     * network is what diagnoses why only 21 of 184 blockages attach to the
+     * routable network. An artefact that consumes a dataset without citing it
+     * under-reports its own provenance.
+     */
+    sources: [
+      ngaFile,
+      roadsFile,
+      contextFile,
+      shakemapFile,
+      boundariesFile,
+      populationFile,
+    ].map((file) => ({
       datasetId: file.source.datasetId,
       license: file.source.license,
       redistribution: file.source.redistribution,
