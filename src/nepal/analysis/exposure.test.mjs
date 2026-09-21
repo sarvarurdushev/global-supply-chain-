@@ -1,8 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   MMI_MEANING,
   contoursToRings,
+  intensityBands,
   decodePopulationGrid,
   districtQuadrants,
   exposureByDistrict,
@@ -11,6 +15,8 @@ import {
   populationIntensityQuadrants,
   thresholdSensitivity,
 } from './exposure.js';
+
+const ROOT = fileURLToPath(new URL('../../../', import.meta.url));
 
 /** Nested square contours: MMI 6 outer, MMI 7 inner, both closed. */
 const CONTOURS = [
@@ -277,4 +283,134 @@ test('district quadrants separate reaching a threshold from most people being in
   assert.equal(whole.majorityExposed, true);
   assert.equal(away.reachedThreshold, false);
   assert.equal(away.majorityExposed, false);
+});
+
+test('intensity bands cut each level with the level above it', () => {
+  /*
+   * The failure this prevents: drawing contour rings as filled polygons stacks
+   * them, so the strongest band is painted over by every weaker one drawn
+   * after it and the map reads as one flat blob at the weakest intensity.
+   */
+  const square = (size) => [
+    [-size, -size],
+    [size, -size],
+    [size, size],
+    [-size, size],
+    [-size, -size],
+  ];
+  const rings = {
+    levels: [
+      { mmi: 6, rings: [square(10)] },
+      { mmi: 7, rings: [square(5)] },
+      { mmi: 8, rings: [square(2)] },
+    ],
+    usableLevels: [6, 7, 8],
+    excluded: [],
+  };
+  const result = intensityBands(rings);
+  assert.equal(result.bands.length, 3);
+  assert.deepEqual(result.drawOrder, [6, 7, 8], 'weakest first, which is the draw order');
+
+  const six = result.bands[0];
+  assert.equal(six.label, 'MMI 6–7');
+  assert.equal(six.holeCount, 1, 'the MMI 7 ring must be cut out of the MMI 6 band');
+  assert.equal(six.geometry.coordinates[0].length, 2, 'outer ring plus one hole');
+
+  // Only the NEXT level is cut, or the area would be removed twice.
+  assert.equal(
+    six.geometry.coordinates[0][1],
+    rings.levels[1].rings[0],
+    'the hole is the MMI 7 ring, not the MMI 8 ring',
+  );
+
+  const eight = result.bands[2];
+  assert.equal(eight.label, 'MMI 8+');
+  assert.equal(eight.holeCount, 0, 'the strongest band has nothing above it to cut');
+});
+
+test('a detached lobe is reported rather than attached to the nearest band', () => {
+  /*
+   * A contour set can have a higher ring that is inside no lower ring, at the
+   * edge of the model grid. Attaching it would punch a hole the model does not
+   * say is there, so it is reported and the band below stays solid.
+   */
+  const at = (x, size) => [
+    [x - size, -size],
+    [x + size, -size],
+    [x + size, size],
+    [x - size, size],
+    [x - size, -size],
+  ];
+  const rings = {
+    levels: [
+      { mmi: 6, rings: [at(0, 5)] },
+      { mmi: 7, rings: [at(100, 2)] },
+    ],
+    usableLevels: [6, 7],
+    excluded: [],
+  };
+  const result = intensityBands(rings);
+  assert.equal(result.orphanedRings.length, 1);
+  assert.equal(result.orphanedRings[0].mmi, 7);
+  assert.equal(result.orphanedRings[0].insideLevel, 6);
+  assert.match(result.orphanedRings[0].reason, /left solid/);
+  assert.equal(result.bands[0].holeCount, 0, 'the band below must stay solid');
+});
+
+test('a ring that crosses the level below it is not treated as inside it', () => {
+  // Every vertex must be inside, not just a representative point.
+  const outer = [
+    [0, 0],
+    [10, 0],
+    [10, 10],
+    [0, 10],
+    [0, 0],
+  ];
+  const straddling = [
+    [8, 5],
+    [14, 5],
+    [14, 7],
+    [8, 7],
+    [8, 5],
+  ];
+  const result = intensityBands({
+    levels: [
+      { mmi: 6, rings: [outer] },
+      { mmi: 7, rings: [straddling] },
+    ],
+    usableLevels: [6, 7],
+    excluded: [],
+  });
+  assert.equal(result.bands[0].holeCount, 0);
+  assert.equal(result.orphanedRings.length, 1);
+});
+
+test('intensity bands on the real ShakeMap nest cleanly and leave nothing detached', async () => {
+  const shakemap = JSON.parse(
+    await readFile(
+      path.join(ROOT, 'data', 'processed', 'nepal-2015-shakemap-contours.json'),
+      'utf8',
+    ),
+  );
+  const rings = contoursToRings(shakemap.data.features);
+  const result = intensityBands(rings);
+  assert.equal(result.bands.length, rings.usableLevels.length);
+  assert.deepEqual(result.drawOrder, [...rings.usableLevels]);
+  assert.equal(
+    result.orphanedRings.length,
+    0,
+    'the Gorkha contour set nests cleanly; a detached lobe would need reporting on screen',
+  );
+  // Every band is drawable: a MultiPolygon whose first ring is closed.
+  for (const band of result.bands) {
+    assert.equal(band.geometry.type, 'MultiPolygon');
+    assert.ok(band.geometry.coordinates.length > 0, `${band.label} has no polygon`);
+    for (const polygon of band.geometry.coordinates) {
+      const outer = polygon[0];
+      assert.deepEqual(outer[0], outer[outer.length - 1], `${band.label} outer ring is not closed`);
+    }
+  }
+  // The strongest band is the one with no upper bound.
+  assert.equal(result.bands[result.bands.length - 1].upperMmi, null);
+  assert.match(result.bands[result.bands.length - 1].label, /\+$/);
 });

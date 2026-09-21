@@ -172,6 +172,110 @@ export function contoursToRings(features, { minRingPositions = 4 } = {}) {
 }
 
 /**
+ * Turn nested contour rings into filled bands with holes.
+ *
+ * The ShakeMap publishes CONTOURS — lines of equal intensity. A filled
+ * intensity surface needs AREAS, and the two are not the same object: the
+ * region that experienced "MMI VI but not VII" is the MMI VI ring minus every
+ * MMI VI.5 ring that sits inside it. Drawing the rings as filled polygons
+ * instead would stack them, so the strongest band would be painted over by
+ * every weaker one drawn after it and the map would read as a single flat
+ * blob at the weakest intensity.
+ *
+ * WHY THIS IS AN ANALYSIS STEP AND NOT A RENDERING TRICK. Deciding that a
+ * higher ring belongs inside a lower one is a containment judgement about the
+ * model's geometry, and it can be wrong: a contour set with a detached lobe
+ * has a higher ring that is NOT inside any lower ring. That case is reported
+ * rather than silently attached to the nearest candidate, because attaching it
+ * would punch a hole in a band that the model does not say is there.
+ *
+ * Returns bands weakest-first, which is also the order they must be drawn.
+ *
+ * @param {object} rings output of `contoursToRings`
+ * @returns {{bands:Array<object>, orphanedRings:Array<object>}}
+ */
+export function intensityBands(rings) {
+  const levels = rings?.levels ?? [];
+  const bands = [];
+  const orphaned = [];
+
+  for (let i = 0; i < levels.length; i += 1) {
+    const level = levels[i];
+    const nextLevel = levels[i + 1] ?? null;
+    const polygons = [];
+
+    for (const outer of level.rings) {
+      /*
+       * A hole is a ring of the NEXT level up that lies inside this outer
+       * ring. Only the next level: holes from two levels up are already inside
+       * the next level's rings, and punching them here as well would remove
+       * area twice.
+       */
+      const holes = [];
+      for (const candidate of nextLevel?.rings ?? []) {
+        if (ringInsideRing(candidate, outer)) holes.push(candidate);
+      }
+      polygons.push([outer, ...holes]);
+    }
+
+    /* Any next-level ring inside none of this level's rings is detached. */
+    for (const candidate of nextLevel?.rings ?? []) {
+      const insideSomething = level.rings.some((outer) =>
+        ringInsideRing(candidate, outer),
+      );
+      if (!insideSomething) {
+        orphaned.push({
+          mmi: nextLevel.mmi,
+          insideLevel: level.mmi,
+          positions: candidate.length,
+          reason:
+            'this ring lies outside every ring of the level below it, so it cannot be cut as a hole; the band below is left solid there',
+        });
+      }
+    }
+
+    bands.push(
+      Object.freeze({
+        mmi: level.mmi,
+        upperMmi: nextLevel?.mmi ?? null,
+        label: nextLevel
+          ? `MMI ${level.mmi}\u2013${nextLevel.mmi}`
+          : `MMI ${level.mmi}+`,
+        ringCount: level.rings.length,
+        holeCount: polygons.reduce((sum, poly) => sum + poly.length - 1, 0),
+        geometry: Object.freeze({
+          type: 'MultiPolygon',
+          coordinates: polygons,
+        }),
+      }),
+    );
+  }
+
+  return Object.freeze({
+    bands: Object.freeze(bands),
+    orphanedRings: Object.freeze(orphaned),
+    /* Weakest first: the draw order that lets stronger bands sit on top. */
+    drawOrder: Object.freeze(bands.map((band) => band.mmi)),
+  });
+}
+
+/**
+ * Is one ring wholly inside another?
+ *
+ * Tested on every vertex rather than on a representative point. A contour lobe
+ * that crosses a lower contour — which a model grid can produce at its edge —
+ * is not "inside" it in any useful sense, and treating it as inside would cut
+ * a hole through a band boundary.
+ */
+function ringInsideRing(inner, outer) {
+  const polygon = { type: 'Polygon', coordinates: [outer] };
+  for (const position of inner) {
+    if (!pointInPolygon(position, polygon)) return false;
+  }
+  return true;
+}
+
+/**
  * The highest intensity contour containing a point, or null outside them all.
  *
  * Tested from the highest level down so the first containment wins, which is
