@@ -1461,7 +1461,7 @@
     "components": 40,
     "largestComponent": 1927,
     "mappingGrowthSince2015": 3.36,
-    "mappingGrowthNote": "OpenStreetMap now holds 7143 ways of these classes over the same tiles, against 2129 on 2015-04-24. The ratio is a direct measure of how much of the network was unmapped at the time, and it bounds what any connectivity result here can claim."
+    "mappingGrowthNote": "OpenStreetMap held 7143 ways of these classes over the same tiles when this was measured on 2026-09-21, against 2129 on 2015-04-24. The ratio is a direct measure of how much of the network was unmapped at the time, and it bounds what any connectivity result here can claim. Measured on this run."
    },
    "blockageMatching": {
     "snapToleranceMetres": 25,

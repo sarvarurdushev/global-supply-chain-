@@ -136,3 +136,73 @@ export function parseOverpassCount(payload) {
 export function overpassBaseTimestamp(payload) {
   return payload?.osm3s?.timestamp_osm_base ?? null;
 }
+
+/**
+ * Decide what a coverage comparison should say after a run that may have
+ * failed to measure it.
+ *
+ * Pure, and separated from the ingest, because the decision is a judgement
+ * about evidence rather than an I/O detail and it is the kind of thing that
+ * goes quietly wrong.
+ *
+ * THE RULE. A comparison against TODAY'S OpenStreetMap is not a property of
+ * the 2015 snapshot: it moves as the map grows, and it needs a batch of extra
+ * queries that a public mirror refuses when it is busy. So a run that could
+ * not measure it must not overwrite a measurement that a previous run made —
+ * a reader could then no longer tell "never measured" from "the mirror was
+ * busy that day". The previous figure is carried forward WITH ITS DATE, and
+ * the result says plainly that this run did not re-measure.
+ *
+ * @param {object} input
+ * @param {boolean} input.measured whether this run completed the measurement
+ * @param {number} input.ways ways counted this run (ignored if not measured)
+ * @param {string} input.today ISO date for a measurement made now
+ * @param {object|null} [input.previous] the comparison held by the last artefact
+ * @param {number} [input.legacyWays] a bare count from an artefact written
+ *   before this field existed
+ * @param {string|null} [input.legacyDate] that artefact's generation date,
+ *   which is when the bare count was measured
+ * @returns {object|null} `{ways, measuredAt, carriedForward, remeasuredThisRun}`
+ */
+export function resolveNetworkComparison({
+  measured,
+  ways,
+  today,
+  previous = null,
+  legacyWays = 0,
+  legacyDate = null,
+}) {
+  if (measured && ways > 0) {
+    return Object.freeze({
+      ways,
+      measuredAt: today,
+      carriedForward: false,
+      remeasuredThisRun: true,
+    });
+  }
+  if (previous && previous.ways > 0 && previous.measuredAt) {
+    return Object.freeze({
+      ways: previous.ways,
+      measuredAt: previous.measuredAt,
+      carriedForward: true,
+      remeasuredThisRun: false,
+    });
+  }
+  /*
+   * An artefact written before this field existed holds the count as a bare
+   * number with no date of its own. It is still a real measurement, and its
+   * date is the day the artefact was generated — the measurement was made
+   * during that run. Reading it that way preserves the evidence; refusing it
+   * would throw away a figure for the sake of a schema change.
+   */
+  if (legacyWays > 0 && legacyDate) {
+    return Object.freeze({
+      ways: legacyWays,
+      measuredAt: legacyDate,
+      carriedForward: true,
+      remeasuredThisRun: false,
+      fromLegacyField: true,
+    });
+  }
+  return null;
+}

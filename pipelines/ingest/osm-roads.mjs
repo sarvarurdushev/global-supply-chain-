@@ -30,9 +30,19 @@ import {
   overpassBaseTimestamp,
   parseOverpassCount,
   parseOverpassWays,
+  resolveNetworkComparison,
 } from '../../src/nepal/io/overpass.js';
 import { buildArtefact } from '../lib/artefact.mjs';
-import { fetchRaw, formatBytes, writeProcessed, writeRegistry, writeReport } from '../lib/io.mjs';
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
+import {
+  PROCESSED,
+  fetchRaw,
+  formatBytes,
+  writeProcessed,
+  writeRegistry,
+  writeReport,
+} from '../lib/io.mjs';
 
 /**
  * The Overpass instance. Chosen because it is the one reachable from this
@@ -199,6 +209,42 @@ export async function ingestOsmRoads({ force = false, bbox = STUDY_BBOX } = {}) 
     currentMeasured = false;
   }
 
+  /*
+   * A FAILED COMPARISON MUST NOT ERASE A SUCCESSFUL ONE.
+   *
+   * The comparison needs 28 extra queries to a public mirror that answers a
+   * second concurrent query with a 504, and it fails on roughly half of runs.
+   * The baseline network reproduces exactly every time; this figure does not.
+   *
+   * Overwriting a real measurement with null on a flaky run would mean the
+   * artefact silently lost evidence, and a reader could not tell "never
+   * measured" from "the mirror was busy that day". So a previous measurement
+   * is carried forward WITH THE DATE IT WAS TAKEN, and this run records that
+   * it could not re-measure. The figure is dated evidence, not a live reading.
+   */
+  let previousComparison = null;
+  let legacyWays = 0;
+  let legacyDate = null;
+  try {
+    const previous = JSON.parse(
+      await readFile(path.join(PROCESSED, 'nepal-2015-osm-roads.json'), 'utf8'),
+    );
+    previousComparison = previous?.validation?.currentNetworkComparison ?? null;
+    /* Artefacts written before the dated field existed. */
+    legacyWays = previous?.validation?.currentWaysSameTiles ?? 0;
+    legacyDate = previous?.generatedAt ?? null;
+  } catch {
+    /* Nothing held: this is a first run. */
+  }
+  const comparison = resolveNetworkComparison({
+    measured: currentMeasured,
+    ways: currentWays,
+    today: new Date().toISOString().slice(0, 10),
+    previous: previousComparison,
+    legacyWays,
+    legacyDate,
+  });
+
   segments.sort((a, b) => a.osmId - b.osmId);
   const quality = log.summary();
   const byClass = {};
@@ -224,14 +270,25 @@ export async function ingestOsmRoads({ force = false, bbox = STUDY_BBOX } = {}) 
      * ran.
      */
     duplicateCountIsExpected: true,
-    currentWaysSameTiles: currentMeasured ? currentWays : null,
+    /*
+     * Kept as a dated sub-object rather than a bare number, because unlike
+     * everything else in this validation block it is not a property of the
+     * 2015 snapshot: today's OpenStreetMap grows, so this figure is true of
+     * the date it was taken and of no other.
+     */
+    currentNetworkComparison: comparison,
+    currentWaysSameTiles: comparison?.ways ?? null,
     mappingGrowthSince2015:
-      currentMeasured && segments.length > 0
-        ? Number((currentWays / segments.length).toFixed(2))
+      comparison && segments.length > 0
+        ? Number((comparison.ways / segments.length).toFixed(2))
         : null,
-    mappingGrowthNote: currentMeasured
-      ? `OpenStreetMap now holds ${currentWays} ways of these classes over the same tiles, against ${segments.length} on 2015-04-24. The ratio is a direct measure of how much of the network was unmapped at the time, and it bounds what any connectivity result here can claim.`
-      : 'The current-network comparison could not be measured on this run; the baseline itself is unaffected.',
+    mappingGrowthNote: comparison
+      ? `OpenStreetMap held ${comparison.ways} ways of these classes over the same tiles when this was measured on ${comparison.measuredAt}, against ${segments.length} on 2015-04-24. ` +
+        'The ratio is a direct measure of how much of the network was unmapped at the time, and it bounds what any connectivity result here can claim. ' +
+        (comparison.carriedForward
+          ? 'This run could NOT re-measure it \u2014 the comparison needs 28 extra queries to a mirror that refuses concurrent ones \u2014 so the figure is carried forward from the run that did, with its date.'
+          : 'Measured on this run.')
+      : 'The current-network comparison has never been measured successfully; the 2015 baseline itself is unaffected and reproduces exactly.',
   };
 
   const artefact = buildArtefact({

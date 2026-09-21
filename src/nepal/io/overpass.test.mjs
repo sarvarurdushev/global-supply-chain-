@@ -5,6 +5,7 @@ import {
   overpassBaseTimestamp,
   parseOverpassCount,
   parseOverpassWays,
+  resolveNetworkComparison,
 } from './overpass.js';
 
 const way = (id, geometry, tags = { highway: 'primary' }) => ({
@@ -89,4 +90,91 @@ test('the strategic class list contains the through-roads and their links only',
   // stated in the ingest rather than quietly absorbed.
   assert.equal(STRATEGIC_HIGHWAY_CLASSES.includes('residential'), false);
   assert.equal(STRATEGIC_HIGHWAY_CLASSES.includes('track'), false);
+});
+
+test('a failed coverage measurement never erases a successful one', () => {
+  const held = { ways: 7143, measuredAt: '2026-09-21', carriedForward: false };
+
+  // A successful run records its own figure and its own date.
+  const fresh = resolveNetworkComparison({
+    measured: true,
+    ways: 7200,
+    today: '2026-09-22',
+    previous: held,
+  });
+  assert.equal(fresh.ways, 7200);
+  assert.equal(fresh.measuredAt, '2026-09-22');
+  assert.equal(fresh.carriedForward, false);
+  assert.equal(fresh.remeasuredThisRun, true);
+
+  // A failed run keeps the earlier figure AND its earlier date, and says so.
+  const carried = resolveNetworkComparison({
+    measured: false,
+    ways: 0,
+    today: '2026-09-22',
+    previous: held,
+  });
+  assert.equal(carried.ways, 7143);
+  assert.equal(carried.measuredAt, '2026-09-21', 'the date must not advance');
+  assert.equal(carried.carriedForward, true);
+  assert.equal(carried.remeasuredThisRun, false);
+
+  // With nothing held, a failed run reports nothing rather than inventing one.
+  assert.equal(
+    resolveNetworkComparison({ measured: false, ways: 0, today: '2026-09-22' }),
+    null,
+  );
+  // A held record without a date is not evidence and is not carried forward.
+  assert.equal(
+    resolveNetworkComparison({
+      measured: false,
+      ways: 0,
+      today: '2026-09-22',
+      previous: { ways: 7143 },
+    }),
+    null,
+  );
+});
+
+test('a measurement written before the dated field existed is still evidence', () => {
+  /*
+   * The first version of this artefact stored the count as a bare number. It
+   * is a real measurement and its date is the day the artefact was generated,
+   * so it is carried forward rather than discarded over a schema change.
+   */
+  const migrated = resolveNetworkComparison({
+    measured: false,
+    ways: 0,
+    today: '2026-09-22',
+    previous: null,
+    legacyWays: 7143,
+    legacyDate: '2026-09-21',
+  });
+  assert.equal(migrated.ways, 7143);
+  assert.equal(migrated.measuredAt, '2026-09-21');
+  assert.equal(migrated.carriedForward, true);
+  assert.equal(migrated.fromLegacyField, true);
+
+  // A fresh measurement still wins over the legacy one.
+  const fresh = resolveNetworkComparison({
+    measured: true,
+    ways: 7200,
+    today: '2026-09-22',
+    legacyWays: 7143,
+    legacyDate: '2026-09-21',
+  });
+  assert.equal(fresh.ways, 7200);
+  assert.equal(fresh.fromLegacyField, undefined);
+
+  // A legacy count with no artefact date is not evidence.
+  assert.equal(
+    resolveNetworkComparison({
+      measured: false,
+      ways: 0,
+      today: '2026-09-22',
+      legacyWays: 7143,
+      legacyDate: null,
+    }),
+    null,
+  );
 });
