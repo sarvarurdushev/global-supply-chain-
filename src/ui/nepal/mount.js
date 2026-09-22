@@ -24,6 +24,8 @@
 
 import { h } from '../../workspace/components.js';
 import { createNepalExperience } from './experience.js';
+import { createNepalPresentation } from './present.js';
+import { MODE } from '../../nepal/story/investigation.js';
 
 export const CASE_HASH_PREFIX = '#/case/npl-2015-eq';
 
@@ -69,9 +71,44 @@ export function createNepalCaseMount({
 
   let experience = null;
   let caseLayers = null;
+  /*
+   * The presentation is owned HERE and not by the experience, because it
+   * drives the experience: `present.js` imports it, so the experience cannot
+   * import back. The mount already watches every state change for the address
+   * bar, so the mode switch is a line in the same place.
+   */
+  let presentation = null;
   let open = false;
   /* Set while this module is the one writing `location.hash`. */
   let writingHash = false;
+
+  /**
+   * The PRESENT button in the header is what starts the presentation.
+   *
+   * Leaving it is not a teardown: `escapeToExplore` already paused and handed
+   * the camera over, so the runner is kept and P resumes from where the
+   * presenter stopped. Destroying it on every mode flip would lose the place
+   * in the script, which is the one thing a presenter cannot afford.
+   */
+  function syncPresentation(state, reason) {
+    if (!open || reason !== 'mode') return;
+    if (state.mode === MODE.PRESENT) {
+      if (!presentation) {
+        presentation = createNepalPresentation({
+          experience,
+          /*
+           * The experience's own reserved zone. `.ndi__top` was the first
+           * choice and it is cleared on every render, so the strip appeared
+           * and vanished with the next state change.
+           */
+          mount: experience.presentSlot,
+        });
+      }
+      presentation.start();
+      return;
+    }
+    presentation?.playback.pause();
+  }
 
   function syncHash(state, reason) {
     if (!open || reason === 'deeplink') return;
@@ -94,7 +131,10 @@ export function createNepalCaseMount({
       caseLayers,
       createWorker,
       fetchImpl,
-      onChange: syncHash,
+      onChange: (state, reason) => {
+        syncHash(state, reason);
+        syncPresentation(state, reason);
+      },
     });
     return experience;
   }
@@ -170,6 +210,9 @@ export function createNepalCaseMount({
     get experience() {
       return experience;
     },
+    get presentation() {
+      return presentation;
+    },
     get caseLayers() {
       return caseLayers;
     },
@@ -179,6 +222,8 @@ export function createNepalCaseMount({
     destroy() {
       win?.removeEventListener?.('hashchange', onHashChange);
       doc?.body?.classList?.remove('ndi-open');
+      presentation?.destroy();
+      presentation = null;
       experience?.destroy();
       experience = null;
       caseLayers = null;

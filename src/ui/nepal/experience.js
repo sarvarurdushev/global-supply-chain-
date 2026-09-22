@@ -135,6 +135,15 @@ export function createNepalExperience({
 
   const root = h('div', { class: 'ndi' }, [
     h('div', { class: 'ndi__top' }),
+    /*
+     * A slot for the presentation strip, and NOTHING HERE WRITES TO IT.
+     *
+     * The strip first went inside `.ndi__top`, which `renderNow` clears with
+     * `replaceChildren` on every render — so it appeared and was wiped by the
+     * next state change, before anybody could see it. Anything owned by a
+     * different module needs a zone this one does not rewrite.
+     */
+    h('div', { class: 'ndi__present' }),
     h('div', { class: 'ndi__body' }, [
       h('div', { class: 'ndi__rail' }),
       h('div', { class: 'ndi__panel' }),
@@ -147,6 +156,9 @@ export function createNepalExperience({
     rail: root.querySelector('.ndi__rail'),
     panel: root.querySelector('.ndi__panel'),
   };
+
+  /** Where another module may mount without being overwritten. */
+  const presentSlot = root.querySelector('.ndi__present');
 
   /** Data a scene has asked for and that has arrived. */
   function sceneData() {
@@ -439,6 +451,10 @@ export function createNepalExperience({
     },
     get element() {
       return root;
+    },
+    /** The zone `renderNow` never touches, for the presentation strip. */
+    get presentSlot() {
+      return presentSlot;
     },
 
     /** Load Tier 1, paint, then fetch what the opening scene needs. */

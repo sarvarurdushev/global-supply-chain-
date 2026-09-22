@@ -1223,6 +1223,8 @@
       "src/workers/nepalGraph.worker.js",
       "src/ui/nepal/graphProvider.js",
       "src/nepal/story/network.js",
+      "src/ui/nepal/present.js",
+      "src/nepal/story/presentation.js",
       "src/ui/nepal/experience.js",
       "src/ui/nepal/intelPanel.js",
       "src/ui/nepal/mount.js",

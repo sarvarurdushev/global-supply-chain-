@@ -276,9 +276,32 @@ export function createDemoPlayback({
   onChange = () => {},
   setTimer = (fn, ms) => setTimeout(fn, ms),
   clearTimer = (handle) => clearTimeout(handle),
+  /*
+   * WHAT A BEAT DOES, AND WHAT COUNTS AS MISSING, ARE INJECTABLE.
+   *
+   * Everything below — play, pause, step, restart, "stepping by hand always
+   * pauses", the timer and its injected clock — is pacing, and pacing is the
+   * same whatever is being presented. Only two things were specific to the
+   * disaster session: how a beat is applied, and how readiness is read. The
+   * Nepal case drives a scene index rather than a depth and a phase, and
+   * reports readiness with a promise rather than a product status, so it
+   * supplies those two and reuses the rest. The defaults are the original
+   * behaviour exactly, so nothing that already used this changed.
+   */
+  applyBeat: applyBeatOverride = null,
+  missingFor = null,
+  /*
+   * Awaited before a beat's hold begins. The default resolves immediately.
+   * Without it a presentation advances on a wall clock and can reach a scene
+   * whose geometry is still being built — presenting an empty map, which is
+   * the one thing a presentation cannot do.
+   */
+  whenReady = null,
 }) {
   if (!script?.beats?.length) throw new TypeError('a demo needs beats');
-  if (!session) throw new TypeError('a demo needs an open session');
+  if (!session && !applyBeatOverride) {
+    throw new TypeError('a demo needs an open session, or its own applyBeat');
+  }
 
   let index = -1;
   let status = 'idle';
@@ -303,9 +326,11 @@ export function createDemoPlayback({
        */
       missing: current
         ? Object.freeze(
-            current.needs.filter(
-              (id) => session.productStatus(id) !== 'LOADED',
-            ),
+            missingFor
+              ? missingFor(current)
+              : current.needs.filter(
+                  (id) => session.productStatus(id) !== 'LOADED',
+                ),
           )
         : Object.freeze([]),
       progress: script.beats.length
@@ -318,6 +343,10 @@ export function createDemoPlayback({
 
   function applyBeat(current) {
     if (!current) return;
+    if (applyBeatOverride) {
+      applyBeatOverride(current);
+      return;
+    }
     if (Number.isFinite(current.depth)) {
       session.investigation.goToDepth(current.depth);
     }
@@ -345,17 +374,34 @@ export function createDemoPlayback({
   function schedule() {
     if (timer !== null) clearTimer(timer);
     const current = script.beats[index];
-    timer = setTimer(() => {
-      timer = null;
-      if (status !== 'playing') return;
-      if (index >= script.beats.length - 1) {
-        status = 'finished';
-        notify();
-        return;
-      }
-      goTo(index + 1);
-      schedule();
-    }, current?.holdMs ?? 6000);
+    const startHold = () => {
+      /*
+       * The beat may have been paused or stepped past while its data was
+       * still arriving, so the status is re-checked here and not only inside
+       * the timer.
+       */
+      if (status !== 'playing' || script.beats[index] !== current) return;
+      timer = setTimer(() => {
+        timer = null;
+        if (status !== 'playing') return;
+        if (index >= script.beats.length - 1) {
+          status = 'finished';
+          notify();
+          return;
+        }
+        goTo(index + 1);
+        schedule();
+      }, current?.holdMs ?? 6000);
+    };
+    /*
+     * THE HOLD STARTS WHEN THE BEAT IS READY, not when it was requested.
+     * Otherwise a 6-second beat whose geometry takes 4 seconds to build is
+     * on screen and correct for 2, and the audience saw an empty map for the
+     * other 4.
+     */
+    if (whenReady)
+      Promise.resolve(whenReady(current)).then(startHold, startHold);
+    else startHold();
   }
 
   return {

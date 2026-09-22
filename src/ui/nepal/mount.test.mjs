@@ -253,3 +253,39 @@ test('destroying leaves no host, no body class and no listener', async () => {
   win.location.hash = `${CASE_HASH_PREFIX}/scene/shaking`;
   assert.equal(container.children.length, 0);
 });
+
+test('the PRESENT button starts the presentation, and leaving it keeps the place', async () => {
+  const container = document.createElement('div');
+  const mount = createNepalCaseMount({
+    container,
+    win: fakeWindow(),
+    doc: fakeDoc(),
+    createLayers: () => recordingLayers(),
+    fetchImpl: diskFetch(),
+  });
+  await mount.open();
+  assert.equal(mount.presentation, null, 'nothing runs until asked');
+
+  mount.experience.setMode('PRESENT');
+  await Promise.resolve();
+  assert.ok(mount.presentation, 'the mode switch is what starts it');
+  assert.equal(mount.presentation.state.status, 'playing');
+  assert.match(container.textContent, /ACT I/);
+
+  /* Step, so the place in the script is somewhere other than the start. */
+  mount.presentation.playback.next();
+  const at = mount.presentation.state.index;
+  assert.ok(at > 0);
+
+  mount.experience.setMode('EXPLORE');
+  await Promise.resolve();
+  assert.equal(mount.presentation.state.status, 'paused');
+  /*
+   * Leaving present mode must not tear the runner down: P has to resume from
+   * where the presenter stopped, not from the top.
+   */
+  mount.experience.setMode('PRESENT');
+  await Promise.resolve();
+  assert.equal(mount.presentation.state.index, at, 'it resumed in place');
+  mount.destroy();
+});

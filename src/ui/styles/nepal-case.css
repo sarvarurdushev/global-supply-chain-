@@ -79,13 +79,18 @@
 
 .ndi {
   display: grid;
-  grid-template-rows: auto 1fr;
+  /* header, presentation strip, body. The strip is empty until asked for. */
+  grid-template-rows: auto auto 1fr;
   grid-template-columns: 1fr;
   height: 100%;
 }
 
 .ndi__top {
   pointer-events: auto;
+}
+
+.ndi__present:empty {
+  display: none;
 }
 
 .ndi__body {
@@ -547,4 +552,79 @@ body.ndi-open #first-run-launcher {
     gap: 12px;
     flex-wrap: wrap;
   }
+}
+
+/* ------------------------------------------------------------------ *
+ * Presentation mode
+ *
+ * A thin strip under the header: where we are in the sequence, which act,
+ * and the state. Nothing that competes with the map — a presenter is
+ * talking over this, and a progress bar that draws the eye is a progress
+ * bar that steals the moment it is measuring.
+ * ------------------------------------------------------------------ */
+
+.ndi-present {
+  pointer-events: auto;
+  background: rgba(6, 11, 14, 0.9);
+  border-bottom: 1px solid var(--gx-line);
+}
+
+.ndi-present__bar {
+  height: 2px;
+  background: var(--gx-green-softer);
+}
+.ndi-present__fill {
+  display: block;
+  height: 100%;
+  background: var(--gx-neon);
+  /* Steps between beats rather than creeping, so it never reads as a spinner. */
+  transition: width 240ms ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ndi-present__fill {
+    transition: none;
+  }
+}
+
+.ndi-present__line {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  padding: 5px 16px 6px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+}
+.ndi-present__act {
+  color: var(--gx-emerald);
+}
+.ndi-present__title {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  letter-spacing: 0;
+  color: var(--gx-text);
+}
+.ndi-present__count {
+  margin-inline-start: auto;
+  font-variant-numeric: tabular-nums;
+  color: var(--gx-text-faint);
+}
+.ndi-present__status {
+  color: var(--gx-text-dim);
+}
+.ndi-present__status.is-playing {
+  color: var(--gx-neon);
+}
+.ndi-present__status.is-paused {
+  color: var(--gx-amber);
+}
+.ndi-present__status.is-finished {
+  color: var(--gx-emerald);
+}
+/* A missing layer is stated on the strip, not hidden for the sake of a demo. */
+.ndi-present__missing {
+  color: var(--gx-amber);
+  letter-spacing: 0;
+  font-family: var(--font-sans);
+  font-size: 11px;
 }
