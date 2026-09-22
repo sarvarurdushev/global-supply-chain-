@@ -226,3 +226,42 @@ test('opening a methodology record emits it for the provenance panel', async () 
   assert.ok(received[0].limitations.length > 0);
   experience.destroy();
 });
+
+test('a control that changes the answer re-solves it, not just the view', async () => {
+  /*
+   * Scene 18's bridge toggle asks a different question of the same graph.
+   * Without re-solving, the chip moved, the state updated, and the line on
+   * the map stayed exactly where it was — a scenario tool that agrees with
+   * you whatever you pick.
+   */
+  const mount = mountPoint();
+  const experience = createNepalExperience({
+    mount,
+    caseLayers: recordingLayers(),
+    fetchImpl: diskFetch(),
+  });
+  await experience.start();
+  experience.goTo('scenarios');
+  await experience.whenSceneReady();
+
+  const observed = experience.networkStatus();
+  assert.equal(observed.route, 'Kathmandu → Nuwakot', 'the one detour pair');
+  assert.ok(observed.damagedKm > observed.baselineKm, 'the closures lengthen it');
+
+  experience.investigation.setControl('bridgeToggle', true);
+  await experience.whenSceneReady();
+  const scenario = experience.networkStatus();
+  assert.notEqual(
+    scenario.damagedKm,
+    observed.damagedKm,
+    'the scenario must produce a different answer',
+  );
+  /*
+   * And the answer it produces is a real finding: the one bridge that matched
+   * the network is not on this path, so removing it changes nothing here.
+   */
+  assert.equal(scenario.damagedKm, scenario.baselineKm);
+  /* A scenario has no published figure to check against, so none is claimed. */
+  assert.deepEqual(scenario.problems, []);
+  experience.destroy();
+});

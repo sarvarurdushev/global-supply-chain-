@@ -40,6 +40,7 @@ import { createGraphProvider } from './graphProvider.js';
 import { renderTopBar } from './topBar.js';
 import { renderSceneRail } from './sceneRail.js';
 import { renderIntelPanel } from './intelPanel.js';
+import { renderControlStrip } from './controlStrip.js';
 
 /**
  * Derive whatever a scene needs that is not simply the parsed artefact.
@@ -148,6 +149,7 @@ export function createNepalExperience({
       h('div', { class: 'ndi__rail' }),
       h('div', { class: 'ndi__panel' }),
     ]),
+    h('div', { class: 'ndi__controls' }),
   ]);
   mount.append(root);
 
@@ -155,6 +157,7 @@ export function createNepalExperience({
     top: root.querySelector('.ndi__top'),
     rail: root.querySelector('.ndi__rail'),
     panel: root.querySelector('.ndi__panel'),
+    controls: root.querySelector('.ndi__controls'),
   };
 
   /** Where another module may mount without being overwritten. */
@@ -202,12 +205,23 @@ export function createNepalExperience({
       pairs[0] ??
       null;
     if (!wanted || !networkGraph) return;
-    route = solveArtefactRoute(networkGraph, wanted, {
-      disabledEdgeIds:
-        intelligence.infrastructure.network.blockageMatching.disabledEdgeIds ??
-        [],
-    });
-    routeProblems = verifyRoute(route);
+    /*
+     * WHICH CLOSURE SET. Scene 14 asks what the OBSERVED blockages did, so it
+     * uses the blockage set. Scene 18's bridge toggle asks a what-if, so it
+     * uses the bridge set — both published by Stage 5, neither derived here.
+     *
+     * A scenario route is NOT checked against the artefact's kilometres: the
+     * artefact never measured this pair under this closure set, so there is
+     * nothing to check against. `verifyRoute` runs only where a published
+     * figure exists, and a check with nothing behind it would be theatre.
+     */
+    const scenario = state?.controls?.bridgeToggle === true;
+    const network = intelligence.infrastructure.network;
+    const disabledEdgeIds = scenario
+      ? (network.bridgesOnly?.disabledEdgeIds ?? [])
+      : (network.blockageMatching.disabledEdgeIds ?? []);
+    route = solveArtefactRoute(networkGraph, wanted, { disabledEdgeIds });
+    routeProblems = scenario ? [] : verifyRoute(route);
   }
 
   function renderNow() {
@@ -248,6 +262,23 @@ export function createNepalExperience({
             }),
           ]),
     );
+
+    /*
+     * The scene's own controls. An empty strip beats a strip of disabled
+     * controls: a greyed-out slider on a scene with nothing to vary reads as
+     * a broken product rather than as a statement.
+     */
+    const strip = renderControlStrip({
+      state,
+      intelligence,
+      on: {
+        control: (key, value) => investigation.setControl(key, value),
+        select: (patch) => investigation.select(patch),
+        layer: (id, value) => investigation.toggleLayer(id, value),
+        filter: (values) => investigation.setResultClassFilter(values),
+      },
+    });
+    slots.controls.replaceChildren(...(strip ? [strip] : []));
 
     /*
      * A ROUTE THAT DISAGREES WITH ITS OWN ARTEFACT IS REPORTED, LOUDLY.
@@ -390,11 +421,7 @@ export function createNepalExperience({
       }),
     );
     /* Scenes 13, 14 and 18 need the graph as well as the file. */
-    if (
-      (state.scene?.layers ?? []).some(
-        (layer) => layer.startsWith('road') || layer.startsWith('route'),
-      )
-    ) {
+    if (usesNetwork(state)) {
       try {
         await ensureNetwork(state);
       } catch (error) {
@@ -412,11 +439,34 @@ export function createNepalExperience({
     await caseLayers?.whenSettled?.();
   }
 
+  /** Does this scene's map depend on the solved route? */
+  function usesNetwork(state) {
+    return (state?.scene?.layers ?? []).some(
+      (layer) => layer.startsWith('road') || layer.startsWith('route'),
+    );
+  }
+
   function onStateChange(reason) {
     scheduleRender(reason);
     if (reason === 'scene' || reason === 'deeplink') {
       moveCamera();
       sceneReady = ensureSceneData();
+    } else if (
+      (reason === 'control' || reason === 'selection') &&
+      usesNetwork(investigation.state)
+    ) {
+      /*
+       * A CONTROL CAN CHANGE THE ANSWER, NOT ONLY THE VIEW. Scene 18's bridge
+       * toggle and scene 14's route picker both change which path is solved,
+       * and neither is a scene change — so without this the chip moved, the
+       * state updated and the line on the map stayed exactly where it was.
+       */
+      sceneReady = (async () => {
+        await ensureNetwork(investigation.state);
+        scheduleRender('immediate');
+        refocus();
+        await caseLayers?.whenSettled?.();
+      })();
     }
     /*
      * The outer mount syncs the address bar from here. It is told AFTER the
@@ -485,6 +535,8 @@ export function createNepalExperience({
         note: graphNote,
         edges: graphEdges?.length ?? 0,
         route: route?.pair?.label ?? null,
+        baselineKm: route?.baseline?.distanceKm ?? null,
+        damagedKm: route?.damaged?.distanceKm ?? null,
         problems: Object.freeze([...routeProblems]),
       });
     },

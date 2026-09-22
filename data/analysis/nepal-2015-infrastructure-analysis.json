@@ -1950,6 +1950,10 @@
    "bridgesOnly": {
     "bridges": 5,
     "matchedToNetwork": 1,
+    "disabledEdgeIds": [
+     "e2015f",
+     "e2015r"
+    ],
     "unmatched": 4,
     "components": 41,
     "newComponents": 1,

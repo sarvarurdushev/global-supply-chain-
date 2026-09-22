@@ -79,8 +79,12 @@
 
 .ndi {
   display: grid;
-  /* header, presentation strip, body. The strip is empty until asked for. */
-  grid-template-rows: auto auto 1fr;
+  /*
+   * header, presentation strip, body, control strip. Both strips collapse
+   * when empty, so a scene with nothing to vary gives the map their height
+   * rather than showing an empty bar.
+   */
+  grid-template-rows: auto auto 1fr auto;
   grid-template-columns: 1fr;
   height: 100%;
 }
@@ -89,8 +93,13 @@
   pointer-events: auto;
 }
 
-.ndi__present:empty {
+.ndi__present:empty,
+.ndi__controls:empty {
   display: none;
+}
+
+.ndi__controls {
+  pointer-events: auto;
 }
 
 .ndi__body {
@@ -627,4 +636,97 @@ body.ndi-open #first-run-launcher {
   letter-spacing: 0;
   font-family: var(--font-sans);
   font-size: 11px;
+}
+
+/* ------------------------------------------------------------------ *
+ * The control strip
+ *
+ * Scene-specific controls and nothing else. Every option in it comes from an
+ * artefact, so the strip is as wide as the analysis allows and no wider — a
+ * control offering a value nobody computed invites the reader to invent a
+ * finding.
+ * ------------------------------------------------------------------ */
+
+.ndi-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 22px;
+  padding: 9px 16px 11px;
+  background: linear-gradient(
+    0deg,
+    rgba(6, 11, 14, 0.96),
+    rgba(6, 11, 14, 0.82)
+  );
+  border-top: 1px solid var(--gx-line);
+  backdrop-filter: blur(6px);
+}
+
+.ndi-controls__group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.ndi-controls__label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gx-text-faint);
+  white-space: nowrap;
+}
+.ndi-controls__widget {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.ndi-controls__chip {
+  padding: 4px 9px;
+  border: 1px solid var(--gx-line);
+  border-radius: 3px;
+  background: transparent;
+  color: var(--gx-text-dim);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.ndi-controls__chip:hover {
+  border-color: var(--gx-line-strong);
+  color: var(--gx-text);
+}
+.ndi-controls__chip.is-active {
+  border-color: var(--gx-green);
+  background: var(--gx-green-soft);
+  color: var(--gx-neon);
+}
+
+.ndi-controls__range {
+  width: 220px;
+  accent-color: var(--gx-green);
+}
+.ndi-controls__readout {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 11px;
+  color: var(--gx-text);
+  white-space: nowrap;
+}
+
+/* A control that could not build says so rather than vanishing. */
+.ndi-controls__problem {
+  color: var(--gx-amber);
+  font-size: 11px;
+}
+
+@media (max-width: 1100px) {
+  .ndi-controls {
+    /* One scroll region, so a long option list never pushes the map. */
+    max-height: 96px;
+    overflow-y: auto;
+  }
 }

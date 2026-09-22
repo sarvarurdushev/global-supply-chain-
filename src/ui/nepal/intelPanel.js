@@ -233,7 +233,7 @@ const BODIES = {
    * analysis rather than a result of it, and left the reader to assume the map
    * and the numbers were the same thing.
    */
-  overlap(intel) {
+  overlap(intel, state) {
     const quadrants = intel.exposure.quadrants;
     const byId = new Map(
       (quadrants.quadrants ?? []).map((entry) => [entry.id, entry]),
@@ -241,11 +241,18 @@ const BODIES = {
     const both = byId.get('HIGH_INTENSITY_HIGH_DENSITY');
     const remote = byId.get('HIGH_INTENSITY_LOW_DENSITY');
     const parameters = quadrants.parameters ?? {};
+    /* The quadrant control chooses which one the panel leads with. */
+    const chosen = state?.controls?.quadrant
+      ? byId.get(state.controls.quadrant)
+      : null;
+    const lead = chosen ?? both;
     return [
-      figure(both?.people, {
-        label:
-          'people in cells that were both strongly shaken and densely settled',
+      figure(lead?.people, {
+        label: chosen
+          ? `people in ${chosen.label.toLowerCase()} cells`
+          : 'people in cells that were both strongly shaken and densely settled',
       }),
+      chosen ? statement(chosen.meaning) : null,
       rows([
         [
           'High shaking, high density',
@@ -482,9 +489,20 @@ const BODIES = {
     ];
   },
 
-  'four-clocks'(intel) {
+  /**
+   * Scene 16. The chosen clock is what the panel leads with.
+   *
+   * Four dates describe the same damage point and they mean different
+   * things; the control picks which one the reader is being asked to hold in
+   * mind, and the artefact's own wording for it comes with it.
+   */
+  'four-clocks'(intel, state) {
     const lags = intel.damage.timeline.lags;
+    const clocks = intel.damage.timeline.clocks ?? [];
+    const chosen =
+      clocks.find((entry) => entry.id === state?.controls?.clock) ?? clocks[0];
     return [
+      chosen ? statement(`${chosen.label} — ${chosen.meaning}`) : null,
       figure(lags.eventToAcquisition?.median ?? '—', {
         unit: 'days',
         label: 'median from earthquake to first imagery',

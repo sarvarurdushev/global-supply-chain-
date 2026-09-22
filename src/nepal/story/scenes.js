@@ -129,6 +129,12 @@ export const SCENES = Object.freeze([
       target: 'epicentre',
       durationSec: 2,
     }),
+    /*
+     * The timeline drives scenes 02 and 03 alike: 02 is where you watch the
+     * 316 events arrive, and it had no control at all — the scene drew the
+     * whole catalogue at once and gave no way to see it build.
+     */
+    controls: Object.freeze(['timeline']),
     resultClasses: Object.freeze([
       ResultClass.OBSERVED,
       ResultClass.DESCRIPTIVE_STATISTIC,
@@ -360,6 +366,7 @@ export const SCENES = Object.freeze([
       target: 'aoi-pair',
       durationSec: 2.5,
     }),
+    controls: Object.freeze(['layerToggles']),
     resultClasses: Object.freeze([ResultClass.OBSERVED, ResultClass.DERIVED]),
     limitations: Object.freeze([
       'The vocabularies are NOT interchangeable: Copernicus published only EMS-98 grades 1 and 5 for this activation, with nothing between them.',
@@ -387,6 +394,12 @@ export const SCENES = Object.freeze([
       target: 'infrastructure-extent',
       durationSec: 2.5,
     }),
+    /*
+     * The landslide-association tolerance was declared here too, and this
+     * scene is about Copernicus grading — it holds no landslides. A control
+     * that belongs to the next scene is a control that does nothing on this
+     * one, which is the same failure as a control with no data behind it.
+     */
     controls: Object.freeze(['layerToggles', 'associationTolerance']),
     resultClasses: Object.freeze([ResultClass.OBSERVED, ResultClass.DERIVED]),
     limitations: Object.freeze([
@@ -439,7 +452,15 @@ export const SCENES = Object.freeze([
       target: 'network-extent',
       durationSec: 2.5,
     }),
-    controls: Object.freeze(['ghostNetwork']),
+    /*
+     * NO CONTROLS. A `ghostNetwork` toggle was declared here to draw today's
+     * OpenStreetMap over April 2015's, and the data for it is not held: the
+     * processed artefact carries the 2015 snapshot and a MEASURE of the
+     * growth since (3.36x), not the current network. A toggle that moves and
+     * changes nothing is worse than no toggle, so the growth figure stays in
+     * the panel where it is a statement, and the control is gone.
+     */
+    controls: Object.freeze([]),
     resultClasses: Object.freeze([ResultClass.SCENARIO]),
     limitations: Object.freeze([
       'SCENARIO, not observation: the blockages are observed, the network and the edge attachment are constructed.',

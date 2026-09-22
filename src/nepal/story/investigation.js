@@ -63,6 +63,8 @@ export function createNepalInvestigation({
       analysisArea: null,
       origin: null,
       destination: null,
+      /* Which of the artefact's fourteen measured pairs scenes 14 and 18 draw. */
+      routePair: null,
     },
     controls: { ...CONTROL_DEFAULTS },
     layers: new Set(),

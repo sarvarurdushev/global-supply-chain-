@@ -423,19 +423,28 @@ export const COVERAGE_COLOURS = Object.freeze({
 export function coverageDrawables(
   features,
   recordsByDistrict,
-  { sparseUnder = 5 } = {},
+  { sparseUnder = 5, emphasise = 'observed' } = {},
 ) {
   const counts = new Map(Object.entries(recordsByDistrict ?? {}));
   return districtDrawables(
     features,
     (props) => {
       const count = Number(counts.get(props.district) ?? 0);
+      /*
+       * `emphasise` flips which side of the question the map answers, and
+       * BOTH READINGS ARE ABOUT THE SURVEY. "Districts not surveyed" is not
+       * "districts undamaged", which is the whole reason this scene exists;
+       * the gap reading simply makes the 66 the figure rather than the
+       * background.
+       */
+      const gapView = emphasise === 'gaps';
       if (count === 0) {
         return {
           colour: COVERAGE_COLOURS.none,
           resultClass: ResultClass.DATA_GAP,
           label: `${props.district} — no infrastructure records. Not a finding of no damage.`,
           value: 0,
+          ...(gapView ? { fillOverride: 0.72 } : {}),
         };
       }
       return {
@@ -446,6 +455,7 @@ export function coverageDrawables(
         resultClass: ResultClass.OBSERVED,
         label: `${props.district} — ${count} record${count === 1 ? '' : 's'}`,
         value: count,
+        ...(gapView ? { fillOverride: 0.12 } : {}),
       };
     },
     { layer: 'coverage-gap' },
@@ -550,10 +560,16 @@ export function aoiDrawables(features) {
  * with the distance — a ruler laid on the map. The counts stay in the panel,
  * where the wording that qualifies them is.
  */
-export function proximityRingDrawables(bands, { lon, lat }) {
+export function proximityRingDrawables(bands, { lon, lat, chosen = null }) {
   if (!Number.isFinite(lon) || !Number.isFinite(lat)) return [];
   return (bands ?? []).map((band) =>
     drawable({
+      /*
+       * The chosen ring is drawn; the others stay as a faint scale around it.
+       * Removing them would lose the sense of distance the rings exist to
+       * give, which is the only thing they claim.
+       */
+      dimmed: chosen !== null && band.withinMetres !== chosen,
       id: `proximity-${band.withinMetres}`,
       layer: 'proximity-rings',
       kind: 'circle',
@@ -655,6 +671,7 @@ export function drawablesForScene({ state, intelligence, data = {} }) {
       coverageDrawables(
         data.districts,
         recordsByDistrict(intelligence?.infrastructure?.distribution),
+        { emphasise: controls.coverageToggle ?? 'observed' },
       ),
     );
   }
@@ -697,7 +714,10 @@ export function drawablesForScene({ state, intelligence, data = {} }) {
     });
     add(
       'proximity-rings',
-      proximityRingDrawables(intelligence?.people?.proximity?.bands, anchor),
+      proximityRingDrawables(intelligence?.people?.proximity?.bands, {
+        ...anchor,
+        chosen: controls.proximityBand ?? null,
+      }),
     );
   }
   return out;

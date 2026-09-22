@@ -294,6 +294,13 @@ export async function analyseInfrastructure() {
   const bridgesOnlyEffect = {
     bridges: bridgeMatches.blockages,
     matchedToNetwork: bridgeDisabled.length / 2,
+    /*
+     * The edge ids, for the same reason `disabledEdgeIds` above publishes
+     * theirs: Scene 18 lets a reader remove the matched bridge and re-route,
+     * and the only other way to that closure set is to re-implement the
+     * matching rule in the frontend. Sorted, both directions, additive.
+     */
+    disabledEdgeIds: [...bridgeDisabled].sort(),
     unmatched:
       bridgeMatches.matches.filter(
         (match) => match.distanceMetres === null || match.distanceMetres > snapMetres,
