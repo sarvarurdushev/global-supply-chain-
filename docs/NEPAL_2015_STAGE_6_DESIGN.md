@@ -1115,3 +1115,43 @@ riskiest work is neither first nor last.
 
 **If time is short, P11 is cut first, then P8 is reduced to Scene 13 without
 interactive routing.** P5, P6 and P7 are the presentation and are not cut.
+
+---
+
+## 19. Deviations found in implementation
+
+Stage 7 treats this document as the specification, so anything the build had to
+change is recorded here rather than changed silently. One item so far.
+
+### §10 — `SYSTEM: LOADING n/10 → READY`
+
+**What the design said.** The header's `SYSTEM` field reports real load state:
+`LOADING 3/10` → `READY`, counting the ten Tier 2 datasets.
+
+**Why it could not stand.** Counted against all ten, `READY` is unreachable in
+normal use. Nothing requests the 5.2 MB road network until Scene 13 or the
+2.6 MB population grid until Scene 05, so a person reading Scene 00 of a
+completely loaded case saw `LOADING 0/10`. The indicator was not merely
+imprecise — it was wrong on every screen except the one where somebody had
+happened to visit all ten heavy scenes. That is the "no fake live indicators"
+rule of the same section, violated by accident rather than by decoration.
+
+**What was built instead.** `loader.progress()` counts the datasets that have
+actually been REQUESTED, and reports `pending` separately. `READY` means
+nothing is in flight; `LOADING n/m` counts settled against requested. The
+displayed shape (`LOADING 3/10 → READY`) is unchanged, and it is now reachable
+and true. A settled *failure* counts as settled: it is reported in the panel
+that needed it and does not pin the header at `LOADING` forever.
+
+**Where.** `src/nepal/story/loader.js` (`progress`), `src/nepal/story/artefacts.js`
+(`headerState`), with the cases pinned in both test files.
+
+### §10 — the case is a second full-screen interface, not a dock panel
+
+Not a deviation so much as a decision the design left open. The workspace
+already owns the right-hand column and the case panel is also a right-hand
+column; both at once leaves the map a strip down the middle. So the case is
+its own surface and the host chrome hides while it is open (`body.ndi-open`),
+returning untouched when it closes. `src/ui/nepal/mount.js` states the full
+reasoning, and `src/ui/styles/nepal-case.css` carries the measured list of
+what steps aside — measured, because the guessed list missed ten elements.
