@@ -110,6 +110,14 @@ export function createNepalExperience({
   });
   let graphNote = null;
   let graphEdges = null;
+  /** The one way anything on screen writes to the investigation. */
+  const hooks = Object.freeze({
+    control: (key, value) => investigation.setControl(key, value),
+    select: (patch) => investigation.select(patch),
+    layer: (id, value) => investigation.toggleLayer(id, value),
+    filter: (values) => investigation.setResultClassFilter(values),
+  });
+
   let networkGraph = null;
   let route = null;
   let routeProblems = [];
@@ -253,6 +261,7 @@ export function createNepalExperience({
         ? renderIntelPanel({
             intelligence,
             state,
+            on: hooks,
             onMethodology: (id) => openMethodology(id),
           })
         : h('aside', { class: 'ndi-panel' }, [
@@ -267,17 +276,12 @@ export function createNepalExperience({
      * The scene's own controls. An empty strip beats a strip of disabled
      * controls: a greyed-out slider on a scene with nothing to vary reads as
      * a broken product rather than as a statement.
+     *
+     * The SAME hooks go to the panel, so a chart and a control chip that both
+     * set the damage class are literally the same call. Two paths into one
+     * piece of state is how they drift apart.
      */
-    const strip = renderControlStrip({
-      state,
-      intelligence,
-      on: {
-        control: (key, value) => investigation.setControl(key, value),
-        select: (patch) => investigation.select(patch),
-        layer: (id, value) => investigation.toggleLayer(id, value),
-        filter: (values) => investigation.setResultClassFilter(values),
-      },
-    });
+    const strip = renderControlStrip({ state, intelligence, on: hooks });
     slots.controls.replaceChildren(...(strip ? [strip] : []));
 
     /*

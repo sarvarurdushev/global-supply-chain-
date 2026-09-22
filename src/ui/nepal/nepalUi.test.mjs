@@ -142,8 +142,8 @@ test('the headline figures on screen are the artefact figures', () => {
   const inv = createNepalInvestigation();
   inv.goTo('observed-damage');
   const damage = renderIntelPanel({ intelligence, state: inv.state }).textContent;
-  assert.match(damage, /4583/);
-  assert.match(damage, /2084/);
+  assert.match(damage, /4,?583/);
+  assert.match(damage, /2,084/);
   assert.match(damage, /45\.5%/);
 
   inv.goTo('model-vs-observed');
@@ -226,4 +226,45 @@ test('every methodology link opens a record that exists', () => {
     }
   }
   assert.deepEqual(missing, []);
+});
+
+test('no panel says the same thing twice', () => {
+  /*
+   * Seven scenes printed their caveat and then the scene's limitation,
+   * verbatim, in adjacent paragraphs. At reading distance that is redundancy;
+   * at presentation distance it reads as a rendering bug, and it pushes the
+   * provenance footer further out of sight.
+   */
+  const normalise = (text) => text.replace(/\s+/g, ' ').trim().toLowerCase();
+  const repeated = [];
+  for (const entry of SCENES) {
+    const state = createNepalInvestigation({ scene: entry.index }).state;
+    const panel = renderIntelPanel({ intelligence, state, onMethodology() {} });
+    const caveats = [...panel.querySelectorAll('.ndi-panel__caveat')].map((node) =>
+      normalise(node.textContent),
+    );
+    for (const caveat of caveats) {
+      for (const limit of (entry.limitations ?? []).map(normalise)) {
+        const short = caveat.length < limit.length ? caveat : limit;
+        const long = caveat.length < limit.length ? limit : caveat;
+        if (short.length >= 24 && long.includes(short.slice(0, 60))) {
+          repeated.push(`${entry.id}: ${short.slice(0, 50)}…`);
+        }
+      }
+    }
+  }
+  assert.deepEqual(repeated, []);
+});
+
+test('a caveat with no matching limitation is kept', () => {
+  /* The rule is "do not say it twice", not "the body may not have caveats". */
+  const withCaveats = SCENES.filter((entry) => {
+    const state = createNepalInvestigation({ scene: entry.index }).state;
+    const panel = renderIntelPanel({ intelligence, state, onMethodology() {} });
+    return panel.querySelectorAll('.ndi-panel__caveat').length > 0;
+  });
+  assert.ok(
+    withCaveats.length >= 5,
+    `only ${withCaveats.length} scenes kept a caveat — the filter is too eager`,
+  );
 });

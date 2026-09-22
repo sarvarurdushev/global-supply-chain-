@@ -34,12 +34,25 @@ export const MMI_COLOURS = Object.freeze({
   8: '#ff4d4d',
 });
 
-/** UNOSAT damage classes → colour. Ordinal, so the ramp is ordinal too. */
+/**
+ * UNOSAT damage classes → colour. Ordinal, so the ramp is ordinal too.
+ *
+ * RE-STEPPED IN STAGE 8, BECAUSE THE OLD RAMP FAILED A MEASURED CHECK. The
+ * previous steps put Severe (#ff8c42) and Destroyed (#ff4d4d) at ΔE 12.6 under
+ * NORMAL colour vision — below the 15 floor, which means readers with full
+ * colour vision could not reliably tell them apart. Those are the two classes
+ * a reader most needs to separate, on the map and in Scene 08's composition
+ * bar alike. The current steps measure ΔE 18.0 normal and 15.0 under
+ * deuteranopia, with every step clearing 3:1 against the panel and the chroma
+ * floor. The heat direction — cool for slight, hot for destroyed — is
+ * unchanged, and so are the classes, the counts and their order: this is a
+ * colour fix, not an analytical one.
+ */
 export const DAMAGE_COLOURS = Object.freeze({
-  'Possible Damage': '#7fd4e8',
-  'Moderate Damage': '#ffd166',
-  'Severe Damage': '#ff8c42',
-  Destroyed: '#ff4d4d',
+  'Possible Damage': '#56c8ef',
+  'Moderate Damage': '#f2d43c',
+  'Severe Damage': '#f57c00',
+  Destroyed: '#d92b4b',
 });
 
 /**

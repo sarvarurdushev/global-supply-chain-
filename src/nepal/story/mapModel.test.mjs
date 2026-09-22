@@ -110,8 +110,29 @@ test('the damage reveal follows imagery dates, and the classes have an ordinal r
   const destroyed = damageDrawables(features, { classes: ['Destroyed'] });
   assert.equal(destroyed.length, 2084);
   assert.ok(destroyed.every((d) => d.colour === DAMAGE_COLOURS.Destroyed));
-  // The ramp is ordinal, so the worst class is the hot end.
-  assert.equal(DAMAGE_COLOURS.Destroyed, '#ff4d4d');
+  /*
+   * The ramp is ordinal, so the worst class is the hot end — and the two
+   * classes a reader most needs to separate must actually separate. The
+   * earlier steps put Severe and Destroyed at ΔE 12.6 under normal colour
+   * vision, below the 15 floor; these measure 18.0. The check here is the
+   * cheap invariant that guards the property: they are different hues, not
+   * two neighbouring oranges.
+   */
+  assert.equal(DAMAGE_COLOURS.Destroyed, '#d92b4b');
+  assert.equal(DAMAGE_COLOURS['Severe Damage'], '#f57c00');
+  const hue = (hex) => {
+    const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    if (max === min) return 0;
+    const d = max - min;
+    const h = max === r ? ((g - b) / d + 6) % 6 : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
+    return h * 60;
+  };
+  assert.ok(
+    Math.abs(hue(DAMAGE_COLOURS.Destroyed) - hue(DAMAGE_COLOURS['Severe Damage'])) > 12,
+    'severe and destroyed must not be neighbouring hues',
+  );
 });
 
 test('each infrastructure kind gets its own visual grammar', async () => {

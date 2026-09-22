@@ -323,7 +323,9 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
-  padding: 14px 16px 18px;
+  /* No bottom padding: the sticky footer provides the floor. */
+  padding: 14px 16px 0;
+  min-height: 100%;
   border: 1px solid var(--gx-line);
   border-radius: 4px;
   background: color-mix(in srgb, var(--gx-panel) 92%, transparent);
@@ -441,12 +443,34 @@
   border-radius: 2px;
   background: var(--gx-gap, var(--gx-text-faint));
 }
+/*
+ * THE PROVENANCE FOOTER STICKS TO THE BOTTOM OF THE SCROLL.
+ *
+ * Source, result class and "why is this here?" are the product's whole claim,
+ * and on the long scenes they were below the fold: Scene 17 is 1,839px of
+ * content in an 833px column, so the one thing a viewer most needs to see
+ * during a presentation required scrolling to reach. It now rides at the
+ * bottom of the panel while the body scrolls past it. `margin-top: auto` did
+ * nothing here — it only works when the column has spare height, which a
+ * scrolling column never does.
+ */
 .ndi-panel__footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   gap: 6px;
   margin-top: auto;
-  padding-top: 10px;
+  /*
+   * The gap above is real space, not part of the gradient. With the fade
+   * starting at the footer's own top edge, the last line of the limitations
+   * sat inside the transparent band and read as clipped text.
+   */
+  margin-block-start: 10px;
+  padding-block: 10px;
+  /* Opaque, so scrolling content passes behind rather than through. */
+  background: var(--gx-panel);
   border-top: 1px solid var(--gx-line);
 }
 .ndi-panel__classes {
@@ -729,4 +753,178 @@ body.ndi-open #first-run-launcher {
     max-height: 96px;
     overflow-y: auto;
   }
+}
+
+/* ------------------------------------------------------------------ *
+ * Charts
+ *
+ * These belong to the application, not to a library. No white card, no
+ * default legend, no oversized axis type. The plot is hairline and
+ * recessive; the data is the only saturated thing in the figure.
+ * ------------------------------------------------------------------ */
+
+.ndi-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 10px 0 2px;
+  border-top: 1px solid var(--gx-line);
+}
+
+.ndi-chart__head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.ndi-chart__title {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gx-green);
+}
+.ndi-chart__note {
+  font-size: 10px;
+  color: var(--gx-text-faint);
+}
+
+/* The SVG sizes itself to the panel and keeps its own aspect. */
+.ndi-chart__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.ndi-chart__svg text {
+  /* Axis type stays small; a chart is not a headline. */
+  user-select: none;
+}
+
+/* ---- legend: the panel's own chip vocabulary, never a library's ---- */
+.ndi-chart__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+}
+.ndi-chart__legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  /* Text tokens, never the series colour. */
+  color: var(--gx-text-dim);
+}
+.ndi-chart__swatch {
+  width: 10px;
+  height: 3px;
+  border-radius: 2px;
+  flex: none;
+}
+/* A dashed swatch, so identity is never carried by colour alone. */
+.ndi-chart__swatch.is-dashed {
+  background-image: linear-gradient(
+    90deg,
+    currentColor 0 60%,
+    transparent 60% 100%
+  );
+  background-size: 5px 3px;
+}
+.ndi-chart__legend-class {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--gx-text-faint);
+}
+
+/* ---- the readout: fixed, not a pointer-following tooltip ---- */
+.ndi-chart__readout {
+  margin: 0;
+  min-height: 14px;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 11px;
+  color: var(--gx-text);
+}
+.ndi-chart__caption {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--gx-text-faint);
+}
+
+/* ---- the R² comparison, as tracks ---- */
+.ndi-chart__quality {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.ndi-chart__quality-row {
+  display: grid;
+  grid-template-columns: 96px 1fr auto;
+  align-items: center;
+  gap: 8px;
+}
+.ndi-chart__quality-label {
+  font-size: 11px;
+  color: var(--gx-text-dim);
+}
+.ndi-chart__quality-track {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--gx-green-softer);
+  overflow: hidden;
+}
+.ndi-chart__quality-fill {
+  display: block;
+  height: 100%;
+  background: var(--gx-emerald);
+  border-radius: 3px;
+}
+/* The defensible fit reads first. */
+.ndi-chart__quality-row.is-best .ndi-chart__quality-fill {
+  background: var(--gx-neon);
+}
+.ndi-chart__quality-row.is-best .ndi-chart__quality-label {
+  color: var(--gx-text);
+}
+.ndi-chart__quality-value {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 10px;
+  color: var(--gx-text-faint);
+}
+
+/* ---- a folded deeper view ---- */
+.ndi-panel__details {
+  border-top: 1px solid var(--gx-line);
+  padding-top: 8px;
+}
+.ndi-panel__summary {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gx-emerald);
+  cursor: pointer;
+  list-style: none;
+}
+.ndi-panel__summary::-webkit-details-marker {
+  display: none;
+}
+.ndi-panel__summary::before {
+  content: '▸ ';
+  color: var(--gx-text-faint);
+}
+.ndi-panel__details[open] .ndi-panel__summary::before {
+  content: '▾ ';
+}
+.ndi-panel__details[open] .ndi-panel__summary {
+  color: var(--gx-green);
+}
+
+/* A hover target is a target, and a focused one is visibly focused. */
+.ndi-chart__svg [tabindex]:focus-visible {
+  outline: 1px solid var(--gx-neon);
+  outline-offset: 0;
 }

@@ -14,6 +14,24 @@
 
 import { h } from '../../workspace/components.js';
 import {
+  bandBars,
+  clockTracks,
+  damageByDistrict,
+  damageComposition,
+  omoriComparison,
+  omoriSeries,
+  sequenceBars,
+} from '../../nepal/story/charts.js';
+import {
+  bandChart,
+  clockChart,
+  compositionChart,
+  districtChart,
+  omoriChart,
+  omoriQualityChart,
+  sequenceChart,
+} from './chartViews.js';
+import {
   RESULT_CLASS_PRESENTATION,
   presentationFor,
 } from '../../nepal/story/resultClass.js';
@@ -61,6 +79,22 @@ export function rows(entries) {
       h('dd', { text: String(value) }),
     ]),
   );
+}
+
+/**
+ * A folded deeper view.
+ *
+ * Used for the analysis a normal viewer should NOT meet first — the Omori
+ * fits, the depth distribution. Closed by default, and a native `<details>`
+ * so it is keyboard-operable and findable by a screen reader without any
+ * script of ours.
+ */
+function details(summary, children) {
+  const node = h('details', { class: 'ndi-panel__details' }, [
+    h('summary', { class: 'ndi-panel__summary', text: summary }),
+    ...children.filter(Boolean),
+  ]);
+  return node;
 }
 
 /** A caption that carries a caveat rather than decoration. */
@@ -178,21 +212,70 @@ const BODIES = {
     ];
   },
 
-  sequence(intel) {
+  /**
+   * Scene 03. The sequence, proved rather than asserted.
+   *
+   * ORDER IS THE ARGUMENT. Events-per-day first, because the two anchors and
+   * the restart on 12 May are the thing a reader must see; then the magnitude
+   * distribution with its reporting cliff; then depth; and the Omori fits
+   * LAST, folded into a details element, because a fitted decay parameter is
+   * not what a normal viewer should meet first.
+   */
+  sequence(intel, state, on) {
     const omori = intel.seismic.omori;
-    const segmented = omori.segmented ?? omori;
+    const seq = sequenceBars(intel.seismic, {
+      maxDay: state?.controls?.sequenceWindow ?? undefined,
+    });
+    const threshold = intel.seismic.reportingThreshold;
+    const magnitude = bandBars(intel.seismic.magnitude.bands, {
+      highlight: 'M4-5',
+      total: intel.seismic.magnitude.total,
+    });
+    const depth = bandBars(intel.seismic.depth.bands, {
+      total: intel.seismic.depth.withDepth,
+    });
     return [
       figure(intel.seismic.counts.aftershocks, { label: 'aftershocks' }),
+      sequenceChart(seq, {
+        onCutoff: on?.control ? (iso) => on.control('timeCutoff', iso) : null,
+        eventTime: intel.seismic.mainShock.time,
+      }),
       rows([
         ['Main shock', '25 Apr 2015 06:11 UTC'],
         ['Largest aftershock', '12 May 2015 07:05 UTC'],
       ]),
-      caveat(
-        'The decay curve is a fitted model, not a measurement of the earth. The 12 May M7.3 restarted the sequence, so a single-window fit describes neither half well.',
-      ),
-      segmented
-        ? h('p', { class: 'ndi-panel__note', text: describeOmori(segmented) })
-        : null,
+      bandChart(magnitude, {
+        title: 'Magnitude distribution',
+        note: `all ${intel.seismic.magnitude.total} events`,
+        unit: 'events',
+        caption: threshold
+          ? `Counts jump ${threshold.ratio}x at M${threshold.magnitude}. A detection limit tapers; a jump this sharp is a reporting threshold, so the catalogue is incomplete below it.`
+          : null,
+      }),
+      /*
+       * Depth is secondary, and folded. It answers a question a reader may
+       * have rather than one the scene is making.
+       */
+      details('Depth distribution', [
+        bandChart(depth, {
+          title: 'Depth distribution',
+          note: `${intel.seismic.depth.withDepth} events with a depth`,
+          unit: 'events',
+          caption: `Median ${intel.seismic.depth.median} km, deepest ${intel.seismic.depth.max} km. A shallow sequence.`,
+        }),
+      ]),
+      details('Aftershock decay — Omori analysis', [
+        omoriChart(omoriSeries(omori, { segment: 'beforeSecondary' })),
+        omoriQualityChart(omoriComparison(omori)),
+        h('p', { class: 'ndi-panel__note', text: omori.interpretation }),
+      ]),
+      /*
+       * The scene's own `limitations` already state that the decay curve is a
+       * fitted model and that the 12 May event restarted the sequence, and
+       * the panel renders those below. Repeating it here printed the same
+       * warning twice in adjacent paragraphs, which reads as a bug rather
+       * than as emphasis.
+       */
     ];
   },
 
@@ -311,21 +394,38 @@ const BODIES = {
     ];
   },
 
-  'observed-damage'(intel) {
-    const shares = intel.damage.composition.shares;
+  /**
+   * Scene 08. The composition in one glance, not four numbers to divide.
+   *
+   * The bar filters the map: clicking a class shows only those points, and
+   * clicking it again clears the filter. That is the interaction revealing
+   * something — 2,084 destroyed structures look very different on the ground
+   * from 95 possible ones — rather than moving for its own sake.
+   */
+  'observed-damage'(intel, state, on) {
+    const composition = damageComposition(
+      intel.damage.composition,
+      intel.damage.classOrder,
+      intel.damage.byDistrict,
+    );
+    const districts = damageByDistrict(intel.damage.byDistrict);
+    const active = state?.controls?.damageClass ?? null;
     return [
       figure(intel.damage.reproduction.total, {
         label: 'observed damage points',
       }),
-      rows(
-        intel.damage.classOrder
-          .slice()
-          .reverse()
-          .map((klass) => [
-            klass,
-            `${intel.damage.reproduction.observed[klass]}   ${shares[klass]}%`,
-          ]),
-      ),
+      compositionChart(composition, {
+        active,
+        onClass: on?.control
+          ? (value) => on.control('damageClass', value)
+          : null,
+      }),
+      districtChart(districts, {
+        active: state?.selection?.district ?? null,
+        onDistrict: on?.select
+          ? (value) => on.select({ district: value })
+          : null,
+      }),
       caveat(
         'NO DENOMINATOR. Only damaged structures are recorded and no examined-area footprint is published, so no damage rate can be computed from this source.',
       ),
@@ -509,16 +609,23 @@ const BODIES = {
    * things; the control picks which one the reader is being asked to hold in
    * mind, and the artefact's own wording for it comes with it.
    */
-  'four-clocks'(intel, state) {
+  'four-clocks'(intel, state, on) {
     const lags = intel.damage.timeline.lags;
     const clocks = intel.damage.timeline.clocks ?? [];
     const chosen =
       clocks.find((entry) => entry.id === state?.controls?.clock) ?? clocks[0];
+    const tracks = clockTracks(intel.damage.timeline);
     return [
       chosen ? statement(`${chosen.label} — ${chosen.meaning}`) : null,
       figure(lags.eventToAcquisition?.median ?? '—', {
         unit: 'days',
         label: 'median from earthquake to first imagery',
+      }),
+      clockChart(tracks, {
+        active: state?.controls?.clock ?? null,
+        onClock: on?.control
+          ? (value) => on.control('clock', value ?? 'EARTHQUAKE')
+          : null,
       }),
       rows([
         [
@@ -590,6 +697,39 @@ function describeOmori(segmented) {
 }
 
 /**
+ * Remove a body caveat that the scene's limitations already state.
+ *
+ * SEVEN SCENES PRINTED THE SAME SENTENCE TWICE, in adjacent paragraphs — the
+ * panel's own caveat and then the scene's limitation, verbatim. At reading
+ * distance that is redundancy; at presentation distance it reads as a
+ * rendering bug, and it pushes the provenance footer further out of sight.
+ *
+ * Fixed here rather than by editing seven panels, because the panels and the
+ * scene list are written by different hands at different times and the next
+ * overlap would go unnoticed. A caveat with no matching limitation is kept:
+ * the rule is "do not say it twice", not "the body may not have caveats".
+ */
+function dropRepeatedCaveats(body, limitations) {
+  if (!body?.length || !limitations?.length) return body;
+  const normalise = (text) =>
+    String(text ?? '')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .toLowerCase();
+  const limits = limitations.map(normalise);
+  return body.filter((node) => {
+    if (!node?.classList?.contains?.('ndi-panel__caveat')) return true;
+    const text = normalise(node.textContent);
+    if (text.length < 24) return true;
+    /* A prefix match, because the two wordings are rarely identical. */
+    const head = text.slice(0, 60);
+    return !limits.some(
+      (limit) => limit.includes(head) || text.includes(limit.slice(0, 60)),
+    );
+  });
+}
+
+/**
  * Build the panel for the current scene.
  *
  * A scene with no builder yet renders its question and its limitations rather
@@ -600,6 +740,7 @@ export function renderIntelPanel({
   intelligence,
   state,
   onMethodology = () => {},
+  on = null,
 }) {
   const entry = state?.scene;
   if (!entry)
@@ -610,7 +751,10 @@ export function renderIntelPanel({
   const build = BODIES[entry.id];
   let body;
   try {
-    body = build ? build(intelligence, state) : null;
+    body = dropRepeatedCaveats(
+      build ? build(intelligence, state, on) : null,
+      entry.limitations,
+    );
   } catch (error) {
     /*
      * A panel that throws must not take the application with it. It reports

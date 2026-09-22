@@ -1226,6 +1226,8 @@
       "src/ui/nepal/present.js",
       "src/ui/nepal/controlStrip.js",
       "src/nepal/story/presentation.js",
+      "src/ui/nepal/chartViews.js",
+      "src/nepal/story/charts.js",
       "src/ui/nepal/experience.js",
       "src/ui/nepal/intelPanel.js",
       "src/ui/nepal/mount.js",
