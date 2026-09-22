@@ -1,7 +1,7 @@
 {
  "schemaVersion": 1,
  "stage": 5,
- "generatedAt": "2026-09-21",
+ "generatedAt": "2026-09-22",
  "dataClass": "DERIVED",
  "criticalCaveat": {
   "whatABlockedRoadFeatureIs": "These 179 features carry 19.9 km of line geometry in total, with a median feature length of 65 m. A feature of that length is an OBSTRUCTION MARKER at a place where an analyst saw a blockage, not the extent of a closed route. Any statement about how much road was unusable must come from the network the marker sits on, never from the marker’s own length.",
@@ -1508,6 +1508,28 @@
     "unmatched": 163,
     "unmatchedNote": "A blockage that matches no edge at any tolerance sits on a road this network does not contain — below tertiary class, or unmapped in OpenStreetMap in April 2015. It is a gap in the map, not an absence of disruption, and it is excluded from the network result rather than counted as \"no effect\".",
     "distinctEdgesDisabled": 10,
+    "disabledEdgeIds": [
+     "e2015f",
+     "e2015r",
+     "e2092f",
+     "e2092r",
+     "e2107f",
+     "e2107r",
+     "e2334f",
+     "e2334r",
+     "e2338f",
+     "e2338r",
+     "e2516f",
+     "e2516r",
+     "e416f",
+     "e416r",
+     "e667f",
+     "e667r",
+     "e727f",
+     "e727r",
+     "e794f",
+     "e794r"
+    ],
     "whatTheBlockagesSitOn": {
      "method": "Each blockage matched a second time against every highway class within about 600 m of it, as OpenStreetMap held them on 2015-04-24. Three outcomes are kept apart, because collapsing them answers the wrong question: on a mapped road (within the snap tolerance), near one but beyond that tolerance, and no mapped road of any class inside the query box.",
      "snapToleranceMetres": 25,

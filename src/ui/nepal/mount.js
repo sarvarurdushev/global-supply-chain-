@@ -43,6 +43,7 @@ export function isCaseHash(hash) {
 export function createNepalCaseMount({
   container = document.body,
   createLayers = null,
+  createWorker = null,
   fetchImpl,
   win = globalThis.window,
   doc = globalThis.document,
@@ -91,6 +92,7 @@ export function createNepalCaseMount({
     experience = createNepalExperience({
       mount: host,
       caseLayers,
+      createWorker,
       fetchImpl,
       onChange: syncHash,
     });

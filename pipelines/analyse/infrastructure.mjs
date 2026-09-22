@@ -481,6 +481,23 @@ export async function analyseInfrastructure() {
           unmatched: unmatched.length,
           unmatchedNote: matches.unmatchedNote,
           distinctEdgesDisabled: disabled.length / 2,
+          /*
+           * The edge ids themselves, not only how many there are.
+           *
+           * ADDITIVE, AND THE REASON IS REPRODUCIBILITY. Stage 7's Scene 14
+           * draws the route this closure set produces. With only the count
+           * published, a consumer could get the same drawn line only by
+           * re-implementing the 25 m matching rule — a second analytical
+           * implementation of the thing this file already decided, which is
+           * exactly what must not happen. Publishing the ids lets the
+           * frontend reproduce the route AND check its own answer against
+           * `routes.routes[].damagedKm` below.
+           *
+           * Sorted so the artefact is byte-stable across runs. Both
+           * directions of each edge are present, which is why the count above
+           * is half the length.
+           */
+          disabledEdgeIds: [...disabled].sort(),
           whatTheBlockagesSitOn: {
             method:
               'Each blockage matched a second time against every highway class within about 600 m of it, as OpenStreetMap held them on 2015-04-24. ' +

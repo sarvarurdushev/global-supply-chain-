@@ -11,6 +11,7 @@ import { createTourDataRunner } from '../scenes/packs/supplyChain.js';
 import { createWorkspace } from '../workspace/shell.js';
 import { createNepalCaseMount } from '../ui/nepal/mount.js';
 import { createNepalCaseLayers } from '../layers/nepal/caseLayers.js';
+import NepalGraphWorker from '../workers/nepalGraph.worker.js?worker';
 import { createGlobeAdapter } from '../workspace/globeAdapter.js';
 import {
   installRenderGovernor,
@@ -157,6 +158,13 @@ export function createApplicationTools({
   // `ui/nepal/mount.js` for why. It builds nothing until it is opened, so the
   // rest of the application is unaffected by its existence.
   const nepalCase = createNepalCaseMount({
+    /*
+     * `?worker` is Vite's own worker import, so the bundle carries a real
+     * module worker rather than a blob built at run time. Scene 13's graph
+     * build is 259 ms of blocking work on the real artefact, which lands
+     * exactly when the user clicks.
+     */
+    createWorker: () => new NepalGraphWorker(),
     createLayers: () =>
       createNepalCaseLayers({
         viewer,

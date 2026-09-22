@@ -35,6 +35,8 @@ import {
   intensityBands,
 } from '../../nepal/analysis/exposure.js';
 import { rasteriseDensity } from '../../nepal/story/densityRaster.js';
+import { solveArtefactRoute, verifyRoute } from '../../nepal/story/network.js';
+import { createGraphProvider } from './graphProvider.js';
 import { renderTopBar } from './topBar.js';
 import { renderSceneRail } from './sceneRail.js';
 import { renderIntelPanel } from './intelPanel.js';
@@ -83,6 +85,7 @@ export function createNepalExperience({
   caseLayers = null,
   fetchImpl,
   onChange = null,
+  createWorker = null,
 } = {}) {
   if (!mount)
     throw new TypeError('The Nepal experience needs a mount element.');
@@ -92,6 +95,23 @@ export function createNepalExperience({
     onProgress: () => scheduleRender('load'),
   });
   const derived = createDerivedCache();
+  /*
+   * The road graph, for scenes 13, 14 and 18. Built at most once, in a worker
+   * when one can be created. Every FIGURE those scenes report comes from the
+   * Stage 5 artefact; the graph exists to draw a line, and to check that line
+   * against the number the artefact already published.
+   */
+  const graphs = createGraphProvider({
+    createWorker,
+    onNote: (note) => {
+      graphNote = note;
+    },
+  });
+  let graphNote = null;
+  let graphEdges = null;
+  let networkGraph = null;
+  let route = null;
+  let routeProblems = [];
   const investigation = createNepalInvestigation({
     onChange: (_, reason) => {
       onStateChange(reason);
@@ -141,7 +161,41 @@ export function createNepalExperience({
       copernicusGrading: copernicus?.data?.grading ?? null,
       intensityBands: derived.intensityBands(shakemap),
       densityRaster: derived.densityRaster(loader.ready('population')),
+      graphEdges,
+      route,
     };
+  }
+
+  /**
+   * Build the graph and solve the scene's route pair.
+   *
+   * THE CHECK IS THE POINT. This is the only place the frontend runs the same
+   * engine the analysis ran, so its answer is compared against the artefact's
+   * published kilometres. A mismatch is surfaced in the panel rather than
+   * drawn silently, because a 74 km caption over an 83 km line gives a reader
+   * no way to tell which one to believe.
+   */
+  async function ensureNetwork(state) {
+    const roads = loader.ready('osmRoads');
+    if (!roads || !intelligence) return;
+    if (!graphEdges) {
+      const graph = await graphs.graph(roads.data.segments);
+      graphEdges = [...graph.edges()];
+      networkGraph = graph;
+    }
+    const pairs = intelligence.infrastructure.network.routes.routes ?? [];
+    const wanted =
+      pairs.find((pair) => pair.label === state?.selection?.routePair) ??
+      pairs.find((pair) => pair.outcome === 'DETOUR') ??
+      pairs[0] ??
+      null;
+    if (!wanted || !networkGraph) return;
+    route = solveArtefactRoute(networkGraph, wanted, {
+      disabledEdgeIds:
+        intelligence.infrastructure.network.blockageMatching.disabledEdgeIds ??
+        [],
+    });
+    routeProblems = verifyRoute(route);
   }
 
   function renderNow() {
@@ -182,6 +236,24 @@ export function createNepalExperience({
             }),
           ]),
     );
+
+    /*
+     * A ROUTE THAT DISAGREES WITH ITS OWN ARTEFACT IS REPORTED, LOUDLY.
+     *
+     * Scene 14 is the only place the frontend runs the engine the analysis
+     * ran. A 74 km caption over an 83 km line gives a reader no way to tell
+     * which to believe, so a mismatch is stated rather than drawn quietly.
+     * All fourteen pairs reproduce exactly, so this should never appear —
+     * which is exactly why it has to be here.
+     */
+    if (routeProblems.length > 0) {
+      slots.panel.append(
+        h('p', {
+          class: 'ndi-panel__error',
+          text: `Route does not match its artefact — ${routeProblems.join('; ')}. The published figure is the authority; treat the drawn line as unverified.`,
+        }),
+      );
+    }
 
     /* The failed-dataset notice sits with the panel, naming what is missing. */
     const missing = [...failedDatasets.entries()].filter(([key]) =>
@@ -244,7 +316,21 @@ export function createNepalExperience({
         : setTimeout(run, 0);
   }
 
-  function moveCamera() {
+  /**
+   * Fly to the scene's target.
+   *
+   * MOST TARGETS ARE DATA-DERIVED, so the same scene resolves differently
+   * before and after its datasets land: `route` is the mean of a solved path,
+   * `damage-centroid` the mean of 4,500 points, `aoi-pair` a footprint's
+   * centre. The first flight happens immediately — waiting would leave the
+   * globe still while a scene changes — and `refocus()` corrects it once the
+   * data is in, but only if the answer actually moved. Scene 14 framed the
+   * country centre for exactly this reason: the route had not been solved yet
+   * when the camera left.
+   */
+  let flewTo = null;
+
+  function moveCamera({ durationSec = null } = {}) {
     if (!caseLayers) return;
     const state = investigation.state;
     const target = resolveTarget(state.camera?.target, {
@@ -252,12 +338,30 @@ export function createNepalExperience({
       data: sceneData(),
       selection: state.selection,
     });
+    flewTo = target;
     caseLayers.flyTo({
       ...target,
       altKm: state.camera?.altKm ?? 1200,
       pitch: state.camera?.pitch ?? -90,
-      durationSec: state.camera?.durationSec ?? 2,
+      durationSec: durationSec ?? state.camera?.durationSec ?? 2,
     });
+  }
+
+  /** ~1 km. Below this the correction is not worth a second flight. */
+  const REFOCUS_DEGREES = 0.01;
+
+  function refocus() {
+    if (!caseLayers || !flewTo) return;
+    const state = investigation.state;
+    const target = resolveTarget(state.camera?.target, {
+      intelligence,
+      data: sceneData(),
+      selection: state.selection,
+    });
+    const moved =
+      Math.abs(target.lon - flewTo.lon) > REFOCUS_DEGREES ||
+      Math.abs(target.lat - flewTo.lat) > REFOCUS_DEGREES;
+    if (moved) moveCamera({ durationSec: 1.2 });
   }
 
   async function ensureSceneData() {
@@ -273,8 +377,21 @@ export function createNepalExperience({
         }
       }),
     );
+    /* Scenes 13, 14 and 18 need the graph as well as the file. */
+    if (
+      (state.scene?.layers ?? []).some(
+        (layer) => layer.startsWith('road') || layer.startsWith('route'),
+      )
+    ) {
+      try {
+        await ensureNetwork(state);
+      } catch (error) {
+        failedDatasets.set('road network', error.message);
+      }
+    }
     loader.prefetch(state.datasetsToWarm);
     scheduleRender('immediate');
+    refocus();
     /*
      * The data having arrived is not the map having been drawn. Ground
      * geometry is built asynchronously, so a caller that only waited for the
@@ -343,6 +460,17 @@ export function createNepalExperience({
      */
     whenSceneReady() {
       return sceneReady;
+    },
+
+    /** How the graph was built, and whether its route checks out. */
+    networkStatus() {
+      return Object.freeze({
+        how: graphs.how,
+        note: graphNote,
+        edges: graphEdges?.length ?? 0,
+        route: route?.pair?.label ?? null,
+        problems: Object.freeze([...routeProblems]),
+      });
     },
 
     /** Exposed for the presentation runner and for tests. */

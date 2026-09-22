@@ -1,4 +1,16 @@
 import { readFile, realpath } from 'node:fs/promises';
+
+/**
+ * Drop a Vite query suffix (`?worker`, `?url`, `?raw`, `?inline`).
+ *
+ * Only after the last path separator, so a directory that happens to contain
+ * a question mark cannot be truncated.
+ */
+function stripViteQuery(id) {
+  const lastSlash = id.lastIndexOf('/');
+  const query = id.indexOf('?', lastSlash + 1);
+  return query === -1 ? id : id.slice(0, query);
+}
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { build, normalizePath } from 'vite';
@@ -98,12 +110,20 @@ export async function checkPackageBoundaries(root) {
         {
           name: 'check-package-ownership',
           moduleParsed(info) {
-            if (!allowed.has(info.id)) {
+            /*
+             * A Vite query suffix is a transform instruction, not a different
+             * module: `foo.worker.js?worker` and `foo.worker.js` are the same
+             * file, and ownership is a property of the file. Judging the
+             * suffixed id separately would mean listing both spellings in the
+             * boundary config, and the suffixed one cannot be `realpath`ed.
+             */
+            const id = stripViteQuery(info.id);
+            if (!allowed.has(id)) {
               throw new Error(
-                `Package boundary ${name} imports an unowned module: ${path.relative(root, info.id)}`,
+                `Package boundary ${name} imports an unowned module: ${path.relative(root, id)}`,
               );
             }
-            seen.add(info.id);
+            seen.add(id);
           },
         },
       ],

@@ -155,7 +155,7 @@ export function createNepalCaseLayers({
   function ensure(layerId) {
     let entry = layers.get(layerId);
     if (!entry) {
-      entry = { points: null, entities: [], imagery: null };
+      entry = { points: null, lines: null, entities: [], imagery: null };
       layers.set(layerId, entry);
     }
     return entry;
@@ -167,6 +167,10 @@ export function createNepalCaseLayers({
     if (entry.points) {
       viewer.scene.primitives.remove(entry.points);
       entry.points = null;
+    }
+    if (entry.lines) {
+      viewer.scene.primitives.remove(entry.lines);
+      entry.lines = null;
     }
     if (entry.imagery) {
       viewer.imageryLayers.remove(entry.imagery, true);
@@ -244,6 +248,38 @@ export function createNepalCaseLayers({
     }
   }
 
+  /**
+   * Many lines as ONE primitive.
+   *
+   * Scene 13 draws 2,727 road edges. As entities that is 2,727 visualisers
+   * each building its own geometry, which is both a long stall and a large
+   * amount of scene-graph bookkeeping for something the user reads as a
+   * single texture. A PolylineCollection holds them all and costs one
+   * primitive. This is the "simplify rendering, never the statistics" rule:
+   * every edge is still drawn, and the panel's counts come from the artefact
+   * regardless.
+   *
+   * Not ground-clamped. Clamping 2,727 polylines means 2,727 shadow volumes,
+   * and at the altitudes these scenes use the terrain offset is invisible.
+   */
+  function drawLines(layerId, items) {
+    const entry = ensure(layerId);
+    const collection = viewer.scene.primitives.add(
+      new Cesium.PolylineCollection(),
+    );
+    entry.lines = collection;
+    for (const item of items) {
+      collection.add({
+        id: `${layerId}:${item.id}`,
+        positions: Cesium.Cartesian3.fromDegreesArray(item.positions.flat()),
+        width: item.width ?? 1,
+        material: Cesium.Material.fromType('Color', {
+          color: colour(item.colour, item.fillOverride ?? item.fillAlpha),
+        }),
+      });
+    }
+  }
+
   function drawPolylines(layerId, items) {
     const entry = ensure(layerId);
     for (const item of items) {
@@ -254,7 +290,7 @@ export function createNepalCaseLayers({
               item.positions.flat(),
             ),
             width: item.width ?? 3,
-            material: colour(item.colour, item.fillAlpha),
+            material: colour(item.colour, item.fillOverride ?? item.fillAlpha),
             clampToGround: true,
           },
         }),
@@ -390,6 +426,7 @@ export function createNepalCaseLayers({
           else if (kind === 'marker') drawMarkers(layerId, batch);
           else if (kind === 'raster') drawRaster(layerId, batch);
           else if (kind === 'circle') drawCircles(layerId, batch);
+          else if (kind === 'lines') drawLines(layerId, batch);
         }
       }
       holdWhileSettling();

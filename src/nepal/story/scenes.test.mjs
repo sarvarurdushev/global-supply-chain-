@@ -221,12 +221,12 @@ test('every declared map layer has a renderer, and the unwired ones are named', 
     new URL('./mapModel.js', import.meta.url),
     'utf8',
   );
+  const network = await readFile(
+    new URL('./network.js', import.meta.url),
+    'utf8',
+  );
   const unwired = [...declared].filter(
-    (layer) => !source.includes(`'${layer}'`),
+    (layer) => !source.includes(`'${layer}'`) && !network.includes(`'${layer}'`),
   );
-  assert.deepEqual(
-    unwired.sort(),
-    ['road-network', 'route-baseline', 'route-damaged'],
-    'these are P8; everything else must already draw',
-  );
+  assert.deepEqual(unwired.sort(), [], 'every declared layer has a builder');
 });

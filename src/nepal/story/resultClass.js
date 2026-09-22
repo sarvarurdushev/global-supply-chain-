@@ -277,6 +277,30 @@ export function mapGrammarFor(value, { modeled = false } = {}) {
 }
 
 /**
+ * A drawable, with its grammar already resolved.
+ *
+ * EVERY DRAWABLE IN THE PRODUCT GOES THROUGH HERE. That is the one rule this
+ * module enforces: observed and modelled things never share a grammar, and it
+ * is applied once, in a single place, rather than remembered at each call
+ * site. It lives here rather than in `mapModel.js` because `network.js` needs
+ * it too, and importing it from `mapModel.js` would be a cycle — the first
+ * version of `network.js` built its drawables by hand instead and shipped
+ * with no grammar on any of them, which the tests caught.
+ */
+export function drawable(input) {
+  const grammar = mapGrammarFor(input.resultClass, {
+    modeled: input.modeled === true,
+  });
+  return Object.freeze({
+    ...input,
+    grammar,
+    /* Convenience for the renderer; identical information to `grammar`. */
+    outlineWidth: grammar.outlineWidth,
+    fillAlpha: grammar.fillAlpha,
+  });
+}
+
+/**
  * Should a layer of this class be drawn under the current filter?
  *
  * The Scene 17 filter is the strongest expression of this whole module: ticking

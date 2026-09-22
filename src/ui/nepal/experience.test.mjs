@@ -85,7 +85,24 @@ test('every scene can be reached, and each one draws and moves the camera', asyn
     assert.ok(text.includes(entry.question), `${entry.id} does not show its question`);
     assert.doesNotMatch(text, /could not resolve a figure/, `${entry.id} has an unresolved figure`);
   }
-  assert.equal(layers.flights.length, SCENES.length, 'one flight per scene');
+  /*
+   * At least one flight per scene, and a few scenes take a second.
+   *
+   * Most camera targets are DATA-DERIVED — the mean of a solved route, the
+   * centroid of 4,500 damage points — so a scene resolves differently before
+   * and after its datasets land. The first flight leaves immediately, because
+   * a still globe during a scene change reads as a broken one, and the camera
+   * corrects itself once the data is in. Scene 14 framed the centre of Nepal
+   * before this existed, with its route off the edge of the frame.
+   */
+  assert.ok(
+    layers.flights.length >= SCENES.length,
+    `${layers.flights.length} flights for ${SCENES.length} scenes`,
+  );
+  assert.ok(
+    layers.flights.length <= SCENES.length * 2,
+    'a scene must not fly more than twice: that would be the camera oscillating',
+  );
   for (const flight of layers.flights) {
     assert.ok(Number.isFinite(flight.lon) && Number.isFinite(flight.lat), 'a real destination');
     assert.ok(flight.altKm > 0);

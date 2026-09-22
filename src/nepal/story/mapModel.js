@@ -18,8 +18,8 @@
  * `mapGrammarFor`, rather than being remembered at each call site.
  */
 
-import { mapGrammarFor } from './resultClass.js';
-import { ResultClass } from './resultClass.js';
+import { ResultClass, drawable } from './resultClass.js';
+import { networkDrawables, routeDrawables } from './network.js';
 
 /** MMI → the ramp token. Deliberately not green: green is the interface. */
 export const MMI_COLOURS = Object.freeze({
@@ -70,20 +70,6 @@ export function depthColour(depthKm) {
   if (depthKm < 25) return '#ff8c42';
   if (depthKm < 50) return '#ffd166';
   return '#7fd4e8';
-}
-
-/** A drawable, with its grammar already resolved. */
-function drawable(input) {
-  const grammar = mapGrammarFor(input.resultClass, {
-    modeled: input.modeled === true,
-  });
-  return Object.freeze({
-    ...input,
-    grammar,
-    /* Convenience for the renderer; identical information to `grammar`. */
-    outlineWidth: grammar.outlineWidth,
-    fillAlpha: grammar.fillAlpha,
-  });
 }
 
 /* ------------------------------------------------------------------ *
@@ -684,6 +670,25 @@ export function drawablesForScene({ state, intelligence, data = {} }) {
   if (layers.has('aoi-footprints') && data.copernicusAois) {
     add('aoi-footprints', aoiDrawables(data.copernicusAois));
   }
+  if (layers.has('road-network') && data.graphEdges) {
+    add(
+      'road-network',
+      networkDrawables(data.graphEdges, {
+        disabledEdgeIds:
+          intelligence?.infrastructure?.network?.blockageMatching
+            ?.disabledEdgeIds ?? [],
+        classes: controls.roadClasses ?? null,
+        /* A scene that draws a route makes the network its background. */
+        dimmed: layers.has('route-baseline') || layers.has('route-damaged'),
+      }),
+    );
+  }
+  if (data.route) {
+    const lines = routeDrawables(data.route);
+    for (const layer of ['route-baseline', 'route-damaged']) {
+      add(layer, lines[layer]);
+    }
+  }
   if (layers.has('proximity-rings')) {
     const anchor = resolveTarget('damage-centroid', {
       intelligence,
@@ -758,11 +763,28 @@ export function resolveTarget(
   if (name === 'damage-centroid' || name === 'straddling-areas') {
     return centroidOf(data.unosat) ?? { ...NEPAL_CENTRE };
   }
-  if (
-    name === 'infrastructure-extent' ||
-    name === 'network-extent' ||
-    name === 'route'
-  ) {
+  if (name === 'route') {
+    /*
+     * The route's OWN geometry, not the blockage centroid.
+     *
+     * `route` used to fall through to the infrastructure extent, which put
+     * the camera over the closures — south-east of the journey — and left
+     * the two route lines off the edge of the frame. Scene 14's subject is
+     * the line, so the camera frames the line.
+     */
+    const line =
+      data.route?.damaged?.coordinates ?? data.route?.baseline?.coordinates;
+    if (line?.length) {
+      let lon = 0;
+      let lat = 0;
+      for (const point of line) {
+        lon += point[0];
+        lat += point[1];
+      }
+      return { lon: lon / line.length, lat: lat / line.length };
+    }
+  }
+  if (name === 'infrastructure-extent' || name === 'network-extent') {
     return (
       centroidOfLines(data.nga?.blockedRoads?.features) ?? { ...NEPAL_CENTRE }
     );
