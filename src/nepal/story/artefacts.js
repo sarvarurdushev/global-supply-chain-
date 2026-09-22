@@ -211,7 +211,10 @@ export function createIntelligence(parsed) {
  * `datasets` counts distinct source datasets actually cited by the artefacts,
  * not a number typed into a template. If an ingest is removed, this falls.
  */
-export function headerState(intelligence, { loaded = 0, total = 0 } = {}) {
+export function headerState(
+  intelligence,
+  { loaded = 0, failed = 0, pending = 0, total = 0 } = {},
+) {
   const checks = intelligence.stages.reduce(
     (acc, stage) => {
       const rows = intelligence.raw[stage.key]?.validation?.checks;
@@ -232,7 +235,12 @@ export function headerState(intelligence, { loaded = 0, total = 0 } = {}) {
     checksTotal: checks.total,
     checksAllCountable: checks.allCountable,
     checksLabel: `${checks.passed}/${checks.total}${checks.allCountable ? '' : '*'}`,
-    system:
-      total > 0 && loaded < total ? `LOADING ${loaded}/${total}` : 'READY',
+    /*
+     * READY means nothing is in the air, not that every dataset in the
+     * catalogue has been fetched — most are never needed for the scene in
+     * front of you. A settled failure is settled: it is reported in the panel
+     * that needed it, and it does not hold the header at LOADING forever.
+     */
+    system: pending > 0 ? `LOADING ${loaded + failed}/${total}` : 'READY',
   });
 }

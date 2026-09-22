@@ -97,6 +97,30 @@ test('share-link serialization emits the current celestial state', () => {
   assert.equal(new URLSearchParams(window.location.hash.slice(1)).get('cr'), '1');
 });
 
+test('a camera update never clobbers another interface\'s address', () => {
+  /*
+   * `replaceState` fires no event, so a blind write destroys a second
+   * interface's link with no error and no symptom until somebody sends it.
+   * The Nepal case's deep link is the concrete case.
+   */
+  const foreign = '#/case/npl-2015-eq/scene/shaking';
+  const manager = makeManager(foreign);
+  clearTimeout(manager._debounceTimer);
+  manager._updateHash();
+  assert.equal(window.location.hash, foreign, 'the case link survives');
+
+  /* Its own camera hash is still its to update, and so is an empty one. */
+  const own = makeManager('#v=2&lat=10&lon=20');
+  clearTimeout(own._debounceTimer);
+  own._updateHash();
+  assert.match(window.location.hash, /lat=0\.0000/);
+
+  const blank = makeManager();
+  clearTimeout(blank._debounceTimer);
+  blank._updateHash();
+  assert.match(window.location.hash, /lat=0\.0000/);
+});
+
 test('generated links are v2 and include deterministic layers, options, style params, and panels', () => {
   const manager = makeManager();
   const layers = createDefaultLayerState();

@@ -71,6 +71,7 @@ export function createNepalExperience({
   mount,
   caseLayers = null,
   fetchImpl,
+  onChange = null,
 } = {}) {
   if (!mount)
     throw new TypeError('The Nepal experience needs a mount element.');
@@ -89,6 +90,17 @@ export function createNepalExperience({
   let intelligence = null;
   let failedDatasets = new Map();
   let frame = null;
+  /*
+   * The fetch for the CURRENT scene's datasets, so a caller can wait for the
+   * evidence rather than guess at a duration.
+   *
+   * This is not a test affordance. Presentation mode must not advance while a
+   * scene's geometry is still in the air — an auto-advance that outruns the
+   * network presents an empty map — and a test that sleeps instead of waiting
+   * is a test that fails on a slow machine for no reason. Both need the same
+   * handle.
+   */
+  let sceneReady = Promise.resolve();
 
   const root = h('div', { class: 'ndi' }, [
     h('div', { class: 'ndi__top' }),
@@ -256,8 +268,15 @@ export function createNepalExperience({
     scheduleRender(reason);
     if (reason === 'scene' || reason === 'deeplink') {
       moveCamera();
-      ensureSceneData();
+      sceneReady = ensureSceneData();
     }
+    /*
+     * The outer mount syncs the address bar from here. It is told AFTER the
+     * work above so a listener that reads `state.deepLink` sees the state the
+     * screen is actually settling into, and a `deeplink` reason it caused
+     * itself is reported so it can recognise and ignore its own echo.
+     */
+    onChange?.(investigation.state, reason);
   }
 
   function openMethodology(id) {
@@ -292,8 +311,19 @@ export function createNepalExperience({
       intelligence = await loader.loadTier1();
       scheduleRender('immediate');
       moveCamera();
-      await ensureSceneData();
+      sceneReady = ensureSceneData();
+      await sceneReady;
       return intelligence;
+    },
+
+    /**
+     * Resolves once the current scene's datasets have settled.
+     *
+     * Settled, not succeeded: a dataset that failed has been dealt with (the
+     * panel names it) and must not hold a caller forever.
+     */
+    whenSceneReady() {
+      return sceneReady;
     },
 
     /** Exposed for the presentation runner and for tests. */

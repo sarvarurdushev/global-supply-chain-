@@ -190,7 +190,15 @@ export function mapGrammarFor(value, { modeled = false } = {}) {
       resultClass: resolved,
       modeled: true,
       edge: 'none',
-      fillAlpha: 0.35,
+      /*
+       * A modelled field has no edge, which is the whole point of the
+       * grammar — but at 0.35 the MMI ramp did not survive blending against
+       * the globe, and eight distinct intensity levels read as one mauve
+       * blur. With no edge to separate them the fill IS the information, so
+       * it carries more of it. Still well under the observed grammar's 0.95,
+       * which is the distinction that matters.
+       */
+      fillAlpha: 0.55,
       outlineWidth: 0,
       dashPattern: null,
       shape: 'field',

@@ -79,7 +79,7 @@ test('every scene can be reached, and each one draws and moves the camera', asyn
 
   for (const entry of SCENES) {
     experience.goTo(entry.index);
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    await experience.whenSceneReady();
     experience.render();
     const text = mount.textContent;
     assert.ok(text.includes(entry.question), `${entry.id} does not show its question`);
@@ -104,14 +104,14 @@ test('scenes that declare layers actually draw them', async () => {
   await experience.start();
 
   experience.goTo('earthquake');
-  await new Promise((resolve) => setTimeout(resolve, 20));
+  await experience.whenSceneReady();
   experience.render();
   const drawn = layers.renders[layers.renders.length - 1];
   assert.ok(drawn.has('seismic-events'), 'the earthquake scene must draw its events');
   assert.equal(drawn.get('seismic-events').length, 316);
 
   experience.goTo('shaking');
-  await new Promise((resolve) => setTimeout(resolve, 20));
+  await experience.whenSceneReady();
   experience.render();
   const bands = layers.renders[layers.renders.length - 1];
   assert.ok(bands.has('shakemap-bands'), 'the shaking scene must draw filled bands');
@@ -136,7 +136,7 @@ test('a dataset that fails to load costs its layer, not the analysis', async () 
   });
   await experience.start();
   experience.goTo('earthquake');
-  await new Promise((resolve) => setTimeout(resolve, 20));
+  await experience.whenSceneReady();
   experience.render();
 
   const text = mount.textContent;
@@ -176,7 +176,7 @@ test('the rail navigates and the mode switch changes who is driving', async () =
     .filter((button) => button.dataset.scene !== undefined);
   assert.equal(railButtons.length, SCENES.length);
   railButtons[9].click();
-  await new Promise((resolve) => setTimeout(resolve, 20));
+  await experience.whenSceneReady();
   assert.equal(experience.investigation.state.scene.id, 'model-vs-observed');
 
   experience.setMode('PRESENT');
@@ -194,7 +194,7 @@ test('opening a methodology record emits it for the provenance panel', async () 
   });
   await experience.start();
   experience.goTo('model-vs-observed');
-  await new Promise((resolve) => setTimeout(resolve, 20));
+  await experience.whenSceneReady();
   experience.render();
 
   const received = [];

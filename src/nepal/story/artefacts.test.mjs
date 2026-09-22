@@ -107,7 +107,26 @@ test('the header states only what the artefacts support', async () => {
   assert.equal(header.checksLabel, `${header.checksPassed}/${header.checksTotal}`);
   assert.equal(header.system, 'READY');
   // And it reports loading honestly rather than claiming READY early.
-  assert.equal(headerState(intel, { loaded: 3, total: 10 }).system, 'LOADING 3/10');
+  assert.equal(
+    headerState(intel, { loaded: 3, pending: 7, total: 10 }).system,
+    'LOADING 3/10',
+  );
+  /*
+   * READY is about what is in flight, not about how much of the catalogue has
+   * ever been fetched. Scene 00 needs one dataset; it must not read LOADING
+   * because the 5 MB road network for scene 13 has not been touched.
+   */
+  assert.equal(headerState(intel, { loaded: 1, total: 1 }).system, 'READY');
+  assert.equal(headerState(intel, {}).system, 'READY');
+  // A settled failure is settled. It is reported in the panel, not the header.
+  assert.equal(
+    headerState(intel, { loaded: 2, failed: 1, pending: 0, total: 3 }).system,
+    'READY',
+  );
+  assert.equal(
+    headerState(intel, { loaded: 2, failed: 1, pending: 2, total: 5 }).system,
+    'LOADING 3/5',
+  );
 });
 
 test('an uncountable artefact marks the header label rather than silently shrinking it', async () => {

@@ -150,15 +150,35 @@ export function createArtefactLoader({
       return entry?.state === 'ready' ? entry.value : null;
     },
 
+    /**
+     * Load state, counted over the datasets that have actually been ASKED FOR.
+     *
+     * Counting all ten instead was the first version, and it made the header
+     * unable to ever say READY: nothing requests the 5 MB road network until
+     * scene 13, so a person reading scene 00 saw `LOADING 0/10` over a case
+     * that was completely loaded. An indicator that is permanently wrong is
+     * worse than no indicator — it is the fake telemetry the identity rules
+     * forbid, arrived at by accident.
+     *
+     * So `total` is what has been requested and `pending` is what is still in
+     * the air. `catalogue` keeps the full count for anything that wants it.
+     */
     progress() {
       const tier2 = Object.keys(PROCESSED_ARTEFACTS);
-      const loaded = tier2.filter(
-        (key) => cache.get(key)?.state === 'ready',
+      const requested = tier2.filter((key) => cache.has(key));
+      const loaded = requested.filter(
+        (key) => cache.get(key).state === 'ready',
       ).length;
-      const failed = tier2.filter(
-        (key) => cache.get(key)?.state === 'failed',
+      const failed = requested.filter(
+        (key) => cache.get(key).state === 'failed',
       ).length;
-      return Object.freeze({ loaded, failed, total: tier2.length });
+      return Object.freeze({
+        loaded,
+        failed,
+        pending: requested.length - loaded - failed,
+        total: requested.length,
+        catalogue: tier2.length,
+      });
     },
   });
 }

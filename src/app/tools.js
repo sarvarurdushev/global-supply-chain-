@@ -9,6 +9,8 @@ import { createTradeProxySource } from '../supplychain/sources/tradeProxy.js';
 import { createSupplyChainActions } from '../voice/supplyChainActions.js';
 import { createTourDataRunner } from '../scenes/packs/supplyChain.js';
 import { createWorkspace } from '../workspace/shell.js';
+import { createNepalCaseMount } from '../ui/nepal/mount.js';
+import { createNepalCaseLayers } from '../layers/nepal/caseLayers.js';
 import { createGlobeAdapter } from '../workspace/globeAdapter.js';
 import {
   installRenderGovernor,
@@ -149,6 +151,17 @@ export function createApplicationTools({
     globe: globeAdapter,
   });
   defer(() => workspace.destroy());
+
+  // Natural Disaster Intelligence, Case 001. A second full-screen interface
+  // over the same globe rather than another panel in the dock — see
+  // `ui/nepal/mount.js` for why. It builds nothing until it is opened, so the
+  // rest of the application is unaffected by its existence.
+  const nepalCase = createNepalCaseMount({
+    createLayers: () =>
+      createNepalCaseLayers({ viewer, requestRender: governorRequestRender }),
+  });
+  defer(() => nepalCase.destroy());
+
   // Voice executes structured actions against the console rather than answering
   // from the model's own knowledge — the same discipline the inherited
   // analyst_query already follows.
@@ -185,6 +198,7 @@ export function createApplicationTools({
     supplyChainActions,
     workspace,
     globeAdapter,
+    nepalCase,
   };
   const debug = window.__godsEyeView;
   defer(() => {

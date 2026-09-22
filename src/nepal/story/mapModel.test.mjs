@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import {
   DAMAGE_COLOURS,
   MMI_COLOURS,
+  cameraRangeMetres,
   damageDrawables,
   depthColour,
   drawablesForScene,
@@ -151,4 +152,32 @@ test('the result-class filter reaches the map, not just the panel', () => {
     data: { nga: { blockedRoads: { features: [] } } },
   });
   assert.equal(grouped.size, 0, 'a SCENARIO scene must draw nothing under an OBSERVED filter');
+});
+
+test('an oblique scene is framed by range from its subject, not parked over it', () => {
+  /*
+   * The scene's target is what to LOOK AT. Read as a camera position, scene
+   * 04's 900 km at -70 degrees put the whole modelled shaking field off the
+   * bottom of the screen: the layer drew correctly and framed nothing.
+   */
+  const nadir = cameraRangeMetres({ altKm: 900, pitch: -90 });
+  assert.equal(nadir, 900_000, 'a vertical scene is unchanged');
+
+  const oblique = cameraRangeMetres({ altKm: 900, pitch: -70 });
+  assert.ok(oblique > nadir, 'an oblique camera stands further off');
+  assert.equal(Math.round(oblique / 1000), 958);
+  /* The camera still ends up at the height the scene asked for. */
+  assert.equal(
+    Math.round((oblique * Math.sin((70 * Math.PI) / 180)) / 1000),
+    900,
+  );
+
+  // A pitch at the horizon would put the camera at infinite range.
+  assert.ok(Number.isFinite(cameraRangeMetres({ altKm: 10, pitch: 0 })));
+  assert.ok(Number.isFinite(cameraRangeMetres({ altKm: 10, pitch: -0.0001 })));
+  assert.equal(
+    cameraRangeMetres({ altKm: 10, pitch: -1 }),
+    cameraRangeMetres({ altKm: 10, pitch: -5 }),
+    'anything flatter than five degrees is clamped to five',
+  );
 });

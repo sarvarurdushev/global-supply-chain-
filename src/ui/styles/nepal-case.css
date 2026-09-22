@@ -1,0 +1,550 @@
+/**
+ * Natural Disaster Intelligence — Case 001 layout.
+ *
+ * Loaded after `identity.css` because this is a SURFACE, not a re-skin: the
+ * tokens, the result-class chips, the scenario band and the card and figure
+ * primitives all come from identity.css and are used verbatim here. What this
+ * file adds is where the three zones sit, and nothing else.
+ *
+ * THE MAP IS THE PRODUCT, so the host is a transparent frame over it rather
+ * than a screen in front of it. `.ndi-host` takes no pointer events at all;
+ * only the rail, the panel and the header claim them back. The middle column
+ * is empty on purpose — that hole is the globe, and it stays draggable while
+ * the case is open.
+ *
+ * WHILE THE CASE IS OPEN the workspace dock and the supply-chain chip step
+ * aside (`body.ndi-open`). They are hidden, not destroyed: closing the case
+ * returns every one of them exactly where it was. Two right-hand columns at
+ * once would leave the map a strip down the middle, which is the one thing
+ * this product cannot afford.
+ */
+
+:root {
+  --ndi-rail-w: 268px;
+  --ndi-panel-w: 392px;
+  --ndi-gutter: 14px;
+}
+
+.ndi-host {
+  position: fixed;
+  inset: 0;
+  z-index: 140;
+  pointer-events: none;
+}
+.ndi-host[hidden] {
+  display: none;
+}
+
+/**
+ * The chip that opens the case.
+ *
+ * BOTTOM LEFT, and the position was measured rather than chosen. The first
+ * version sat under the top-right corner, which put it inside the workspace
+ * dock: visible, and completely unclickable, because the dock's own buttons
+ * won the hit test. A driven browser found that in one hit-test; nothing in
+ * the test DOM could have, because the test DOM has no layout.
+ *
+ * The left edge below the HUD readouts is the one region of this application
+ * that is bare globe at every breakpoint, and the z-index sits above the case
+ * host so the chip can never be buried again.
+ */
+.ndi-launcher {
+  position: fixed;
+  left: 36px;
+  bottom: 24px;
+  z-index: 141;
+  pointer-events: auto;
+  padding: 7px 12px;
+  border: 1px solid var(--gx-line-strong);
+  border-radius: var(--btn-radius);
+  background: var(--gx-panel);
+  box-shadow: var(--gx-glow);
+  color: var(--gx-green);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  cursor: pointer;
+}
+.ndi-launcher:hover {
+  color: var(--gx-neon);
+  box-shadow: var(--gx-glow-strong);
+}
+.ndi-launcher[hidden] {
+  display: none;
+}
+
+/* ------------------------------------------------------------------ *
+ * The three zones
+ * ------------------------------------------------------------------ */
+
+.ndi {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  grid-template-columns: 1fr;
+  height: 100%;
+}
+
+.ndi__top {
+  pointer-events: auto;
+}
+
+.ndi__body {
+  display: grid;
+  grid-template-columns: var(--ndi-rail-w) 1fr var(--ndi-panel-w);
+  gap: var(--ndi-gutter);
+  padding: var(--ndi-gutter);
+  min-height: 0;
+}
+
+.ndi__rail,
+.ndi__panel {
+  pointer-events: auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  /*
+   * ONE scroll region per column, the rule the workspace shell already sets
+   * and the fix for the six-scrollbar panel. Cards inside never scroll.
+   */
+  scrollbar-width: thin;
+  scrollbar-color: var(--gx-line-strong) transparent;
+}
+.ndi__panel {
+  grid-column: 3;
+}
+
+/* ------------------------------------------------------------------ *
+ * Header
+ * ------------------------------------------------------------------ */
+
+.ndi-top {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  padding: 9px 16px;
+  background: linear-gradient(
+    180deg,
+    rgba(6, 11, 14, 0.96),
+    rgba(6, 11, 14, 0.82)
+  );
+  border-bottom: 1px solid var(--gx-line);
+  backdrop-filter: blur(6px);
+}
+.ndi-top__brand {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.ndi-top__title {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  color: var(--gx-green);
+}
+.ndi-top__case {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--gx-text-faint);
+}
+.ndi-top__stats {
+  display: flex;
+  gap: 22px;
+  margin-inline-start: auto;
+}
+.ndi-top__stat {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  align-items: flex-end;
+}
+.ndi-top__stat-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  color: var(--gx-text-faint);
+}
+.ndi-top__stat-value {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+  color: var(--gx-text);
+}
+.ndi-top__stat-value.is-ok {
+  color: var(--gx-neon);
+}
+.ndi-top__stat-value.is-warn {
+  color: var(--gx-amber);
+}
+.ndi-top__stat-value.is-busy {
+  color: var(--gx-text-dim);
+}
+
+.ndi-top__modes {
+  display: flex;
+  gap: 4px;
+  margin-inline-start: 12px;
+}
+.ndi-top__mode {
+  padding: 5px 11px;
+  border: 1px solid var(--gx-line);
+  border-radius: var(--btn-radius);
+  background: transparent;
+  color: var(--gx-text-dim);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  cursor: pointer;
+}
+.ndi-top__mode.is-active {
+  border-color: var(--gx-green);
+  color: var(--gx-neon);
+  background: var(--gx-green-soft);
+}
+
+/* ------------------------------------------------------------------ *
+ * Left rail
+ * ------------------------------------------------------------------ */
+
+/*
+ * The rail carries a surface of its own. Without one it sat directly on the
+ * globe, and the host application's HUD text read straight through the scene
+ * titles — the rail was visible and not legible, which is worse than either.
+ */
+.ndi-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 12px 10px 16px;
+  border: 1px solid var(--gx-line);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--gx-panel) 92%, transparent);
+  box-shadow: var(--gx-glow);
+  backdrop-filter: blur(8px);
+}
+.ndi-rail__act-name {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0 0 7px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--gx-line);
+}
+.ndi-rail__act-id {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  color: var(--gx-emerald);
+}
+.ndi-rail__act-label {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--gx-text-dim);
+}
+.ndi-rail__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.ndi-rail__button {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  grid-template-rows: auto auto;
+  gap: 2px 8px;
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background: transparent;
+  text-align: start;
+  cursor: pointer;
+}
+.ndi-rail__button:hover {
+  background: var(--gx-green-softer);
+  border-color: var(--gx-line);
+}
+.ndi-rail__button.is-current {
+  background: var(--gx-green-soft);
+  border-color: var(--gx-line-strong);
+}
+.ndi-rail__index {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--gx-text-faint);
+}
+.ndi-rail__button.is-current .ndi-rail__index,
+.ndi-rail__button.is-seen .ndi-rail__index {
+  color: var(--gx-green);
+}
+.ndi-rail__title {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: var(--gx-text-dim);
+}
+.ndi-rail__button.is-current .ndi-rail__title {
+  color: var(--gx-text);
+}
+/* The class mix, firmest first — the shape of the evidence, at a glance. */
+.ndi-rail__stripe {
+  grid-column: 2;
+  display: flex;
+  height: 3px;
+  border-radius: 2px;
+  overflow: hidden;
+  opacity: 0.75;
+}
+.ndi-rail__stripe-part {
+  flex: 1;
+}
+
+/* ------------------------------------------------------------------ *
+ * Right panel
+ * ------------------------------------------------------------------ */
+
+.ndi-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 14px 16px 18px;
+  border: 1px solid var(--gx-line);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--gx-panel) 92%, transparent);
+  box-shadow: var(--gx-glow);
+  backdrop-filter: blur(8px);
+}
+.ndi-panel__head {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--gx-line);
+}
+.ndi-panel__title {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  color: var(--gx-green);
+}
+.ndi-panel__question {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--gx-text);
+}
+.ndi-panel__body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.ndi-panel__figure {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.ndi-panel__figure-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gx-text-faint);
+}
+/*
+ * A <dl> of label/value pairs, laid out as rows rather than a stack. Stacked,
+ * "Main shock / M7.8 / Aftershocks / 315" reads as one list of four things
+ * instead of two facts, which is how it first rendered.
+ */
+.ndi-panel__rows {
+  display: grid;
+  /*
+   * Both columns are minmax(0, …) so either can shrink. With `1fr auto` a
+   * long value — "MMI 3, 3.5, 4 — contours run off the model grid" — refused
+   * to wrap, overran its track and printed straight over its own label.
+   */
+  grid-template-columns: minmax(0, max-content) minmax(0, 1fr);
+  gap: 5px 12px;
+  margin: 0;
+  align-items: baseline;
+}
+.ndi-panel__rows > dt {
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--gx-text-dim);
+  min-width: 0;
+}
+.ndi-panel__rows > dd {
+  margin: 0;
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--gx-text);
+  text-align: end;
+  overflow-wrap: anywhere;
+}
+.ndi-panel__statement {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--gx-text);
+}
+.ndi-panel__note,
+.ndi-panel__caveat {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--gx-text-dim);
+}
+/* A limitation reads as a finding, not as small print. */
+.ndi-panel__caveat {
+  padding-inline-start: 9px;
+  border-inline-start: 2px solid var(--gx-amber);
+  color: var(--gx-text-dim);
+}
+.ndi-panel__limits {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.ndi-panel__gaps {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ndi-panel__gap-name {
+  font-size: 12px;
+  color: var(--gx-text-dim);
+}
+.ndi-panel__gap-fill {
+  display: block;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--gx-gap, var(--gx-text-faint));
+}
+.ndi-panel__footer {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px solid var(--gx-line);
+}
+.ndi-panel__classes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.ndi-panel__source {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1.5;
+  color: var(--gx-text-faint);
+}
+.ndi-panel__why {
+  align-self: flex-start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--gx-green);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  text-decoration: underline dotted;
+  cursor: pointer;
+}
+.ndi-panel__why:hover {
+  color: var(--gx-neon);
+}
+.ndi-panel__pending {
+  margin: 0;
+  font-size: 12px;
+  color: var(--gx-text-dim);
+}
+/* A missing layer is reported, and says the analysis is unaffected. */
+.ndi-panel__error {
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px solid color-mix(in srgb, var(--gx-amber) 46%, transparent);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--gx-amber) 9%, transparent);
+  color: var(--gx-amber);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+/* ------------------------------------------------------------------ *
+ * While the case is open
+ * ------------------------------------------------------------------ */
+
+/*
+ * The list was measured, not guessed. A first version hid the dock and three
+ * HUD classes and left ten other things on screen: the title bar, the
+ * classification banner, the intel HUD's grid coordinates, both sync chips,
+ * the command dock, the left panel stack and the right context rail all read
+ * straight through the case. Enumerating `document.body.children` in a driven
+ * browser is what produced this list.
+ *
+ * Every one is hidden, never removed. Closing the case drops the class and
+ * each returns exactly where it was.
+ */
+body.ndi-open .ws-root,
+body.ndi-open .sc-launcher,
+body.ndi-open .sc-panel,
+body.ndi-open #title-bar,
+body.ndi-open #style-indicator,
+body.ndi-open #top-center-actions,
+body.ndi-open #traffic-sync-chip,
+body.ndi-open #cctv-sync-chip,
+body.ndi-open #command-dock,
+body.ndi-open #left-panel-stack,
+body.ndi-open #right-context-rail,
+body.ndi-open #scene-runtime,
+body.ndi-open #orbit-indicator,
+body.ndi-open #intel-hud,
+body.ndi-open #first-run-launcher {
+  display: none;
+}
+
+/* ------------------------------------------------------------------ *
+ * Narrower screens. The map keeps the middle; the columns give way first.
+ * ------------------------------------------------------------------ */
+
+@media (max-width: 1440px) {
+  :root {
+    --ndi-rail-w: 226px;
+    --ndi-panel-w: 344px;
+  }
+}
+
+@media (max-width: 1100px) {
+  .ndi__body {
+    grid-template-columns: 1fr var(--ndi-panel-w);
+  }
+  .ndi__rail {
+    display: none;
+  }
+  .ndi__panel {
+    grid-column: 2;
+  }
+}
+
+@media (max-width: 760px) {
+  .ndi__body {
+    grid-template-columns: 1fr;
+  }
+  .ndi__panel {
+    grid-column: 1;
+    /* Half the height, so the map is still a map. */
+    max-height: 50%;
+    align-self: end;
+  }
+  .ndi-top {
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+}

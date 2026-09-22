@@ -20,6 +20,8 @@
 
 import * as Cesium from 'cesium';
 
+import { cameraRangeMetres } from '../../nepal/story/mapModel.js';
+
 const COLOUR_CACHE = new Map();
 
 function colour(hex, alpha) {
@@ -209,23 +211,41 @@ export function createNepalCaseLayers({ viewer, requestRender = () => {} }) {
      * the destination is the same, only the journey is cut, so nothing becomes
      * unreachable for someone who asked for less movement.
      */
+    /**
+     * Frame a scene's subject.
+     *
+     * `flyToBoundingSphere` with a HeadingPitchRange, not `flyTo` with a
+     * destination: a scene's target is the thing to LOOK AT, and `flyTo`
+     * would read it as where to PUT the camera. See `cameraRangeMetres` for
+     * what that cost — an oblique scene that framed empty sky.
+     *
+     * The `lookAt` on completion is the house pattern (`src/locations.js`):
+     * the flight lands close, and the lock guarantees the subject is centred
+     * rather than nearly centred.
+     */
     flyTo({ lon, lat, altKm, pitch, durationSec }) {
       const reduced =
         globalThis.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ??
         false;
-      viewer.camera.flyTo({
-        destination: Cesium.Cartesian3.fromDegrees(
-          lon,
-          lat,
-          Math.max(1, altKm) * 1000,
-        ),
-        orientation: {
-          heading: 0,
-          pitch: Cesium.Math.toRadians(pitch ?? -90),
-          roll: 0,
+      const target = Cesium.Cartesian3.fromDegrees(lon, lat, 0);
+      const range = cameraRangeMetres({ altKm, pitch });
+      const hpr = new Cesium.HeadingPitchRange(
+        0,
+        Cesium.Math.toRadians(pitch ?? -90),
+        range,
+      );
+      viewer.camera.flyToBoundingSphere(
+        new Cesium.BoundingSphere(target, range * 0.25),
+        {
+          offset: hpr,
+          duration: reduced ? 0.4 : (durationSec ?? 2),
+          complete: () => {
+            viewer.camera.lookAt(target, hpr);
+            viewer.camera.lookAtTransform(Cesium.Matrix4.IDENTITY);
+            requestRender();
+          },
         },
-        duration: reduced ? 0.4 : (durationSec ?? 2),
-      });
+      );
       requestRender();
     },
 

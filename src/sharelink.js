@@ -531,8 +531,32 @@ export class ShareLinkManager {
     this._debounceTimer = setTimeout(() => this._updateHash(), DEBOUNCE_MS);
   }
 
+  /**
+   * Is the address bar currently holding a hash this manager wrote?
+   *
+   * It writes with `replaceState`, which fires no event, so a blind write
+   * silently destroys any other interface's link. That happened: the Nepal
+   * case writes `#/case/npl-2015-eq/scene/…`, the camera then settled from
+   * the scene's own flight, and this replaced the case link with a camera
+   * snapshot. The case stayed on screen and its address became unshareable —
+   * a failure with no error and no symptom until somebody sends the link.
+   *
+   * So the rule is ownership: an empty hash is ours to fill, a camera hash is
+   * ours to update, and anything else belongs to whoever put it there.
+   */
+  _ownsCurrentHash() {
+    const hash = window.location?.hash?.slice(1) ?? '';
+    if (!hash) return true;
+    const params = new URLSearchParams(hash);
+    return (
+      Number.isFinite(parseFloat(params.get('lat'))) &&
+      Number.isFinite(parseFloat(params.get('lon')))
+    );
+  }
+
   _updateHash() {
     if (this._destroyed || this._initialRestorePending) return;
+    if (!this._ownsCurrentHash()) return;
     const params = this._buildHashParams();
     if (!params) return;
     history.replaceState(null, '', `#${params.toString()}`);

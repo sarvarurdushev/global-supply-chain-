@@ -50,7 +50,40 @@ test('progress reports load state, and a failure is reported rather than thrown 
   const progress = loader.progress();
   assert.equal(progress.loaded, 1);
   assert.equal(progress.failed, 1);
-  assert.equal(progress.total, 10);
+  /*
+   * Two datasets were asked for, and both have settled. `total` counts the
+   * asking, not the catalogue: a header that divided by ten would sit at
+   * "LOADING 1/10" over a case with nothing left in flight.
+   */
+  assert.equal(progress.total, 2);
+  assert.equal(progress.pending, 0);
+  assert.equal(progress.catalogue, 10);
+});
+
+test('progress counts what is still in the air, not what has never been asked for', async () => {
+  let release;
+  const held = new Promise((resolve) => {
+    release = resolve;
+  });
+  const loader = createArtefactLoader({
+    fetchImpl: async () => {
+      await held;
+      return { ok: true, status: 200, json: async () => ({ features: [] }) };
+    },
+  });
+  assert.deepEqual(
+    { ...loader.progress() },
+    { loaded: 0, failed: 0, pending: 0, total: 0, catalogue: 10 },
+    'nothing requested is not the same as nothing loaded',
+  );
+
+  const inFlight = loader.loadProcessed('shakemap');
+  assert.equal(loader.progress().pending, 1);
+  assert.equal(loader.progress().total, 1);
+  release();
+  await inFlight;
+  assert.equal(loader.progress().pending, 0);
+  assert.equal(loader.progress().loaded, 1);
 });
 
 test('a dataset is fetched once however many scenes ask for it', async () => {

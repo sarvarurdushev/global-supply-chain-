@@ -427,3 +427,34 @@ function centroidOfLines(features) {
   }
   return count > 0 ? { lon: lon / count, lat: lat / count } : null;
 }
+
+/**
+ * How far the camera must sit from its subject to end up at a given height.
+ *
+ * WHY THIS EXISTS. `camera.flyTo({ destination, orientation: { pitch } })`
+ * treats the destination as the CAMERA POSITION, not as the thing to look at.
+ * Scene 04 asks for 900 km at a 70-degree pitch over the rupture; read that
+ * way, the camera parked itself above the rupture and then looked 70 degrees
+ * down and north, which put the entire modelled shaking field off the bottom
+ * edge of the screen. The scene was drawing correctly and framing nothing.
+ *
+ * A scene's `target` is the subject, so the camera is placed by range from it
+ * instead: range = height / sin(pitch). At a nadir pitch that is the height
+ * itself, so the vertical scenes are unaffected.
+ *
+ * @param {object} pose
+ * @param {number} pose.altKm intended camera height above the subject
+ * @param {number} [pose.pitch] degrees, negative below the horizon
+ * @returns {number} range in metres from the subject to the camera
+ */
+export function cameraRangeMetres({ altKm, pitch = -90 }) {
+  const height = Math.max(1, Number(altKm) || 1) * 1000;
+  /*
+   * Clamp away from the horizon only. sin(0) is a camera at infinite range;
+   * sin(90) is exactly 1, so a nadir scene must NOT be clamped — a 89.9 cap
+   * made the vertical scenes land 1.4 m off their stated altitude for no
+   * reason at all.
+   */
+  const degrees = Math.min(90, Math.max(5, Math.abs(Number(pitch) || 90)));
+  return height / Math.sin((degrees * Math.PI) / 180);
+}
