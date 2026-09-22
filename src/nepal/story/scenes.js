@@ -147,7 +147,13 @@ export const SCENES = Object.freeze([
       'Make time a control that drives the map, not a caption beside it.',
     datasets: Object.freeze(['seismicEvents']),
     analyses: Object.freeze(['seismic-temporal-series', 'seismic-omori-decay']),
-    layers: Object.freeze(['seismic-events', 'seismic-decay']),
+    layers: Object.freeze(['seismic-events']),
+    /*
+     * The decay curve is a CHART below the map, not a layer on it. It was in
+     * `layers` and nothing drew it, which would have offered the user a layer
+     * toggle for something the globe has no way to show.
+     */
+    charts: Object.freeze(['seismic-decay']),
     camera: Object.freeze({
       altKm: 1200,
       pitch: -75,
@@ -590,6 +596,35 @@ export function scenesInAct(actId) {
   return SCENES.filter((entry) => entry.act === actId);
 }
 
+/**
+ * Every map layer the renderer knows how to draw.
+ *
+ * This exists so a scene cannot declare a layer that silently draws nothing.
+ * That failure has no error and no symptom: the scene loads, the panel reads
+ * correctly, and the map is simply missing the thing the scene is about.
+ * `validateScenes` checks every declared layer against this list.
+ */
+export const MAP_LAYERS = Object.freeze([
+  'epicentre',
+  'nepal-outline',
+  'seismic-events',
+  'shakemap-bands',
+  'population-density',
+  'district-bivariate',
+  'district-focus',
+  'damage-points',
+  'copernicus-points',
+  'aoi-footprints',
+  'blocked-roads',
+  'bridges-out',
+  'landslides',
+  'coverage-gap',
+  'road-network',
+  'route-baseline',
+  'route-damaged',
+  'proximity-rings',
+]);
+
 /** Datasets a scene needs, plus the next scene's, for prefetching. */
 export function datasetsToWarm(index, { lookahead = 1 } = {}) {
   const wanted = new Set();
@@ -661,6 +696,13 @@ export function validateScenes({
     for (const dataset of entry.datasets ?? []) {
       if (!PROCESSED_ARTEFACTS[dataset]) {
         problems.push(`${where}: unknown dataset "${dataset}"`);
+      }
+    }
+    for (const layer of entry.layers ?? []) {
+      if (!MAP_LAYERS.includes(layer)) {
+        problems.push(
+          `${where}: declares layer "${layer}", which is not a map layer. A layer nothing draws fails silently.`,
+        );
       }
     }
     if (analyses) {

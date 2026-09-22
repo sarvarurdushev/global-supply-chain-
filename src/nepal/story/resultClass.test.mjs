@@ -164,3 +164,21 @@ test('the palette tokens every class names are defined in the stylesheet', async
     assert.ok(css.includes(step), `${step} is missing from the ramp`);
   }
 });
+
+test('a data gap is the faintest class and is still visible', () => {
+  /*
+   * At 0.18 over a dark globe the 66 unsurveyed districts of Scene 12 were
+   * effectively not drawn, and the scene whose whole argument is "absence of
+   * observation is not absence of damage" showed an empty map. Invisibility
+   * says "nothing here"; the hatch and the dashed edge are what say "we
+   * cannot answer this".
+   */
+  const gap = mapGrammarFor(ResultClass.DATA_GAP);
+  const derived = mapGrammarFor(ResultClass.DERIVED);
+  const observed = mapGrammarFor(ResultClass.OBSERVED);
+  assert.ok(gap.fillAlpha >= 0.3, `a gap must be visible, got ${gap.fillAlpha}`);
+  assert.ok(gap.fillAlpha < derived.fillAlpha, 'and still the faintest');
+  assert.ok(derived.fillAlpha < observed.fillAlpha);
+  assert.equal(gap.edge, 'dashed');
+  assert.ok(gap.dashPattern > 0, 'the dash is what carries the meaning');
+});

@@ -258,7 +258,16 @@ export function mapGrammarFor(value, { modeled = false } = {}) {
         resultClass: ResultClass.DATA_GAP,
         modeled: false,
         edge: 'dashed',
-        fillAlpha: 0.18,
+        /*
+         * A GAP IS A FINDING, SO IT IS VISIBLE. At 0.18 over a dark globe the
+         * 66 unsurveyed districts of Scene 12 were effectively not drawn, and
+         * the scene whose whole argument is "absence of observation is not
+         * absence of damage" showed an empty map. The hatch and the dashed
+         * edge are what say "we cannot answer this"; invisibility says
+         * "nothing here", which is the misreading the scene exists to
+         * prevent. Still the faintest class, and now present.
+         */
+        fillAlpha: 0.38,
         outlineWidth: 1,
         dashPattern: 0xf0f0,
         shape: 'area',

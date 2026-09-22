@@ -158,7 +158,17 @@ export function createApplicationTools({
   // rest of the application is unaffected by its existence.
   const nepalCase = createNepalCaseMount({
     createLayers: () =>
-      createNepalCaseLayers({ viewer, requestRender: governorRequestRender }),
+      createNepalCaseLayers({
+        viewer,
+        requestRender: governorRequestRender,
+        /*
+         * Ground geometry is built on a worker, so the one frame requested
+         * after a scene change can be drawn before any of it exists. The
+         * governor is held open while it settles; see `caseLayers.js`.
+         */
+        holdRender: holdContinuousRender,
+        releaseRender: releaseContinuousRender,
+      }),
   });
   defer(() => nepalCase.destroy());
 

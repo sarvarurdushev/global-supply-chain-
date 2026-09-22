@@ -34,6 +34,7 @@ import {
   contoursToRings,
   intensityBands,
 } from '../../nepal/analysis/exposure.js';
+import { rasteriseDensity } from '../../nepal/story/densityRaster.js';
 import { renderTopBar } from './topBar.js';
 import { renderSceneRail } from './sceneRail.js';
 import { renderIntelPanel } from './intelPanel.js';
@@ -47,16 +48,26 @@ import { renderIntelPanel } from './intelPanel.js';
  */
 function createDerivedCache() {
   const cache = new Map();
+  const once = (key, build) => {
+    if (!cache.has(key)) cache.set(key, build());
+    return cache.get(key);
+  };
   return {
     intensityBands(shakemap) {
       if (!shakemap) return null;
-      if (!cache.has('intensityBands')) {
-        cache.set(
-          'intensityBands',
-          intensityBands(contoursToRings(shakemap.data.features)).bands,
-        );
-      }
-      return cache.get('intensityBands');
+      return once(
+        'intensityBands',
+        () => intensityBands(contoursToRings(shakemap.data.features)).bands,
+      );
+    },
+    /*
+     * The population raster. 49 ms for 177,679 cells, once — which is why the
+     * design's build-time density texture was not needed. Per frame it would
+     * be unacceptable, hence the cache.
+     */
+    densityRaster(population) {
+      if (!population) return null;
+      return once('densityRaster', () => rasteriseDensity(population.data));
     },
   };
 }
@@ -120,14 +131,16 @@ export function createNepalExperience({
   /** Data a scene has asked for and that has arrived. */
   function sceneData() {
     const shakemap = loader.ready('shakemap');
+    const copernicus = loader.ready('copernicus');
     return {
       districts: loader.ready('districts')?.data?.features ?? null,
       seismicEvents: loader.ready('seismicEvents')?.data?.events ?? null,
       unosat: loader.ready('unosat')?.data?.features ?? null,
       nga: loader.ready('nga')?.data ?? null,
-      copernicusAois:
-        loader.ready('copernicus')?.data?.areasOfInterest?.features ?? null,
+      copernicusAois: copernicus?.data?.areasOfInterest?.features ?? null,
+      copernicusGrading: copernicus?.data?.grading ?? null,
       intensityBands: derived.intensityBands(shakemap),
+      densityRaster: derived.densityRaster(loader.ready('population')),
     };
   }
 
@@ -262,6 +275,12 @@ export function createNepalExperience({
     );
     loader.prefetch(state.datasetsToWarm);
     scheduleRender('immediate');
+    /*
+     * The data having arrived is not the map having been drawn. Ground
+     * geometry is built asynchronously, so a caller that only waited for the
+     * fetch would move on to an empty globe.
+     */
+    await caseLayers?.whenSettled?.();
   }
 
   function onStateChange(reason) {

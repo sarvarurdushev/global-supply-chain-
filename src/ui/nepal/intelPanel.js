@@ -69,6 +69,17 @@ export function caveat(text) {
 }
 
 /**
+ * A stated finding: one sentence that is the point of the scene.
+ *
+ * Set apart from the rows because it is the conclusion, not another number.
+ * Several panels were building this inline with the same class; it is one
+ * helper now so the styling cannot drift between them.
+ */
+export function statement(text) {
+  return h('p', { class: 'ndi-panel__statement', text });
+}
+
+/**
  * The footer every panel gets.
  *
  * `onMethodology` opens the record; if a scene cites none, the link is absent
@@ -212,14 +223,49 @@ const BODIES = {
     ];
   },
 
+  /**
+   * Scene 06. The figures are CELL-level; the map is DISTRICT-level.
+   *
+   * Both are in the artefact and both are wanted: the quadrant counts are the
+   * finding, and 75 polygons are the only way to see the shape of it on a
+   * globe. So the panel says which resolution each belongs to. An earlier
+   * version led with "4 quadrants classified", which is a count of the
+   * analysis rather than a result of it, and left the reader to assume the map
+   * and the numbers were the same thing.
+   */
   overlap(intel) {
     const quadrants = intel.exposure.quadrants;
+    const byId = new Map(
+      (quadrants.quadrants ?? []).map((entry) => [entry.id, entry]),
+    );
+    const both = byId.get('HIGH_INTENSITY_HIGH_DENSITY');
+    const remote = byId.get('HIGH_INTENSITY_LOW_DENSITY');
+    const parameters = quadrants.parameters ?? {};
     return [
-      figure(Object.keys(quadrants.quadrants ?? {}).length, {
-        label: 'quadrants classified',
+      figure(both?.people, {
+        label:
+          'people in cells that were both strongly shaken and densely settled',
       }),
+      rows([
+        [
+          'High shaking, high density',
+          `${both?.people?.toLocaleString('en-GB')} (${both?.shareOfPopulationPercent}%)`,
+        ],
+        [
+          'High shaking, low density',
+          `${remote?.people?.toLocaleString('en-GB')} (${remote?.shareOfPopulationPercent}%)`,
+        ],
+        ['Intensity split', `MMI ${parameters.intensityThreshold}`],
+        [
+          'Density split',
+          `${parameters.densityCutPeoplePerCell} people per cell (${parameters.densityQuantile ? `${parameters.densityQuantile * 100}th percentile` : 'quantile'} of populated cells)`,
+        ],
+      ]),
+      statement(
+        `${remote?.people?.toLocaleString('en-GB')} people met the same shaking on the thinnest ground — small absolute numbers, and often the hardest to reach.`,
+      ),
       caveat(
-        'District aggregation hides variation inside a district. The thresholds are stated in the legend and can be moved.',
+        'The figures above count ~1 km population cells. The map colours the 75 districts by their highest modelled intensity and the share of their people inside the headline contour, which is a coarser view of the same question — district aggregation hides variation inside a district.',
       ),
     ];
   },

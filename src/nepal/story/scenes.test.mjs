@@ -195,3 +195,38 @@ test('the modelled hazard scenes are flagged so the map can draw them softly', (
   }
   assert.notEqual(scene('observed-damage').modeled, true);
 });
+
+test('every declared map layer has a renderer, and the unwired ones are named', async () => {
+  /*
+   * A scene that declares a layer nothing draws fails with no error and no
+   * symptom: it loads, the panel reads correctly, and the map is missing the
+   * one thing the scene is about. So the set is pinned from both sides — a
+   * new layer in a scene fails until a builder exists, and a builder that
+   * lands has to be taken off this list.
+   */
+  const { MAP_LAYERS } = await import('./scenes.js');
+  const declared = new Set(SCENES.flatMap((entry) => entry.layers ?? []));
+  for (const layer of declared) {
+    assert.ok(MAP_LAYERS.includes(layer), `"${layer}" is not a known map layer`);
+  }
+
+  /*
+   * What the model can currently produce. Read from its source rather than by
+   * calling it, because a builder returns nothing for absent data and an
+   * empty result is indistinguishable from an absent builder at run time.
+   * The three infrastructure layers are dispatched from a loop, so the test
+   * looks for the layer NAME rather than a particular call shape.
+   */
+  const source = await readFile(
+    new URL('./mapModel.js', import.meta.url),
+    'utf8',
+  );
+  const unwired = [...declared].filter(
+    (layer) => !source.includes(`'${layer}'`),
+  );
+  assert.deepEqual(
+    unwired.sort(),
+    ['road-network', 'route-baseline', 'route-damaged'],
+    'these are P8; everything else must already draw',
+  );
+});

@@ -24,6 +24,9 @@ import { cameraRangeMetres } from '../../nepal/story/mapModel.js';
 
 const COLOUR_CACHE = new Map();
 
+/** One owner id for the governor, so holds cannot leak per scene change. */
+const HOLD_ID = 'nepal-case-layers';
+
 function colour(hex, alpha) {
   const key = `${hex}:${alpha}`;
   let value = COLOUR_CACHE.get(key);
@@ -63,9 +66,88 @@ function hierarchies(geometry) {
  * @param {object} input.viewer a Cesium viewer
  * @param {()=>void} [input.requestRender] for the render governor
  */
-export function createNepalCaseLayers({ viewer, requestRender = () => {} }) {
+export function createNepalCaseLayers({
+  viewer,
+  requestRender = () => {},
+  holdRender = () => {},
+  releaseRender = () => {},
+  settleCapMs = 20_000,
+}) {
   if (!viewer)
     throw new TypeError('The Nepal case layers need a Cesium viewer.');
+
+  /**
+   * Keep rendering until a scene's geometry has actually been built.
+   *
+   * WHY. The application runs in `requestRenderMode` — it draws a frame only
+   * when something asks for one, which is what keeps an idle globe off the
+   * GPU. Ground-clamped geometry is built ASYNCHRONOUSLY, so the one frame
+   * requested after `render()` is drawn before any of it exists. Nothing then
+   * asks for another, and the map stays empty PERMANENTLY. Scene 12 put 333
+   * entities into a blank screen with the camera in exactly the right place,
+   * no error, no warning, and the panel beside it reading perfectly. Given
+   * sixteen seconds and a manual `requestRender()` it drew correctly, which
+   * is how the cause was found.
+   *
+   * A FIXED TIMER WAS THE FIRST FIX AND IT WAS WRONG. Three seconds is plenty
+   * on a GPU and nowhere near enough under software rendering, so the window
+   * has to be a CONDITION. `dataSourceDisplay.ready` is false exactly while
+   * an entity visualiser is still creating geometry, which is the thing being
+   * waited for. The cap only exists so a stuck visualiser cannot pin the
+   * globe into continuous rendering for the rest of the session.
+   */
+  let settleStop = null;
+  let resolveSettled = null;
+  let settled = Promise.resolve();
+
+  /**
+   * End the current watch, releasing anybody waiting on it.
+   *
+   * RESOLVING ON SUPERSEDE IS NOT OPTIONAL. The first version removed the old
+   * listener and dropped its promise on the floor, and since the loader
+   * schedules a render on every progress event, the promise a caller was
+   * already awaiting was routinely the abandoned one. `whenSceneReady()` then
+   * never resolved and the whole experience hung — a deadlock built out of
+   * two correct-looking halves.
+   */
+  function finishSettle() {
+    settleStop?.();
+    releaseRender(HOLD_ID);
+    const release = resolveSettled;
+    resolveSettled = null;
+    release?.();
+  }
+
+  function holdWhileSettling() {
+    finishSettle();
+    holdRender(HOLD_ID);
+    const deadline = Date.now() + settleCapMs;
+    settled = new Promise((resolve) => {
+      resolveSettled = resolve;
+    });
+    /*
+     * READY HAS TO HOLD FOR SEVERAL FRAMES IN A ROW. On the first frame after
+     * `render()` the visualisers have not started yet, so `ready` is still
+     * true from the previous scene and a single-frame check declared the map
+     * settled while the camera was five thousand kilometres up and nothing
+     * had been built. Three consecutive ready frames, and a two-frame floor
+     * so the check cannot pass before any work has begun.
+     */
+    let frames = 0;
+    let readyRun = 0;
+    const remove = viewer.scene.postRender.addEventListener(() => {
+      frames += 1;
+      readyRun = viewer.dataSourceDisplay?.ready === false ? 0 : readyRun + 1;
+      const done = frames > 2 && readyRun >= 3;
+      if (!done && Date.now() < deadline) return;
+      finishSettle();
+      requestRender();
+    });
+    settleStop = () => {
+      remove();
+      settleStop = null;
+    };
+  }
 
   /** @type {Map<string, {points: object|null, entities: object[]}>} */
   const layers = new Map();
@@ -73,7 +155,7 @@ export function createNepalCaseLayers({ viewer, requestRender = () => {} }) {
   function ensure(layerId) {
     let entry = layers.get(layerId);
     if (!entry) {
-      entry = { points: null, entities: [] };
+      entry = { points: null, entities: [], imagery: null };
       layers.set(layerId, entry);
     }
     return entry;
@@ -85,6 +167,10 @@ export function createNepalCaseLayers({ viewer, requestRender = () => {} }) {
     if (entry.points) {
       viewer.scene.primitives.remove(entry.points);
       entry.points = null;
+    }
+    if (entry.imagery) {
+      viewer.imageryLayers.remove(entry.imagery, true);
+      entry.imagery = null;
     }
     for (const entity of entry.entities) viewer.entities.remove(entity);
     entry.entities = [];
@@ -113,25 +199,47 @@ export function createNepalCaseLayers({ viewer, requestRender = () => {} }) {
     }
   }
 
+  /**
+   * A filled area, plus its edge as a separate ground polyline.
+   *
+   * THE EDGE HAS TO BE ITS OWN GEOMETRY. Cesium silently ignores `outline` on
+   * a polygon with `CLAMP_TO_GROUND` — it is documented, it logs nothing at
+   * run time, and the result was 75 district polygons with no borders at all.
+   * That is survivable on a choropleth and fatal on Scene 12, where the
+   * boundary between "surveyed" and "not surveyed" IS the finding. So an edge
+   * is drawn as a clamped polyline whenever the grammar asks for one.
+   */
   function drawPolygons(layerId, items) {
     const entry = ensure(layerId);
     for (const item of items) {
+      const fill = item.fillOverride ?? (item.dimmed ? 0.08 : item.fillAlpha);
       for (const hierarchy of hierarchies(item.geometry)) {
         entry.entities.push(
           viewer.entities.add({
             polygon: {
               hierarchy,
-              material: colour(
-                item.colour,
-                item.fillOverride ?? (item.dimmed ? 0.08 : item.fillAlpha),
-              ),
-              outline: item.outlineWidth > 0,
-              outlineColor: colour(item.colour, 0.85),
-              /* A modelled field is clamped to the ground; it has no edge to lift. */
+              material: colour(item.colour, fill),
+              /* See above: this is honoured only when NOT clamped. */
+              outline: false,
               heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
             },
           }),
         );
+        if (!(item.outlineWidth > 0)) continue;
+        for (const ring of [hierarchy, ...(hierarchy.holes ?? [])]) {
+          if (!ring.positions?.length) continue;
+          entry.entities.push(
+            viewer.entities.add({
+              polyline: {
+                /* Closed: Cesium does not close a polyline for you. */
+                positions: [...ring.positions, ring.positions[0]],
+                width: item.outlineWidth,
+                clampToGround: true,
+                material: colour(item.colour, item.dimmed ? 0.35 : 0.9),
+              },
+            }),
+          );
+        }
       }
     }
   }
@@ -149,6 +257,87 @@ export function createNepalCaseLayers({ viewer, requestRender = () => {} }) {
             material: colour(item.colour, item.fillAlpha),
             clampToGround: true,
           },
+        }),
+      );
+    }
+  }
+
+  /**
+   * A ground-clamped raster: the population field, as one imagery layer.
+   *
+   * WHY IMAGERY AND NOT A TEXTURED RECTANGLE. An imagery layer is reprojected
+   * and mip-mapped by the globe, so 978x492 cells stay legible from orbit and
+   * from a district, and it costs one layer rather than a primitive per cell.
+   * 177,679 primitives is not a scene; it is a stall.
+   *
+   * The canvas is built here rather than in the model because a canvas is a
+   * browser object. `rasteriseDensity` hands over the bytes and the bounds,
+   * which is everything a test can check.
+   */
+  function drawRaster(layerId, items) {
+    const entry = ensure(layerId);
+    const item = items[0];
+    const raster = item?.raster;
+    if (!raster) return;
+    const canvas = document.createElement('canvas');
+    canvas.width = raster.width;
+    canvas.height = raster.height;
+    const context = canvas.getContext('2d');
+    if (!context) return;
+    const image = context.createImageData(raster.width, raster.height);
+    image.data.set(raster.pixels);
+    context.putImageData(image, 0, 0);
+
+    entry.imagery = viewer.imageryLayers.addImageryProvider(
+      new Cesium.SingleTileImageryProvider({
+        url: canvas.toDataURL('image/png'),
+        rectangle: Cesium.Rectangle.fromDegrees(
+          raster.bounds.west,
+          raster.bounds.south,
+          raster.bounds.east,
+          raster.bounds.north,
+        ),
+        tileWidth: raster.width,
+        tileHeight: raster.height,
+      }),
+    );
+    entry.imagery.alpha = item.dimmed ? 0.35 : 1;
+  }
+
+  /**
+   * A circle on the ground, in METRES rather than pixels.
+   *
+   * Scene 15's proximity rings are a ruler laid on the map, so they have to
+   * scale with the map. A pixel radius would mean the 10 km ring covered ten
+   * kilometres at one altitude and a hundred at another, which is worse than
+   * not drawing it.
+   */
+  function drawCircles(layerId, items) {
+    const entry = ensure(layerId);
+    for (const item of items) {
+      entry.entities.push(
+        viewer.entities.add({
+          position: Cesium.Cartesian3.fromDegrees(item.lon, item.lat),
+          ellipse: {
+            semiMajorAxis: item.radiusMetres,
+            semiMinorAxis: item.radiusMetres,
+            material: colour(item.colour, item.fillOverride ?? item.fillAlpha),
+            outline: true,
+            outlineColor: colour(item.colour, 0.8),
+            outlineWidth: 2,
+            heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+          },
+          label: item.label
+            ? {
+                text: item.label,
+                font: '11px monospace',
+                fillColor: colour(item.colour, 0.95),
+                /* Offset so nested rings' labels do not stack on one another. */
+                pixelOffset: new Cesium.Cartesian2(0, -6),
+                verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+                disableDepthTestDistance: Number.POSITIVE_INFINITY,
+              }
+            : undefined,
         }),
       );
     }
@@ -199,9 +388,23 @@ export function createNepalCaseLayers({ viewer, requestRender = () => {} }) {
           else if (kind === 'polygon') drawPolygons(layerId, batch);
           else if (kind === 'polyline') drawPolylines(layerId, batch);
           else if (kind === 'marker') drawMarkers(layerId, batch);
+          else if (kind === 'raster') drawRaster(layerId, batch);
+          else if (kind === 'circle') drawCircles(layerId, batch);
         }
       }
+      holdWhileSettling();
       requestRender();
+    },
+
+    /**
+     * Resolves once the geometry of the last `render()` has been built.
+     *
+     * Presentation mode needs this and not only the data: advancing while the
+     * visualisers are still working presents an empty map, which is the same
+     * failure as the one above with a deadline attached.
+     */
+    whenSettled() {
+      return settled;
     },
 
     /**
@@ -250,6 +453,7 @@ export function createNepalCaseLayers({ viewer, requestRender = () => {} }) {
     },
 
     destroy() {
+      finishSettle();
       for (const layerId of [...layers.keys()]) clear(layerId);
       layers.clear();
     },

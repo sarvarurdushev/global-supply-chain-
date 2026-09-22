@@ -288,6 +288,301 @@ export function outlineDrawables(districts) {
  * layer without touching the others — the difference between a scene change
  * costing one layer and costing the whole map.
  */
+
+/* ------------------------------------------------------------------ *
+ * District choropleths. Scenes 06, 07 and 12 all colour the same 75
+ * polygons by different fields, so they share one builder and differ only
+ * in how a district is scored.
+ * ------------------------------------------------------------------ */
+
+/**
+ * Colour 75 district polygons by a scoring function.
+ *
+ * A district the scorer cannot score is DRAWN, in the data-gap grey, rather
+ * than omitted. This is the single most important behaviour in this file: a
+ * missing district that is simply absent from the map reads as a district
+ * where nothing happened, and Scene 12 exists to say that those are not the
+ * same thing.
+ *
+ * @param {Array} features district GeoJSON features
+ * @param {(props:object)=>({colour:string,resultClass:string,modeled?:boolean,
+ *          label?:string,value?:*}|null)} score
+ * @param {object} [options]
+ * @param {string} [options.layer]
+ * @param {string} [options.emphasise] district name drawn at full strength
+ */
+export function districtDrawables(
+  features,
+  score,
+  { layer, emphasise = null } = {},
+) {
+  return (features ?? []).map((feature) => {
+    const props = feature.properties ?? {};
+    const scored = score(props) ?? null;
+    const dimmed = emphasise !== null && props.district !== emphasise;
+    return drawable({
+      /* The scorer's own extras (fillOverride, maxMmi, …) ride through. */
+      ...(scored ?? {}),
+      id: `${layer}-${props.districtKey ?? props.district ?? 'unknown'}`,
+      layer,
+      kind: 'polygon',
+      geometry: feature.geometry,
+      district: props.district ?? null,
+      colour: scored?.colour ?? DATA_GAP_GREY,
+      resultClass: scored?.resultClass ?? ResultClass.DATA_GAP,
+      modeled: scored?.modeled === true,
+      label: scored?.label ?? `${props.district ?? 'Unknown'} — no data`,
+      value: scored?.value ?? null,
+      dimmed,
+    });
+  });
+}
+
+/** Grey for a district nothing can be said about. Never absent, never green. */
+export const DATA_GAP_GREY = '#5b6b66';
+
+/**
+ * Scene 06 — where shaking and population overlap.
+ *
+ * BOTH DIMENSIONS COME STRAIGHT OUT OF THE ARTEFACT. Colour is the district's
+ * `maxMmi` on the same MMI ramp Scene 04 uses, and fill strength is its
+ * `exposedPercent` — the share of its people inside the headline contour.
+ * Neither is computed here.
+ *
+ * An earlier version invented a density cut to make a 2x2. It had to go: the
+ * artefact's own density figure is people per square kilometre while its
+ * quadrant cut is people per ~1 km cell, and converting between them in the
+ * frontend would have been this file doing analysis behind the analysis's
+ * back — the one thing Stage 7 forbids outright. Using the two fields the
+ * artefact already publishes needs no conversion and no new threshold.
+ *
+ * A district with no row is grey and says so. 38 of the 75 never reached the
+ * threshold, and "did not reach the threshold" is a finding, not a blank.
+ */
+export function overlapDrawables(features, districtQuadrants) {
+  const byKey = new Map(
+    (districtQuadrants ?? []).map((row) => [row.districtKey, row]),
+  );
+  const levels = Object.keys(MMI_COLOURS)
+    .map(Number)
+    .sort((a, b) => a - b);
+  const rampFor = (mmi) => {
+    if (!Number.isFinite(mmi)) return null;
+    let chosen = levels[0];
+    for (const level of levels) if (level <= mmi) chosen = level;
+    return MMI_COLOURS[chosen];
+  };
+
+  return districtDrawables(
+    features,
+    (props) => {
+      const row = byKey.get(props.districtKey);
+      if (!row) return null;
+      const colour = rampFor(row.maxMmi);
+      if (!colour) return null;
+      const share = Math.min(100, Math.max(0, row.exposedPercent ?? 0)) / 100;
+      return {
+        colour,
+        /*
+         * DERIVED: two measured quantities read together. The weakest link
+         * sets the class, and neither input is weaker than that.
+         */
+        resultClass: ResultClass.DERIVED,
+        modeled: true,
+        label: `${row.district} — MMI ${row.maxMmi}, ${row.exposedPercent}% of ${row.population.toLocaleString('en-GB')} people inside the contour`,
+        value: row.exposedPercent,
+        maxMmi: row.maxMmi,
+        /* 0.12 floor so a 0%-exposed district is visible, not invisible. */
+        fillOverride: 0.12 + share * 0.58,
+      };
+    },
+    { layer: 'district-bivariate' },
+  );
+}
+
+/**
+ * Scene 07 — the descent. One district at full strength, the rest as context.
+ *
+ * The polygons are OFFICIAL and carry no analysis, so they are drawn in the
+ * official colour rather than scored. What changes is emphasis.
+ */
+export function districtFocusDrawables(features, { district = null } = {}) {
+  return districtDrawables(
+    features,
+    (props) => ({
+      colour: props.district === district ? '#4dd8ff' : '#0f9d58',
+      resultClass: ResultClass.OFFICIAL,
+      label: props.district ?? 'Unknown district',
+      value: props.district ?? null,
+    }),
+    { layer: 'district-focus', emphasise: district },
+  );
+}
+
+/**
+ * Scene 12 — the coverage gap. THE MOST IMPORTANT MAP IN THE PRODUCT.
+ *
+ * It colours districts by whether the infrastructure survey looked there, not
+ * by whether anything was damaged there. A district with zero records is drawn
+ * in the data-gap grey and its label says "no records" — never "no damage",
+ * and never left blank. ZERO OBSERVATIONS IS NOT ZERO DAMAGE, and the whole
+ * scene is built to make that impossible to misread.
+ */
+export const COVERAGE_COLOURS = Object.freeze({
+  observed: '#00ff9c',
+  sparse: '#ffb020',
+  none: DATA_GAP_GREY,
+});
+
+export function coverageDrawables(
+  features,
+  recordsByDistrict,
+  { sparseUnder = 5 } = {},
+) {
+  const counts = new Map(Object.entries(recordsByDistrict ?? {}));
+  return districtDrawables(
+    features,
+    (props) => {
+      const count = Number(counts.get(props.district) ?? 0);
+      if (count === 0) {
+        return {
+          colour: COVERAGE_COLOURS.none,
+          resultClass: ResultClass.DATA_GAP,
+          label: `${props.district} — no infrastructure records. Not a finding of no damage.`,
+          value: 0,
+        };
+      }
+      return {
+        colour:
+          count < sparseUnder
+            ? COVERAGE_COLOURS.sparse
+            : COVERAGE_COLOURS.observed,
+        resultClass: ResultClass.OBSERVED,
+        label: `${props.district} — ${count} record${count === 1 ? '' : 's'}`,
+        value: count,
+      };
+    },
+    { layer: 'coverage-gap' },
+  );
+}
+
+/* ------------------------------------------------------------------ *
+ * Scene 10 — the second observation system
+ * ------------------------------------------------------------------ */
+
+/** Copernicus grading vocabulary, reduced to the three states it means. */
+export const GRADING_COLOURS = Object.freeze({
+  destroyed: '#ff4d4d',
+  slight: '#ffb020',
+  unaffected: '#0f9d58',
+  unknown: DATA_GAP_GREY,
+});
+
+/** Which of those four a raw grading string is. Heterogeneous by source. */
+export function gradingBucket(value) {
+  const text = String(value ?? '').toLowerCase();
+  if (text.includes('completely destroyed')) return 'destroyed';
+  if (text.includes('negligible to slight')) return 'slight';
+  if (text.includes('not affected')) return 'unaffected';
+  return 'unknown';
+}
+
+/**
+ * Copernicus grading points, columnar in and primitives out.
+ *
+ * 41,042 points. The brief's rule is that performance is solved by simplifying
+ * RENDERING and never by simplifying a reported figure, so every point is
+ * drawn — as primitives, which is one draw call — and `stride` exists only for
+ * the presentation path where a laptop projector is the constraint. When a
+ * stride is used the panel still quotes 41,042, and `drawn` reports what the
+ * map shows so the two can never be confused.
+ */
+export function gradingDrawables(grading, { buckets = null, stride = 1 } = {}) {
+  if (!grading?.count) return [];
+  const wanted = buckets ? new Set(buckets) : null;
+  const step = Math.max(1, Math.floor(stride));
+  const out = [];
+  for (let i = 0; i < grading.count; i += step) {
+    const bucket = gradingBucket(grading.gradingValues[grading.grading[i]]);
+    if (wanted && !wanted.has(bucket)) continue;
+    out.push(
+      drawable({
+        id: `grading-${i}`,
+        layer: 'copernicus-points',
+        kind: 'point',
+        lon: grading.lon[i],
+        lat: grading.lat[i],
+        radius: 3,
+        colour: GRADING_COLOURS[bucket],
+        resultClass:
+          bucket === 'unknown' ? ResultClass.DATA_GAP : ResultClass.OBSERVED,
+        bucket,
+        aoi: grading.aoiValues[grading.aoi[i]] ?? null,
+      }),
+    );
+  }
+  return out;
+}
+
+/**
+ * The areas each grading campaign actually covered.
+ *
+ * Drawn as outlines with almost no fill, because the footprint is the
+ * argument: what the satellites looked at is a small part of the shaken area,
+ * and a solid fill would read as a finding about the ground rather than as a
+ * statement about the survey.
+ */
+export function aoiDrawables(features) {
+  return (features ?? []).map((feature, index) =>
+    drawable({
+      id: `aoi-${feature.properties?.aoi ?? index}`,
+      layer: 'aoi-footprints',
+      kind: 'polygon',
+      geometry: feature.geometry,
+      colour: '#4dd8ff',
+      resultClass: ResultClass.OFFICIAL,
+      label: feature.properties?.aoi ?? `AOI ${index + 1}`,
+      fillOverride: 0.06,
+    }),
+  );
+}
+
+/* ------------------------------------------------------------------ *
+ * Scene 15 — people and damage
+ * ------------------------------------------------------------------ */
+
+/**
+ * The proximity bands, drawn as a distance scale rather than a footprint.
+ *
+ * WHY NOT A BUFFER. The artefact's figures count ~1 km population cells whose
+ * CENTRE lies within D metres of an observed damage point. Drawing that as a
+ * filled buffer around 4,500 damage points would produce one continuous blob
+ * that looks like a damage footprint, which is a different and much stronger
+ * claim than the one the analysis makes.
+ *
+ * So the rings are anchored at one place, concentric, unfilled and labelled
+ * with the distance — a ruler laid on the map. The counts stay in the panel,
+ * where the wording that qualifies them is.
+ */
+export function proximityRingDrawables(bands, { lon, lat }) {
+  if (!Number.isFinite(lon) || !Number.isFinite(lat)) return [];
+  return (bands ?? []).map((band) =>
+    drawable({
+      id: `proximity-${band.withinMetres}`,
+      layer: 'proximity-rings',
+      kind: 'circle',
+      lon,
+      lat,
+      radiusMetres: band.withinMetres,
+      colour: '#4dd8ff',
+      resultClass: ResultClass.DERIVED,
+      label: `${band.withinMetres >= 1000 ? `${band.withinMetres / 1000} km` : `${band.withinMetres} m`} from an observed damage point`,
+      value: band.people,
+      fillOverride: 0,
+    }),
+  );
+}
+
 export function drawablesForScene({ state, intelligence, data = {} }) {
   const layers = new Set(state?.visibleLayers ?? []);
   const controls = state?.controls ?? {};
@@ -333,7 +628,92 @@ export function drawablesForScene({ state, intelligence, data = {} }) {
       add(layer, infrastructureDrawables(data.nga, { show: [layer] }));
     }
   }
+  if (layers.has('population-density') && data.densityRaster) {
+    /*
+     * One drawable for 177,679 cells. The raster is computed once and cached
+     * by the caller; this only says where to put it.
+     */
+    add('population-density', [
+      drawable({
+        id: 'population-density',
+        layer: 'population-density',
+        kind: 'raster',
+        raster: data.densityRaster,
+        colour: '#ffb020',
+        resultClass: ResultClass.ESTIMATE,
+        modeled: true,
+        label: 'Modelled population, ~1 km cells',
+      }),
+    ]);
+  }
+  if (layers.has('district-bivariate') && data.districts) {
+    add(
+      'district-bivariate',
+      overlapDrawables(
+        data.districts,
+        intelligence?.exposure?.districtQuadrants,
+      ),
+    );
+  }
+  if (layers.has('district-focus') && data.districts) {
+    add(
+      'district-focus',
+      districtFocusDrawables(data.districts, {
+        district: state?.selection?.district ?? null,
+      }),
+    );
+  }
+  if (layers.has('coverage-gap') && data.districts) {
+    add(
+      'coverage-gap',
+      coverageDrawables(
+        data.districts,
+        recordsByDistrict(intelligence?.infrastructure?.distribution),
+      ),
+    );
+  }
+  if (layers.has('copernicus-points') && data.copernicusGrading) {
+    add(
+      'copernicus-points',
+      gradingDrawables(data.copernicusGrading, {
+        buckets: controls.gradingBucket ? [controls.gradingBucket] : null,
+        stride: controls.gradingStride ?? 1,
+      }),
+    );
+  }
+  if (layers.has('aoi-footprints') && data.copernicusAois) {
+    add('aoi-footprints', aoiDrawables(data.copernicusAois));
+  }
+  if (layers.has('proximity-rings')) {
+    const anchor = resolveTarget('damage-centroid', {
+      intelligence,
+      data,
+      selection: state?.selection ?? {},
+    });
+    add(
+      'proximity-rings',
+      proximityRingDrawables(intelligence?.people?.proximity?.bands, anchor),
+    );
+  }
   return out;
+}
+
+/**
+ * Infrastructure records per district, summed across every record type.
+ *
+ * Scene 12 asks whether the survey LOOKED at a district, so a road, a bridge
+ * and a landslide all count the same. The artefact publishes each type's
+ * `byDistrict` separately, and this only adds them up.
+ */
+export function recordsByDistrict(distribution) {
+  const totals = {};
+  for (const group of Object.values(distribution ?? {})) {
+    for (const row of group?.byDistrict ?? []) {
+      if (!row?.id) continue;
+      totals[row.id] = (totals[row.id] ?? 0) + (Number(row.count) || 0);
+    }
+  }
+  return totals;
 }
 
 /**

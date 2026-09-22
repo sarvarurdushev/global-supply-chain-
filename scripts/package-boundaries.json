@@ -1219,6 +1219,7 @@
       "src/nepal/story/mapModel.js",
       "src/nepal/story/resultClass.js",
       "src/nepal/story/scenes.js",
+      "src/nepal/story/densityRaster.js",
       "src/ui/nepal/experience.js",
       "src/ui/nepal/intelPanel.js",
       "src/ui/nepal/mount.js",
