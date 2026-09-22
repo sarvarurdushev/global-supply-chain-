@@ -75,7 +75,12 @@ export const SCENES = Object.freeze([
     purpose:
       'Introduce the case to someone who knows nothing about it, without showing them a map yet.',
     datasets: Object.freeze([]),
-    analyses: Object.freeze([]),
+    /*
+     * The card states the magnitude, the depth and the date, all of which
+     * come from the seismic analysis. Citing nothing left the one screen
+     * that introduces the case as the one screen with no provenance.
+     */
+    analyses: Object.freeze(['seismic-magnitude-distribution']),
     layers: Object.freeze([]),
     camera: Object.freeze({
       altKm: 20000,
@@ -96,7 +101,7 @@ export const SCENES = Object.freeze([
     question: 'Where on Earth did this happen?',
     purpose: 'Orientation. Draw Nepal, mark the epicentre, show nothing else.',
     datasets: Object.freeze(['districts']),
-    analyses: Object.freeze([]),
+    analyses: Object.freeze(['seismic-spatial-distribution']),
     layers: Object.freeze(['nepal-outline', 'epicentre']),
     camera: Object.freeze({
       altKm: 1200,

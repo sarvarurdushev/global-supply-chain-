@@ -92,12 +92,25 @@ function footer({ resultClasses, sources, analyses, onMethodology }) {
       { class: 'ndi-panel__classes' },
       (resultClasses ?? []).map((value) => classChip(value)),
     ),
+    /*
+     * EVERY PANEL SAYS WHERE ITS NUMBERS CAME FROM. The source line used to
+     * be built from the scene's Tier 2 datasets alone, so a scene whose
+     * evidence lives entirely in the analysis artefacts — 16 and 17 — showed
+     * no source at all. Those are the two scenes most about provenance, and
+     * they were the two with none. When a scene loads no geometry, the line
+     * names the analyses it rests on instead.
+     */
     sources?.length
       ? h('p', {
           class: 'ndi-panel__source',
           text: `SOURCE ${sources.join(' · ')}`,
         })
-      : null,
+      : analyses?.length
+        ? h('p', {
+            class: 'ndi-panel__source',
+            text: `SOURCE ${analyses.join(' · ')}`,
+          })
+        : null,
     analyses?.length
       ? h('button', {
           type: 'button',

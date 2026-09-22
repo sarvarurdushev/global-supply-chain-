@@ -193,3 +193,37 @@ test('a panel whose figure cannot be resolved reports it instead of taking the a
   // And the scene's own content still renders, so the failure is contained.
   assert.ok(node.textContent.includes(scene('observed-damage').question));
 });
+
+test('every panel states where its numbers came from and how they were made', async () => {
+  /*
+   * The product's central promise is that a figure never appears without its
+   * provenance. Scenes 16 and 17 — the two most about provenance — had no
+   * source line at all, because it was built from Tier 2 datasets alone and
+   * their evidence lives entirely in the analysis artefacts.
+   */
+  const incomplete = [];
+  for (const entry of SCENES) {
+    const state = createNepalInvestigation({ scene: entry.index }).state;
+    const panel = renderIntelPanel({ intelligence, state, onMethodology() {} });
+    const problems = [];
+    if (!/SOURCE/.test(panel.textContent)) problems.push('no source line');
+    if (!panel.querySelector('.ndi-panel__why')) problems.push('no methodology link');
+    if (panel.querySelectorAll('.ndi-class').length === 0) problems.push('no result class');
+    if (problems.length > 0) incomplete.push(`${entry.index} ${entry.id}: ${problems.join(', ')}`);
+  }
+  assert.deepEqual(incomplete, []);
+});
+
+test('every methodology link opens a record that exists', () => {
+  /*
+   * A link that opens nothing is worse than no link, so the ids a scene
+   * cites are checked against the artefacts rather than trusted.
+   */
+  const missing = [];
+  for (const entry of SCENES) {
+    for (const id of entry.analyses ?? []) {
+      if (!intelligence.methodologyFor(id)) missing.push(`${entry.id} → ${id}`);
+    }
+  }
+  assert.deepEqual(missing, []);
+});
