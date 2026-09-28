@@ -218,6 +218,63 @@ export function damageDrawables(
   return drawables;
 }
 
+/*
+ * LEGIBILITY ON REAL IMAGERY, MEASURED. Sixteen Esri World Imagery tiles
+ * over the study area (Gorkha, Dhading, Kathmandu, Bhaktapur, Sindhupalchok,
+ * Langtang, Chitwan; z10 and z12) put the median ground luminance at 0.02 to
+ * 0.13 — Nepal from orbit is dark forest and shadowed valley, with snow as
+ * the bright exception. Against those pixels:
+ *
+ *  - a Destroyed point (#d92b4b) with the old near-black ring failed 3:1 in
+ *    BOTH fill and ring on 61% of the ground, because a dark ring vanishes
+ *    into dark terrain. A light ring takes the worst class to 2%, and every
+ *    class to 4% or less (the residue is snow, where the fills carry it).
+ *  - mid-luminance lines (violet route, red closures, orange landslides)
+ *    failed on 24–37% bare; a light casing takes them under 4%. Bright
+ *    lines (amber, green, cyan) are best with a dark casing: 0%.
+ *  - the district frame at 0.34 had a median contrast of 1.95:1; 0.5 lifts
+ *    it to 2.65:1 and still reads as context rather than as a layer.
+ *
+ * These are colour measurements against real imagery pixels, not a render
+ * of the scene over imagery — see the Stage 8 report.
+ */
+export const POINT_RING = '#e9f3ee';
+/*
+ * 0.6, not opaque. At 0.85 the ring was more than half of a 4px point and
+ * washed Destroyed red to pink on the dark treatment; at 0.6 the worst class
+ * fails 3:1 on 8–10% of imagery pixels (from 61%) and keeps its colour.
+ */
+export const RING_ALPHA = 0.6;
+export const CASING_LIGHT = '#e9f3ee';
+export const CASING_DARK = '#04070a';
+
+/**
+ * THE RING FOLLOWS THE GROUND IT IS DRAWN ON. Light rings are what real
+ * imagery needs, and on the offline treatment — a flat dark surface — they
+ * paled every dense cluster to pink, because at 4px a 1px ring is half the
+ * mark. So the basemap in use decides: the offline grid keeps the dark ring
+ * and plain lines it was designed with; any imagery gets the measured light
+ * ring and casings.
+ */
+export function groundIsImagery(stackId) {
+  return Boolean(stackId) && stackId !== 'offline';
+}
+
+export function pointRingFor(stackId) {
+  return groundIsImagery(stackId) ? POINT_RING : CASING_DARK;
+}
+
+/** The casing that gives a line its best worst case: light under a
+ * mid-luminance line, dark under a bright one. Legibility, not identity. */
+export function casingFor(colour) {
+  const [r, g, b] = [1, 3, 5].map(
+    (i) => parseInt(colour.slice(i, i + 2), 16) / 255,
+  );
+  const lin = (c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+  const luminance = 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+  return luminance < 0.4 ? CASING_LIGHT : CASING_DARK;
+}
+
 /**
  * The one colour each single-colour layer draws in, for the layer toggles.
  *
@@ -252,6 +309,7 @@ export function infrastructureDrawables(nga, { show = null } = {}) {
       positions: feature.geometry.coordinates,
       colour: LAYER_SWATCHES['blocked-roads'],
       width: 3,
+      cased: true,
       resultClass: ResultClass.OBSERVED,
       sensedOn: feature.properties?.sensedOn ?? null,
     }),
@@ -350,7 +408,8 @@ export function contextDrawables(districts) {
           positions: ring,
           colour: '#22d97f',
           width: 1,
-          fillOverride: 0.34,
+          /* 0.5, measured against imagery: see POINT_RING above. */
+          fillOverride: 0.5,
           resultClass: ResultClass.OFFICIAL,
           district: feature.properties.district,
         }),

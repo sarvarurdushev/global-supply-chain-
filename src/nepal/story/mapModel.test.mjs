@@ -4,14 +4,20 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
+  CASING_DARK,
+  CASING_LIGHT,
   CONTEXT_LAYER,
+  POINT_RING,
   COVERAGE_COLOURS,
   DAMAGE_COLOURS,
   DATA_GAP_GREY,
   MMI_COLOURS,
   aoiDrawables,
   cameraRangeMetres,
+  casingFor,
   contextDrawables,
+  groundIsImagery,
+  pointRingFor,
   coverageDrawables,
   damageDrawables,
   districtFocusDrawables,
@@ -509,4 +515,22 @@ test('the reversal beat isolates the two straddling areas by dimming, not deleti
   assert.ok(lit.length > 0 && lit.length < isolated.length);
   assert.ok(lit.every((item) => ['Sundar Bazar', 'Manbu Area'].includes(item.settlement)));
   assert.ok(plain.every((item) => !item.dimmed));
+});
+
+test('casings are chosen for legibility on dark imagery, by the line’s own luminance', () => {
+  /* Mid-luminance lines get a light casing; bright ones a dark one. */
+  for (const colour of ['#a78bfa', '#ff4d4d', '#f4713b', '#d92b4b'])
+    assert.equal(casingFor(colour), CASING_LIGHT, colour);
+  for (const colour of ['#ffb020', '#22d97f', '#00ff9c', '#4dd8ff'])
+    assert.equal(casingFor(colour), CASING_DARK, colour);
+  assert.equal(POINT_RING, CASING_LIGHT);
+});
+
+test('the point ring follows the ground it is drawn on', () => {
+  /* Imagery (dark Himalaya) needs the light ring; the dark offline grid the dark one. */
+  for (const id of ['esri-imagery', 'osm', 'bing-aerial', 'photoreal'])
+    assert.equal(pointRingFor(id), POINT_RING, id);
+  assert.equal(pointRingFor('offline'), CASING_DARK);
+  assert.equal(groundIsImagery('offline'), false);
+  assert.equal(groundIsImagery(null), false, 'unknown ground keeps the designed dark ring');
 });

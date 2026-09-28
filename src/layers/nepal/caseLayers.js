@@ -20,7 +20,13 @@
 
 import * as Cesium from 'cesium';
 
-import { cameraRangeMetres } from '../../nepal/story/mapModel.js';
+import {
+  RING_ALPHA,
+  cameraRangeMetres,
+  casingFor,
+  groundIsImagery,
+  pointRingFor,
+} from '../../nepal/story/mapModel.js';
 
 const COLOUR_CACHE = new Map();
 
@@ -72,7 +78,15 @@ export function createNepalCaseLayers({
   holdRender = () => {},
   releaseRender = () => {},
   settleCapMs = 20_000,
+  getStackId = () => null,
+  stackEvents = globalThis.window ?? null,
 }) {
+  /*
+   * Which ground the marks sit on — see `pointRingFor`. Read at draw time
+   * and on every stack change, so a mid-talk fall to the offline grid
+   * restyles the rings already on screen.
+   */
+  let stackId = getStackId?.() ?? null;
   if (!viewer)
     throw new TypeError('The Nepal case layers need a Cesium viewer.');
 
@@ -198,7 +212,11 @@ export function createNepalCaseLayers({
          * The outline is the grammar: an observed point is rimmed, a modelled
          * one is not. `outlineWidth` comes straight from the model.
          */
-        outlineColor: colour('#04070a', item.dimmed ? 0.2 : 0.9),
+        /* Light over imagery, dark over the offline grid: see mapModel. */
+        outlineColor: colour(
+          pointRingFor(stackId),
+          item.dimmed ? 0.12 : RING_ALPHA,
+        ),
         outlineWidth: item.outlineWidth,
         disableDepthTestDistance: Number.POSITIVE_INFINITY,
       });
@@ -270,6 +288,17 @@ export function createNepalCaseLayers({
       new Cesium.PolylineCollection(),
     );
     entry.lines = collection;
+    /* Casings first, so every line sits on its own. */
+    for (const item of items) {
+      if (!item.cased || !groundIsImagery(stackId)) continue;
+      collection.add({
+        positions: Cesium.Cartesian3.fromDegreesArray(item.positions.flat()),
+        width: (item.width ?? 1) + 2,
+        material: Cesium.Material.fromType('Color', {
+          color: colour(casingFor(item.colour), RING_ALPHA),
+        }),
+      });
+    }
     for (const item of items) {
       collection.add({
         id: `${layerId}:${item.id}`,
@@ -285,15 +314,35 @@ export function createNepalCaseLayers({
   function drawPolylines(layerId, items) {
     const entry = ensure(layerId);
     for (const item of items) {
+      const positions = Cesium.Cartesian3.fromDegreesArray(
+        item.positions.flat(),
+      );
+      /*
+       * A casing under the analytical lines, as its own wider polyline: the
+       * outline materials are not available to ground-clamped lines, and
+       * zIndex is what orders ground geometry. See `casingFor`.
+       */
+      if (item.cased && groundIsImagery(stackId)) {
+        entry.entities.push(
+          viewer.entities.add({
+            polyline: {
+              positions,
+              width: (item.width ?? 3) + 2,
+              material: colour(casingFor(item.colour), RING_ALPHA),
+              clampToGround: true,
+              zIndex: 0,
+            },
+          }),
+        );
+      }
       entry.entities.push(
         viewer.entities.add({
           polyline: {
-            positions: Cesium.Cartesian3.fromDegreesArray(
-              item.positions.flat(),
-            ),
+            positions,
             width: item.width ?? 3,
             material: colour(item.colour, item.fillOverride ?? item.fillAlpha),
             clampToGround: true,
+            zIndex: 1,
           },
         }),
       );
@@ -427,7 +476,17 @@ export function createNepalCaseLayers({
     }
   }
 
-  return Object.freeze({
+  let lastGrouped = null;
+  function onStackChanged(event) {
+    const next = event?.detail?.activeId ?? null;
+    if (!next || next === stackId) return;
+    const flipped = groundIsImagery(next) !== groundIsImagery(stackId);
+    stackId = next;
+    if (flipped && lastGrouped) api.render(lastGrouped);
+  }
+  stackEvents?.addEventListener?.('gev:map-stack-changed', onStackChanged);
+
+  const api = Object.freeze({
     /**
      * Draw one frame's worth of layers.
      *
@@ -437,6 +496,7 @@ export function createNepalCaseLayers({
      * would cost more bookkeeping than it saves on sets this size.
      */
     render(grouped) {
+      lastGrouped = grouped;
       const wanted = new Set(grouped.keys());
       for (const layerId of [...layers.keys()]) {
         if (!wanted.has(layerId)) clear(layerId);
@@ -557,9 +617,14 @@ export function createNepalCaseLayers({
     },
 
     destroy() {
+      stackEvents?.removeEventListener?.(
+        'gev:map-stack-changed',
+        onStackChanged,
+      );
       finishSettle();
       for (const layerId of [...layers.keys()]) clear(layerId);
       layers.clear();
     },
   });
+  return api;
 }

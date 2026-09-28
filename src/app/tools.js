@@ -176,6 +176,8 @@ export function createApplicationTools({
          */
         holdRender: holdContinuousRender,
         releaseRender: releaseContinuousRender,
+        /* Rings and casings follow the ground in use: imagery or the grid. */
+        getStackId: () => mapStackController?.getActiveId?.() ?? null,
       }),
   });
   defer(() => nepalCase.destroy());

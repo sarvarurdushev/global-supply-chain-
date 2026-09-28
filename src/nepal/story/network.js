@@ -108,6 +108,8 @@ export function networkDrawables(
          */
         resultClass: isBlocked ? ResultClass.OBSERVED : ResultClass.OFFICIAL,
         blocked: isBlocked,
+        /* The closures are the finding; they keep a casing over imagery. */
+        cased: isBlocked,
         highway: klass,
         osmId: edge.osmId ?? null,
       }),
@@ -228,6 +230,7 @@ export function routeDrawables(solved) {
              * fills are where translucency carries meaning.
              */
             fillOverride: 0.95,
+            cased: true,
             distanceKm: summary.distanceKm,
           }),
         ]
