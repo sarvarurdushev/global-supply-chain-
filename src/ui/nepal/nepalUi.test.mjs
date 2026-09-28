@@ -60,12 +60,30 @@ test('a constructed scene carries the scenario band across the whole header', ()
 test('the mode switch reports and changes who is driving', () => {
   const inv = createNepalInvestigation();
   const picked = [];
-  const bar = renderTopBar({ header, state: inv.state, onMode: (mode) => picked.push(mode) });
+  const bar = renderTopBar({
+    header,
+    state: inv.state,
+    onMode: (mode, options) => picked.push([mode, options?.length ?? null]),
+  });
   const buttons = bar.querySelectorAll('button');
-  assert.equal(buttons.length, 2);
+  assert.deepEqual(
+    buttons.map((button) => button.textContent),
+    ['EXPLORE', 'PRESENT', '6 MIN'],
+  );
   assert.equal(buttons[0].getAttribute('aria-pressed'), 'true');
   buttons[1].click();
-  assert.deepEqual(picked, [MODE.PRESENT]);
+  buttons[2].click();
+  assert.deepEqual(picked, [
+    [MODE.PRESENT, 'full'],
+    [MODE.PRESENT, 'short'],
+  ]);
+
+  /* Presenting the short run lights the short button, not PRESENT. */
+  inv.setMode(MODE.PRESENT);
+  const presenting = renderTopBar({ header, state: inv.state, presentLength: 'short' })
+    .querySelectorAll('button')
+    .map((button) => button.getAttribute('aria-pressed'));
+  assert.deepEqual(presenting, ['false', 'false', 'true']);
 });
 
 test('the rail lists every scene, grouped by act, and marks where you are', () => {
@@ -251,8 +269,13 @@ test('no panel says the same thing twice', () => {
   for (const entry of SCENES) {
     const state = createNepalInvestigation({ scene: entry.index }).state;
     const panel = renderIntelPanel({ intelligence, state, onMethodology() {} });
+    const pool = new Set((entry.limitations ?? []).flatMap((limit) => [...words(limit)]));
     for (const node of panel.querySelectorAll('.ndi-panel__caveat')) {
       const caveat = words(node.textContent);
+      let covered = 0;
+      for (const word of caveat) if (pool.has(word)) covered += 1;
+      if (caveat.size >= 4 && covered / caveat.size >= 0.9)
+        repeated.push(`${entry.id}: stitched from the limits — ${node.textContent.slice(0, 40)}…`);
       for (const limit of (entry.limitations ?? []).map(words)) {
         const [short, long] = caveat.size <= limit.size ? [caveat, limit] : [limit, caveat];
         let shared = 0;
@@ -278,16 +301,19 @@ test('the limitations are a labelled list, not a browser-default one', () => {
 });
 
 test('a caveat with no matching limitation is kept', () => {
-  /* The rule is "do not say it twice", not "the body may not have caveats". */
-  const withCaveats = SCENES.filter((entry) => {
+  /*
+   * The rule is "do not say it twice", not "the body may not have caveats".
+   * Named rather than counted: these four add something no limitation says —
+   * cells vs districts, what an unexamined district means, where the two
+   * product families were tasked, and how the four clocks may be read.
+   */
+  const kept = SCENES.filter((entry) => {
     const state = createNepalInvestigation({ scene: entry.index }).state;
     const panel = renderIntelPanel({ intelligence, state, onMethodology() {} });
     return panel.querySelectorAll('.ndi-panel__caveat').length > 0;
-  });
-  assert.ok(
-    withCaveats.length >= 5,
-    `only ${withCaveats.length} scenes kept a caveat — the filter is too eager`,
-  );
+  }).map((entry) => entry.id);
+  for (const id of ['overlap', 'descend', 'coverage-gap', 'four-clocks'])
+    assert.ok(kept.includes(id), `${id} lost a caveat that says something new`);
 });
 
 test('a layer toggle carries the colour its layer is drawn in', async () => {
@@ -307,4 +333,119 @@ test('a layer toggle carries the colour its layer is drawn in', async () => {
     const layer = chip.textContent.trim().replace(/ /g, '-');
     assert.ok(LAYER_SWATCHES[layer], `${layer} has a swatch`);
   }
+});
+
+test('a headline figure can say where it came from, in place', () => {
+  /*
+   * Part J: 13.84M → SOURCE / METHOD / CLASS / LIMITATION without leaving the
+   * scene. Everything on the card is read from the methodology record.
+   */
+  const toggled = [];
+  const state = createNepalInvestigation({ scene: 4 }).state;
+  const closed = renderIntelPanel({
+    intelligence,
+    state,
+    on: { provenance: (id) => toggled.push(id) },
+  });
+  const button = closed.querySelector('.ndi-figure__info');
+  assert.ok(button, 'the headline carries an info button');
+  assert.equal(button.getAttribute('aria-expanded'), 'false');
+  assert.equal(closed.querySelector('.ndi-prov'), null, 'closed until asked');
+  button.click();
+  assert.deepEqual(toggled, ['exposure-population-by-intensity']);
+
+  const open = renderIntelPanel({
+    intelligence,
+    state,
+    on: { provenance() {} },
+    provenance: 'exposure-population-by-intensity',
+  });
+  const card = open.querySelector('.ndi-prov');
+  assert.ok(card, 'the card opens under the figure');
+  const kids = open.querySelector('.ndi-panel__body').children;
+  const at = kids.indexOf(card);
+  assert.equal(kids[at - 1]?.getAttribute('data-analysis'), 'exposure-population-by-intensity');
+  const text = card.textContent;
+  assert.match(text, /Source/);
+  assert.match(text, /WorldPop 2015/);
+  assert.match(text, /USGS ShakeMap/);
+  assert.match(text, /Method/);
+  assert.match(text, /DERIVED/);
+  assert.match(text, /EXPOSURE IS NOT HARM/);
+  assert.equal(open.querySelector('.ndi-figure__info').getAttribute('aria-expanded'), 'true');
+});
+
+test('every headline that cites a record resolves to one, and the one that cannot says so', () => {
+  const missing = [];
+  for (const entry of SCENES) {
+    const state = createNepalInvestigation({ scene: entry.index }).state;
+    const panel = renderIntelPanel({ intelligence, state, on: { provenance() {} } });
+    for (const node of panel.querySelectorAll('.ndi-figure__info')) {
+      const id = node.getAttribute('data-provenance');
+      if (id.startsWith('unrecorded:')) continue;
+      if (!intelligence.methodologyFor(id)) missing.push(`${entry.id} → ${id}`);
+    }
+  }
+  assert.deepEqual(missing, []);
+
+  /* Scene 06's quadrant counts have no record; the card must not borrow one. */
+  const state = createNepalInvestigation({ scene: 6 }).state;
+  const id = renderIntelPanel({ intelligence, state, on: { provenance() {} } })
+    .querySelector('.ndi-figure__info')
+    .getAttribute('data-provenance');
+  assert.match(id, /^unrecorded:/);
+  const card = renderIntelPanel({ intelligence, state, on: { provenance() {} }, provenance: id })
+    .querySelector('.ndi-prov');
+  assert.ok(card.classList.contains('is-gap'));
+  assert.match(card.textContent, /No methodology record/);
+  assert.doesNotMatch(card.textContent, /Method/);
+});
+
+test('the footer link opens provenance instead of dispatching into nothing', () => {
+  const toggled = [];
+  const emitted = [];
+  const state = createNepalInvestigation({ scene: 12 }).state;
+  const panel = renderIntelPanel({
+    intelligence,
+    state,
+    on: { provenance: (id) => toggled.push(id) },
+    onMethodology: (id) => emitted.push(id),
+  });
+  panel.querySelector('.ndi-panel__why').click();
+  assert.deepEqual(toggled, [state.scene.analyses[0]]);
+  assert.deepEqual(emitted, [state.scene.analyses[0]], 'the event still fires for any listener');
+  /* A statement-led scene places the card at the top of the body. */
+  const open = renderIntelPanel({
+    intelligence,
+    state,
+    on: { provenance() {} },
+    provenance: state.scene.analyses[0],
+  });
+  assert.equal(open.querySelector('.ndi-panel__body').children[0].classList.contains('ndi-prov'), true);
+});
+
+test('Scene 09 is staged when presented: map, then statistic, then reversal', () => {
+  /*
+   * The three beats used to render identically — nothing read the beat's
+   * `panel` — so the reveal the scene is designed around never happened.
+   */
+  const state = createNepalInvestigation({ scene: 9 }).state;
+  const text = (focus) =>
+    renderIntelPanel({ intelligence, state, on: { provenance() {} }, focus }).textContent;
+
+  const first = text({ panel: 'lookAtTheMap' });
+  assert.match(first, /Look at the map first/);
+  assert.doesNotMatch(first, /Cramér/);
+  assert.doesNotMatch(first, /different towns/, 'the limits would give the reversal away');
+
+  const second = text({ panel: 'chiSquare' });
+  assert.match(second, /Cramér/);
+  assert.doesNotMatch(second, /Sundar Bazar/);
+
+  const third = text({ panel: 'withinArea', mapAction: 'isolateAreas' });
+  assert.match(third, /Sundar Bazar/);
+  assert.match(third, /different towns/);
+
+  /* Explore mode (no focus) is the whole scene at once. */
+  assert.equal(text(null), third);
 });

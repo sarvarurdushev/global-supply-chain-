@@ -99,13 +99,60 @@ test('the presentation drives scenes and reports where it is', async () => {
   assert.equal(experience.mode, MODE.PRESENT);
   assert.equal(experience.sceneIndex, 0);
   assert.match(mount.textContent, /ACT I/);
-  assert.match(mount.textContent, /00 Case 001/);
-  assert.match(mount.textContent, /1\/21/);
+  assert.match(mount.textContent, /CASE 001/);
+  assert.match(mount.textContent, /What am I about to investigate\?/);
+  assert.match(mount.textContent, /01 \/ 21/);
+  assert.match(mount.textContent, /next · Locate/);
+  assert.match(mount.textContent, /min left/);
   assert.match(mount.textContent, /PLAYING/);
 
   await clock.tick();
   assert.equal(experience.sceneIndex, 1, 'it advanced on its own');
-  assert.match(mount.textContent, /2\/21/);
+  assert.match(mount.textContent, /02 \/ 21/);
+  present.destroy();
+});
+
+test('the strip is a map of the investigation: one segment per beat, acts apart', () => {
+  const experience = fakeExperience();
+  const mount = mountPoint();
+  const present = createNepalPresentation({ experience, mount });
+  present.start();
+  const track = mount.querySelector('.ndi-present__track');
+  assert.ok(track);
+  const segments = track.children.filter((node) => node.classList.contains('ndi-present__seg'));
+  const gaps = track.children.filter((node) => node.classList.contains('ndi-present__act-gap'));
+  assert.equal(segments.length, present.script.beats.length);
+  assert.equal(gaps.length, 2, 'three acts, two boundaries');
+  assert.equal(segments.filter((node) => node.classList.contains('is-current')).length, 1);
+  /* Width follows the beat's real length, so Scene 09's short moves look short. */
+  const grow = segments.map((node) => Number(node.style.flexGrow));
+  assert.ok(Math.max(...grow) > Math.min(...grow));
+  present.destroy();
+});
+
+test('the six-minute run names each step of the argument on the strip', () => {
+  const experience = fakeExperience();
+  const mount = mountPoint();
+  const present = createNepalPresentation({ experience, mount, length: 'short' });
+  present.start();
+  assert.equal(present.script.length, 'short');
+  assert.match(mount.textContent, /01 \/ 13/);
+  assert.match(mount.textContent, /NEPAL/);
+  assert.match(mount.textContent, /next · M7\.8 earthquake/);
+  present.destroy();
+});
+
+test('I reveals the headline provenance without pausing the run', () => {
+  const experience = fakeExperience();
+  let toggles = 0;
+  experience.toggleHeadlineProvenance = () => {
+    toggles += 1;
+  };
+  const present = createNepalPresentation({ experience, mount: mountPoint() });
+  present.start();
+  present.handleKey({ key: 'i', target: null, preventDefault() {} });
+  assert.equal(toggles, 1);
+  assert.equal(present.state.status, 'playing');
   present.destroy();
 });
 
@@ -247,4 +294,26 @@ test('destroying releases the key listener and the strip', async () => {
   const wasAt = experience.sceneIndex;
   await clock.tick();
   assert.equal(experience.sceneIndex, wasAt);
+});
+
+test('a beat hands its staging to the experience', async () => {
+  const clock = fakeClock();
+  const experience = fakeExperience();
+  const focuses = [];
+  experience.setBeatFocus = (focus) => focuses.push(focus);
+  const present = createNepalPresentation({
+    experience,
+    mount: mountPoint(),
+    setTimer: clock.setTimer,
+    clearTimer: clock.clearTimer,
+  });
+  present.start();
+  await Promise.resolve();
+  const at = present.script.beats.findIndex((beat) => beat.sceneId === 'model-vs-observed');
+  while (present.state.index < at) present.playback.next();
+  assert.deepEqual(focuses.at(-1), { panel: 'lookAtTheMap', mapAction: null });
+  present.playback.next();
+  present.playback.next();
+  assert.deepEqual(focuses.at(-1), { panel: 'withinArea', mapAction: 'isolateAreas' });
+  present.destroy();
 });

@@ -15,10 +15,8 @@
  * a scene index AND an optional panel emphasis rather than being a scene index
  * alone.
  *
- * TWO LENGTHS. The full run is every scene. SHORT keeps Act I's opening, the
- * three-beat reversal, the coverage gap and the synthesis — the argument
- * without the descent — because a nine-minute walk-through is not what fits
- * into a meeting.
+ * TWO LENGTHS. The full run is every scene. SHORT is the argument in the
+ * order a university audience needs to hear it — see `SHORT_RUN`.
  */
 
 import { SCENES, scene } from './scenes.js';
@@ -37,22 +35,43 @@ import { SCENES, scene } from './scenes.js';
 export const DEFAULT_HOLD_SEC = Object.freeze({ full: 40, short: 48 });
 
 /**
- * The scenes a short run keeps, exactly as the design names them.
+ * The six-minute run: the ARGUMENT, one scene per step of it.
  *
- * 00, 02, 04, 05, 09, 12, 15, 17 — the event, the shaking, who was under it,
- * the reversal, the coverage gap, people and damage, and what we know. The
- * argument without the descent.
+ * NEPAL → M7.8 EARTHQUAKE → SEISMIC SEQUENCE → SHAKING → POPULATION EXPOSURE
+ * → OBSERVED DAMAGE → MODEL VS OBSERVATION → INFRASTRUCTURE → COVERAGE GAP →
+ * NETWORK CONSEQUENCE → WHAT THE DATA CAN AND CANNOT TELL US.
+ *
+ * The Stage 6 short run (00, 02, 04, 05, 09, 12, 15, 17) skipped the
+ * sequence, the observed damage, the infrastructure and the network — so the
+ * reversal in Scene 09 arrived before the audience had seen a single damage
+ * point, and the coverage gap before they had seen what the survey covered.
+ * Each step now has the scene that makes it, and nothing else: no descent,
+ * no second observation system, no controls to demonstrate.
+ *
+ * HOLDS ARE PER STEP, because the steps are not equal. Locating Nepal takes
+ * a sentence; the coverage gap is the scene the whole product exists for.
+ * `cue` is the step's name in the argument, shown on the presentation strip.
  */
-export const SHORT_RUN = Object.freeze([
-  'case-card',
-  'earthquake',
-  'shaking',
-  'exposure',
-  'model-vs-observed',
-  'coverage-gap',
-  'people-and-damage',
-  'data-quality',
-]);
+export const SHORT_RUN = Object.freeze(
+  [
+    { id: 'locate', cue: 'Nepal', holdSec: 20 },
+    { id: 'earthquake', cue: 'M7.8 earthquake', holdSec: 26 },
+    { id: 'sequence', cue: 'Seismic sequence', holdSec: 28 },
+    { id: 'shaking', cue: 'Shaking', holdSec: 28 },
+    { id: 'exposure', cue: 'Population exposure', holdSec: 28 },
+    { id: 'observed-damage', cue: 'Observed damage', holdSec: 30 },
+    /* Its three beats carry their own holds (6 + 8 + 12 s). */
+    { id: 'model-vs-observed', cue: 'Model vs observation' },
+    { id: 'infrastructure', cue: 'Infrastructure', holdSec: 26 },
+    { id: 'coverage-gap', cue: 'Coverage gap', holdSec: 36 },
+    { id: 'route', cue: 'Network consequence', holdSec: 30 },
+    {
+      id: 'data-quality',
+      cue: 'What the data can and cannot tell us',
+      holdSec: 38,
+    },
+  ].map((step) => Object.freeze(step)),
+);
 
 /**
  * Build the beat list.
@@ -62,14 +81,24 @@ export const SHORT_RUN = Object.freeze([
  * @returns {{id:string, beats:Array<object>}}
  */
 export function nepalPresentation({ length = 'full' } = {}) {
-  const entries =
+  const steps =
     length === 'short'
-      ? SHORT_RUN.map((id) => scene(id)).filter(Boolean)
-      : [...SCENES];
+      ? SHORT_RUN.map((step) => ({ ...step, entry: scene(step.id) })).filter(
+          (step) => step.entry,
+        )
+      : SCENES.map((entry) => ({ id: entry.id, entry }));
 
   const holdSec = DEFAULT_HOLD_SEC[length] ?? DEFAULT_HOLD_SEC.full;
   const beats = [];
-  for (const entry of entries) {
+  for (const step of steps) {
+    const entry = step.entry;
+    /*
+     * THE FLIGHT IS NOT PART OF THE HOLD. The hold starts when the camera has
+     * landed (see `whenSceneReady`), so a scene's flight is added once, on
+     * its first beat, for `runSeconds` to count. Leaving it out made the full
+     * run look 12.4 minutes when it plays nearer 13.3.
+     */
+    const flightSec = Number(entry.camera?.durationSec) || 0;
     if (entry.beats?.length) {
       /*
        * A scene with its own beats contributes all of them, each holding for
@@ -77,12 +106,14 @@ export function nepalPresentation({ length = 'full' } = {}) {
        * needs six; one hold for the scene would give the punchline the same
        * weight as the preamble.
        */
-      for (const beat of entry.beats) {
+      entry.beats.forEach((beat, n) => {
         beats.push(
           Object.freeze({
             id: `${entry.id}:${beat.id}`,
             sceneIndex: entry.index,
             sceneId: entry.id,
+            cue: step.cue ?? entry.title,
+            flightMs: n === 0 ? flightSec * 1000 : 0,
             panel: beat.panel ?? null,
             mapAction: beat.mapAction ?? null,
             holdMs: (beat.holdSec ?? holdSec) * 1000,
@@ -92,7 +123,7 @@ export function nepalPresentation({ length = 'full' } = {}) {
             question: entry.question,
           }),
         );
-      }
+      });
       continue;
     }
     beats.push(
@@ -100,9 +131,11 @@ export function nepalPresentation({ length = 'full' } = {}) {
         id: entry.id,
         sceneIndex: entry.index,
         sceneId: entry.id,
+        cue: step.cue ?? entry.title,
+        flightMs: flightSec * 1000,
         panel: null,
         mapAction: null,
-        holdMs: (entry.holdSec ?? holdSec) * 1000,
+        holdMs: (step.holdSec ?? entry.holdSec ?? holdSec) * 1000,
         needs: entry.datasets ?? [],
         title: entry.title,
         question: entry.question,
@@ -130,11 +163,17 @@ export function scenesCovered(script) {
   ].sort((a, b) => a - b);
 }
 
-/** Total run time, in seconds. What somebody scheduling a meeting needs. */
+/**
+ * Total run time, in seconds: holds plus flights. What somebody scheduling a
+ * meeting needs, and what the presentation strip counts down from.
+ */
 export function runSeconds(script) {
   return (
     (script?.beats ?? []).reduce(
-      (sum, beat) => sum + (beat.holdMs ?? DEFAULT_HOLD_SEC.full * 1000),
+      (sum, beat) =>
+        sum +
+        (beat.holdMs ?? DEFAULT_HOLD_SEC.full * 1000) +
+        (beat.flightMs ?? 0),
       0,
     ) / 1000
   );

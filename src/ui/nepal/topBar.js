@@ -32,9 +32,15 @@ function stat(label, value, { tone = null } = {}) {
  * @param {object} input
  * @param {object} input.header from `headerState()` — never assembled here
  * @param {object} input.state investigation snapshot
- * @param {(mode:string)=>void} [input.onMode]
+ * @param {(mode:string, options?:{length:'full'|'short'})=>void} [input.onMode]
+ * @param {'full'|'short'} [input.presentLength] which run PRESENT is playing
  */
-export function renderTopBar({ header, state, onMode = () => {} }) {
+export function renderTopBar({
+  header,
+  state,
+  onMode = () => {},
+  presentLength = 'full',
+}) {
   const scenario = needsScenarioBand(state?.scene?.resultClasses ?? []);
   const bar = h('header', { class: 'ndi-top', role: 'banner' }, [
     h('div', { class: 'ndi-top__brand' }, [
@@ -56,7 +62,24 @@ export function renderTopBar({ header, state, onMode = () => {} }) {
     ]),
     h('div', { class: 'ndi-top__modes', role: 'group', 'aria-label': 'Mode' }, [
       modeButton('EXPLORE', MODE.EXPLORE, state?.mode, onMode),
-      modeButton('PRESENT', MODE.PRESENT, state?.mode, onMode),
+      /*
+       * TWO WAYS TO PRESENT. The six-minute run existed only in code: the
+       * header's one PRESENT button always started the full thirteen, so the
+       * run built for a university slot could not be reached from the
+       * product at all.
+       */
+      presentButton('PRESENT', 'full', {
+        title: 'Present every scene — about 13 minutes',
+        state,
+        presentLength,
+        onMode,
+      }),
+      presentButton('6 MIN', 'short', {
+        title: 'Present the argument in eleven scenes — about 6 minutes',
+        state,
+        presentLength,
+        onMode,
+      }),
     ]),
   ]);
 
@@ -71,6 +94,18 @@ export function renderTopBar({ header, state, onMode = () => {} }) {
       }),
     ]),
   ]);
+}
+
+function presentButton(label, length, { title, state, presentLength, onMode }) {
+  const active = state?.mode === MODE.PRESENT && presentLength === length;
+  return h('button', {
+    type: 'button',
+    class: `ndi-top__mode${active ? ' is-active' : ''}`,
+    'aria-pressed': active ? 'true' : 'false',
+    title,
+    text: label,
+    onclick: () => onMode(MODE.PRESENT, { length }),
+  });
 }
 
 function modeButton(label, mode, current, onMode) {

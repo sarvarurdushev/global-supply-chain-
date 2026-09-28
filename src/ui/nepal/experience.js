@@ -111,11 +111,53 @@ export function createNepalExperience({
   let graphNote = null;
   let graphEdges = null;
   /** The one way anything on screen writes to the investigation. */
+  /*
+   * Which figure's provenance card is open, if any. Held here rather than in
+   * the panel so a re-render (data landing, a control moving) cannot close
+   * it under the presenter's hand, and cleared on a scene change so a card
+   * never outlives the figure it explains.
+   */
+  let openProvenance = null;
+
+  /*
+   * Which run PRESENT plays. Held here because the header chooses it and the
+   * mount (which owns the runner) reads it; switching run while already
+   * presenting is not a mode change, so it is announced as one explicitly.
+   */
+  let presentLength = 'full';
+
+  /*
+   * What the current presentation beat stages: `panel` picks how much of a
+   * panel is revealed, `mapAction` what the map isolates. Read only while
+   * presenting — pausing into explore shows the whole scene at once — and
+   * cleared on a scene change so one scene's staging never leaks into the
+   * next.
+   */
+  let beatFocus = null;
+  let lastSceneIndex = null;
+  const liveFocus = () =>
+    investigation.state.mode === MODE.PRESENT ? beatFocus : null;
+  function requestMode(mode, { length = 'full' } = {}) {
+    const lengthChanged = mode === MODE.PRESENT && length !== presentLength;
+    if (mode === MODE.PRESENT) presentLength = length;
+    const already = investigation.state.mode === mode;
+    investigation.setMode(mode);
+    if (already && lengthChanged) {
+      scheduleRender('mode');
+      onChange?.(investigation.state, 'mode');
+    }
+  }
+  function toggleProvenance(id) {
+    openProvenance = openProvenance === id ? null : (id ?? null);
+    scheduleRender('provenance');
+  }
+
   const hooks = Object.freeze({
     control: (key, value) => investigation.setControl(key, value),
     select: (patch) => investigation.select(patch),
     layer: (id, value) => investigation.toggleLayer(id, value),
     filter: (values) => investigation.setResultClassFilter(values),
+    provenance: (id) => toggleProvenance(id),
   });
 
   let networkGraph = null;
@@ -234,6 +276,8 @@ export function createNepalExperience({
 
   function renderNow() {
     const state = investigation.state;
+    /* The layout reads the mode: presenting hides the navigation rail. */
+    root.setAttribute('data-mode', String(state.mode).toLowerCase());
     const header = intelligence
       ? headerState(intelligence, loader.progress())
       : {
@@ -250,7 +294,8 @@ export function createNepalExperience({
       renderTopBar({
         header,
         state,
-        onMode: (mode) => investigation.setMode(mode),
+        presentLength,
+        onMode: (mode, options) => requestMode(mode, options),
       }),
     );
     slots.rail.replaceChildren(
@@ -262,6 +307,8 @@ export function createNepalExperience({
             intelligence,
             state,
             on: hooks,
+            provenance: openProvenance,
+            focus: liveFocus(),
             onMethodology: (id) => openMethodology(id),
           })
         : h('aside', { class: 'ndi-panel' }, [
@@ -319,7 +366,9 @@ export function createNepalExperience({
 
     if (caseLayers && intelligence) {
       const data = sceneData();
-      caseLayers.render(drawablesForScene({ state, intelligence, data }));
+      caseLayers.render(
+        drawablesForScene({ state, intelligence, data, focus: liveFocus() }),
+      );
     }
   }
 
@@ -456,6 +505,18 @@ export function createNepalExperience({
   }
 
   function onStateChange(reason) {
+    /*
+     * Cleared when the SCENE changes, not on every 'deeplink': the mount
+     * writes the address after each step and the browser's hashchange comes
+     * back as a 'deeplink' for the same scene, which wiped Scene 09's
+     * staging a moment after the beat set it.
+     */
+    const sceneNow = investigation.state.sceneIndex;
+    if (sceneNow !== lastSceneIndex) {
+      lastSceneIndex = sceneNow;
+      openProvenance = null;
+      beatFocus = null;
+    }
     scheduleRender(reason);
     if (reason === 'scene' || reason === 'deeplink') {
       moveCamera();
@@ -562,6 +623,38 @@ export function createNepalExperience({
         problems: Object.freeze([...routeProblems]),
       });
     },
+
+    /**
+     * Open or close the card behind the scene's headline figure — the I key
+     * in a presentation. The headline is the first figure that cites a
+     * record; a scene whose headline is a statement opens its first
+     * analysis instead, which is where the footer link goes too.
+     */
+    toggleHeadlineProvenance() {
+      const cited = slots.panel.querySelector('.ndi-figure__info');
+      const id =
+        cited?.getAttribute('data-provenance') ??
+        investigation.state.scene?.analyses?.[0] ??
+        null;
+      if (id) toggleProvenance(id);
+      return openProvenance;
+    },
+    get openProvenance() {
+      return openProvenance;
+    },
+    get presentLength() {
+      return presentLength;
+    },
+    setBeatFocus(focus) {
+      const next = focus?.panel || focus?.mapAction ? focus : null;
+      if (JSON.stringify(next) === JSON.stringify(beatFocus)) return;
+      beatFocus = next;
+      scheduleRender('immediate');
+    },
+    get beatFocus() {
+      return beatFocus;
+    },
+    requestMode,
 
     /** Exposed for the presentation runner and for tests. */
     goTo(target) {

@@ -181,7 +181,7 @@ export function shakingDrawables(bands, { threshold = null } = {}) {
  */
 export function damageDrawables(
   features,
-  { classes = null, since = null } = {},
+  { classes = null, since = null, isolate = null } = {},
 ) {
   const wanted = classes ? new Set(classes) : null;
   const limit = since ? Date.parse(since) : null;
@@ -203,6 +203,15 @@ export function damageDrawables(
         resultClass: ResultClass.OBSERVED,
         damageClass: properties.damageClass,
         sensorDate: properties.sensorDate,
+        settlement: properties.settlement ?? null,
+        /*
+         * Isolation dims, it never removes: the other areas stay on the map
+         * as context, so the reader sees WHICH two places the reversal is
+         * about and that they are two of fourteen.
+         */
+        ...(isolate && !isolate.has(properties.settlement)
+          ? { dimmed: true, fillOverride: 0.14 }
+          : {}),
       }),
     );
   }
@@ -707,7 +716,12 @@ export function proximityRingDrawables(bands, { lon, lat, chosen = null }) {
   );
 }
 
-export function drawablesForScene({ state, intelligence, data = {} }) {
+export function drawablesForScene({
+  state,
+  intelligence,
+  data = {},
+  focus = null,
+}) {
   const layers = new Set(state?.visibleLayers ?? []);
   const controls = state?.controls ?? {};
   const out = new Map();
@@ -747,6 +761,15 @@ export function drawablesForScene({ state, intelligence, data = {} }) {
       'damage-points',
       damageDrawables(data.unosat, {
         classes: controls.damageClass ? [controls.damageClass] : null,
+        /* Scene 09's third beat: the two areas that straddle a band edge. */
+        isolate:
+          focus?.mapAction === 'isolateAreas'
+            ? new Set(
+                (
+                  intelligence?.damage?.byIntensity?.withinAnalysisArea ?? []
+                ).map((area) => area.area),
+              )
+            : null,
       }),
     );
   }

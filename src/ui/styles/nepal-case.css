@@ -97,8 +97,15 @@
    * above the viewport edge and 28px tall; the case never draws over it.
    */
   grid-template-rows: auto auto minmax(0, 1fr) auto var(--ndi-credit-h);
-  grid-template-columns: 1fr;
+  /*
+   * minmax(0, …), not 1fr: a bare 1fr track grows to its content's
+   * min-content width, and the presentation strip's one unwrapped line — the
+   * Scene 09 question is 74 characters — widened the whole case past the
+   * viewport and pushed the panel off the right edge.
+   */
+  grid-template-columns: minmax(0, 1fr);
   height: 100%;
+  overflow: hidden;
 }
 
 .ndi__top {
@@ -381,11 +388,105 @@
   flex-direction: column;
   gap: 2px;
 }
+/*
+ * 10px, and one step brighter than faint. At 9px faint-on-panel the label
+ * under every headline — the words that say WHAT the big number counts —
+ * was the least legible text on the screen, which at presentation distance
+ * means the number arrives without its meaning.
+ */
 .ndi-panel__figure-label {
   font-family: var(--font-mono);
-  font-size: 9px;
-  letter-spacing: 0.16em;
+  font-size: 10px;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
+  color: var(--gx-text-dim);
+}
+
+.ndi-panel__figure .ndi-figure {
+  display: flex;
+  align-items: baseline;
+}
+/* The figure's provenance switch: small, quiet, and a real button. */
+.ndi-figure__info {
+  align-self: center;
+  margin-inline-start: 10px;
+  inline-size: 18px;
+  block-size: 18px;
+  padding: 0;
+  border: 1px solid var(--gx-line-strong);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--gx-text-dim);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-style: italic;
+  line-height: 16px;
+  text-align: center;
+  cursor: pointer;
+}
+.ndi-figure__info:hover,
+.ndi-figure__info.is-open {
+  border-color: var(--gx-green);
+  color: var(--gx-neon);
+}
+.ndi-figure__info:focus-visible {
+  outline: 2px solid var(--gx-neon);
+  outline-offset: 2px;
+}
+
+/*
+ * The provenance card. Same surface as the panel, a rule on the left in the
+ * figure's own green: it reads as part of the figure, not as a modal.
+ */
+.ndi-prov {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--gx-line);
+  border-inline-start: 2px solid var(--gx-green);
+  border-radius: 3px;
+  background: rgba(34, 217, 127, 0.04);
+}
+.ndi-prov.is-gap {
+  border-inline-start-color: var(--gx-amber);
+  background: rgba(255, 176, 32, 0.05);
+}
+.ndi-prov__name {
+  margin: 0;
+  font-size: 12px;
+  color: var(--gx-text);
+}
+.ndi-prov__rows {
+  display: grid;
+  grid-template-columns: 78px minmax(0, 1fr);
+  gap: 6px 10px;
+  margin: 0;
+}
+.ndi-prov__rows > dt {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gx-green);
+  padding-block-start: 2px;
+}
+.ndi-prov__rows > dd {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--gx-text-dim);
+}
+.ndi-prov__dataset {
+  color: var(--gx-text);
+}
+.ndi-prov__more {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
   color: var(--gx-text-faint);
 }
 /*
@@ -680,24 +781,40 @@ body.ndi-open #first-run-launcher {
  * ------------------------------------------------------------------ */
 
 .ndi-present {
+  min-inline-size: 0;
   pointer-events: auto;
   background: rgba(6, 11, 14, 0.9);
   border-bottom: 1px solid var(--gx-line);
 }
 
-.ndi-present__bar {
-  height: 2px;
-  background: var(--gx-green-softer);
+.ndi-present__track {
+  display: flex;
+  gap: 2px;
+  block-size: 3px;
+  padding-inline: 16px;
+  padding-block-start: 6px;
+  box-sizing: content-box;
 }
-.ndi-present__fill {
-  display: block;
-  height: 100%;
-  background: var(--gx-neon);
+.ndi-present__seg {
+  flex-basis: 0;
+  min-inline-size: 3px;
+  border-radius: 1px;
+  background: var(--gx-green-softer);
   /* Steps between beats rather than creeping, so it never reads as a spinner. */
-  transition: width 240ms ease-out;
+  transition: background-color 240ms ease-out;
+}
+.ndi-present__seg.is-done {
+  background: var(--gx-emerald);
+}
+.ndi-present__seg.is-current {
+  background: var(--gx-neon);
+  box-shadow: 0 0 6px rgba(0, 255, 156, 0.45);
+}
+.ndi-present__act-gap {
+  flex: 0 0 10px;
 }
 @media (prefers-reduced-motion: reduce) {
-  .ndi-present__fill {
+  .ndi-present__seg {
     transition: none;
   }
 }
@@ -705,25 +822,52 @@ body.ndi-open #first-run-launcher {
 .ndi-present__line {
   display: flex;
   align-items: baseline;
-  gap: 16px;
-  padding: 5px 16px 6px;
+  gap: 18px;
+  padding: 6px 16px 7px;
   font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: 0.1em;
+  white-space: nowrap;
+  overflow: hidden;
 }
 .ndi-present__act {
   color: var(--gx-emerald);
 }
+.ndi-present__count {
+  font-variant-numeric: tabular-nums;
+  color: var(--gx-text-dim);
+}
 .ndi-present__title {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-inline-size: 0;
+  overflow: hidden;
+}
+.ndi-present__cue {
+  color: var(--gx-neon);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+}
+.ndi-present__question {
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-family: var(--font-sans);
   font-size: 12px;
   letter-spacing: 0;
   color: var(--gx-text);
 }
-.ndi-present__count {
+.ndi-present__next {
+  color: var(--gx-text-faint);
+}
+.ndi-present__left {
   margin-inline-start: auto;
   font-variant-numeric: tabular-nums;
+  color: var(--gx-text-dim);
+}
+.ndi-present__keys {
   color: var(--gx-text-faint);
+  letter-spacing: 0.04em;
 }
 .ndi-present__status {
   color: var(--gx-text-dim);
@@ -737,6 +881,51 @@ body.ndi-open #first-run-launcher {
 .ndi-present__status.is-finished {
   color: var(--gx-emerald);
 }
+@media (max-width: 1280px) {
+  .ndi-present__keys,
+  .ndi-present__next {
+    display: none;
+  }
+}
+
+/*
+ * PRESENTING HIDES THE RAIL. Nineteen scene titles down the left are
+ * navigation for the person driving, not information for the room — and the
+ * strip above now says where the story is. The map takes the width. E (or
+ * the EXPLORE button) brings the rail back at exactly this scene.
+ */
+/*
+ * READ FROM THE BACK OF THE ROOM. The headline figure is 26px at a desk;
+ * presenting, it is the one thing on the panel the audience must read, so
+ * it and its label step up. Nothing else on the panel changes size — the
+ * detail is for the presenter and for questions afterwards.
+ */
+.ndi[data-mode='present'] .ndi-panel__figure .ndi-figure {
+  font-size: 36px;
+}
+.ndi[data-mode='present'] .ndi-panel__figure-label {
+  font-size: 11px;
+}
+.ndi[data-mode='present'] .ndi-panel__question {
+  font-size: 15px;
+}
+/* Scene 09's first beat asks the audience to look; the question is the text. */
+.ndi-panel__prompt {
+  font-size: 16px;
+  line-height: 1.45;
+  color: var(--gx-text);
+}
+
+@media (min-width: 1101px) {
+  /* Narrower screens already drop the rail; see above. */
+  .ndi[data-mode='present'] .ndi__body {
+    grid-template-columns: 0 1fr var(--ndi-panel-w);
+  }
+  .ndi[data-mode='present'] .ndi__rail {
+    visibility: hidden;
+  }
+}
+
 /* A missing layer is stated on the strip, not hidden for the sake of a demo. */
 .ndi-present__missing {
   color: var(--gx-amber);

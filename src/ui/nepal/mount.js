@@ -93,9 +93,20 @@ export function createNepalCaseMount({
   function syncPresentation(state, reason) {
     if (!open || reason !== 'mode') return;
     if (state.mode === MODE.PRESENT) {
+      /*
+       * The header chose a run. A runner for the other one is replaced, not
+       * resumed: switching from the full run to the six-minute one mid-way
+       * must start the six-minute argument from its first step.
+       */
+      const length = experience.presentLength ?? 'full';
+      if (presentation && presentation.script.length !== length) {
+        presentation.destroy();
+        presentation = null;
+      }
       if (!presentation) {
         presentation = createNepalPresentation({
           experience,
+          length,
           /*
            * The experience's own reserved zone. `.ndi__top` was the first
            * choice and it is cleared on every render, so the strip appeared

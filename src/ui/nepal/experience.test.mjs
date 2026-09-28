@@ -298,3 +298,21 @@ test('a scene is not ready while the camera is still in the air', async () => {
   assert.equal(ready, true);
   experience.destroy();
 });
+
+test('an address echo for the same scene does not wipe a beat or an open card', async () => {
+  const experience = createNepalExperience({
+    mount: mountPoint(),
+    caseLayers: recordingLayers(),
+    fetchImpl: diskFetch(),
+  });
+  await experience.start();
+  experience.goTo('model-vs-observed');
+  experience.investigation.setMode('PRESENT');
+  experience.setBeatFocus({ panel: 'lookAtTheMap', mapAction: null });
+  /* What the mount's hashchange listener does with its own address. */
+  experience.investigation.applyDeepLink(experience.investigation.state.deepLink);
+  assert.deepEqual(experience.beatFocus, { panel: 'lookAtTheMap', mapAction: null });
+  experience.goTo('infrastructure');
+  assert.equal(experience.beatFocus, null, 'a real scene change clears it');
+  experience.destroy();
+});

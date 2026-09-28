@@ -41,14 +41,134 @@ import {
  * ------------------------------------------------------------------ */
 
 /** A machine-read number with its unit. Monospace; language never is. */
-export function figure(value, { unit = null, label = null } = {}) {
-  return h('div', { class: 'ndi-panel__figure' }, [
-    h('div', { class: 'ndi-figure' }, [
-      h('span', { text: String(value) }),
-      unit ? h('span', { class: 'ndi-figure__unit', text: unit }) : null,
+export function figure(
+  value,
+  { unit = null, label = null, analysis = null } = {},
+) {
+  return h(
+    'div',
+    {
+      class: 'ndi-panel__figure',
+      ...(analysis ? { 'data-analysis': analysis } : {}),
+    },
+    [
+      h('div', { class: 'ndi-figure' }, [
+        h('span', { text: formatFigure(value) }),
+        unit ? h('span', { class: 'ndi-figure__unit', text: unit }) : null,
+        analysis
+          ? h('button', {
+              type: 'button',
+              class: 'ndi-figure__info',
+              'data-provenance': analysis,
+              'aria-expanded': 'false',
+              'aria-label': 'Where this figure comes from',
+              title: 'Where this figure comes from (I)',
+              text: 'i',
+            })
+          : null,
+      ]),
+      label
+        ? h('div', { class: 'ndi-panel__figure-label', text: label })
+        : null,
+    ],
+  );
+}
+
+/**
+ * Whole numbers of four digits and more get thousands separators.
+ *
+ * "11834041" at the top of Scene 06 had to be counted digit by digit from
+ * the back of a room; the charts and rows already print 4,583, so the
+ * headline was the one place in the product that did not. Display only:
+ * the value is the artefact's, unrounded.
+ */
+function formatFigure(value) {
+  return typeof value === 'number' &&
+    Number.isInteger(value) &&
+    Math.abs(value) >= 1000
+    ? value.toLocaleString('en-US')
+    : String(value);
+}
+
+/*
+ * THE PROVENANCE CARD. A headline figure can show, in place, where it came
+ * from: SOURCE, METHOD, CLASS, COVERAGE and its first LIMITATION, read from
+ * the methodology record the analysis published — nothing is written here
+ * but the dataset display names. Before this the footer's "why is this
+ * here?" dispatched an event that nothing in the product listened for, so
+ * the one link promising provenance opened nothing at all.
+ */
+
+/** Display names for the ten dataset ids the records cite. Labels only. */
+export const DATASET_LABELS = Object.freeze({
+  'unosat-nepal-2015-damage-sites': 'UNITAR/UNOSAT damage sites',
+  'copernicus-emsr125-grading': 'Copernicus EMS EMSR125 grading',
+  'nga-nepal-2015-infrastructure-damage': 'U.S. NGA infrastructure damage',
+  'usgs-nepal-2015-shakemap-contours': 'USGS ShakeMap intensity contours',
+  'cod-ab-npl-adm2': 'OCHA COD-AB district boundaries',
+  'worldpop-npl-2015-unadj': 'WorldPop 2015, ~1 km',
+  'osm-nepal-2015-roads': 'OpenStreetMap roads, 24 April 2015',
+  'osm-nepal-2015-blockage-context': 'OpenStreetMap blockage context',
+  'ocha-nepal-2015-district-exposure': 'OCHA district exposure',
+  'usgs-nepal-2015-seismic': 'USGS earthquake catalogue',
+});
+
+/** The first `n` sentences, so METHOD reads in one breath. */
+function leadSentences(text, n = 2) {
+  const parts = String(text ?? '')
+    .split(/(?<=[.!?])\s+(?=[A-Z"“(])/)
+    .filter(Boolean);
+  return parts.slice(0, n).join(' ');
+}
+
+export function provenanceCard(record) {
+  if (!record) return null;
+  const row = (label, content) =>
+    content
+      ? [
+          h('dt', { text: label }),
+          h('dd', {}, Array.isArray(content) ? content : [content]),
+        ]
+      : [];
+  const inputs = (record.inputs ?? []).map((input) =>
+    h('span', { class: 'ndi-prov__input' }, [
+      h('span', {
+        class: 'ndi-prov__dataset',
+        text: DATASET_LABELS[input.dataset] ?? input.dataset,
+      }),
+      input.role ? ` — ${input.role}` : '',
     ]),
-    label ? h('div', { class: 'ndi-panel__figure-label', text: label }) : null,
-  ]);
+  );
+  const limitations = record.limitations ?? [];
+  return h(
+    'section',
+    {
+      class: 'ndi-prov',
+      id: `ndi-prov-${cssId(record.id)}`,
+      'aria-label': `How "${record.name}" was produced`,
+    },
+    [
+      h('p', { class: 'ndi-prov__name', text: record.name }),
+      h('dl', { class: 'ndi-prov__rows' }, [
+        ...row('Source', inputs.length ? inputs : null),
+        ...row('Method', leadSentences(record.method)),
+        ...row(
+          'Class',
+          record.resultClass || record.dataClass
+            ? classChip(record.resultClass ?? record.dataClass)
+            : null,
+        ),
+        ...row('Coverage', record.spatialCoverage ?? null),
+        ...row('Limitation', limitations[0] ?? null),
+      ]),
+      limitations.length > 1
+        ? h('p', {
+            class: 'ndi-prov__more',
+            text: `${limitations.length - 1} further limitation${limitations.length === 2 ? '' : 's'} in the record · ${record.id}`,
+          })
+        : h('p', { class: 'ndi-prov__more', text: record.id }),
+    ],
+  );
 }
 
 /** The class chip: glyph, label, and the plain phrase a non-specialist reads. */
@@ -164,7 +284,11 @@ const BODIES = {
   'case-card'(intel) {
     const shock = intel.seismic.mainShock;
     return [
-      figure(shock.magnitude, { unit: 'Mw', label: 'moment magnitude' }),
+      figure(shock.magnitude, {
+        analysis: 'seismic-magnitude-distribution',
+        unit: 'Mw',
+        label: 'moment magnitude',
+      }),
       rows([
         [
           'Origin',
@@ -184,6 +308,7 @@ const BODIES = {
   locate(intel) {
     return [
       figure(intel.seismic.counts.total, {
+        analysis: 'seismic-spatial-distribution',
         label: 'recorded events in the sequence',
       }),
       caveat(
@@ -195,7 +320,10 @@ const BODIES = {
   earthquake(intel) {
     const { counts, magnitude, depth } = intel.seismic;
     return [
-      figure(counts.total, { label: 'events recorded' }),
+      figure(counts.total, {
+        analysis: 'seismic-magnitude-distribution',
+        label: 'events recorded',
+      }),
       rows([
         ['Main shock', `M${intel.seismic.mainShock.magnitude}`],
         ['Aftershocks', counts.aftershocks],
@@ -235,7 +363,10 @@ const BODIES = {
       total: intel.seismic.depth.withDepth,
     });
     return [
-      figure(intel.seismic.counts.aftershocks, { label: 'aftershocks' }),
+      figure(intel.seismic.counts.aftershocks, {
+        analysis: 'seismic-temporal-series',
+        label: 'aftershocks',
+      }),
       sequenceChart(seq, {
         onCutoff: on?.control ? (iso) => on.control('timeCutoff', iso) : null,
         eventTime: intel.seismic.mainShock.time,
@@ -287,6 +418,7 @@ const BODIES = {
     );
     return [
       figure(row?.exposedPopulationRounded ?? '—', {
+        analysis: 'exposure-population-by-intensity',
         label: `people inside MMI ${row?.roman ?? threshold} or greater`,
       }),
       rows([
@@ -303,7 +435,22 @@ const BODIES = {
     const threshold =
       state?.controls?.intensityThreshold ?? intel.exposure.headlineThreshold;
     const statement = intel.exposure.statementFor(threshold);
+    /*
+     * A HEADLINE THAT FOLLOWS THE SLIDER. The scene had a sentence and a
+     * three-row table, so the one number the scene is about — people at the
+     * chosen intensity — was 12px type at presentation distance. It is the
+     * artefact's own rounded figure for that threshold, not a computation.
+     */
+    const chosen = intel.exposure.thresholdCurve.find(
+      (entry) => entry.threshold === threshold,
+    );
     return [
+      chosen
+        ? figure(chosen.exposedPopulationRounded, {
+            analysis: 'exposure-threshold-sensitivity',
+            label: `people inside MMI ${chosen.roman} or stronger — modelled exposure`,
+          })
+        : null,
       h('p', { class: 'ndi-panel__statement', text: statement ?? '—' }),
       rows(
         intel.exposure.thresholdCurve
@@ -344,6 +491,8 @@ const BODIES = {
     const lead = chosen ?? both;
     return [
       figure(lead?.people, {
+        analysis:
+          'unrecorded:nepal-2015-population-exposure.json → results.populationIntensityQuadrants',
         label: chosen
           ? `people in ${chosen.label.toLowerCase()} cells`
           : 'people in cells that were both strongly shaken and densely settled',
@@ -380,6 +529,7 @@ const BODIES = {
     );
     return [
       figure(row?.count ?? 0, {
+        analysis: 'damage-unosat-counts',
         label: `observed damage points in ${district ?? '—'}`,
       }),
       rows(
@@ -412,6 +562,7 @@ const BODIES = {
     const active = state?.controls?.damageClass ?? null;
     return [
       figure(intel.damage.reproduction.total, {
+        analysis: 'damage-unosat-counts',
         label: 'observed damage points',
       }),
       compositionChart(composition, {
@@ -432,11 +583,31 @@ const BODIES = {
     ];
   },
 
-  'model-vs-observed'(intel) {
+  /*
+   * STAGED WHEN PRESENTED. The scene's design is a reveal in three moves —
+   * the map looks correlated, here is the statistic, here is the reversal —
+   * so the reader reaches the conclusion rather than being handed it. The
+   * presentation beat says which move this is; in explore mode, or paused,
+   * `focus` is null and the whole panel is there at once.
+   */
+  'model-vs-observed'(intel, state, on, focus) {
     const test = intel.damage.byIntensity.independenceTest;
     const within = intel.damage.byIntensity.withinAnalysisArea ?? [];
-    return [
+    if (focus?.panel === 'lookAtTheMap') {
+      return [
+        h('p', {
+          class: 'ndi-panel__statement ndi-panel__prompt',
+          text: 'Look at the map first. The observed damage points sit over the modelled shaking bands.',
+        }),
+        h('p', {
+          class: 'ndi-panel__statement',
+          text: 'Is there more damage where the model says the shaking was stronger?',
+        }),
+      ];
+    }
+    const statistic = [
       figure(test.cramersV.toFixed(3), {
+        analysis: 'damage-by-intensity',
         label: "Cramér's V — a small effect",
       }),
       rows([
@@ -448,6 +619,10 @@ const BODIES = {
         ],
         ["Cochran's rule", test.cochranSatisfied ? 'holds' : 'does NOT hold'],
       ]),
+    ];
+    if (focus?.panel === 'chiSquare') return statistic;
+    return [
+      ...statistic,
       h('p', {
         class: 'ndi-panel__statement',
         text: intel.damage.byIntensity.withinAreaVerdict,
@@ -474,6 +649,7 @@ const BODIES = {
     const dose = intel.damage.copernicus.doseResponse;
     return [
       figure(intel.damage.copernicus.totals.graded, {
+        analysis: 'damage-copernicus-dose-response',
         label: 'structures graded, including undamaged',
       }),
       rows(
@@ -494,6 +670,7 @@ const BODIES = {
     );
     return [
       figure(geometry.blockedRoads.features, {
+        analysis: 'infrastructure-geometry-check',
         label: 'blocked-road observations',
       }),
       rows([
@@ -545,14 +722,33 @@ const BODIES = {
     ];
   },
 
+  /*
+   * THE HEADLINE ANSWERS THE SCENE'S QUESTION. It was "2,129 ways mapped" —
+   * the size of the network — under "what did the observed blockages do to
+   * connectivity?". The artefact states the answer directly: the damaged
+   * network has nine more disconnected components than the baseline.
+   */
   network(intel) {
     const network = intel.infrastructure.network;
     const beneath = network.blockageMatching.whatTheBlockagesSitOn;
+    const matching = network.blockageMatching;
     return [
-      figure(network.baseline.ways, { label: 'ways mapped on 24 April 2015' }),
+      figure(network.damaged?.newComponents ?? '—', {
+        analysis: 'infrastructure-network-disruption',
+        label:
+          'more disconnected pieces once matched blockages close their edges',
+      }),
       rows([
-        ['Nodes', network.baseline.nodes],
-        ['Components', network.baseline.components],
+        [
+          'Components, before → after',
+          `${network.baseline.components} → ${network.damaged?.components ?? '—'}`,
+        ],
+        ['Edges closed', matching.distinctEdgesDisabled],
+        [
+          'Blockages on a mapped edge',
+          `${matching.matched} matched · ${matching.unmatched} not`,
+        ],
+        ['Ways mapped on 24 April 2015', network.baseline.ways],
         ['On a strategic road', beneath.onStrategicClassRoad],
         ['On a road below tertiary', beneath.onRoadBelowTertiary],
         ['On no mapped road', beneath.noMappedRoadWithinQueryBox],
@@ -567,7 +763,10 @@ const BODIES = {
   route(intel) {
     const routes = intel.infrastructure.network.routes;
     return [
-      figure(routes.outcomes.DETOUR ?? 0, { label: 'pairs detoured' }),
+      figure(routes.outcomes.DETOUR ?? 0, {
+        analysis: 'infrastructure-network-disruption',
+        label: `${(routes.outcomes.DETOUR ?? 0) === 1 ? 'pair' : 'pairs'} detoured, of ${routes.pairs} measured`,
+      }),
       rows([
         ['Unchanged', routes.outcomes.UNCHANGED ?? 0],
         ['Severed', routes.outcomes.SEVERED ?? 0],
@@ -588,6 +787,7 @@ const BODIES = {
     );
     return [
       figure(row?.rounded ?? '—', {
+        analysis: 'damage-population-proximity',
         label: `people within ${band} m of observed damage`,
       }),
       rows(
@@ -618,6 +818,7 @@ const BODIES = {
     return [
       chosen ? statement(`${chosen.label} — ${chosen.meaning}`) : null,
       figure(lags.eventToAcquisition?.median ?? '—', {
+        analysis: 'damage-observation-timeline',
         unit: 'days',
         label: 'median from earthquake to first imagery',
       }),
@@ -684,6 +885,7 @@ const BODIES = {
   scenarios(intel) {
     return [
       figure(intel.infrastructure.network.baseline.nodes, {
+        analysis: 'infrastructure-network-disruption',
         label: 'junctions available to route over',
       }),
       caveat(
@@ -719,12 +921,31 @@ function describeOmori(segmented) {
 function dropRepeatedCaveats(body, limitations) {
   if (!body?.length || !limitations?.length) return body;
   const limits = limitations.map(contentWords);
+  const all = new Set(limits.flatMap((limit) => [...limit]));
   return body.filter((node) => {
     if (!node?.classList?.contains?.('ndi-panel__caveat')) return true;
     const caveat = contentWords(node.textContent);
     if (caveat.size < 4) return true;
-    return !limits.some((limit) => sameClaim(caveat, limit));
+    if (limits.some((limit) => sameClaim(caveat, limit))) return false;
+    /*
+     * A caveat stitched from two limitations — Scene 09's sample-size
+     * sentence plus its tasking sentence — matches neither on its own and
+     * is still said twice. Nearly every word already in the limits, taken
+     * together, is the same test at the level of the whole list; the
+     * caveats that add something (the four-clock dating rule, the cell vs
+     * district note) cover a quarter or less.
+     */
+    return coverage(caveat, all) < COVERED;
   });
+}
+
+const COVERED = 0.9;
+
+function coverage(words, pool) {
+  if (words.size === 0) return 0;
+  let shared = 0;
+  for (const word of words) if (pool.has(word)) shared += 1;
+  return shared / words.size;
 }
 
 /*
@@ -775,6 +996,8 @@ export function renderIntelPanel({
   state,
   onMethodology = () => {},
   on = null,
+  provenance = null,
+  focus = null,
 }) {
   const entry = state?.scene;
   if (!entry)
@@ -786,7 +1009,7 @@ export function renderIntelPanel({
   let body;
   try {
     body = dropRepeatedCaveats(
-      build ? build(intelligence, state, on) : null,
+      build ? build(intelligence, state, on, focus) : null,
       entry.limitations,
     );
   } catch (error) {
@@ -803,6 +1026,24 @@ export function renderIntelPanel({
     ];
   }
 
+  const bodyNode = h(
+    'div',
+    { class: 'ndi-panel__body' },
+    placeProvenance(
+      body ?? [
+        h('p', {
+          class: 'ndi-panel__pending',
+          text: 'This scene is not yet built.',
+        }),
+      ],
+      {
+        open: provenance,
+        record: provenance ? intelligence?.methodologyFor?.(provenance) : null,
+        toggle: on?.provenance ?? null,
+      },
+    ),
+  );
+
   return h(
     'aside',
     { class: 'ndi-panel', 'aria-label': `${entry.title} intelligence` },
@@ -811,17 +1052,13 @@ export function renderIntelPanel({
         h('h2', { class: 'ndi-panel__title', text: entry.title.toUpperCase() }),
         h('p', { class: 'ndi-panel__question', text: entry.question }),
       ]),
-      h(
-        'div',
-        { class: 'ndi-panel__body' },
-        body ?? [
-          h('p', {
-            class: 'ndi-panel__pending',
-            text: 'This scene is not yet built.',
-          }),
-        ],
-      ),
-      entry.limitations.length === 0
+      bodyNode,
+      /*
+       * A staged beat holds its limits back with the rest of the argument:
+       * "each band contains different towns" under the first beat would
+       * give the reversal away before the audience has looked at the map.
+       */
+      entry.limitations.length === 0 || STAGED_PANELS.has(focus?.panel)
         ? null
         : h('section', { class: 'ndi-panel__limitations' }, [
             h('p', {
@@ -842,10 +1079,82 @@ export function renderIntelPanel({
         resultClasses: entry.resultClasses,
         sources: entry.datasets,
         analyses: entry.analyses,
-        onMethodology,
+        onMethodology: (id) => {
+          on?.provenance?.(id);
+          onMethodology(id);
+        },
       }),
     ],
   );
 }
+
+/**
+ * Wire the figures' info buttons, and place the open card.
+ *
+ * The card goes directly under the figure it explains when one cites that
+ * analysis, and at the top of the body otherwise (the footer link on a scene
+ * whose headline is a statement). Open state lives in the experience, so a
+ * re-render — data arriving, a control moving — does not close it under the
+ * presenter's hand.
+ */
+/**
+ * A figure no methodology record covers. Said, not papered over: the card
+ * names the artefact path that carries the numbers and stops there, rather
+ * than borrowing the nearest record and describing a method it did not use.
+ */
+function unrecordedCard(id) {
+  const where = id.replace(/^unrecorded:/, '');
+  return h(
+    'section',
+    {
+      class: 'ndi-prov is-gap',
+      id: `ndi-prov-${cssId(id)}`,
+      'aria-label': 'No methodology record for this figure',
+    },
+    [
+      h('p', { class: 'ndi-prov__name', text: 'No methodology record' }),
+      h('dl', { class: 'ndi-prov__rows' }, [
+        h('dt', { text: 'Artefact' }),
+        h('dd', { text: where }),
+        h('dt', { text: 'Status' }),
+        h('dd', {
+          text: 'The artefact publishes these counts and their parameters, but no record describes how they were produced. Reported as a gap in the Stage 8 report.',
+        }),
+      ]),
+    ],
+  );
+}
+
+function cssId(id) {
+  return String(id).replace(/[^a-zA-Z0-9_-]+/g, '-');
+}
+
+function placeProvenance(nodes, { open, record, toggle }) {
+  const list = nodes.filter(Boolean);
+  const unrecorded = String(open ?? '').startsWith('unrecorded:');
+  const shown = Boolean(open) && (Boolean(record) || unrecorded);
+  for (const node of list) {
+    for (const button of node.querySelectorAll?.('.ndi-figure__info') ?? []) {
+      const id = button.getAttribute('data-provenance');
+      const expanded = shown && id === open;
+      button.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+      if (expanded) {
+        button.setAttribute('aria-controls', `ndi-prov-${cssId(id)}`);
+        button.classList.add('is-open');
+      }
+      if (toggle) button.addEventListener('click', () => toggle(id));
+    }
+  }
+  if (!shown) return list;
+  const card = record ? provenanceCard(record) : unrecordedCard(open);
+  const at = list.findIndex(
+    (node) => node.getAttribute?.('data-analysis') === open,
+  );
+  return at >= 0
+    ? [...list.slice(0, at + 1), card, ...list.slice(at + 1)]
+    : [card, ...list];
+}
+
+const STAGED_PANELS = new Set(['lookAtTheMap', 'chiSquare']);
 
 export { BODIES as PANEL_BODIES };

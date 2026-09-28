@@ -489,3 +489,24 @@ test('proximity bands are a ruler in metres, not a buffer and not pixels', () =>
   assert.deepEqual(proximityRingDrawables(bands, {}), []);
   assert.deepEqual(proximityRingDrawables(bands, { lon: Number.NaN, lat: 1 }), []);
 });
+
+test('the reversal beat isolates the two straddling areas by dimming, not deleting', async () => {
+  const unosat = (await read('nepal-2015-unosat-damage-sites.json')).data.features;
+  const inv = createNepalInvestigation();
+  inv.goTo('model-vs-observed');
+  const intelligence = {
+    damage: { byIntensity: { withinAnalysisArea: [{ area: 'Sundar Bazar' }, { area: 'Manbu Area' }] } },
+  };
+  const plain = drawablesForScene({ state: inv.state, intelligence, data: { unosat } }).get('damage-points');
+  const isolated = drawablesForScene({
+    state: inv.state,
+    intelligence,
+    data: { unosat },
+    focus: { mapAction: 'isolateAreas' },
+  }).get('damage-points');
+  assert.equal(isolated.length, plain.length, 'every point is still drawn');
+  const lit = isolated.filter((item) => !item.dimmed);
+  assert.ok(lit.length > 0 && lit.length < isolated.length);
+  assert.ok(lit.every((item) => ['Sundar Bazar', 'Manbu Area'].includes(item.settlement)));
+  assert.ok(plain.every((item) => !item.dimmed));
+});

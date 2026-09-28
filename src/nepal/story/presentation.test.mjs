@@ -72,18 +72,52 @@ test('both runs land on the runtimes the design asks for', () => {
   assert.ok(DEFAULT_HOLD_SEC.short > DEFAULT_HOLD_SEC.full, 'fewer scenes, longer each');
 });
 
-test('the short run is the argument without the descent', () => {
+test('the short run is the argument, one scene per step, in order', () => {
+  /*
+   * NEPAL → M7.8 → SEQUENCE → SHAKING → EXPOSURE → OBSERVED DAMAGE → MODEL VS
+   * OBSERVATION → INFRASTRUCTURE → COVERAGE GAP → NETWORK CONSEQUENCE → WHAT
+   * THE DATA CAN AND CANNOT TELL US. The Stage 6 short run reached the
+   * reversal before the audience had seen a damage point.
+   */
   const script = nepalPresentation({ length: 'short' });
   assert.equal(script.id, 'npl-2015-eq-short');
   const ids = [...new Set(script.beats.map((beat) => beat.sceneId))];
-  assert.deepEqual(ids, [...SHORT_RUN]);
+  assert.deepEqual(ids, SHORT_RUN.map((step) => step.id));
+  assert.deepEqual(ids, [
+    'locate',
+    'earthquake',
+    'sequence',
+    'shaking',
+    'exposure',
+    'observed-damage',
+    'model-vs-observed',
+    'infrastructure',
+    'coverage-gap',
+    'route',
+    'data-quality',
+  ]);
   /* Every named scene exists, so a rename cannot leave a hole in the run. */
-  for (const id of SHORT_RUN) assert.ok(scene(id), `unknown scene "${id}"`);
+  for (const step of SHORT_RUN) assert.ok(scene(step.id), `unknown scene "${step.id}"`);
+  /* Scene indices only ever increase: the argument never doubles back. */
+  const order = ids.map((id) => scene(id).index);
+  assert.deepEqual(order, [...order].sort((a, b) => a - b));
+  /* Each step is named on the strip by its place in the argument. */
+  assert.equal(script.beats.at(-1).cue, 'What the data can and cannot tell us');
+  /* The observed damage comes BEFORE the reversal that depends on it. */
+  assert.ok(ids.indexOf('observed-damage') < ids.indexOf('model-vs-observed'));
+  /* No descent, no second observation system, no scenario sandbox. */
+  for (const dropped of ['descend', 'second-source', 'scenarios'])
+    assert.ok(!ids.includes(dropped), dropped);
+});
 
-  /* It keeps the centrepiece and the coverage gap: the two teaching moments. */
-  assert.ok(ids.includes('model-vs-observed'));
-  assert.ok(ids.includes('coverage-gap'));
-  /* And it drops the descent and the network walk, which are the long parts. */
-  assert.ok(!ids.includes('descend'));
-  assert.ok(!ids.includes('network'));
+test('the run time counts the flights, not only the holds', () => {
+  const script = nepalPresentation();
+  const holds = script.beats.reduce((sum, beat) => sum + beat.holdMs, 0) / 1000;
+  const flights = script.beats.reduce((sum, beat) => sum + beat.flightMs, 0) / 1000;
+  assert.ok(flights > 30, `flights total ${flights}s`);
+  assert.equal(runSeconds(script), holds + flights);
+  /* A scene with several beats flies once, on its first. */
+  const nine = script.beats.filter((beat) => beat.sceneId === 'model-vs-observed');
+  assert.ok(nine[0].flightMs > 0);
+  assert.ok(nine.slice(1).every((beat) => beat.flightMs === 0));
 });

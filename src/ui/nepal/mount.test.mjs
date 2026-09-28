@@ -289,3 +289,35 @@ test('the PRESENT button starts the presentation, and leaving it keeps the place
   assert.equal(mount.presentation.state.index, at, 'it resumed in place');
   mount.destroy();
 });
+
+test('the header can start the six-minute run, and switching run starts it afresh', async () => {
+  /*
+   * The short run existed only in code: the one PRESENT button always played
+   * the full thirteen minutes, so the run built for a university slot could
+   * not be reached from the product.
+   */
+  const container = document.createElement('div');
+  const mount = createNepalCaseMount({
+    container,
+    win: fakeWindow(),
+    doc: fakeDoc(),
+    createLayers: () => recordingLayers(),
+    fetchImpl: diskFetch(),
+  });
+  await mount.open();
+  const buttons = () => container.querySelectorAll('.ndi-top__mode');
+  const short = buttons().find((node) => node.textContent === '6 MIN');
+  assert.ok(short, 'the header offers the short run');
+  short.click();
+  await Promise.resolve();
+  assert.equal(mount.presentation?.script.length, 'short');
+  assert.match(container.textContent, /01 \/ 13/);
+
+  /* Already presenting: choosing the full run replaces the runner. */
+  mount.presentation.playback.next();
+  mount.experience.requestMode('PRESENT', { length: 'full' });
+  await Promise.resolve();
+  assert.equal(mount.presentation.script.length, 'full');
+  assert.equal(mount.presentation.state.index, 0, 'a new run starts at its first step');
+  mount.destroy();
+});

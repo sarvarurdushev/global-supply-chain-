@@ -193,12 +193,12 @@ export function createNepalCaseLayers({
         id: `${layerId}:${item.id}`,
         position: Cesium.Cartesian3.fromDegrees(item.lon, item.lat),
         pixelSize: item.radius * (item.emphasis ? 1.15 : 1),
-        color: colour(item.colour, item.fillAlpha),
+        color: colour(item.colour, item.fillOverride ?? item.fillAlpha),
         /*
          * The outline is the grammar: an observed point is rimmed, a modelled
          * one is not. `outlineWidth` comes straight from the model.
          */
-        outlineColor: colour('#04070a', 0.9),
+        outlineColor: colour('#04070a', item.dimmed ? 0.2 : 0.9),
         outlineWidth: item.outlineWidth,
         disableDepthTestDistance: Number.POSITIVE_INFINITY,
       });
