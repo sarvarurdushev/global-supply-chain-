@@ -145,8 +145,11 @@ Every item below was found by looking at a settled screenshot, not by a test.
 ## PRESENT MODE
 
 **Full run:** 19 scenes, 21 beats (Scene 09 has three), holds 746 s + camera
-flights 48.8 s = **13.25 min computed**. The measured real-time run is in the
-addendum at the end of this report.
+flights 48.8 s = **13.25 min computed; 13.8 min measured** (827.6 s, real
+time, auto-advancing end to end in the browser under software rendering,
+zero errors). The extra half-minute is data and geometry readiness, which
+the hold waits for; on a GPU it should shrink. Scene 09's three beats landed
+at 401.6 s, 413.2 s and 421.4 s — 12, 8 and 12 s apart, as scripted.
 
 Behaviour, verified in the browser by stepping all 21 beats and by a
 real-time run:
@@ -309,7 +312,6 @@ Not verified, or verified and left:
 4. **Long panels scroll under the sticky provenance footer** (Scenes 03, 16,
    17): the LIMITS heading can sit just above the footer with its items below
    the fold until scrolled.
-5. **Real-time run of the full presentation**: see the addendum.
-6. The offline grid refines slowly under software rendering (soft magnified
+5. The offline grid refines slowly under software rendering (soft magnified
    bands for a few seconds after a descent); expected to be brief on a GPU,
    not measured on one.
