@@ -266,8 +266,14 @@ export const SCENES = Object.freeze([
     datasets: Object.freeze(['districts']),
     analyses: Object.freeze(['exposure-by-district', 'damage-unosat-counts']),
     layers: Object.freeze(['district-focus']),
+    /*
+     * 110 km, not 25. At 25 km the camera stood inside Gorkha (60 km across)
+     * and the whole frame was the district's fill — "one place" with no edge
+     * to show where it ends. The descent is from 900 km; this still reads as
+     * one, and the district is whole.
+     */
     camera: Object.freeze({
-      altKm: 25,
+      altKm: 110,
       pitch: -55,
       target: 'district',
       durationSec: 5,
@@ -294,11 +300,18 @@ export const SCENES = Object.freeze([
       'damage-spatial-concentration',
     ]),
     layers: Object.freeze(['damage-points']),
+    /*
+     * FRAMED ON THE EXTENT. The observations span 114 km east-west and 68
+     * north-south; at 25 km the view held about a twentieth of them — a
+     * valley in northern Gorkha — beside a panel counting all 4,583 across
+     * nine districts. 140 km at this pitch puts the whole pattern in the free
+     * map area between rail and panel.
+     */
     camera: Object.freeze({
-      altKm: 25,
+      altKm: 140,
       pitch: -50,
       target: 'damage-centroid',
-      durationSec: 1.5,
+      durationSec: 2.5,
     }),
     controls: Object.freeze(['damageClass']),
     resultClasses: Object.freeze([
@@ -322,8 +335,9 @@ export const SCENES = Object.freeze([
     datasets: Object.freeze(['unosat', 'shakemap']),
     analyses: Object.freeze(['damage-by-intensity']),
     layers: Object.freeze(['shakemap-bands', 'damage-points']),
+    /* The same frame as Scene 08, so the only change is the bands arriving. */
     camera: Object.freeze({
-      altKm: 25,
+      altKm: 130,
       pitch: -45,
       target: 'straddling-areas',
       durationSec: 3,

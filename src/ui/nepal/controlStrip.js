@@ -24,6 +24,7 @@ import {
   ResultClass,
   RESULT_CLASS_PRESENTATION,
 } from '../../nepal/story/resultClass.js';
+import { LAYER_SWATCHES } from '../../nepal/story/mapModel.js';
 
 /** One labelled control. */
 function group(label, children) {
@@ -49,15 +50,27 @@ function segmented(options, { value, onPick }) {
 }
 
 /** A checkbox, as a chip so it matches everything else. */
-function toggle(label, { on, onPick, title = null }) {
-  return h('button', {
-    type: 'button',
-    class: `ndi-controls__chip${on ? ' is-active' : ''}`,
-    'aria-pressed': on ? 'true' : 'false',
-    title: title ?? '',
-    text: label,
-    onclick: () => onPick(!on),
-  });
+function toggle(label, { on, onPick, title = null, swatch = null }) {
+  return h(
+    'button',
+    {
+      type: 'button',
+      class: `ndi-controls__chip${on ? ' is-active' : ''}`,
+      'aria-pressed': on ? 'true' : 'false',
+      title: title ?? '',
+      onclick: () => onPick(!on),
+    },
+    [
+      swatch
+        ? h('span', {
+            class: 'ndi-controls__swatch',
+            'aria-hidden': 'true',
+            style: { background: swatch },
+          })
+        : null,
+      label,
+    ],
+  );
 }
 
 /**
@@ -211,6 +224,7 @@ export const CONTROL_WIDGETS = Object.freeze({
         toggle(layer.replace(/-/g, ' '), {
           on: state.visibleLayers.includes(layer),
           onPick: (next) => on.layer(layer, next),
+          swatch: LAYER_SWATCHES[layer] ?? null,
         }),
       ),
     ]);

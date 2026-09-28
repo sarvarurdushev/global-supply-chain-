@@ -37,4 +37,17 @@ export const MAP_STACKS = [
     kind: 'osm',
     requiresIon: false,
   },
+  /*
+   * The last link in the chain, and the only one that cannot fail: it is
+   * drawn locally. Listed so the controller's existing fallback machinery can
+   * resolve it by id like any other stack, and so a presenter can select it
+   * deliberately when a venue's network is known to be hostile.
+   */
+  {
+    id: 'offline',
+    label: 'Offline grid',
+    shortLabel: 'GRID',
+    kind: 'offline',
+    requiresIon: false,
+  },
 ];

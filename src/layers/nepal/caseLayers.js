@@ -99,6 +99,8 @@ export function createNepalCaseLayers({
   let settleStop = null;
   let resolveSettled = null;
   let settled = Promise.resolve();
+  /** The current camera flight; see `whenLanded`. */
+  let landing = Promise.resolve();
 
   /**
    * End the current watch, releasing anybody waiting on it.
@@ -348,35 +350,63 @@ export function createNepalCaseLayers({
    * kilometres at one altitude and a hundred at another, which is worse than
    * not drawing it.
    */
+  /**
+   * A ring: its edge as a ground polyline, its label at its northern point.
+   *
+   * THE SAME CLAMPED-OUTLINE TRAP AS THE POLYGONS. These were ellipses with
+   * `outline: true`, clamped to ground, with a fill of 0 — so Cesium drew
+   * nothing at all, and Scene 15 showed five captions stacked on one spot
+   * over no rings. The edge is now its own clamped polyline, and the one
+   * caption sits on the east edge of the ring it names.
+   */
   function drawCircles(layerId, items) {
     const entry = ensure(layerId);
     for (const item of items) {
+      const ring = circleDegrees(item.lon, item.lat, item.radiusMetres);
       entry.entities.push(
         viewer.entities.add({
-          position: Cesium.Cartesian3.fromDegrees(item.lon, item.lat),
-          ellipse: {
-            semiMajorAxis: item.radiusMetres,
-            semiMinorAxis: item.radiusMetres,
-            material: colour(item.colour, item.fillOverride ?? item.fillAlpha),
-            outline: true,
-            outlineColor: colour(item.colour, 0.8),
-            outlineWidth: 2,
-            heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+          polyline: {
+            positions: Cesium.Cartesian3.fromDegreesArray(ring.flat()),
+            width: item.dimmed ? 1 : 2,
+            clampToGround: true,
+            material: colour(item.colour, item.dimmed ? 0.35 : 0.95),
           },
-          label: item.label
-            ? {
-                text: item.label,
-                font: '11px monospace',
-                fillColor: colour(item.colour, 0.95),
-                /* Offset so nested rings' labels do not stack on one another. */
-                pixelOffset: new Cesium.Cartesian2(0, -6),
-                verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-                disableDepthTestDistance: Number.POSITIVE_INFINITY,
-              }
-            : undefined,
+        }),
+      );
+      if (!item.label || item.showLabel === false) continue;
+      /* The east point: clear of the cluster the rings are centred in. */
+      const east = ring[Math.round(ring.length / 4)];
+      entry.entities.push(
+        viewer.entities.add({
+          position: Cesium.Cartesian3.fromDegrees(east[0], east[1]),
+          label: {
+            text: item.caption ?? item.label,
+            font: '11px ui-monospace, SFMono-Regular, Menlo, monospace',
+            fillColor: colour(item.colour, 0.95),
+            outlineColor: colour('#04070a', 0.9),
+            outlineWidth: 3,
+            style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+            pixelOffset: new Cesium.Cartesian2(6, 0),
+            horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
+            verticalOrigin: Cesium.VerticalOrigin.CENTER,
+            disableDepthTestDistance: Number.POSITIVE_INFINITY,
+          },
         }),
       );
     }
+  }
+
+  /** A closed ring of [lon, lat] around a centre, starting due north. */
+  function circleDegrees(lon, lat, radiusMetres, segments = 72) {
+    const R = 6371008.8;
+    const dLat = (radiusMetres / R) * (180 / Math.PI);
+    const dLon = dLat / Math.max(0.01, Math.cos((lat * Math.PI) / 180));
+    const ring = [];
+    for (let k = 0; k <= segments; k += 1) {
+      const t = (2 * Math.PI * k) / segments;
+      ring.push([lon + dLon * Math.sin(t), lat + dLat * Math.cos(t)]);
+    }
+    return ring;
   }
 
   function drawMarkers(layerId, items) {
@@ -474,19 +504,56 @@ export function createNepalCaseLayers({
         Cesium.Math.toRadians(pitch ?? -90),
         range,
       );
+      const duration = reduced ? 0.4 : (durationSec ?? 2);
+      let land;
+      landing = new Promise((resolve) => {
+        land = resolve;
+      });
+      /*
+       * A flight that never reports back must not hold a caller forever: a
+       * destroyed camera flight calls neither callback.
+       */
+      const guard = setTimeout(land, (duration + 2) * 1000);
+      const done = () => {
+        clearTimeout(guard);
+        land();
+      };
       viewer.camera.flyToBoundingSphere(
         new Cesium.BoundingSphere(target, range * 0.25),
         {
           offset: hpr,
-          duration: reduced ? 0.4 : (durationSec ?? 2),
+          duration,
           complete: () => {
             viewer.camera.lookAt(target, hpr);
             viewer.camera.lookAtTransform(Cesium.Matrix4.IDENTITY);
             requestRender();
+            done();
           },
+          /* Superseded by a newer flight: that one's landing is awaited. */
+          cancel: done,
         },
       );
       requestRender();
+    },
+
+    /**
+     * Resolves when the camera has arrived — at the LATEST destination.
+     *
+     * WHY. Scene readiness used to mean "data fetched and geometry built",
+     * and a probe of Scene 01 caught it resolving with the camera still at
+     * 20,000 km: the 4.5-second flight had barely left. Every screenshot
+     * taken "once the scene was ready" was of a camera in transit, which is
+     * why the Stage 7 audit showed Nepal as a blue disc and Scene 08's
+     * damage points hard against the left rail. A refocus can start a second
+     * flight while the first is being awaited, so this re-checks until the
+     * flight it waited on is still the current one.
+     */
+    async whenLanded() {
+      let awaited;
+      do {
+        awaited = landing;
+        await awaited;
+      } while (awaited !== landing);
     },
 
     destroy() {

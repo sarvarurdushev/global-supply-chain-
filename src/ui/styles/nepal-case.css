@@ -23,6 +23,7 @@
   --ndi-rail-w: 268px;
   --ndi-panel-w: 392px;
   --ndi-gutter: 14px;
+  --ndi-credit-h: 44px;
 }
 
 .ndi-host {
@@ -80,17 +81,32 @@
 .ndi {
   display: grid;
   /*
-   * header, presentation strip, body, control strip. Both strips collapse
-   * when empty, so a scene with nothing to vary gives the map their height
-   * rather than showing an empty bar.
+   * header, presentation strip, body, control strip, attribution. Both
+   * strips collapse when empty, so a scene with nothing to vary gives the
+   * map their height rather than showing an empty bar.
+   *
+   * EVERY ZONE NAMES ITS ROW. With auto-placement, a collapsed strip
+   * (`display: none` is out of the flow) moved every later zone up a track:
+   * the body landed in the presentation strip's `auto` row and grew with its
+   * content, the control strip landed in the `1fr` row, and on the scenes
+   * with a long panel (03, 08, 14, 16, 17, 18) the strip was pushed down over
+   * the imagery attribution — a licence obligation, hidden. A screenshot
+   * pass found it; no DOM test could have.
+   *
+   * THE LAST ROW IS THE ATTRIBUTION'S. The Cesium credit line is fixed 12px
+   * above the viewport edge and 28px tall; the case never draws over it.
    */
-  grid-template-rows: auto auto 1fr auto;
+  grid-template-rows: auto auto minmax(0, 1fr) auto var(--ndi-credit-h);
   grid-template-columns: 1fr;
   height: 100%;
 }
 
 .ndi__top {
+  grid-row: 1;
   pointer-events: auto;
+}
+.ndi__present {
+  grid-row: 2;
 }
 
 .ndi__present:empty,
@@ -99,10 +115,12 @@
 }
 
 .ndi__controls {
+  grid-row: 4;
   pointer-events: auto;
 }
 
 .ndi__body {
+  grid-row: 3;
   display: grid;
   grid-template-columns: var(--ndi-rail-w) 1fr var(--ndi-panel-w);
   gap: var(--ndi-gutter);
@@ -423,25 +441,90 @@
   border-inline-start: 2px solid var(--gx-amber);
   color: var(--gx-text-dim);
 }
+/*
+ * THE LIMITATIONS WERE A BROWSER-DEFAULT LIST from Stage 7 on: 16px type,
+ * disc bullets hanging outside the panel's padding, set larger than the
+ * figures they qualify. Nobody saw it on the blue placeholder globe because
+ * nobody was looking at the panel's foot. They now read in the caveat's
+ * grammar — amber rule, dim ink — under a label that says what they are.
+ */
 .ndi-panel__limits {
   display: flex;
   flex-direction: column;
   gap: 7px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
+.ndi-panel__limitations {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.ndi-panel__limits-label {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gx-amber);
+}
+.ndi-panel__limits > li {
+  margin: 0;
+  padding-inline-start: 9px;
+  border-inline-start: 2px solid var(--gx-amber);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--gx-text-dim);
+}
+.ndi-panel__glossary {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+}
+.ndi-panel__glossary > dt {
+  margin-block-start: 6px;
+}
+.ndi-panel__glossary > dt:first-child {
+  margin-block-start: 0;
+}
+.ndi-panel__glossary > dd {
+  margin: 0;
+  padding-inline-start: 2px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--gx-text-dim);
+}
+/*
+ * The data-gap list. It was a browser-default list whose second line was
+ * given a 4px progress-bar class, so the "could be filled by" text was set
+ * inside a 4px box and spilled over the next item at 16px.
+ */
 .ndi-panel__gaps {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 9px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ndi-panel__gaps > li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-inline-start: 9px;
+  border-inline-start: 2px dashed var(--gx-gap);
 }
 .ndi-panel__gap-name {
   font-size: 12px;
-  color: var(--gx-text-dim);
+  line-height: 1.45;
+  color: var(--gx-text);
 }
-.ndi-panel__gap-fill {
-  display: block;
-  height: 4px;
-  border-radius: 2px;
-  background: var(--gx-gap, var(--gx-text-faint));
+.ndi-panel__gap-source {
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--gx-text-dim);
 }
 /*
  * THE PROVENANCE FOOTER STICKS TO THE BOTTOM OF THE SCROLL.
@@ -718,6 +801,14 @@ body.ndi-open #first-run-launcher {
   font-size: 11px;
   white-space: nowrap;
   cursor: pointer;
+}
+.ndi-controls__swatch {
+  display: inline-block;
+  inline-size: 8px;
+  block-size: 8px;
+  margin-inline-end: 6px;
+  border-radius: 2px;
+  vertical-align: 0;
 }
 .ndi-controls__chip:hover {
   border-color: var(--gx-line-strong);

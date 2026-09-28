@@ -4,12 +4,14 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
+  CONTEXT_LAYER,
   COVERAGE_COLOURS,
   DAMAGE_COLOURS,
   DATA_GAP_GREY,
   MMI_COLOURS,
   aoiDrawables,
   cameraRangeMetres,
+  contextDrawables,
   coverageDrawables,
   damageDrawables,
   districtFocusDrawables,
@@ -23,6 +25,7 @@ import {
   epicentreDrawables,
   infrastructureDrawables,
   magnitudeRadius,
+  nearestPoint,
   outlineDrawables,
   seismicDrawables,
   shakingDrawables,
@@ -173,6 +176,35 @@ test('a scene draws only the layers it declares, grouped so one can change alone
   assert.equal(withoutData.size, 0);
 });
 
+test('the district frame is context under every scene that does not draw it', async () => {
+  /*
+   * On the offline basemap the only geography was a graticule: Scene 17 at
+   * 900 km was a grid with nothing in it. The frame is drawn under any scene
+   * that does not draw districts itself, and never on the globe scene.
+   */
+  const districts = (await read('nepal-districts-adm2-2015.json')).data.features;
+  const inv = createNepalInvestigation();
+  const layersFor = (id) => {
+    inv.goTo(id);
+    return [...drawablesForScene({ state: inv.state, intelligence: {}, data: { districts } }).keys()];
+  };
+  for (const id of ['earthquake', 'sequence', 'shaking', 'observed-damage', 'data-quality', 'network'])
+    assert.ok(layersFor(id).includes(CONTEXT_LAYER), `${id} lost its frame`);
+  for (const id of ['case-card', 'locate', 'overlap', 'descend', 'coverage-gap'])
+    assert.ok(!layersFor(id).includes(CONTEXT_LAYER), `${id} drew the frame twice or on the globe`);
+
+  /* Drawn first, so every analytical layer sits over it. */
+  inv.goTo('sequence');
+  assert.equal(
+    [...drawablesForScene({ state: inv.state, intelligence: {}, data: { districts } }).keys()][0],
+    CONTEXT_LAYER,
+  );
+
+  const frame = contextDrawables(districts);
+  assert.ok(frame.length >= 75, 'every district has at least one ring');
+  assert.ok(frame.every((item) => item.kind === 'lines' && item.grammar.resultClass === 'OFFICIAL'));
+});
+
 test('the result-class filter reaches the map, not just the panel', () => {
   const inv = createNepalInvestigation();
   inv.goTo('network');
@@ -180,9 +212,16 @@ test('the result-class filter reaches the map, not just the panel', () => {
   const grouped = drawablesForScene({
     state: inv.state,
     intelligence: {},
-    data: { nga: { blockedRoads: { features: [] } } },
+    data: {
+      nga: { blockedRoads: { features: [] } },
+      districts: [{ properties: { districtKey: 'k', district: 'D' }, geometry: { type: 'Polygon', coordinates: [[[84, 28], [85, 28], [85, 27], [84, 28]]] } }],
+    },
   });
-  assert.equal(grouped.size, 0, 'a SCENARIO scene must draw nothing under an OBSERVED filter');
+  assert.equal(
+    grouped.size,
+    0,
+    'a SCENARIO scene must draw nothing under an OBSERVED filter — not even the OFFICIAL frame',
+  );
 });
 
 test('an oblique scene is framed by range from its subject, not parked over it', () => {
@@ -403,6 +442,24 @@ test('an area of interest is a statement about the survey, not about the ground'
  * Scene 15 — proximity
  * ------------------------------------------------------------------ */
 
+test('the rings stand on a real damage point, not on the mean of them', async () => {
+  const unosat = (await read('nepal-2015-unosat-damage-sites.json')).data.features;
+  const inv = createNepalInvestigation();
+  inv.goTo('people-and-damage');
+  const rings = drawablesForScene({
+    state: inv.state,
+    intelligence: { people: { proximity: { bands: [{ withinMetres: 500, people: 1 }] } } },
+    data: { unosat },
+  }).get('proximity-rings');
+  const { lon, lat } = rings[0];
+  assert.ok(
+    unosat.some((f) => f.geometry.coordinates[0] === lon && f.geometry.coordinates[1] === lat),
+    'the anchor is one of the observed points',
+  );
+  assert.deepEqual(nearestPoint(unosat, { lon, lat }), { lon, lat });
+  assert.equal(nearestPoint([], { lon: 1, lat: 1 }), null);
+});
+
 test('proximity bands are a ruler in metres, not a buffer and not pixels', () => {
   const bands = [
     { withinMetres: 500, people: 169387 },
@@ -420,8 +477,14 @@ test('proximity bands are a ruler in metres, not a buffer and not pixels', () =>
   assert.equal(drawn[0].fillOverride, 0, 'unfilled: it is a distance, not an area');
   assert.match(drawn[0].label, /500 m from an observed damage point/);
   assert.match(drawn[1].label, /10 km from an observed damage point/);
+  assert.equal(drawn[0].caption, '500 m');
+  assert.equal(drawn[1].caption, '10 km');
   /* The count rides along for the panel; the ring itself claims no footprint. */
   assert.equal(drawn[1].value, 2644051);
+  /* One caption: five on one anchor printed as a smear. */
+  const chosen = proximityRingDrawables(bands, { lon: 85.3, lat: 27.7, chosen: 500 });
+  assert.deepEqual(chosen.map((ring) => ring.showLabel), [true, false]);
+  assert.deepEqual(chosen.map((ring) => ring.dimmed), [false, true]);
   /* No anchor means no rings, rather than rings at 0,0. */
   assert.deepEqual(proximityRingDrawables(bands, {}), []);
   assert.deepEqual(proximityRingDrawables(bands, { lon: Number.NaN, lat: 1 }), []);

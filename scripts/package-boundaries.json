@@ -1147,6 +1147,7 @@
       "src/maps/defaultSources.js",
       "src/maps/google3d.js",
       "src/maps/imagery.js",
+      "src/maps/offlineImagery.js",
       "src/maps/registry.js",
       "src/maps/terrain.js",
       "src/keySetupCore.mjs"
@@ -1610,6 +1611,7 @@
       "src/maps/defaultSources.js",
       "src/maps/google3d.js",
       "src/maps/imagery.js",
+      "src/maps/offlineImagery.js",
       "src/maps/registry.js",
       "src/maps/terrain.js",
       "src/navigationPolicy.js",

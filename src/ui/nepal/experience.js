@@ -441,6 +441,11 @@ export function createNepalExperience({
      * fetch would move on to an empty globe.
      */
     await caseLayers?.whenSettled?.();
+    /*
+     * And the map having been drawn is not the audience seeing it: the
+     * camera may still be in the air. See `whenLanded`.
+     */
+    await caseLayers?.whenLanded?.();
   }
 
   /** Does this scene's map depend on the solved route? */
@@ -470,6 +475,7 @@ export function createNepalExperience({
         scheduleRender('immediate');
         refocus();
         await caseLayers?.whenSettled?.();
+        await caseLayers?.whenLanded?.();
       })();
     }
     /*
@@ -518,12 +524,24 @@ export function createNepalExperience({
       scheduleRender('immediate');
       moveCamera();
       sceneReady = ensureSceneData();
+      /*
+       * The district frame is context under most scenes (see
+       * `contextDrawables`), so it is warmed once rather than only when a
+       * scene lists it. Not awaited and not reported: a frame that fails to
+       * load costs orientation, not a finding, and the scenes that need
+       * districts as DATA still fetch and report them themselves.
+       */
+      void loader.loadProcessed('districts').then(
+        () => scheduleRender('immediate'),
+        () => {},
+      );
       await sceneReady;
       return intelligence;
     },
 
     /**
-     * Resolves once the current scene's datasets have settled.
+     * Resolves once the current scene's datasets have settled, its geometry
+     * is built and the camera has landed.
      *
      * Settled, not succeeded: a dataset that failed has been dealt with (the
      * panel names it) and must not hold a caller forever.

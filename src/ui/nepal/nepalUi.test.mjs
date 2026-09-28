@@ -231,29 +231,50 @@ test('every methodology link opens a record that exists', () => {
 test('no panel says the same thing twice', () => {
   /*
    * Seven scenes printed their caveat and then the scene's limitation,
-   * verbatim, in adjacent paragraphs. At reading distance that is redundancy;
-   * at presentation distance it reads as a rendering bug, and it pushes the
-   * provenance footer further out of sight.
+   * verbatim, in adjacent paragraphs. A prefix match fixed the verbatim ones;
+   * a screenshot pass then found six more that differed only by a subject or
+   * a colon. Measured here independently of the renderer: the share of the
+   * shorter statement's content words that the longer one also uses.
    */
-  const normalise = (text) => text.replace(/\s+/g, ' ').trim().toLowerCase();
+  const STOP = new Set(
+    'the a an of and or to in on is are was were be by for from with this that it its as at not no only than which who what'.split(' '),
+  );
+  const words = (text) =>
+    new Set(
+      text
+        .toLowerCase()
+        .replace(/[^a-z0-9\- ]/g, ' ')
+        .split(/\s+/)
+        .filter((w) => w.length > 2 && !STOP.has(w)),
+    );
   const repeated = [];
   for (const entry of SCENES) {
     const state = createNepalInvestigation({ scene: entry.index }).state;
     const panel = renderIntelPanel({ intelligence, state, onMethodology() {} });
-    const caveats = [...panel.querySelectorAll('.ndi-panel__caveat')].map((node) =>
-      normalise(node.textContent),
-    );
-    for (const caveat of caveats) {
-      for (const limit of (entry.limitations ?? []).map(normalise)) {
-        const short = caveat.length < limit.length ? caveat : limit;
-        const long = caveat.length < limit.length ? limit : caveat;
-        if (short.length >= 24 && long.includes(short.slice(0, 60))) {
-          repeated.push(`${entry.id}: ${short.slice(0, 50)}…`);
-        }
+    for (const node of panel.querySelectorAll('.ndi-panel__caveat')) {
+      const caveat = words(node.textContent);
+      for (const limit of (entry.limitations ?? []).map(words)) {
+        const [short, long] = caveat.size <= limit.size ? [caveat, limit] : [limit, caveat];
+        let shared = 0;
+        for (const word of short) if (long.has(word)) shared += 1;
+        if (short.size >= 4 && shared / short.size >= 0.75)
+          repeated.push(`${entry.id}: ${node.textContent.slice(0, 50)}…`);
       }
     }
   }
   assert.deepEqual(repeated, []);
+});
+
+test('the limitations are a labelled list, not a browser-default one', () => {
+  const state = createNepalInvestigation({ scene: 1 }).state;
+  const panel = renderIntelPanel({ intelligence, state, onMethodology() {} });
+  const list = panel.querySelector('.ndi-panel__limits');
+  assert.ok(list, 'the list exists');
+  const label = panel.querySelector(`#${list.getAttribute('aria-labelledby')}`);
+  assert.equal(label?.textContent, 'Limits');
+  const children = [...list.children];
+  assert.equal(children.length, state.scene.limitations.length);
+  assert.ok(children.every((child) => child.tagName === 'LI'), 'a list holds only items');
 });
 
 test('a caveat with no matching limitation is kept', () => {
@@ -267,4 +288,23 @@ test('a caveat with no matching limitation is kept', () => {
     withCaveats.length >= 5,
     `only ${withCaveats.length} scenes kept a caveat — the filter is too eager`,
   );
+});
+
+test('a layer toggle carries the colour its layer is drawn in', async () => {
+  /*
+   * Scene 11 drew amber roads, orange landslides and red bridges with no key
+   * anywhere on screen. The key is read from the same table the map uses.
+   */
+  const { renderControlStrip } = await import('./controlStrip.js');
+  const { LAYER_SWATCHES } = await import('../../nepal/story/mapModel.js');
+  const state = createNepalInvestigation({ scene: 11 }).state;
+  const strip = renderControlStrip({ intelligence, state, on: { layer() {}, control() {} } });
+  const chips = [...strip.querySelectorAll('.ndi-controls__chip')].filter((chip) =>
+    chip.querySelector('.ndi-controls__swatch'),
+  );
+  assert.equal(chips.length, 3, 'roads, bridges and landslides each carry a key');
+  for (const chip of chips) {
+    const layer = chip.textContent.trim().replace(/ /g, '-');
+    assert.ok(LAYER_SWATCHES[layer], `${layer} has a swatch`);
+  }
 });

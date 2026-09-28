@@ -358,6 +358,7 @@ const schemas = [
             'bing-labels',
             'esri-imagery',
             'osm',
+            'offline',
           ],
         },
       },

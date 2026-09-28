@@ -18,7 +18,7 @@
  * `mapGrammarFor`, rather than being remembered at each call site.
  */
 
-import { ResultClass, drawable } from './resultClass.js';
+import { ResultClass, drawable, passesFilter } from './resultClass.js';
 import { networkDrawables, routeDrawables } from './network.js';
 
 /** MMI → the ramp token. Deliberately not green: green is the interface. */
@@ -209,6 +209,21 @@ export function damageDrawables(
   return drawables;
 }
 
+/**
+ * The one colour each single-colour layer draws in, for the layer toggles.
+ *
+ * Read by the control strip so a chip can carry its layer's key: Scene 11
+ * drew amber roads, orange landslides and red bridges with nothing on
+ * screen saying which was which. The drawables below read the same table,
+ * so the key and the map cannot drift apart.
+ */
+export const LAYER_SWATCHES = Object.freeze({
+  'blocked-roads': '#ffb020',
+  'bridges-out': '#ff4d4d',
+  landslides: '#f4713b',
+  'aoi-footprints': '#4dd8ff',
+});
+
 /** Blocked roads, bridges and landslides, each with its own grammar. */
 export function infrastructureDrawables(nga, { show = null } = {}) {
   const wanted = show ? new Set(show) : null;
@@ -226,7 +241,7 @@ export function infrastructureDrawables(nga, { show = null } = {}) {
       layer: 'blocked-roads',
       kind: 'polyline',
       positions: feature.geometry.coordinates,
-      colour: '#ffb020',
+      colour: LAYER_SWATCHES['blocked-roads'],
       width: 3,
       resultClass: ResultClass.OBSERVED,
       sensedOn: feature.properties?.sensedOn ?? null,
@@ -240,7 +255,7 @@ export function infrastructureDrawables(nga, { show = null } = {}) {
       lon: feature.geometry.coordinates[0],
       lat: feature.geometry.coordinates[1],
       radius: 9,
-      colour: '#ff4d4d',
+      colour: LAYER_SWATCHES['bridges-out'],
       resultClass: ResultClass.OBSERVED,
       glyph: 'bridge',
     }),
@@ -251,7 +266,7 @@ export function infrastructureDrawables(nga, { show = null } = {}) {
       layer: 'landslides',
       kind: 'polygon',
       geometry: feature.geometry,
-      colour: '#f4713b',
+      colour: LAYER_SWATCHES.landslides,
       resultClass: ResultClass.OBSERVED,
     }),
   );
@@ -278,6 +293,71 @@ export function outlineDrawables(districts) {
       fillOverride: 0.06,
     }),
   );
+}
+
+/**
+ * The district frame as faint context under a scene that does not draw
+ * districts itself.
+ *
+ * WHY. On satellite imagery the country is legible from the ground itself;
+ * on the offline treatment — which is what a dead venue network produces —
+ * the only geography left is a graticule, and Scene 17 at 900 km was a grid
+ * with nothing in it. District edges are not in satellite imagery either,
+ * so this helps on every basemap: an aftershock cloud, a damage point or a
+ * blocked road is read against the frame the analysis itself uses.
+ *
+ * One PolylineCollection, not 75 ground polygons: it is a hairline, not a
+ * layer anyone reads for its own sake. Its class is OFFICIAL like the
+ * boundaries it draws, so a result-class filter that excludes OFFICIAL
+ * removes it with everything else.
+ */
+export const CONTEXT_LAYER = 'district-context';
+const DRAWS_DISTRICTS = Object.freeze([
+  'nepal-outline',
+  'district-bivariate',
+  'district-focus',
+  'coverage-gap',
+]);
+
+export function contextDrawables(districts) {
+  const out = [];
+  for (const feature of districts ?? []) {
+    const geometry = feature.geometry;
+    const polygons =
+      geometry?.type === 'MultiPolygon'
+        ? geometry.coordinates
+        : geometry?.type === 'Polygon'
+          ? [geometry.coordinates]
+          : [];
+    polygons.forEach((polygon, p) => {
+      /* The outer ring only: a district's holes are its neighbours' edges. */
+      const ring = polygon[0];
+      if (!ring?.length) return;
+      out.push(
+        drawable({
+          id: `context-${feature.properties.districtKey}-${p}`,
+          layer: CONTEXT_LAYER,
+          kind: 'lines',
+          positions: ring,
+          colour: '#22d97f',
+          width: 1,
+          fillOverride: 0.34,
+          resultClass: ResultClass.OFFICIAL,
+          district: feature.properties.district,
+        }),
+      );
+    });
+  }
+  return out;
+}
+
+function wantsContext(state, layers) {
+  const index = state?.scene?.index;
+  /* Scene 00 is the globe; a district frame there is a speck. */
+  if (!(index > 0)) return false;
+  if (DRAWS_DISTRICTS.some((layer) => layers.has(layer))) return false;
+  const filter = new Set(state?.resultClassFilter ?? []);
+  return passesFilter(ResultClass.OFFICIAL, filter);
 }
 
 /**
@@ -413,6 +493,14 @@ export function districtFocusDrawables(features, { district = null } = {}) {
       resultClass: ResultClass.OFFICIAL,
       label: props.district ?? 'Unknown district',
       value: props.district ?? null,
+      /*
+       * A TINT, NOT A COVER. The chosen district took the OFFICIAL grammar's
+       * 0.95 fill, and at the scene's close camera the screen was one flat
+       * cyan field — on satellite imagery that is the whole basemap hidden
+       * behind the one thing the scene is about. The edge carries the
+       * emphasis; the fill only says "this one".
+       */
+      fillOverride: props.district === district ? 0.14 : 0.04,
     }),
     { layer: 'district-focus', emphasise: district },
   );
@@ -468,7 +556,14 @@ export function coverageDrawables(
         resultClass: ResultClass.OBSERVED,
         label: `${props.district} — ${count} record${count === 1 ? '' : 's'}`,
         value: count,
-        ...(gapView ? { fillOverride: 0.12 } : {}),
+        /*
+         * Half, not the observed grammar's 0.95. That alpha is for discrete
+         * marks; over nine districts it was a flat neon slab that hid the
+         * basemap and the district edges inside it. At half it is still the
+         * loudest thing on the map against the gap grey, which is all the
+         * scene needs it to be.
+         */
+        fillOverride: gapView ? 0.12 : 0.5,
       };
     },
     { layer: 'coverage-gap' },
@@ -548,7 +643,7 @@ export function aoiDrawables(features) {
       layer: 'aoi-footprints',
       kind: 'polygon',
       geometry: feature.geometry,
-      colour: '#4dd8ff',
+      colour: LAYER_SWATCHES['aoi-footprints'],
       resultClass: ResultClass.OFFICIAL,
       label: feature.properties?.aoi ?? `AOI ${index + 1}`,
       fillOverride: 0.06,
@@ -575,6 +670,8 @@ export function aoiDrawables(features) {
  */
 export function proximityRingDrawables(bands, { lon, lat, chosen = null }) {
   if (!Number.isFinite(lon) || !Number.isFinite(lat)) return [];
+  const distance = (metres) =>
+    metres >= 1000 ? `${metres / 1000} km` : `${metres} m`;
   return (bands ?? []).map((band) =>
     drawable({
       /*
@@ -591,7 +688,19 @@ export function proximityRingDrawables(bands, { lon, lat, chosen = null }) {
       radiusMetres: band.withinMetres,
       colour: '#4dd8ff',
       resultClass: ResultClass.DERIVED,
-      label: `${band.withinMetres >= 1000 ? `${band.withinMetres / 1000} km` : `${band.withinMetres} m`} from an observed damage point`,
+      label: `${distance(band.withinMetres)} from an observed damage point`,
+      /*
+       * On the map, just the distance: the sentence sat over the densest
+       * cluster in the scene and could not be read. The panel's headline
+       * already says what the distance is from.
+       */
+      caption: distance(band.withinMetres),
+      /*
+       * One label, on the chosen ring. Five labels on one anchor printed on
+       * top of each other as an unreadable smear; the dimmed rings are a
+       * scale, and a scale does not need captions.
+       */
+      showLabel: chosen === null || band.withinMetres === chosen,
       value: band.people,
       fillOverride: 0,
     }),
@@ -607,6 +716,9 @@ export function drawablesForScene({ state, intelligence, data = {} }) {
     out.set(layer, items);
   };
 
+  if (data.districts && wantsContext(state, layers)) {
+    out.set(CONTEXT_LAYER, contextDrawables(data.districts));
+  }
   if (layers.has('epicentre')) {
     add('epicentre', epicentreDrawables(intelligence?.seismic?.mainShock));
   }
@@ -720,11 +832,17 @@ export function drawablesForScene({ state, intelligence, data = {} }) {
     }
   }
   if (layers.has('proximity-rings')) {
-    const anchor = resolveTarget('damage-centroid', {
+    /*
+     * The rings sit on a REAL damage point — the one nearest the centroid —
+     * because the label says "from an observed damage point". Centred on the
+     * mean of 4,583 points they were centred on a place nothing was observed.
+     */
+    const centroid = resolveTarget('damage-centroid', {
       intelligence,
       data,
       selection: state?.selection ?? {},
     });
+    const anchor = nearestPoint(data.unosat, centroid) ?? centroid;
     add(
       'proximity-rings',
       proximityRingDrawables(intelligence?.people?.proximity?.bands, {
@@ -846,6 +964,24 @@ function centroidOf(features) {
     lat += feature.geometry.coordinates[1];
   }
   return { lon: lon / features.length, lat: lat / features.length };
+}
+
+/** The point feature nearest a target, by equirectangular distance. */
+export function nearestPoint(features, target) {
+  if (!features?.length || !target) return null;
+  const k = Math.cos((target.lat * Math.PI) / 180);
+  let best = null;
+  let bestD = Infinity;
+  for (const feature of features) {
+    const [lon, lat] = feature.geometry?.coordinates ?? [];
+    if (!Number.isFinite(lon) || !Number.isFinite(lat)) continue;
+    const d = ((lon - target.lon) * k) ** 2 + (lat - target.lat) ** 2;
+    if (d < bestD) {
+      bestD = d;
+      best = { lon, lat };
+    }
+  }
+  return best;
 }
 
 function centroidOfLines(features) {

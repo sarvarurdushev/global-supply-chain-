@@ -295,6 +295,56 @@ test('one Esri tile failure stays put, two fall back, and stale errors cannot re
   env.controller.destroy();
 });
 
+test('the chain has a floor: Esri fails, OSM tiles fail, the offline grid holds', async () => {
+  /*
+   * The Stage 7 screenshots were all of the old floor — a bare ellipsoid —
+   * because nothing followed OSM. Walk the whole chain the way a dead venue
+   * network walks it: Esri's metadata fetch fails at construction, OSM
+   * constructs (it needs no metadata) and then its tiles fail.
+   */
+  const env = publicFixture();
+  env.registry.sources.find(
+    (source) => source.descriptor.id === 'esri-imagery',
+  ).imagery = async () => {
+    throw new Error('unreachable');
+  };
+  await env.controller.setStack('esri-imagery');
+  assert.equal(env.controller.getActiveId(), 'osm');
+  const osmErrors = env.providers.get('osm').errorEvent;
+  osmErrors.raise();
+  osmErrors.raise();
+  await settle();
+  assert.equal(
+    env.controller.getActiveId(),
+    'osm',
+    'two OSM misses are not an outage',
+  );
+  osmErrors.raise();
+  await settle();
+  assert.equal(env.controller.getActiveId(), 'offline');
+  assert.equal(
+    env.controller.getState().lastError,
+    'OSM tile requests failed; using the offline grid',
+  );
+  assert.equal(env.imagery[0].provider, env.providers.get('offline'));
+  assert.equal(env.credits.size, 1, 'the offline grid says what it is');
+  env.controller.destroy();
+});
+
+test('the offline stack never waits on the network for terrain', () => {
+  const offline = createDefaultMapSources().sources.find(
+    (source) => source.descriptor.id === 'offline',
+  );
+  assert.equal(offline.available, true);
+  assert.equal(offline.terrain.id, 'flat');
+  assert.equal(
+    offline.constructionFallback,
+    undefined,
+    'nothing follows the floor',
+  );
+  assert.equal(offline.tileFailureFallback, undefined);
+});
+
 test('tooltips and rejected selection share the registry reason, including retired map IDs', async () => {
   const errors = [],
     env = publicFixture();

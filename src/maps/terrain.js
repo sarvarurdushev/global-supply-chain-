@@ -33,3 +33,12 @@ export async function createKeylessTerrain() {
     return { provider: new Cesium.EllipsoidTerrainProvider() };
   }
 }
+
+/**
+ * No network at all. The offline basemap pairs with this rather than with the
+ * keyless mesh, because that mesh is itself a fetch: behind a captive portal
+ * it neither loads nor fails promptly, and the globe waits on it.
+ */
+export function createFlatTerrain() {
+  return { provider: new Cesium.EllipsoidTerrainProvider() };
+}

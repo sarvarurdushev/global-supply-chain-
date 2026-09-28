@@ -666,11 +666,14 @@ test('the voice TOOL SCHEMA matches the pinned release — the mission mapping i
   // explain_trade_evidence) and extended the two layer enums. The first-run
   // missions themselves still ride existing tools; this pin moved because the
   // inventory grew, not because a mission edited a schema.
+  // Re-pinned (+10 bytes, `,"offline"`) when set_map_stack's enum gained the
+  // offline basemap: gevActions.test.mjs requires that enum to equal
+  // MAP_STACKS exactly. No mission and no wording changed.
   const block = JSON.stringify(GEV_REALTIME_TOOLS);
-  assert.equal(block.length, 28588, 'serialized tool schema length drifted');
+  assert.equal(block.length, 28598, 'serialized tool schema length drifted');
   assert.equal(
     crypto.createHash('sha256').update(block).digest('hex'),
-    '7b96c3d4fdc5d008b381b7f3777e4c2ca0c066bbe8ef42e9ab0161c3f361af65',
+    '34455f99da905cd6cc884392ffb930eef30c83015266e9751736b05ea890bdf5',
     'the first-run missions must ride EXISTING tools: no schema edit, no cache bust',
   );
   const instructions = fs.readFileSync(new URL('../server/providers/openai/instructions.js', import.meta.url), 'utf8');

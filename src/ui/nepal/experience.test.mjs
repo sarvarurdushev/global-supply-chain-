@@ -265,3 +265,36 @@ test('a control that changes the answer re-solves it, not just the view', async 
   assert.deepEqual(scenario.problems, []);
   experience.destroy();
 });
+
+test('a scene is not ready while the camera is still in the air', async () => {
+  /*
+   * A browser probe of Scene 01 caught readiness resolving with the camera
+   * at 20,000 km — the flight had barely left. Presentation holds and every
+   * "settled" screenshot were timed from that moment.
+   */
+  const layers = recordingLayers();
+  let land = null;
+  layers.whenLanded = () =>
+    new Promise((resolve) => {
+      land = resolve;
+    });
+  const experience = createNepalExperience({
+    mount: mountPoint(),
+    caseLayers: layers,
+    fetchImpl: diskFetch(),
+  });
+  const started = experience.start();
+  let ready = false;
+  void started.then(() => {
+    ready = true;
+  });
+  for (let i = 0; i < 200 && !land; i += 1)
+    await new Promise((resolve) => setTimeout(resolve, 5));
+  assert.ok(land, 'readiness asked whether the camera had landed');
+  await new Promise((resolve) => setTimeout(resolve, 20));
+  assert.equal(ready, false, 'and waited for the answer');
+  land();
+  await started;
+  assert.equal(ready, true);
+  experience.destroy();
+});

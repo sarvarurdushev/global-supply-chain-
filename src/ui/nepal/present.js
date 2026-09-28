@@ -73,9 +73,10 @@ export function createNepalPresentation({
         (key) => experience.loader.stateOf(key) === 'failed',
       ),
     /*
-     * THE HOLD STARTS WHEN THE MAP IS DRAWN. `whenSceneReady` covers both the
-     * fetch and the geometry build, so a 40-second beat is 40 seconds of the
-     * scene rather than 36 of it and 4 of an empty globe.
+     * THE HOLD STARTS WHEN THE MAP IS DRAWN AND THE CAMERA HAS LANDED.
+     * `whenSceneReady` covers the fetch, the geometry build and the flight,
+     * so a 40-second beat is 40 seconds of the scene rather than 36 of it
+     * and 4 of a camera in transit.
      */
     whenReady: () => experience.whenSceneReady(),
     onChange: (state) => {

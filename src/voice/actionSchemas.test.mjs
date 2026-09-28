@@ -23,9 +23,12 @@ test('the complete Realtime tool payload retains its pre-extraction contract and
   // two layer enums gained trade-flows, supply-ports and chokepoints. Every
   // other tool's wording is unchanged; src/radioMarkup.test.mjs pins those
   // individually.
+  // Re-pinned again when the set_map_stack enum gained 'offline', the
+  // locally drawn floor of the basemap chain: gevActions.test.mjs requires the
+  // enum to name exactly MAP_STACKS. No wording changed.
   assert.equal(
     digest,
-    'e01a20d52ed1b00da791de7126966c414b3bf9e38cd66a16719fabbd179a5ee7',
+    'b996bdf6ddb424eb1edbad3e8899c0903a5b49bb3102751c4e260405a055f008',
   );
 });
 

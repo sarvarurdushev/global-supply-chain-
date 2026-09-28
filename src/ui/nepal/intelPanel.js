@@ -650,14 +650,21 @@ const BODIES = {
       figure(intel.methodology.length, {
         label: 'methodology records behind these figures',
       }),
+      /*
+       * A GLOSSARY, NOT A TABLE. It was the two-column value grid, which gives
+       * the chip its full width and the definition what is left: every
+       * definition set as a right-aligned monospace column two words wide, and
+       * nine of them ran the panel to 1,800px.
+       */
       h(
         'dl',
-        { class: 'ndi-panel__rows' },
+        { class: 'ndi-panel__glossary' },
         Object.values(RESULT_CLASS_PRESENTATION).flatMap((entry) => [
           h('dt', {}, [classChip(entry.id)]),
           h('dd', { text: entry.means }),
         ]),
       ),
+      h('p', { class: 'ndi-chart__title', text: 'What is missing' }),
       h(
         'ul',
         { class: 'ndi-panel__gaps' },
@@ -665,7 +672,7 @@ const BODIES = {
           h('li', {}, [
             h('span', { class: 'ndi-panel__gap-name', text: gap.gap }),
             h('span', {
-              class: 'ndi-panel__gap-fill',
+              class: 'ndi-panel__gap-source',
               text: gap.couldBeFilledBy,
             }),
           ]),
@@ -711,22 +718,49 @@ function describeOmori(segmented) {
  */
 function dropRepeatedCaveats(body, limitations) {
   if (!body?.length || !limitations?.length) return body;
-  const normalise = (text) =>
-    String(text ?? '')
-      .replace(/\s+/g, ' ')
-      .trim()
-      .toLowerCase();
-  const limits = limitations.map(normalise);
+  const limits = limitations.map(contentWords);
   return body.filter((node) => {
     if (!node?.classList?.contains?.('ndi-panel__caveat')) return true;
-    const text = normalise(node.textContent);
-    if (text.length < 24) return true;
-    /* A prefix match, because the two wordings are rarely identical. */
-    const head = text.slice(0, 60);
-    return !limits.some(
-      (limit) => limit.includes(head) || text.includes(limit.slice(0, 60)),
-    );
+    const caveat = contentWords(node.textContent);
+    if (caveat.size < 4) return true;
+    return !limits.some((limit) => sameClaim(caveat, limit));
   });
+}
+
+/*
+ * WORD OVERLAP, NOT A PREFIX. The first version matched the opening sixty
+ * characters, and a screenshot pass found six scenes still printing the same
+ * sentence twice: "Complete only above the reporting threshold: a twenty-fold
+ * count cliff" against "The catalogue is complete only above the reporting
+ * threshold; a twenty-fold count cliff" differ by a subject and a colon.
+ * Measured over the shorter statement's content words, those pairs overlap
+ * 0.83–1.00, while the caveats that genuinely add something (the four-clock
+ * dating rule, the district-aggregation note) sit at 0.56–0.64.
+ */
+const SAME_CLAIM = 0.75;
+const STOPWORDS = new Set(
+  'the a an of and or to in on is are was were be by for from with this that it its as at not no only than which who what'.split(
+    ' ',
+  ),
+);
+
+function contentWords(text) {
+  return new Set(
+    String(text ?? '')
+      .toLowerCase()
+      .replace(/[^a-z0-9\- ]/g, ' ')
+      .split(/\s+/)
+      .filter((word) => word.length > 2 && !STOPWORDS.has(word)),
+  );
+}
+
+function sameClaim(a, b) {
+  const shorter = a.size <= b.size ? a : b;
+  const longer = shorter === a ? b : a;
+  if (shorter.size === 0) return false;
+  let shared = 0;
+  for (const word of shorter) if (longer.has(word)) shared += 1;
+  return shared / shorter.size >= SAME_CLAIM;
 }
 
 /**
@@ -787,11 +821,23 @@ export function renderIntelPanel({
           }),
         ],
       ),
-      h(
-        'ul',
-        { class: 'ndi-panel__limits' },
-        entry.limitations.map((text) => h('li', { text })),
-      ),
+      entry.limitations.length === 0
+        ? null
+        : h('section', { class: 'ndi-panel__limitations' }, [
+            h('p', {
+              class: 'ndi-panel__limits-label',
+              id: `ndi-limits-${entry.id}`,
+              text: 'Limits',
+            }),
+            h(
+              'ul',
+              {
+                class: 'ndi-panel__limits',
+                'aria-labelledby': `ndi-limits-${entry.id}`,
+              },
+              entry.limitations.map((text) => h('li', { text })),
+            ),
+          ]),
       footer({
         resultClasses: entry.resultClasses,
         sources: entry.datasets,
