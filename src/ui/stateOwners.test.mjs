@@ -141,3 +141,57 @@ test('visual teardown restores owned fog and aircraft sensor state once', async 
   assert.equal(owner._irBoostActive, false);
   owner.destroy();
 });
+
+test('the case entry does not restore layers a workspace session saved', async (t) => {
+  /*
+   * `/` opens Case 001. Live layers a previous workspace session left on
+   * would draw under the case, so the case entry declines them; the named
+   * workspace (`#/workspace`) restores them exactly as before.
+   */
+  const {
+    createDefaultLayerState,
+    serializeStoredLayerState,
+    LAYER_STATE_STORAGE_KEY,
+  } = await import('../data/layerState.js');
+  const stored = serializeStoredLayerState(createDefaultLayerState());
+  const prior = globalThis.localStorage;
+  globalThis.localStorage = {
+    getItem: (key) => (key === LAYER_STATE_STORAGE_KEY ? stored : null),
+    setItem() {},
+  };
+  t.after(() => {
+    if (prior === undefined) delete globalThis.localStorage;
+    else globalThis.localStorage = prior;
+  });
+  const sources = {};
+  for (const restoreLocalLayers of [true, false]) {
+    const owner = new ShareRestoration({
+      viewer: {},
+      restoreLocalLayers,
+      navigation: {},
+      syncShareState() {},
+      syncModels3d() {},
+      showStatus() {},
+      feedback: {},
+      updateFeedback() {},
+    });
+    owner.attachLinks({
+      parseInitialHash: () => null,
+      setLayerStateProvider() {},
+      onLayerStateChange() {},
+    });
+    owner.connect({
+      registrationsFinalized: true,
+      subscribe: () => () => {},
+      subscribeVisibilityRequests: () => () => {},
+      layers: new Map(),
+      getAll: () => [],
+      isEnabled: () => false,
+    });
+    await owner._layerStateRestorePromise;
+    sources[restoreLocalLayers] = owner._layerStateCoordinator.source;
+    owner._layerStateCoordinator.destroy();
+  }
+  assert.equal(sources.true, 'local', 'the workspace restores saved layers');
+  assert.equal(sources.false, 'legacy-share', 'the case entry does not');
+});

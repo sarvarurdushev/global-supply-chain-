@@ -99,6 +99,9 @@ test('the header states only what the artefacts support', async () => {
   const intel = await loadReal();
   const header = headerState(intel, { loaded: 5, total: 5 });
   assert.equal(header.caseId, 'NPL-2015-EQ');
+  assert.equal(header.caseNumber, '001');
+  assert.equal(header.caseName, 'NEPAL EARTHQUAKE');
+  assert.equal(header.caseDate, '25 APR 2015');
   // Ten registry datasets are cited across the five analyses.
   assert.equal(header.datasets, 10);
   // 23 methodology records: 22 until Stage 4 gained the record for the

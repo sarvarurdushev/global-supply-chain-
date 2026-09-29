@@ -7,9 +7,16 @@ import { installTestDom } from '../../workspace/testDom.mjs';
 
 installTestDom();
 
-const { createNepalCaseMount, isCaseHash, CASE_HASH_PREFIX } = await import(
-  './mount.js'
-);
+const {
+  createNepalCaseMount,
+  isCaseHash,
+  CASE_HASH_PREFIX,
+  WORKSPACE_HASH,
+  isWorkspaceHash,
+  resolveEntry,
+  claimEntryAddress,
+  ENTRY,
+} = await import('./mount.js');
 const { ANALYSIS_BASE } = await import('../../nepal/story/loader.js');
 
 const ROOT = fileURLToPath(new URL('../../../', import.meta.url));
@@ -117,7 +124,7 @@ test('the chip opens the case, and comes back when it closes', async () => {
   assert.equal(mount.launcher.hidden, true);
   /* The click starts an async load; let it settle before asserting on copy. */
   await mount.open();
-  assert.match(container.textContent, /CASE NPL-2015-EQ/);
+  assert.match(container.textContent, /CASE 001 \/ NEPAL EARTHQUAKE \/ 25 APR 2015/);
 
   mount.close();
   assert.equal(mount.launcher.hidden, false);
@@ -319,5 +326,135 @@ test('the header can start the six-minute run, and switching run starts it afres
   await Promise.resolve();
   assert.equal(mount.presentation.script.length, 'full');
   assert.equal(mount.presentation.state.index, 0, 'a new run starts at its first step');
+  mount.destroy();
+});
+
+/*
+ * THE FRONT DOOR. Until these held, `/` opened the inherited workspace and
+ * its first-launch chooser, and the case was reachable only from a chip.
+ */
+
+/** `fakeWindow` plus the history API, which never fires `hashchange`. */
+function fakeWindowWithHistory(initialHash = '') {
+  const win = fakeWindow(initialHash);
+  win.location.pathname = '/';
+  win.location.search = '';
+  win.history = {
+    state: null,
+    replaced: [],
+    replaceState(state, _title, url) {
+      this.replaced.push(url);
+      const index = url.indexOf('#');
+      win.location._hash = index >= 0 ? url.slice(index) : '';
+    },
+  };
+  return win;
+}
+
+test('every address but the workspace names the case as the entry', () => {
+  assert.equal(resolveEntry(''), ENTRY.CASE);
+  assert.equal(resolveEntry('#v=2&lat=30.2672&lon=-97.7431'), ENTRY.CASE);
+  assert.equal(resolveEntry(`${CASE_HASH_PREFIX}/scene/shaking`), ENTRY.CASE);
+  assert.equal(resolveEntry(WORKSPACE_HASH), ENTRY.WORKSPACE);
+  assert.equal(resolveEntry(`${WORKSPACE_HASH}?x=1`), ENTRY.WORKSPACE);
+  assert.equal(resolveEntry('#/workspaces'), ENTRY.CASE, 'a prefix is not a name');
+  assert.equal(isWorkspaceHash('#/workspaces'), false);
+});
+
+test('a legacy camera hash is dropped before the application can read it', () => {
+  const win = fakeWindowWithHistory('#v=2&lat=30.2672&lon=-97.7431&layers=fl');
+  assert.equal(claimEntryAddress({ win }), ENTRY.CASE);
+  assert.equal(win.location.hash, '');
+  assert.deepEqual(win.history.replaced, ['/']);
+  assert.equal(win.fired, 0, 'no hashchange and no history entry');
+
+  const deep = fakeWindowWithHistory(`${CASE_HASH_PREFIX}/scene/shaking`);
+  assert.equal(claimEntryAddress({ win: deep }), ENTRY.CASE);
+  assert.equal(deep.location.hash, `${CASE_HASH_PREFIX}/scene/shaking`);
+  assert.deepEqual(deep.history.replaced, [], 'a case link is kept');
+
+  const workspace = fakeWindowWithHistory(WORKSPACE_HASH);
+  assert.equal(claimEntryAddress({ win: workspace }), ENTRY.WORKSPACE);
+  assert.equal(workspace.location.hash, WORKSPACE_HASH);
+});
+
+test('as the entry, the case opens at / with no click and no hash', async () => {
+  const container = document.createElement('div');
+  const doc = fakeDoc();
+  const win = fakeWindowWithHistory('');
+  const mount = createNepalCaseMount({
+    entry: true,
+    container,
+    win,
+    doc,
+    createLayers: () => recordingLayers(),
+    fetchImpl: diskFetch(),
+  });
+  assert.equal(mount.isOpen, true, 'open on construction');
+  assert.equal(mount.element.hidden, false);
+  assert.equal(mount.launcher.hidden, true);
+  assert.ok(doc.classes.has('ndi-open'), 'the inherited chrome steps aside');
+  assert.ok(isCaseHash(win.location.hash), 'the address names the case');
+  assert.equal(win.fired, 0, 'claimed by replacement, so Back leaves the product');
+  await mount.open();
+  assert.match(container.textContent, /NATURAL DISASTER INTELLIGENCE/);
+  assert.match(container.textContent, /CASE 001 \/ NEPAL EARTHQUAKE \/ 25 APR 2015/);
+  mount.destroy();
+});
+
+test('as the entry, only the workspace address closes the case', async () => {
+  const doc = fakeDoc();
+  const win = fakeWindowWithHistory('');
+  const mount = createNepalCaseMount({
+    entry: true,
+    container: document.createElement('div'),
+    win,
+    doc,
+    createLayers: () => recordingLayers(),
+    fetchImpl: diskFetch(),
+  });
+  await mount.open();
+  win.location.hash = WORKSPACE_HASH;
+  assert.equal(mount.isOpen, false);
+  assert.equal(mount.launcher.hidden, false, 'the chip is the way back');
+  assert.ok(!doc.classes.has('ndi-open'));
+
+  /* An emptied address is the front door again. */
+  win.location.hash = '';
+  assert.equal(mount.isOpen, true);
+  assert.ok(isCaseHash(win.location.hash));
+  mount.destroy();
+});
+
+test('as the entry, the named workspace stays the workspace', () => {
+  const win = fakeWindowWithHistory(WORKSPACE_HASH);
+  const mount = createNepalCaseMount({
+    entry: true,
+    container: document.createElement('div'),
+    win,
+    doc: fakeDoc(),
+    createLayers: () => assert.fail('nothing is built for the workspace'),
+    fetchImpl: () => assert.fail('nothing is fetched for the workspace'),
+  });
+  assert.equal(mount.isOpen, false);
+  assert.equal(mount.launcher.hidden, false);
+  assert.equal(win.location.hash, WORKSPACE_HASH);
+  mount.destroy();
+});
+
+test('as the entry, closing the case names the workspace so a reload keeps it', async () => {
+  const win = fakeWindowWithHistory('');
+  const mount = createNepalCaseMount({
+    entry: true,
+    container: document.createElement('div'),
+    win,
+    doc: fakeDoc(),
+    createLayers: () => recordingLayers(),
+    fetchImpl: diskFetch(),
+  });
+  await mount.open();
+  mount.close();
+  assert.equal(win.location.hash, WORKSPACE_HASH);
+  assert.equal(mount.isOpen, false, 'the echo guard kept it closed');
   mount.destroy();
 });

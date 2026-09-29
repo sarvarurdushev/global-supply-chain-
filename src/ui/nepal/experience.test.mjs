@@ -55,7 +55,7 @@ test('starting loads the evidence and paints all three zones', async () => {
   await experience.start();
   const text = mount.textContent;
   assert.match(text, /NATURAL DISASTER INTELLIGENCE/);
-  assert.match(text, /CASE NPL-2015-EQ/);
+  assert.match(text, /CASE 001 \/ NEPAL EARTHQUAKE \/ 25 APR 2015/);
   assert.match(text, /38\/38/, 'the header counts real checks');
   assert.match(text, /7\.8/, 'the case card states the magnitude');
   assert.ok(layers.flights.length > 0, 'the camera is placed on start');

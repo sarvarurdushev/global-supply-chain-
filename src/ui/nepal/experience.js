@@ -21,7 +21,7 @@
 
 import { h } from '../../workspace/components.js';
 import { createArtefactLoader } from '../../nepal/story/loader.js';
-import { headerState } from '../../nepal/story/artefacts.js';
+import { CASE_IDENTITY, headerState } from '../../nepal/story/artefacts.js';
 import {
   createNepalInvestigation,
   MODE,
@@ -281,7 +281,10 @@ export function createNepalExperience({
     const header = intelligence
       ? headerState(intelligence, loader.progress())
       : {
-          caseId: 'NPL-2015-EQ',
+          caseId: CASE_IDENTITY.id,
+          caseNumber: CASE_IDENTITY.number,
+          caseName: CASE_IDENTITY.name,
+          caseDate: CASE_IDENTITY.date,
           datasets: 0,
           analyses: 0,
           checksLabel: '—',

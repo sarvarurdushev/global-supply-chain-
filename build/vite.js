@@ -1,5 +1,6 @@
 import { applicationHtmlPlugin } from './application-html.js';
 import { nepalDataPlugin } from './nepal-data.js';
+import { buildInfoPlugin } from './build-info.js';
 import cesium from 'vite-plugin-cesium';
 
 /** Build browser assets with explicit inputs; never load environment or providers. */
@@ -10,6 +11,7 @@ export function createBrowserViteConfig({
   cesiumToken,
   host = 'localhost',
   port = 4173,
+  buildEnv = {},
 } = {}) {
   const resolvedHost = host || 'localhost';
   const resolvedPort = parseInt(port, 10) || 4173;
@@ -28,8 +30,16 @@ export function createBrowserViteConfig({
      * `nepalDataPlugin` is core rather than injected: the case artefacts are
      * the application's subject matter, not an optional provider, and a build
      * that shipped without them would start and then fail on the first panel.
+     * `buildInfoPlugin` stamps the commit, so a deployment can be compared
+     * with a local build by reading `/version.json` on each.
      */
-    plugins: [cesium(), applicationHtmlPlugin(), nepalDataPlugin(), ...plugins],
+    plugins: [
+      cesium(),
+      applicationHtmlPlugin(),
+      nepalDataPlugin(),
+      buildInfoPlugin({ env: buildEnv }),
+      ...plugins,
+    ],
     ...(publicDir === undefined ? {} : { publicDir }),
     server: {
       host: resolvedHost,

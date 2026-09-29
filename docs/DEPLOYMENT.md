@@ -157,7 +157,29 @@ persistent disk is needed.
 
 ---
 
-## 6. Licence, before you make it public
+## 6. Is the hosted site the version you tested?
+
+Every build writes `version.json` beside `index.html`, and a `build-commit`
+meta tag into the page, carrying the commit it was built from (Render's
+`RENDER_GIT_COMMIT` during a Render build, git otherwise):
+
+```bash
+cat dist/version.json                                   # local build
+curl -s https://<your-service>.onrender.com/version.json   # hosted
+```
+
+The two `commit` values must match, and the local one must say
+`"dirty": false`. If the hosted commit is older, the deploy has not happened
+or failed: see the service's **Events** tab, or **Manual Deploy → Deploy
+latest commit**.
+
+The root of either should open **Natural Disaster Intelligence — Case 001,
+Nepal Earthquake, 25 April 2015** directly. `/#/workspace` is the only way into
+the inherited workspace; see [`NEPAL_2015_ENTRY_POINT.md`](NEPAL_2015_ENTRY_POINT.md).
+
+---
+
+## 7. Licence, before you make it public
 
 Read `docs/DATA_LICENSE_MATRIX.md` §0 first. Two things shipped in this
 repository are **NonCommercial**:

@@ -1,4 +1,16 @@
-# 🌍 Global Supply Chain Eye
+# Natural Disaster Intelligence
+
+**Case 001 — Nepal Earthquake, 25 April 2015.** A nineteen-scene investigation
+of what happened, what it met and what is known, built from validated open
+data. It is what the application's root address opens: `npm run build` then
+`npm run preview`, and open `http://localhost:4173/`. See
+[`docs/NEPAL_2015_ENTRY_POINT.md`](docs/NEPAL_2015_ENTRY_POINT.md) for the
+entry point and [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) for hosting.
+
+The inherited workspace described below is still in the build and is reached
+at `/#/workspace`.
+
+## 🌍 Global Supply Chain Eye (inherited workspace)
 
 **An open-data global supply-chain intelligence and simulation platform, built on
 [God's Eye View](https://github.com/bilawalsidhu/gods-eye-view).**

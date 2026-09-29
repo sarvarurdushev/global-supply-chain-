@@ -23,6 +23,7 @@ import {
 
 /** Attach scene tools, rendering listeners and the application debug handle. */
 export function createApplicationTools({
+  entry = 'workspace',
   scene,
   controls,
   data,
@@ -156,8 +157,10 @@ export function createApplicationTools({
   // Natural Disaster Intelligence, Case 001. A second full-screen interface
   // over the same globe rather than another panel in the dock — see
   // `ui/nepal/mount.js` for why. It builds nothing until it is opened, so the
-  // rest of the application is unaffected by its existence.
+  // rest of the application is unaffected by its existence. On the case entry
+  // it is the front door and opens here, before the loading cover lifts.
   const nepalCase = createNepalCaseMount({
+    entry: entry === 'case',
     /*
      * `?worker` is Vite's own worker import, so the bundle carries a real
      * module worker rather than a blob built at run time. Scene 13's graph

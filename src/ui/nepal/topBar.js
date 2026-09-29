@@ -43,12 +43,21 @@ export function renderTopBar({
 }) {
   const scenario = needsScenarioBand(state?.scene?.resultClasses ?? []);
   const bar = h('header', { class: 'ndi-top', role: 'banner' }, [
+    /*
+     * The product, then the case. This is the first thing on screen at `/`,
+     * so it says in one line what is being investigated and when. The
+     * catalogue id stays one hover away.
+     */
     h('div', { class: 'ndi-top__brand' }, [
       h('span', {
         class: 'ndi-top__title',
         text: 'NATURAL DISASTER INTELLIGENCE',
       }),
-      h('span', { class: 'ndi-top__case', text: `CASE ${header.caseId}` }),
+      h('span', {
+        class: 'ndi-top__case',
+        title: `Case id ${header.caseId}`,
+        text: `CASE ${header.caseNumber} / ${header.caseName} / ${header.caseDate}`,
+      }),
     ]),
     h('div', { class: 'ndi-top__stats' }, [
       stat('DATASETS', header.datasets),

@@ -20,6 +20,14 @@
  * guard matters: writing the hash fires `hashchange`, and without the guard the
  * case would re-apply its own deep link on every scene change and fight the
  * user for the camera.
+ *
+ * THE CASE IS THE FRONT DOOR. With `entry` set — which is how the application
+ * mounts it — the case opens on load at `/`, with no hash and no click. Until
+ * this was true the case was reachable only from a chip or a deep link, the
+ * bare address showed the inherited workspace and its first-launch chooser,
+ * and every browser check of the case had quietly started from the chip. The
+ * inherited workspace is still in the build and still works; it is reached by
+ * naming it, `#/workspace`, and by nothing else.
  */
 
 import { h } from '../../workspace/components.js';
@@ -34,6 +42,48 @@ export function isCaseHash(hash) {
   return String(hash ?? '').startsWith(CASE_HASH_PREFIX);
 }
 
+/** The inherited workspace's one address. */
+export const WORKSPACE_HASH = '#/workspace';
+
+/** Does this address ask for the inherited workspace, by name? */
+export function isWorkspaceHash(hash) {
+  const value = String(hash ?? '');
+  return (
+    value === WORKSPACE_HASH ||
+    value.startsWith(`${WORKSPACE_HASH}?`) ||
+    value.startsWith(`${WORKSPACE_HASH}/`)
+  );
+}
+
+export const ENTRY = Object.freeze({ CASE: 'case', WORKSPACE: 'workspace' });
+
+/** Which interface a page load opens on. Everything but `#/workspace` is the case. */
+export function resolveEntry(hash) {
+  return isWorkspaceHash(hash) ? ENTRY.WORKSPACE : ENTRY.CASE;
+}
+
+/**
+ * Decide the entry from the address the visitor arrived at, and clean that
+ * address BEFORE the application reads it. Call once, before startup.
+ *
+ * The inherited shell writes its camera into the hash on every visit
+ * (`#v=2&lat=…&layers=…`), so a tab restored from any earlier visit carries
+ * one, and the shell treats it as an instruction: restore that camera over
+ * Austin, restore those live layers. Left in place, a returning visitor would
+ * get the old application's state under the case. On the case entry any hash
+ * that is not the case's own is therefore dropped, with `replaceState` so no
+ * history entry is made and no `hashchange` fires.
+ */
+export function claimEntryAddress({ win = globalThis.window } = {}) {
+  const hash = win?.location?.hash ?? '';
+  const entry = resolveEntry(hash);
+  if (entry === ENTRY.CASE && hash && !isCaseHash(hash)) {
+    const { pathname, search } = win.location;
+    win.history?.replaceState?.(win.history.state, '', `${pathname}${search}`);
+  }
+  return entry;
+}
+
 /**
  * @param {object} input
  * @param {HTMLElement} [input.container] where the host element is appended
@@ -41,8 +91,11 @@ export function isCaseHash(hash) {
  * @param {typeof fetch} [input.fetchImpl]
  * @param {object} [input.win] window-like, for hash routing
  * @param {object} [input.doc] document-like, for the body class
+ * @param {boolean} [input.entry] the case is the application's front door:
+ *   it opens on load unless the address names the workspace
  */
 export function createNepalCaseMount({
+  entry = false,
   container = document.body,
   createLayers = null,
   createWorker = null,
@@ -121,11 +174,20 @@ export function createNepalCaseMount({
     presentation?.playback.pause();
   }
 
-  function syncHash(state, reason) {
+  /*
+   * `replace` is for the entry open. Pushing there would put the address the
+   * visitor arrived at one Back press behind the case, and Back would step out
+   * of the product into whatever that address was.
+   */
+  function syncHash(state, reason, { replace = false } = {}) {
     if (!open || reason === 'deeplink') return;
     const next = state?.deepLink;
     if (!next || !win?.location) return;
     if (win.location.hash === next) return;
+    if (replace && typeof win.history?.replaceState === 'function') {
+      win.history.replaceState(win.history.state, '', next);
+      return;
+    }
     writingHash = true;
     try {
       win.location.hash = next;
@@ -150,7 +212,7 @@ export function createNepalCaseMount({
     return experience;
   }
 
-  async function openCase({ hash } = {}) {
+  async function openCase({ hash, replace = false } = {}) {
     const first = !experience;
     build();
     open = true;
@@ -170,7 +232,7 @@ export function createNepalCaseMount({
      * once you happen to change scene — so the opening view, the one most
      * likely to be sent to somebody, was the one view with no link.
      */
-    syncHash(experience.investigation.state, 'open');
+    syncHash(experience.investigation.state, 'open', { replace });
     if (first) await experience.start();
     else experience.render();
     return experience;
@@ -185,7 +247,8 @@ export function createNepalCaseMount({
     if (win?.location && isCaseHash(win.location.hash)) {
       writingHash = true;
       try {
-        win.location.hash = '';
+        /* As the front door, an empty address would reopen the case on reload. */
+        win.location.hash = entry ? WORKSPACE_HASH : '';
       } finally {
         writingHash = false;
       }
@@ -200,13 +263,24 @@ export function createNepalCaseMount({
       else openCase({ hash });
       return;
     }
+    /* As the front door, only the workspace's own address closes the case. */
+    if (entry && !isWorkspaceHash(hash)) {
+      if (!open) openCase({ replace: true });
+      else syncHash(experience.investigation.state, 'open', { replace: true });
+      return;
+    }
     closeCase();
   }
 
   win?.addEventListener?.('hashchange', onHashChange);
 
-  /* An address that already names the case opens it on load. */
-  if (isCaseHash(win?.location?.hash ?? '')) openCase();
+  /*
+   * An address that already names the case opens it on load; as the front
+   * door, so does every address that does not name the workspace.
+   */
+  const initialHash = win?.location?.hash ?? '';
+  if (isCaseHash(initialHash)) openCase({ replace: entry });
+  else if (entry && !isWorkspaceHash(initialHash)) openCase({ replace: true });
 
   return Object.freeze({
     get element() {

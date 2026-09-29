@@ -29,6 +29,7 @@
     "modules": [
       "build/vite.js",
       "build/nepal-data.js",
+      "build/build-info.js",
       "build/application-html.js"
     ],
     "external": ["vite-plugin-cesium"]

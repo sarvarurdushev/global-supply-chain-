@@ -3,19 +3,16 @@
 Natural Disaster Intelligence, Case 001 — Nepal Earthquake 2015.
 Reported against Part M of the Stage 8 brief.
 
-## PROJECT STATUS — FEATURE FROZEN
+## PROJECT STATUS — FREEZE LIFTED
 
-Stage 8 is approved and the integrity patch below is applied. **The Nepal
-2015 application is feature-frozen for presentation preparation.** There is
-no Stage 9. Changes are made only if one of these is found:
-
-- a genuine analytical error;
-- a broken interaction;
-- a serious readability problem exposed by local QA over real satellite
-  imagery (`npm run preview` on a machine whose browser can load the tiles).
-
-Anything else — new scenes, datasets, charts, pacing, routing or styling — is
-out of scope while the application is frozen.
+The freeze declared after the integrity patch was **lifted** for an
+entry-point defect: the bare address `/` opened the inherited God's Eye View
+workspace and its first-launch chooser, not this case. Every Stage 7 and
+Stage 8 screenshot was taken after a script clicked the case chip, at
+`/#/case/npl-2015-eq/scene/<id>`, so none of them showed what a visitor sees
+first. The diagnosis and the fix are in
+[`NEPAL_2015_ENTRY_POINT.md`](NEPAL_2015_ENTRY_POINT.md). No analytical figure
+changed.
 
 **No analytical figure was changed.** Every number on screen is still read
 from a Stage 5 artefact. One provenance gap was found and is reported under

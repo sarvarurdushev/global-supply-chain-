@@ -56,7 +56,13 @@ export class StyleManager extends ShellFacade {
    */
   constructor(
     viewer,
-    { mapStackController = null, placeSearch, services, requestServices } = {},
+    {
+      mapStackController = null,
+      placeSearch,
+      services,
+      requestServices,
+      restoreLocalLayers = true,
+    } = {},
   ) {
     super();
     const {
@@ -136,6 +142,7 @@ export class StyleManager extends ShellFacade {
     });
     this._shareRestoration = new ShareRestoration({
       viewer,
+      restoreLocalLayers,
       navigation: this._navigation,
       syncShareState: () => this._syncShareState(),
       syncModels3d: (state) => this._syncModels3dFromLayerState(state),

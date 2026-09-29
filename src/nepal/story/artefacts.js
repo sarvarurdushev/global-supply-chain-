@@ -206,6 +206,17 @@ export function createIntelligence(parsed) {
 }
 
 /**
+ * Which case this is. Names, not figures: nothing here is a result, and
+ * nothing here is read from or checked against an artefact.
+ */
+export const CASE_IDENTITY = Object.freeze({
+  id: 'NPL-2015-EQ',
+  number: '001',
+  name: 'NEPAL EARTHQUAKE',
+  date: '25 APR 2015',
+});
+
+/**
  * The header figures, all read from the artefacts rather than asserted.
  *
  * `datasets` counts distinct source datasets actually cited by the artefacts,
@@ -228,7 +239,10 @@ export function headerState(
     { passed: 0, total: 0, allCountable: true },
   );
   return Object.freeze({
-    caseId: 'NPL-2015-EQ',
+    caseId: CASE_IDENTITY.id,
+    caseNumber: CASE_IDENTITY.number,
+    caseName: CASE_IDENTITY.name,
+    caseDate: CASE_IDENTITY.date,
     datasets: intelligence.sources.length,
     analyses: intelligence.methodology.length,
     checksPassed: checks.passed,

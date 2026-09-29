@@ -12,6 +12,7 @@ let constructed = false;
 
 /** Compose the standalone application once per page. Reload to start again. */
 export function createStandaloneApplication({
+  entry = 'workspace',
   googleApiKey,
   cesiumToken,
   geospatial = {},
@@ -57,6 +58,7 @@ export function createStandaloneApplication({
     createControls: (context) =>
       createStandaloneControls({
         ...context,
+        entry,
         loaderStatus,
         placeSearch,
         catalog,
@@ -64,6 +66,12 @@ export function createStandaloneApplication({
     createData: (context) =>
       createStandaloneData({ ...context, allowQaRegistration, catalog }),
     createTools: (context) =>
-      createStandaloneTools({ ...context, loadingScreen, placeSearch, voice }),
+      createStandaloneTools({
+        ...context,
+        entry,
+        loadingScreen,
+        placeSearch,
+        voice,
+      }),
   });
 }

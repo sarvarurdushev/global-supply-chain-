@@ -7,6 +7,7 @@ import { UiLifetime } from './uiLifetime.js';
 export class ShareRestoration {
   constructor({
     viewer,
+    restoreLocalLayers = true,
     navigation,
     syncShareState,
     syncModels3d,
@@ -23,6 +24,7 @@ export class ShareRestoration {
       feedback,
       updateFeedback,
     });
+    this._restoreLocalLayers = restoreLocalLayers !== false;
     this._lifetime = new UiLifetime();
     this._disposed = false;
     this._shareTrackingAcquiringKey = null;
@@ -148,8 +150,9 @@ export class ShareRestoration {
         shareLayerState: this._initialShareState?.layerState || null,
         shareCreatedAtMs: this._initialShareState?.sharedAtMs ?? null,
         // Any valid camera/style share isolates recipient-local preferences,
-        // including legacy and malformed-v2 layer payloads.
-        allowLocalState: !this._initialShareState,
+        // including legacy and malformed-v2 layer payloads. The case entry
+        // opts out too: saved workspace layers would draw under the case.
+        allowLocalState: !this._initialShareState && this._restoreLocalLayers,
       });
       if (this._initialShareSelectionSuperseded) {
         this._layerStateCoordinator.cancelPendingShareTracking(

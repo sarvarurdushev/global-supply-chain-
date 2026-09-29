@@ -184,7 +184,7 @@
   font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: 0.14em;
-  color: var(--gx-text-faint);
+  color: var(--gx-text-dim);
 }
 .ndi-top__stats {
   display: flex;

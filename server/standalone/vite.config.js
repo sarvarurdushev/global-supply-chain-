@@ -18,5 +18,10 @@ export default defineConfig(({ mode }) => {
     cesiumToken: process.env.CESIUM_ION_TOKEN,
     host: process.env.HOST,
     port: process.env.PORT,
+    /* The commit a hosted build stamps into /version.json. */
+    buildEnv: {
+      RENDER_GIT_COMMIT: process.env.RENDER_GIT_COMMIT,
+      RENDER_GIT_BRANCH: process.env.RENDER_GIT_BRANCH,
+    },
   });
 });

@@ -30,7 +30,14 @@ test('the header states only real application figures', () => {
   const inv = createNepalInvestigation();
   const text = renderTopBar({ header, state: inv.state }).textContent;
   assert.match(text, /NATURAL DISASTER INTELLIGENCE/);
-  assert.match(text, /CASE NPL-2015-EQ/);
+  assert.match(text, /CASE 001 \/ NEPAL EARTHQUAKE \/ 25 APR 2015/);
+  assert.equal(
+    renderTopBar({ header, state: inv.state })
+      .querySelector('.ndi-top__case')
+      .getAttribute('title'),
+    'Case id NPL-2015-EQ',
+    'the catalogue id stays one hover away',
+  );
   assert.match(text, /10/, 'datasets');
   assert.match(text, /23/, 'analyses — 22 until the Scene 06 quadrant record was added');
   assert.match(text, /38\/38/, 'checks');
