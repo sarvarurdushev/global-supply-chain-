@@ -76,6 +76,24 @@ test('the plugin registers on both the dev and the preview server', () => {
   assert.equal(used.length, 2);
 });
 
+test('the build copy follows the configured output directory', async () => {
+  const { mkdtemp, readdir, rm } = await import('node:fs/promises');
+  const { tmpdir } = await import('node:os');
+  const out = await mkdtemp(path.join(tmpdir(), 'ndi-outdir-'));
+  try {
+    const plugin = nepalDataPlugin();
+    plugin.configResolved({ root: ROOT, build: { outDir: out } });
+    await plugin.closeBundle();
+    const analysis = await readdir(path.join(out, 'data', 'analysis'));
+    assert.ok(analysis.includes('nepal-2015-population-exposure.json'));
+    const processed = await readdir(path.join(out, 'data', 'processed'));
+    assert.ok(processed.length > 0);
+    await assert.rejects(readdir(path.join(out, 'data', 'raw')), 'raw is never copied');
+  } finally {
+    await rm(out, { recursive: true, force: true });
+  }
+});
+
 test('the middleware serves a real artefact and passes everything else through', async () => {
   const plugin = nepalDataPlugin();
   let handler = null;

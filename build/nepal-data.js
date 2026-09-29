@@ -91,8 +91,18 @@ function middleware(root) {
  * exactly where it matters.
  */
 export function nepalDataPlugin({ root = ROOT } = {}) {
+  /*
+   * Where the bundle is going. `dist` unless the build says otherwise: a copy
+   * that always wrote `<root>/dist/data` left `vite build --outDir …` without
+   * its artefacts, and a static host serving that directory would 404 them.
+   */
+  let bundleDir = path.join(root, 'dist');
   return {
     name: 'nepal-case-artefacts',
+    configResolved(config) {
+      if (config?.build?.outDir)
+        bundleDir = path.resolve(config.root ?? root, config.build.outDir);
+    },
     configureServer(server) {
       server.middlewares.use(middleware(root));
     },
@@ -104,7 +114,7 @@ export function nepalDataPlugin({ root = ROOT } = {}) {
      * them without the middleware. `data/raw` is never copied.
      */
     async closeBundle() {
-      const outDir = path.join(root, 'dist', 'data');
+      const outDir = path.join(bundleDir, 'data');
       for (const directory of SERVED_DIRECTORIES) {
         const from = path.join(root, 'data', directory);
         if (!existsSync(from)) continue;
