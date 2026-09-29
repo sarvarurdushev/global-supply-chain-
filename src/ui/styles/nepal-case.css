@@ -448,10 +448,6 @@
   border-radius: 3px;
   background: rgba(34, 217, 127, 0.04);
 }
-.ndi-prov.is-gap {
-  border-inline-start-color: var(--gx-amber);
-  background: rgba(255, 176, 32, 0.05);
-}
 .ndi-prov__name {
   margin: 0;
   font-size: 12px;

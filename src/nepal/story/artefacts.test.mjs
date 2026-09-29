@@ -101,7 +101,9 @@ test('the header states only what the artefacts support', async () => {
   assert.equal(header.caseId, 'NPL-2015-EQ');
   // Ten registry datasets are cited across the five analyses.
   assert.equal(header.datasets, 10);
-  assert.equal(header.analyses, 22);
+  // 23 methodology records: 22 until Stage 4 gained the record for the
+  // population × intensity quadrants behind Scene 06's headline.
+  assert.equal(header.analyses, 23);
   assert.equal(header.checksPassed, header.checksTotal);
   assert.equal(header.checksAllCountable, true);
   assert.equal(header.checksLabel, `${header.checksPassed}/${header.checksTotal}`);
@@ -142,7 +144,7 @@ test('an uncountable artefact marks the header label rather than silently shrink
 
 test('methodology records are addressable by id for the provenance panel', async () => {
   const intel = await loadReal();
-  assert.equal(intel.methodology.length, 22);
+  assert.equal(intel.methodology.length, 23);
   const record = intel.methodologyFor('damage-by-intensity');
   assert.ok(record, 'the Scene 09 methodology record must resolve');
   assert.ok(record.limitations.length > 0);

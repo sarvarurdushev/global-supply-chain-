@@ -414,3 +414,59 @@ test('intensity bands on the real ShakeMap nest cleanly and leave nothing detach
   assert.equal(result.bands[result.bands.length - 1].upperMmi, null);
   assert.match(result.bands[result.bands.length - 1].label, /\+$/);
 });
+
+test('the quadrant result has a methodology record, and the record quotes the result exactly', async () => {
+  /*
+   * Stage 8 found Scene 06's headline — the high-shaking, high-density
+   * quadrant — published with no record describing how it was produced. The
+   * record now lives beside the calculation; this pins it to the numbers so
+   * the two cannot drift apart.
+   */
+  let text;
+  try {
+    text = await readFile(
+      path.join(ROOT, 'data', 'analysis', 'nepal-2015-population-exposure.json'),
+      'utf8',
+    );
+  } catch {
+    return; // artefact not built in this checkout
+  }
+  const artefact = JSON.parse(text);
+  const record = artefact.methodology.find(
+    (entry) => entry.id === 'exposure-population-intensity-quadrants',
+  );
+  assert.ok(record, 'the quadrants have a record');
+  for (const field of [
+    'question',
+    'inputs',
+    'sourceDatasets',
+    'spatialCoverage',
+    'populationRepresentation',
+    'intensityRepresentation',
+    'definitions',
+    'method',
+    'result',
+    'resultClass',
+    'validation',
+    'limitations',
+  ])
+    assert.ok(record[field], `the record documents ${field}`);
+  for (const key of ['highShaking', 'highDensity', 'densityThresholdDerivation'])
+    assert.ok(record.definitions[key], key);
+
+  const quadrants = artefact.results.populationIntensityQuadrants;
+  assert.equal(record.parameters.densityCutPeoplePerCell, quadrants.parameters.densityCutPeoplePerCell);
+  assert.equal(record.parameters.intensityThreshold, quadrants.parameters.intensityThreshold);
+  for (const quadrant of quadrants.quadrants) {
+    assert.equal(record.result[quadrant.id].people, quadrant.people, quadrant.id);
+    assert.equal(record.result[quadrant.id].cells, quadrant.cells, quadrant.id);
+  }
+  assert.match(record.resultStatement, /11,834,041/);
+  assert.equal(record.resultClass, 'DERIVED');
+  /* Only the two datasets the classification reads: districts play no part. */
+  assert.deepEqual(
+    record.inputs.map((input) => input.dataset),
+    ['worldpop-npl-2015-unadj', 'usgs-nepal-2015-shakemap-contours'],
+  );
+  assert.match(record.limitations[0], /GEOGRAPHIC EXPOSURE, NOT HARM/);
+});

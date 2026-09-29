@@ -491,8 +491,7 @@ const BODIES = {
     const lead = chosen ?? both;
     return [
       figure(lead?.people, {
-        analysis:
-          'unrecorded:nepal-2015-population-exposure.json → results.populationIntensityQuadrants',
+        analysis: 'exposure-population-intensity-quadrants',
         label: chosen
           ? `people in ${chosen.label.toLowerCase()} cells`
           : 'people in cells that were both strongly shaken and densely settled',
@@ -1097,42 +1096,19 @@ export function renderIntelPanel({
  * re-render — data arriving, a control moving — does not close it under the
  * presenter's hand.
  */
-/**
- * A figure no methodology record covers. Said, not papered over: the card
- * names the artefact path that carries the numbers and stops there, rather
- * than borrowing the nearest record and describing a method it did not use.
- */
-function unrecordedCard(id) {
-  const where = id.replace(/^unrecorded:/, '');
-  return h(
-    'section',
-    {
-      class: 'ndi-prov is-gap',
-      id: `ndi-prov-${cssId(id)}`,
-      'aria-label': 'No methodology record for this figure',
-    },
-    [
-      h('p', { class: 'ndi-prov__name', text: 'No methodology record' }),
-      h('dl', { class: 'ndi-prov__rows' }, [
-        h('dt', { text: 'Artefact' }),
-        h('dd', { text: where }),
-        h('dt', { text: 'Status' }),
-        h('dd', {
-          text: 'The artefact publishes these counts and their parameters, but no record describes how they were produced. Reported as a gap in the Stage 8 report.',
-        }),
-      ]),
-    ],
-  );
-}
-
 function cssId(id) {
   return String(id).replace(/[^a-zA-Z0-9_-]+/g, '-');
 }
 
 function placeProvenance(nodes, { open, record, toggle }) {
   const list = nodes.filter(Boolean);
-  const unrecorded = String(open ?? '').startsWith('unrecorded:');
-  const shown = Boolean(open) && (Boolean(record) || unrecorded);
+  /*
+   * A card opens only for a record the artefact actually holds. The one
+   * figure that had none — Scene 06's quadrants — now resolves to the Stage 4
+   * record `exposure-population-intensity-quadrants`, so the temporary "no
+   * methodology record" card is gone; a test keeps every cited id resolvable.
+   */
+  const shown = Boolean(open) && Boolean(record);
   for (const node of list) {
     for (const button of node.querySelectorAll?.('.ndi-figure__info') ?? []) {
       const id = button.getAttribute('data-provenance');
@@ -1146,7 +1122,7 @@ function placeProvenance(nodes, { open, record, toggle }) {
     }
   }
   if (!shown) return list;
-  const card = record ? provenanceCard(record) : unrecordedCard(open);
+  const card = provenanceCard(record);
   const at = list.findIndex(
     (node) => node.getAttribute?.('data-analysis') === open,
   );

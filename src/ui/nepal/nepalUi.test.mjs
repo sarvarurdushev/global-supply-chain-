@@ -32,7 +32,7 @@ test('the header states only real application figures', () => {
   assert.match(text, /NATURAL DISASTER INTELLIGENCE/);
   assert.match(text, /CASE NPL-2015-EQ/);
   assert.match(text, /10/, 'datasets');
-  assert.match(text, /22/, 'analyses');
+  assert.match(text, /23/, 'analyses — 22 until the Scene 06 quadrant record was added');
   assert.match(text, /38\/38/, 'checks');
   assert.match(text, /READY/);
   // No invented telemetry.
@@ -375,30 +375,43 @@ test('a headline figure can say where it came from, in place', () => {
   assert.equal(open.querySelector('.ndi-figure__info').getAttribute('aria-expanded'), 'true');
 });
 
-test('every headline that cites a record resolves to one, and the one that cannot says so', () => {
+test('every headline that cites a record resolves to one', () => {
   const missing = [];
   for (const entry of SCENES) {
     const state = createNepalInvestigation({ scene: entry.index }).state;
     const panel = renderIntelPanel({ intelligence, state, on: { provenance() {} } });
     for (const node of panel.querySelectorAll('.ndi-figure__info')) {
       const id = node.getAttribute('data-provenance');
-      if (id.startsWith('unrecorded:')) continue;
       if (!intelligence.methodologyFor(id)) missing.push(`${entry.id} → ${id}`);
     }
   }
   assert.deepEqual(missing, []);
+});
 
-  /* Scene 06's quadrant counts have no record; the card must not borrow one. */
+test('Scene 06 resolves its quadrant figure to the Stage 4 record, read from the artefact', () => {
+  /*
+   * Stage 8 showed a "no methodology record" card here. The record now comes
+   * from the analysis artefact; nothing about it is written in the frontend.
+   */
   const state = createNepalInvestigation({ scene: 6 }).state;
   const id = renderIntelPanel({ intelligence, state, on: { provenance() {} } })
     .querySelector('.ndi-figure__info')
     .getAttribute('data-provenance');
-  assert.match(id, /^unrecorded:/);
+  assert.equal(id, 'exposure-population-intensity-quadrants');
+  const record = intelligence.methodologyFor(id);
+  assert.ok(record, 'the artefact carries the record');
   const card = renderIntelPanel({ intelligence, state, on: { provenance() {} }, provenance: id })
     .querySelector('.ndi-prov');
-  assert.ok(card.classList.contains('is-gap'));
-  assert.match(card.textContent, /No methodology record/);
-  assert.doesNotMatch(card.textContent, /Method/);
+  assert.ok(card);
+  const text = card.textContent;
+  assert.match(text, /Population × shaking intensity quadrants/);
+  assert.match(text, /WorldPop 2015/);
+  assert.match(text, /USGS ShakeMap/);
+  assert.match(text, /DERIVED/);
+  assert.match(text, /GEOGRAPHIC EXPOSURE, NOT HARM/);
+  assert.ok(text.includes(record.spatialCoverage), 'coverage comes from the record');
+  assert.doesNotMatch(text, /No methodology record/);
+  assert.deepEqual(findForbiddenPhrasing(text), []);
 });
 
 test('the footer link opens provenance instead of dispatching into nothing', () => {

@@ -3,6 +3,20 @@
 Natural Disaster Intelligence, Case 001 — Nepal Earthquake 2015.
 Reported against Part M of the Stage 8 brief.
 
+## PROJECT STATUS — FEATURE FROZEN
+
+Stage 8 is approved and the integrity patch below is applied. **The Nepal
+2015 application is feature-frozen for presentation preparation.** There is
+no Stage 9. Changes are made only if one of these is found:
+
+- a genuine analytical error;
+- a broken interaction;
+- a serious readability problem exposed by local QA over real satellite
+  imagery (`npm run preview` on a machine whose browser can load the tiles).
+
+Anything else — new scenes, datasets, charts, pacing, routing or styling — is
+out of scope while the application is frozen.
+
 **No analytical figure was changed.** Every number on screen is still read
 from a Stage 5 artefact. One provenance gap was found and is reported under
 "Analytical discrepancies" rather than papered over.
@@ -291,6 +305,21 @@ Format, import-direction and package-boundary gates pass.
   record" rather than borrowing the nearest one. **Recommended correction:**
   add a record for the intensity × density quadrants to the Stage 5
   exposure artefact. Not done here: it is an analysis-stage change.
+
+  **Resolved after Stage 8 (integrity patch).** The record was added in the
+  analysis layer — the **Stage 4** pipeline `pipelines/analyse/exposure.mjs`,
+  not Stage 5 as written above — as
+  `exposure-population-intensity-quadrants` in
+  `data/analysis/nepal-2015-population-exposure.json`, documenting the method
+  as it runs in `populationIntensityQuadrants`: MMI VI or stronger at the cell
+  centre for high shaking, and the 75th percentile of the 177,679 populated
+  cells (134.1 people per cell, verified from the raw grid) for high density.
+  Regenerating the artefact changed **no figure**: a full comparison against
+  the previous file differs only in `generatedAt` and the added record; the
+  four existing records are byte-identical. Scene 06's ⓘ now opens that
+  record from the artefact, and the temporary "No methodology record" card is
+  removed. The methodology record count is therefore 23, not 22 (the header's
+  ANALYSES and Scene 17's count read it).
 
 ## REMAINING VISUAL ISSUES
 

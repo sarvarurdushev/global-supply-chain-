@@ -613,6 +613,94 @@ export async function analyseExposure() {
         'A district’s maximum MMI is the strongest contour reaching any part of it, not a characteristic value for the district.',
       ],
     }),
+    /*
+     * The record for the population x intensity quadrants.
+     *
+     * It was missing: the quadrants were computed and published from Stage 4
+     * on, and Stage 8 found that Scene 06's headline — the high-shaking,
+     * high-density quadrant — had no record describing how it was produced.
+     * Everything below documents `populationIntensityQuadrants` as it runs;
+     * the figures quoted are read from its output, not typed.
+     */
+    createAnalysisRecord({
+      id: 'exposure-population-intensity-quadrants',
+      name: 'Population × shaking intensity quadrants',
+      question:
+        'Where did many people and strong modelled shaking coincide — and how many people were modelled in each combination of high or low shaking and high or low population density?',
+      inputs: inputs.slice(0, 2),
+      sourceDatasets: [population.source, shakemap.source].map((source) => ({
+        dataset: source.datasetId,
+        name: source.datasetName,
+        publisher: source.publisher,
+        url: source.sourceUrl,
+        retrieved: source.retrievedAt,
+      })),
+      spatialCoverage: `All of Nepal as the WorldPop 2015 raster covers it: every populated cell, ${quadrants.parameters.populatedCells.toLocaleString('en-US')} in all (cells under 0.5 people are dropped at ingest). District boundaries play no part. A cell outside every closed ShakeMap contour is classified as low shaking, which is correct for this split: the outermost closed contour is MMI 4.5, below the MMI 6 threshold.`,
+      populationRepresentation:
+        'WorldPop 2015 UN-adjusted modelled population. The 3-arc-second raster is block-summed 10 × 10 into ~1 km (30-arc-second) cells, which preserves totals exactly. Each cell is a modelled expectation of residents, placed at the cell centre; it is not a census count and not the population present at the time of the earthquake.',
+      intensityRepresentation: `USGS ShakeMap for event us20002926, as closed Modified Mercalli Intensity contours at ${rings.usableLevels.join(', ')}. A cell takes the intensity of the strongest closed contour containing its centre. Contour parts that run off the edge of the ShakeMap grid are open and are not used; below MMI 4.5 no closed part exists, so those levels are absent.`,
+      definitions: {
+        highShaking: `Cell centre inside the closed MMI ${HEADLINE_THRESHOLD} contour or a stronger one: modelled intensity at or above MMI VI, the lowest intensity at which the USGS scale records damage occurring at all. The same threshold as the Stage 4 exposure headline.`,
+        highDensity: `Cell population at or above ${quadrants.parameters.densityCutPeoplePerCell} people per cell — the 75th percentile of populated cells.`,
+        densityThresholdDerivation: `The populations of the ${quadrants.parameters.populatedCells.toLocaleString('en-US')} populated cells are sorted and the value at position floor(0.75 × n) is taken as the cut: ${quadrants.parameters.densityCutPeoplePerCell} people per ~1 km cell. Empty cells are excluded because including the unpopulated two-thirds of Nepal would drag the quantile to zero and put every inhabited cell in the high-density half. The unit is people per cell, not people per square kilometre.`,
+      },
+      method:
+        'Each populated ~1 km cell is classified twice: by modelled shaking, testing its centre point-in-polygon against the closed MMI contour rings from the strongest level down, and by population, comparing its modelled population with the density cut. The two binary splits place every cell in exactly one of four quadrants, and each quadrant sums the cells and the modelled people it received. A cell is assigned whole; nothing is apportioned across contour lines.',
+      formula:
+        'people(quadrant) = sum of cell population over populated cells where [MMI at cell centre >= 6] and [cell population >= P75 of populated cells] take the quadrant’s values',
+      parameters: {
+        intensityThreshold: quadrants.parameters.intensityThreshold,
+        densityQuantile: quadrants.parameters.densityQuantile,
+        densityCutPeoplePerCell: quadrants.parameters.densityCutPeoplePerCell,
+        populatedCells: quadrants.parameters.populatedCells,
+      },
+      parameterJustification: quadrants.parameters.justification,
+      result: Object.fromEntries(
+        quadrants.quadrants.map((quadrant) => [
+          quadrant.id,
+          {
+            label: quadrant.label,
+            people: quadrant.people,
+            cells: quadrant.cells,
+            shareOfPopulationPercent: quadrant.shareOfPopulationPercent,
+          },
+        ]),
+      ),
+      resultStatement: (() => {
+        const q = quadrants.quadrants.find((quadrant) => quadrant.id === 'HIGH_INTENSITY_HIGH_DENSITY');
+        return `${q.people.toLocaleString('en-US')} people (${q.shareOfPopulationPercent}% of the ${quadrants.totalPopulationClassified.toLocaleString('en-US')} classified) are modelled in ${q.cells.toLocaleString('en-US')} cells that are both inside the MMI VI or stronger contour and at or above the density cut. That is modelled population in the high-shaking × high-density quadrant: a statement of geographic exposure.`;
+      })(),
+      outputs: [
+        'modelled population per quadrant',
+        'populated cells per quadrant',
+        'share of classified population per quadrant',
+        'strongest intensity and densest cell per quadrant',
+        'the density cut and the populated-cell count it was taken over',
+      ],
+      visualisation:
+        'Scene 06 leads with the high-shaking, high-density figure, lists it beside the high-shaking, low-density quadrant with both split values, and offers all four quadrants as a control. Its map colours districts by their maximum modelled intensity and exposure share, a coarser view of the same question, and the panel says which resolution each belongs to.',
+      dataClass: DataClass.DERIVED,
+      validation: (() => {
+        const q = Object.fromEntries(quadrants.quadrants.map((quadrant) => [quadrant.id, quadrant]));
+        const cells = quadrants.quadrants.reduce((sum, quadrant) => sum + quadrant.cells, 0);
+        const people = quadrants.quadrants.reduce((sum, quadrant) => sum + quadrant.people, 0);
+        const highShaking = q.HIGH_INTENSITY_HIGH_DENSITY.people + q.HIGH_INTENSITY_LOW_DENSITY.people;
+        return [
+          `The quadrants partition the grid: their cells sum to ${cells.toLocaleString('en-US')}, every populated cell exactly once, and their people to ${people.toLocaleString('en-US')} against ${quadrants.totalPopulationClassified.toLocaleString('en-US')} classified — the difference is each quadrant being rounded to a whole person separately.`,
+          `The two high-shaking quadrants sum to ${highShaking.toLocaleString('en-US')}, which reconciles with the independently computed MMI VI or stronger exposure of ${validation.headlineExposed.toLocaleString('en-US')} to within that same rounding. Both classify the same cells by the same contour test.`,
+          'The grid is reconciled before any classification: the decoded cell count and population are checked against the population artefact (Stage 4 checks 1 and 2).',
+          'Unit tests assert that the quadrants partition populated cells exactly, that zero-population cells are excluded rather than classified, and that the density cut is taken over populated cells only (src/nepal/analysis/exposure.test.mjs).',
+        ].join(' ');
+      })(),
+      limitations: [
+        'THIS IS GEOGRAPHIC EXPOSURE, NOT HARM. The figure counts people modelled into cells that were both strongly shaken and densely settled. It is not a count of human casualties (deaths or injuries), of displacement, or of humanitarian need (people requiring assistance), and it does not identify which people experienced loss or damage of any kind — Stage 4 has no data for any of those.',
+        'Both splits are choices. MMI VI is the documented damage threshold; the density cut is a quantile of this country’s own settlement pattern, not an absolute density. Other choices move the figures: the intensity threshold is reported across every closed contour elsewhere in this artefact, but no alternative density quantile has been computed.',
+        'Density is people per ~1 km cell, not per square kilometre; cell area varies slightly with latitude, and a single dense cell can straddle a town edge.',
+        'A cell is assigned whole to one side of each split by its centre, so cells straddling a contour are counted entirely on one side. A cell lying only under an open contour part (validation lists the levels that have one) is classified by the strongest closed contour that contains it.',
+        'Population is a modelled 2015 surface, and ShakeMap is a model constrained by very few strong-motion instruments in Nepal in 2015. Both inputs carry errors this classification does not show.',
+        'The quadrants are not a ranking. "High shaking, low density" is small in absolute numbers and may still be where access was hardest.',
+      ],
+    }),
     createAnalysisRecord({
       id: 'exposure-threshold-sensitivity',
       name: 'Sensitivity of the exposure estimate to the intensity threshold',

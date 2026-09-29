@@ -1,7 +1,7 @@
 {
  "schemaVersion": 1,
  "stage": 4,
- "generatedAt": "2026-09-21",
+ "generatedAt": "2026-09-29",
  "dataClass": "DERIVED",
  "definitionOfExposure": {
   "statement": "A person is counted as exposed at intensity X when the ~1 km population cell they are modelled into has its centre inside the closed Modified Mercalli Intensity X contour of the USGS ShakeMap for this event.",
@@ -593,6 +593,101 @@
     "A cell placed by the fill sits near a border, so its district attribution is the least certain in the dataset. Each district reports how many of its people arrived this way.",
     "The frame is reconstructed from the current 77-district COD-AB by merging the two districts split after 2015. Those two merged districts carry two p-codes each, because the 2015 district they represent no longer has one of its own.",
     "A district’s maximum MMI is the strongest contour reaching any part of it, not a characteristic value for the district."
+   ]
+  },
+  {
+   "schemaVersion": 1,
+   "resultClass": "DERIVED",
+   "id": "exposure-population-intensity-quadrants",
+   "name": "Population × shaking intensity quadrants",
+   "question": "Where did many people and strong modelled shaking coincide — and how many people were modelled in each combination of high or low shaking and high or low population density?",
+   "inputs": [
+    {
+     "dataset": "worldpop-npl-2015-unadj",
+     "role": "modelled population per ~1 km cell, 2015, UN-adjusted"
+    },
+    {
+     "dataset": "usgs-nepal-2015-shakemap-contours",
+     "role": "modelled shaking intensity as closed MMI contours"
+    }
+   ],
+   "sourceDatasets": [
+    {
+     "dataset": "worldpop-npl-2015-unadj",
+     "name": "WorldPop Global Project Population Data, Nepal 2015, UN-adjusted",
+     "publisher": "WorldPop, University of Southampton",
+     "url": "https://data.worldpop.org/GIS/Population/Global_2000_2020/2015/NPL/npl_ppp_2015_UNadj.tif",
+     "retrieved": "2026-09-21"
+    },
+    {
+     "dataset": "usgs-nepal-2015-shakemap-contours",
+     "name": "USGS ShakeMap MMI contours, Gorkha earthquake 2015",
+     "publisher": "U.S. Geological Survey",
+     "url": "https://earthquake.usgs.gov/product/shakemap/us20002926/atlas/1594162031303/download/cont_mmi.json",
+     "retrieved": "2026-09-21"
+    }
+   ],
+   "spatialCoverage": "All of Nepal as the WorldPop 2015 raster covers it: every populated cell, 177,679 in all (cells under 0.5 people are dropped at ingest). District boundaries play no part. A cell outside every closed ShakeMap contour is classified as low shaking, which is correct for this split: the outermost closed contour is MMI 4.5, below the MMI 6 threshold.",
+   "populationRepresentation": "WorldPop 2015 UN-adjusted modelled population. The 3-arc-second raster is block-summed 10 × 10 into ~1 km (30-arc-second) cells, which preserves totals exactly. Each cell is a modelled expectation of residents, placed at the cell centre; it is not a census count and not the population present at the time of the earthquake.",
+   "intensityRepresentation": "USGS ShakeMap for event us20002926, as closed Modified Mercalli Intensity contours at 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8. A cell takes the intensity of the strongest closed contour containing its centre. Contour parts that run off the edge of the ShakeMap grid are open and are not used; below MMI 4.5 no closed part exists, so those levels are absent.",
+   "definitions": {
+    "highShaking": "Cell centre inside the closed MMI 6 contour or a stronger one: modelled intensity at or above MMI VI, the lowest intensity at which the USGS scale records damage occurring at all. The same threshold as the Stage 4 exposure headline.",
+    "highDensity": "Cell population at or above 134.1 people per cell — the 75th percentile of populated cells.",
+    "densityThresholdDerivation": "The populations of the 177,679 populated cells are sorted and the value at position floor(0.75 × n) is taken as the cut: 134.1 people per ~1 km cell. Empty cells are excluded because including the unpopulated two-thirds of Nepal would drag the quantile to zero and put every inhabited cell in the high-density half. The unit is people per cell, not people per square kilometre."
+   },
+   "method": "Each populated ~1 km cell is classified twice: by modelled shaking, testing its centre point-in-polygon against the closed MMI contour rings from the strongest level down, and by population, comparing its modelled population with the density cut. The two binary splits place every cell in exactly one of four quadrants, and each quadrant sums the cells and the modelled people it received. A cell is assigned whole; nothing is apportioned across contour lines.",
+   "formula": "people(quadrant) = sum of cell population over populated cells where [MMI at cell centre >= 6] and [cell population >= P75 of populated cells] take the quadrant’s values",
+   "parameters": {
+    "intensityThreshold": 6,
+    "densityQuantile": 0.75,
+    "densityCutPeoplePerCell": 134.1,
+    "populatedCells": 177679
+   },
+   "parameterJustification": "The intensity split is the documented damage threshold. The density split is a quantile of POPULATED cells, so it adapts to how this country is settled instead of importing a people-per-square-kilometre figure from somewhere else. Both are reported because the classification is only meaningful with them.",
+   "result": {
+    "HIGH_INTENSITY_HIGH_DENSITY": {
+     "label": "High shaking, high density",
+     "people": 11834041,
+     "cells": 18788,
+     "shareOfPopulationPercent": 43.8
+    },
+    "HIGH_INTENSITY_LOW_DENSITY": {
+     "label": "High shaking, low density",
+     "people": 2001478,
+     "cells": 42673,
+     "shareOfPopulationPercent": 7.4
+    },
+    "LOW_INTENSITY_HIGH_DENSITY": {
+     "label": "Low shaking, high density",
+     "people": 9467957,
+     "cells": 25667,
+     "shareOfPopulationPercent": 35.1
+    },
+    "LOW_INTENSITY_LOW_DENSITY": {
+     "label": "Low shaking, low density",
+     "people": 3707094,
+     "cells": 90551,
+     "shareOfPopulationPercent": 13.7
+    }
+   },
+   "resultStatement": "11,834,041 people (43.8% of the 27,010,569 classified) are modelled in 18,788 cells that are both inside the MMI VI or stronger contour and at or above the density cut. That is modelled population in the high-shaking × high-density quadrant: a statement of geographic exposure.",
+   "outputs": [
+    "modelled population per quadrant",
+    "populated cells per quadrant",
+    "share of classified population per quadrant",
+    "strongest intensity and densest cell per quadrant",
+    "the density cut and the populated-cell count it was taken over"
+   ],
+   "visualisation": "Scene 06 leads with the high-shaking, high-density figure, lists it beside the high-shaking, low-density quadrant with both split values, and offers all four quadrants as a control. Its map colours districts by their maximum modelled intensity and exposure share, a coarser view of the same question, and the panel says which resolution each belongs to.",
+   "dataClass": "DERIVED",
+   "validation": "The quadrants partition the grid: their cells sum to 177,679, every populated cell exactly once, and their people to 27,010,570 against 27,010,569 classified — the difference is each quadrant being rounded to a whole person separately. The two high-shaking quadrants sum to 13,835,519, which reconciles with the independently computed MMI VI or stronger exposure of 13,835,518 to within that same rounding. Both classify the same cells by the same contour test. The grid is reconciled before any classification: the decoded cell count and population are checked against the population artefact (Stage 4 checks 1 and 2). Unit tests assert that the quadrants partition populated cells exactly, that zero-population cells are excluded rather than classified, and that the density cut is taken over populated cells only (src/nepal/analysis/exposure.test.mjs).",
+   "limitations": [
+    "THIS IS GEOGRAPHIC EXPOSURE, NOT HARM. The figure counts people modelled into cells that were both strongly shaken and densely settled. It is not a count of human casualties (deaths or injuries), of displacement, or of humanitarian need (people requiring assistance), and it does not identify which people experienced loss or damage of any kind — Stage 4 has no data for any of those.",
+    "Both splits are choices. MMI VI is the documented damage threshold; the density cut is a quantile of this country’s own settlement pattern, not an absolute density. Other choices move the figures: the intensity threshold is reported across every closed contour elsewhere in this artefact, but no alternative density quantile has been computed.",
+    "Density is people per ~1 km cell, not per square kilometre; cell area varies slightly with latitude, and a single dense cell can straddle a town edge.",
+    "A cell is assigned whole to one side of each split by its centre, so cells straddling a contour are counted entirely on one side. A cell lying only under an open contour part (validation lists the levels that have one) is classified by the strongest closed contour that contains it.",
+    "Population is a modelled 2015 surface, and ShakeMap is a model constrained by very few strong-motion instruments in Nepal in 2015. Both inputs carry errors this classification does not show.",
+    "The quadrants are not a ranking. \"High shaking, low density\" is small in absolute numbers and may still be where access was hardest."
    ]
   },
   {

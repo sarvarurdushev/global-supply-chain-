@@ -141,7 +141,7 @@ so a plot cannot silently present one as the other.
 
 # STAGE 4 — POPULATION EXPOSURE
 
-**Output:** `data/analysis/nepal-2015-population-exposure.json` — 4 methodology records.
+**Output:** `data/analysis/nepal-2015-population-exposure.json` — 5 methodology records.
 
 ## 4.1 What "exposed" means here
 
@@ -247,6 +247,7 @@ the two coincide. So the coincidence is computed.
 - **Validation** — The four quadrants partition the populated cells exactly; shares sum to 100%; zero-population cells are excluded rather than classified.
 - **Limitation** — Both splits are choices and both are reported. "High shaking, low density" is small in absolute numbers and may still be where access is worst — the quadrant is not a ranking.
 - **Classification** — `DERIVED`.
+- **Record** — `exposure-population-intensity-quadrants`. Added after Stage 8, which found this result published without a methodology record; adding it changed no figure.
 
 ## 4.6 OCHA comparison — verdict: **NOT COMPARABLE**
 
