@@ -42,6 +42,13 @@ export const ACCESS_COLOURS = Object.freeze({
   scenario: '#ffb020',
   cut: '#ff3d6e',
 });
+/* Stage 5 route outcomes: the same meanings as the access categories, in the same colours. */
+export const ROUTE_COLOURS = Object.freeze({
+  UNCHANGED: '#3cf2a0',
+  DETOUR: '#ffb020',
+  SEVERED: '#ff3d6e',
+  NOT_ROUTABLE_BASELINE: '#9b8cff',
+});
 export const ACCESS_CATEGORY_COLOURS = Object.freeze([
   '#5b6b66',
   '#ffb020',
@@ -94,7 +101,11 @@ export function createBriefingStage({
   function place(ref) {
     if (!ref) return null;
     if (typeof ref === 'object' && ref.fact) {
-      const at = factAt(ref);
+      const found = factAt(ref);
+      /* An analysis may store a position as [lon, lat]. */
+      const at = Array.isArray(found)
+        ? { lon: found[0], lat: found[1] }
+        : found;
       if (!Number.isFinite(at.lon))
         throw new Error(
           `Fact ${ref.fact}.${(ref.path ?? []).join('.')} is not a place.`,
@@ -359,18 +370,85 @@ export function createBriefingStage({
         instant,
       }),
 
+    /* ---- Act II–III: people, and where damage piled up ---- */
+    /* Dot size follows people: a display scale, not a value. */
+    population: ({ instant, duration = 2600, highHighOnly = false }) =>
+      overlay.marks({
+        id: highHighOnly ? 'population-hot' : 'population',
+        rows: geometry.population.rows
+          .filter((row) => !highHighOnly || row[3] > 0)
+          .map(([lon, lat, people, hot]) => ({
+            lon,
+            lat,
+            size: Math.min(
+              7,
+              0.8 + Math.sqrt(highHighOnly ? hot : people) / 45,
+            ),
+            colour: highHighOnly ? '#ff5a5f' : '#bfe9ff',
+          })),
+        shape: 'dot',
+        revealMs: 700,
+        staggerMs: duration,
+        instant,
+        z: highHighOnly ? 29 : 27,
+      }),
+    'damage-grid': ({ instant, duration = 1600, top = null }) =>
+      overlay.marks({
+        id: 'damage-grid',
+        rows: geometry.damageGrid.rows.map(([lon, lat, count], rank) => ({
+          lon,
+          lat,
+          rank,
+          size: Math.min(9, 2 + Math.sqrt(count) * 0.55),
+          colour: top !== null && rank < top ? '#ff4d6d' : '#ffb020',
+        })),
+        shape: 'diamond',
+        revealMs: 500,
+        staggerMs: duration,
+        instant,
+        z: 31,
+      }),
+
+    /* ---- Act IV: Stage 5 district routes from Kathmandu, coloured by outcome ---- */
+    'district-routes': ({ instant, duration = 2200 }) => {
+      const destinations = book.value('infra.destinations');
+      return overlay.marks({
+        id: 'district-routes',
+        rows: book.value('infra.routes').routes.map((route) => {
+          const d = destinations.find(
+            (item) => item.district === route.district,
+          );
+          return {
+            lon: d.centroid[0],
+            lat: d.centroid[1],
+            outcome: route.outcome,
+            colour: ROUTE_COLOURS[route.outcome] ?? '#8b8f93',
+            size: 6,
+          };
+        }),
+        shape: 'diamond',
+        halo: true,
+        revealMs: 500,
+        staggerMs: duration,
+        instant,
+        z: 47,
+      });
+    },
+
     /* ---- Act V: roads, hospitals and access (health-access artefact) ---- */
     roads: ({
       instant,
       duration = 3500,
       centre = 'damageCentre',
       radiusKm = 320,
+      majorOnly = false,
     }) =>
       overlay.network({
         id: 'roads',
         groups: [
           {
-            lines: geometry.roads.minor,
+            /* The main-road view Stage 5 routed on leaves the minor roads out. */
+            lines: majorOnly ? [] : geometry.roads.minor,
             colour: '#8fa9a0',
             width: 0.7,
             alpha: 0.5,
@@ -416,15 +494,17 @@ export function createBriefingStage({
         instant,
         z: 44,
       }),
-    blockages: ({ instant, duration = 2200 }) =>
+    blockages: ({ instant, duration = 2200, plain = false }) =>
       overlay.marks({
         id: 'blockages',
+        /* `plain`: every observed blockage alike, before any is matched to a road. */
         rows: book.value('access.display').blockages.map((b) => ({
           ...b,
-          colour: b.matched
-            ? ACCESS_COLOURS.blockage
-            : ACCESS_COLOURS.unmatched,
-          size: b.matched ? 5 : 3.5,
+          colour:
+            plain || b.matched
+              ? ACCESS_COLOURS.blockage
+              : ACCESS_COLOURS.unmatched,
+          size: plain ? 4.5 : b.matched ? 5 : 3.5,
         })),
         shape: 'x',
         revealMs: 400,
@@ -457,13 +537,19 @@ export function createBriefingStage({
         instant,
         z: 34,
       }),
-    'no-road': ({ instant, duration = 2000 }) =>
-      overlay.marks({
+    'no-road': ({ instant, duration = 2000 }) => {
+      /*
+       * Faint and small: a texture of where the road network did not reach,
+       * not a slab. The analysis envelope is drawn with it, so its straight
+       * edge reads as the edge of the analysis rather than of the problem.
+       */
+      layers.envelope({ instant, duration: Math.min(1200, duration) });
+      const item = overlay.marks({
         id: 'no-road',
         rows: book.value('access.display').noRoad.map(([lon, lat, people]) => ({
           lon,
           lat,
-          size: Math.min(5, 1 + Math.sqrt(people) / 22),
+          size: Math.min(3.2, 0.7 + Math.sqrt(people) / 34),
         })),
         shape: 'dot',
         colour: ACCESS_COLOURS.noRoad,
@@ -471,7 +557,46 @@ export function createBriefingStage({
         staggerMs: duration,
         instant,
         z: 32,
-      }),
+      });
+      item.state.alpha = 0.6;
+      return item;
+    },
+    envelope: ({ instant, duration = 1200 }) => {
+      const [w, s, e, n] = book.value('access.lists').envelope;
+      /* Each side densified, so the rectangle follows the globe rather than cutting across it. */
+      const side = (a, b) =>
+        Array.from({ length: 21 }, (_, i) => [
+          a[0] + ((b[0] - a[0]) * i) / 20,
+          a[1] + ((b[1] - a[1]) * i) / 20,
+        ]);
+      const ring = [
+        ...side([w, s], [e, s]),
+        ...side([e, s], [e, n]),
+        ...side([e, n], [w, n]),
+        ...side([w, n], [w, s]),
+      ].flat();
+      overlay.label({
+        id: 'envelope-label',
+        lon: w,
+        lat: n,
+        text: 'ANALYSIS AREA',
+        size: 'district',
+        durationMs: duration,
+        instant,
+        dx: 8,
+        dy: -6,
+      });
+      return overlay.outline({
+        id: 'envelope',
+        rings: [ring],
+        durationMs: duration,
+        instant,
+        colour: 'rgba(76,201,240,0.55)',
+        width: 1,
+        glow: 0,
+        z: 19,
+      });
+    },
   };
 
   function filterLayer(action, instant) {
@@ -503,11 +628,27 @@ export function createBriefingStage({
         : null;
     }
     if (
-      ['hospitals', 'blockages', 'no-road', 'osm-hospitals'].includes(
-        action.layer,
-      )
+      [
+        'hospitals',
+        'blockages',
+        'no-road',
+        'osm-hospitals',
+        'population',
+        'damage-grid',
+      ].includes(action.layer)
     ) {
       item.state.alpha = action.alpha ?? 1;
+    }
+    if (action.layer === 'district-routes') {
+      item.state.highlight = action.outcomes
+        ? (row) => action.outcomes.includes(row.outcome)
+        : null;
+    }
+    /* The busiest N grid cells stay lit; the rest recede. */
+    if (action.layer === 'damage-grid') {
+      const top = action.top?.fact ? factAt(action.top) : action.top;
+      item.state.highlight =
+        top !== undefined && top !== null ? (row) => row.rank < top : null;
     }
     if (action.layer === 'events') {
       item.state.highlight = action.minMagnitude
@@ -570,19 +711,40 @@ export function createBriefingStage({
           maxPx: action.maxPx,
           count: action.count,
         });
-      case 'typed':
+      case 'typed': {
+        /*
+         * `linesFrom` reads a list out of an artefact — the data gaps, say —
+         * so a card of text is still a card of the analysis' own words.
+         */
+        const listed = action.linesFrom
+          ? factAt(action.linesFrom)
+              .slice(0, action.linesFrom.limit ?? Infinity)
+              .map((item) =>
+                String(
+                  action.linesFrom.field ? item[action.linesFrom.field] : item,
+                ).toUpperCase(),
+              )
+          : [];
         return overlay.typed({
           id,
-          lines: action.lines.map((line) =>
-            typeof line === 'string'
-              ? text(line)
-              : { ...line, text: text(line.text) },
-          ),
+          lines: [
+            ...(action.lines ?? []).map((line) =>
+              typeof line === 'string'
+                ? text(line)
+                : { ...line, text: text(line.text) },
+            ),
+            ...listed.map((line) => ({
+              text: `· ${line}`,
+              className: 'brf-typed__item',
+            })),
+          ],
           screen: action.screen,
           durationMs: duration,
           instant,
           className: action.className,
+          tag: action.tag ?? null,
         });
+      }
       case 'trace': {
         /* A route from the analysis arrives as [[lon, lat], …]; the overlay draws flat pairs. */
         const line = action.line?.fact
@@ -762,6 +924,8 @@ export function createBriefingStage({
     'layer.show': (action, instant) => {
       const make = layers[action.layer];
       if (!make) throw new Error(`Unknown layer "${action.layer}".`);
+      /* `ifAbsent`: a shorter run may not have shown it yet; a longer one already did. */
+      if (action.ifAbsent && overlay.get(action.id ?? action.layer)) return;
       make({ ...action, instant });
     },
     'layer.hide': (action, instant) =>
@@ -811,7 +975,10 @@ export function createBriefingStage({
       ),
     'timeline.seek': (action, instant) => {
       const item = overlay.get(action.layer ?? 'events');
-      item?.seek(action.toHour, action.duration ?? 4000, instant);
+      const toHour = action.toHour?.fact
+        ? factAt(action.toHour)
+        : action.toHour;
+      item?.seek(toHour, action.duration ?? 4000, instant);
     },
     'audio.cue': (action, instant) => {
       if (!instant) sound.cue(action.cue);

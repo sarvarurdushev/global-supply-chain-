@@ -271,6 +271,136 @@ export const FACTS = Object.freeze({
   }),
 
   /* Stage 9 health access: distances along roads mapped on 2015-04-24, hospitals from the 2010 government list. */
+  /* Scenes 11, 16, 20: who met the strongest shaking, where damage piled up, and where nobody recorded it. */
+  'exposure.highHigh': f(
+    'exposure',
+    [
+      'results',
+      'populationIntensityQuadrants',
+      'quadrants',
+      { find: { id: 'HIGH_INTENSITY_HIGH_DENSITY' } },
+    ],
+    { ...SHAKE, record: 'exposure-population-intensity-quadrants' },
+  ),
+  'exposure.quadrantParams': f(
+    'exposure',
+    ['results', 'populationIntensityQuadrants', 'parameters'],
+    {
+      ...SHAKE,
+      record: 'exposure-population-intensity-quadrants',
+    },
+  ),
+  'damage.gridHalf': f(
+    'damage',
+    [
+      'results',
+      'spatialDistribution',
+      'grids',
+      0,
+      'concentration',
+      'curve',
+      'points',
+      { find: { share: 0.5 } },
+    ],
+    { ...UNOSAT, cls: 'STATISTIC', record: 'damage-spatial-concentration' },
+  ),
+  'damage.gridEighty': f(
+    'damage',
+    [
+      'results',
+      'spatialDistribution',
+      'grids',
+      0,
+      'concentration',
+      'curve',
+      'points',
+      { find: { share: 0.8 } },
+    ],
+    { ...UNOSAT, cls: 'STATISTIC', record: 'damage-spatial-concentration' },
+  ),
+  'coverage.unrecorded': f(
+    'damagePopulation',
+    [
+      'results',
+      'quadrants',
+      'byPresence',
+      'quadrants',
+      'HIGH_POPULATION_LOW_DAMAGE',
+    ],
+    {
+      source: 'WORLDPOP × UNOSAT',
+      cls: 'DATA GAP',
+      record: 'damage-population-quadrants',
+    },
+  ),
+  'coverage.recorded': f(
+    'damagePopulation',
+    [
+      'results',
+      'quadrants',
+      'byPresence',
+      'quadrants',
+      'HIGH_POPULATION_HIGH_DAMAGE',
+    ],
+    {
+      source: 'WORLDPOP × UNOSAT',
+      cls: 'DERIVED',
+      record: 'damage-population-quadrants',
+    },
+  ),
+  'coverage.universe': f(
+    'damagePopulation',
+    ['results', 'concentration', 'universe'],
+    {
+      source: 'WORLDPOP × UNOSAT',
+      cls: 'DERIVED',
+      record: 'damage-population-concentration',
+    },
+  ),
+
+  /* Scenes 25–26: the Stage 5 major-road network result, beside the fuller 2015 network. */
+  'infra.baseline': f('infrastructure', ['results', 'network', 'baseline'], {
+    source: 'OSM 2015 MAJOR ROADS',
+    cls: 'OBSERVED',
+    record: 'infrastructure-network-disruption',
+  }),
+  'infra.damaged': f('infrastructure', ['results', 'network', 'damaged'], {
+    source: 'OSM 2015 × NGA',
+    cls: 'SCENARIO',
+    record: 'infrastructure-network-disruption',
+  }),
+  'infra.routes': f('infrastructure', ['results', 'network', 'routes'], {
+    source: 'OSM 2015 × NGA',
+    cls: 'SCENARIO',
+    record: 'infrastructure-network-disruption',
+  }),
+  'infra.destinations': f(
+    'infrastructure',
+    ['results', 'network', 'destinations'],
+    {
+      source: 'OCHA COD-AB',
+      cls: 'DERIVED',
+      record: 'infrastructure-network-disruption',
+    },
+  ),
+  'infra.detour': f(
+    'infrastructure',
+    ['results', 'network', 'routes', 'routes', { find: { outcome: 'DETOUR' } }],
+    {
+      source: 'OSM 2015 × NGA',
+      cls: 'SCENARIO',
+      record: 'infrastructure-network-disruption',
+    },
+  ),
+  'infra.gaps': f('infrastructure', ['results', 'dataGaps'], {
+    source: 'STAGE 5',
+    cls: 'DATA GAP',
+  }),
+  'access.gaps': f('access', ['results', 'dataGaps'], {
+    source: 'STAGE 9',
+    cls: 'DATA GAP',
+  }),
+
   'access.display': f('access', ['results', 'display'], {
     source: 'OSM 2015 × DOHS 2010 × NGA',
     cls: 'SCENARIO',
@@ -450,6 +580,8 @@ const grouped = (n, digits = 0) =>
 export const FORMATS = Object.freeze({
   /** ['Gorkha', 'Dhading'] → 'GORKHA · DHADING' */
   list: (v) => v.map((item) => String(item).toUpperCase()).join(' · '),
+  /** 0.75 → "75 %" — a share written as a percentage. */
+  shareToPct: (v) => `${grouped(v * 100, 0)} %`,
   /** 2000 (metres) → "2 KM" — a unit, not a new value. */
   kmFromMetres: (v) => `${grouped(v / 1000, v % 1000 === 0 ? 0 : 1)} KM`,
   /** 2000 (metres) → "2 kilometres" — for the voice. */

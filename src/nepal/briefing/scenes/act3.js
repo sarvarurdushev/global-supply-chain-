@@ -268,6 +268,7 @@ export const MODEL_VS_OBSERVATION = defineScene({
       caption: 'THREE MODELLED BANDS · AND THE DAMAGE OBSERVED INSIDE EACH',
       narration:
         'Here are the three strongest modelled intensity bands, and the damage satellites observed inside them.',
+      runs: SIX_FULL,
       minHoldMs: 300,
       actions: [
         { at: 0, type: 'layer.show', layer: 'damage', duration: 1400 },
@@ -447,4 +448,300 @@ export const MODEL_VS_OBSERVATION = defineScene({
   ],
 });
 
-export const ACT3 = Object.freeze([COMPOSITION, MODEL_VS_OBSERVATION]);
+const GRID = { source: 'UNOSAT · 1 KM GRID', cls: 'STATISTIC' };
+const GAP = { source: 'WORLDPOP × UNOSAT', cls: 'DATA GAP' };
+
+export const CONCENTRATION = defineScene({
+  id: 'damage-concentration',
+  number: 16,
+  act: 'III',
+  title: 'Damage concentration',
+  question: 'Was the mapped damage spread out, or piled up?',
+  explore: 8,
+  runs: SIX_FULL,
+  keep: ['outline', 'mask'],
+  setup: [
+    ...damageBase,
+    {
+      type: 'camera.fly',
+      to: 'damageCentre',
+      rangeKm: 300,
+      pitch: -60,
+      heading: 0,
+    },
+  ],
+  beats: [
+    {
+      id: 'grid',
+      caption:
+        'EVERY MAPPED SITE FITS IN {damage.grid1km.occupiedCells|int} SQUARE KILOMETRES',
+      narration:
+        'Put the {damage.total|int} mapped sites on a one-kilometre grid. Every one of them falls in just {damage.grid1km.occupiedCells|int} squares.',
+      minHoldMs: 500,
+      actions: [
+        { at: 0, type: 'layer.show', layer: 'damage', duration: 900 },
+        {
+          at: 0,
+          type: 'layer.filter',
+          layer: 'damage',
+          classes: [],
+          dim: 0.25,
+          duration: 900,
+        },
+        { at: 600, type: 'layer.show', layer: 'damage-grid', duration: 2600 },
+        { at: 600, type: 'audio.cue', cue: 'reveal' },
+        {
+          at: 400,
+          type: 'camera.fly',
+          to: 'damageCentre',
+          rangeKm: 260,
+          pitch: -58,
+          heading: 8,
+          duration: 5000,
+        },
+        {
+          at: 1600,
+          type: 'metric.count',
+          id: 'cells',
+          fact: 'damage.grid1km',
+          key: 'occupiedCells',
+          format: 'int',
+          label: 'SQUARE KILOMETRES WITH ANY MAPPED DAMAGE',
+          screen: { x: 0.64, y: 0.18 },
+          size: 'xl',
+          duration: 2000,
+          tag: GRID,
+        },
+      ],
+    },
+    {
+      id: 'half',
+      caption:
+        'HALF OF ALL MAPPED SITES LIE IN {damage.gridHalf.units|int} OF THOSE SQUARES',
+      narration:
+        'And half of all the sites lie in only {damage.gridHalf.units|int} of those squares.',
+      minHoldMs: 600,
+      actions: [
+        {
+          at: 0,
+          type: 'layer.filter',
+          layer: 'damage-grid',
+          top: { fact: 'damage.gridHalf', path: ['units'] },
+        },
+        { at: 0, type: 'annotation.remove', id: 'cells' },
+        { at: 0, type: 'audio.cue', cue: 'hit' },
+        {
+          at: 300,
+          type: 'metric.count',
+          id: 'half-cells',
+          fact: 'damage.gridHalf',
+          key: 'units',
+          format: 'int',
+          label: 'SQUARES HOLD HALF OF ALL MAPPED SITES',
+          screen: { x: 0.64, y: 0.18 },
+          size: 'xl',
+          duration: 1600,
+          tag: GRID,
+        },
+        {
+          at: 2200,
+          type: 'camera.fly',
+          to: 'area:Bhaktapur',
+          rangeKm: 110,
+          pitch: -56,
+          heading: -10,
+          duration: 3600,
+        },
+        {
+          at: 4400,
+          type: 'annotation.draw',
+          kind: 'callout',
+          id: 'busiest',
+          anchor: 'area:Bhaktapur',
+          title: 'THE BUSIEST SQUARES',
+          lines: [
+            'SANKHU AND BHAKTAPUR',
+            '{damage.grid1km.concentration.maxCellCount|int} SITES IN THE BUSIEST ONE',
+          ],
+          tag: UNOSAT,
+          dx: 140,
+          dy: -90,
+        },
+      ],
+    },
+    {
+      id: 'caveat',
+      caption: 'CONCENTRATED WHERE ANALYSTS LOOKED · NOT A MAP OF ALL DAMAGE',
+      narration:
+        'This is where damage was mapped, which is also where analysts looked. It is not a map of all the damage there was.',
+      runs: [RUNS.FULL],
+      minHoldMs: 700,
+      actions: [
+        { at: 0, type: 'annotation.remove', id: 'busiest' },
+        { at: 0, type: 'annotation.remove', id: 'half-cells' },
+        { at: 0, type: 'layer.filter', layer: 'damage-grid', top: null },
+        {
+          at: 200,
+          type: 'camera.fly',
+          to: 'damageCentre',
+          rangeKm: 300,
+          pitch: -60,
+          heading: 0,
+          duration: 4000,
+        },
+        {
+          at: 900,
+          type: 'annotation.draw',
+          kind: 'typed',
+          id: 'grid-caveat',
+          duration: 1600,
+          screen: { x: 0.62, y: 0.16 },
+          className: 'brf-typed brf-typed--data',
+          lines: [
+            'GINI OVER OCCUPIED SQUARES: {damage.grid1km.concentration.gini|dec2}',
+            '{damage.gridEighty.share|shareToPct} OF SITES IN {damage.gridEighty.units|int} SQUARES',
+            'NO RECORD OF WHERE NOTHING WAS FOUND',
+          ],
+          tag: GRID,
+        },
+      ],
+    },
+  ],
+});
+
+export const COVERAGE_GAP = defineScene({
+  id: 'coverage-gap',
+  number: 20,
+  act: 'III',
+  title: 'Observation coverage failure',
+  question: 'Where do we have no observation at all?',
+  explore: 12,
+  runs: ALL,
+  keep: ['outline', 'mask'],
+  setup: [
+    ...damageBase,
+    { type: 'layer.show', layer: 'damage' },
+    {
+      type: 'camera.fly',
+      to: 'kathmandu',
+      rangeKm: 140,
+      pitch: -58,
+      heading: 0,
+    },
+  ],
+  beats: [
+    {
+      id: 'unrecorded',
+      caption:
+        '{coverage.unrecorded.people|mega2} PEOPLE LIVED IN THE MORE POPULATED SQUARES WITH NO DAMAGE RECORD',
+      narration:
+        'Inside the districts where damage was mapped, {coverage.unrecorded.people|millionWords} people lived in the more populated half of the squares, and in squares with no damage record at all.',
+      minHoldMs: 500,
+      actions: [
+        {
+          at: 0,
+          type: 'layer.show',
+          layer: 'population',
+          duration: 2600,
+          ifAbsent: true,
+        },
+        {
+          at: 0,
+          type: 'layer.filter',
+          layer: 'damage',
+          classes: [0, 1, 2, 3],
+          duration: 600,
+        },
+        {
+          at: 300,
+          type: 'camera.fly',
+          to: { fact: 'coverage.unrecorded', path: ['examples', 0] },
+          rangeKm: 60,
+          pitch: -55,
+          heading: 10,
+          duration: 4600,
+        },
+        {
+          at: 900,
+          type: 'metric.count',
+          id: 'unrecorded-count',
+          fact: 'coverage.unrecorded',
+          key: 'people',
+          format: 'mega2',
+          label: 'PEOPLE · ABOVE-MEDIAN SQUARES · NO DAMAGE RECORD',
+          screen: { x: 0.64, y: 0.18 },
+          size: 'xl',
+          duration: 2200,
+          tag: GAP,
+        },
+        {
+          at: 3800,
+          type: 'annotation.draw',
+          kind: 'bracket',
+          id: 'no-record',
+          anchor: { fact: 'coverage.unrecorded', path: ['examples', 0] },
+          size: 44,
+        },
+        {
+          at: 4400,
+          type: 'annotation.draw',
+          kind: 'callout',
+          id: 'no-record-callout',
+          anchor: { fact: 'coverage.unrecorded', path: ['examples', 0] },
+          title:
+            '{coverage.unrecorded.examples.0.people|int} PEOPLE · NO RECORD',
+          lines: [
+            '{coverage.unrecorded.examples.0.district|upper} · ONE SQUARE KILOMETRE',
+          ],
+          tag: GAP,
+          dx: 150,
+          dy: -90,
+          tone: 'caveat',
+        },
+      ],
+    },
+    {
+      id: 'no-denominator',
+      caption:
+        'NO RECORD IS NOT NO DAMAGE · THE PRODUCT LISTS ONLY WHAT IT FOUND',
+      narration:
+        'A missing record is not missing damage. The satellite product lists only damaged buildings, and publishes no map of where it looked.',
+      minHoldMs: 700,
+      actions: [
+        { at: 0, type: 'annotation.remove', id: 'unrecorded-count' },
+        { at: 0, type: 'audio.cue', cue: 'hit' },
+        {
+          at: 200,
+          type: 'camera.fly',
+          to: 'kathmandu',
+          rangeKm: 120,
+          pitch: -60,
+          heading: -6,
+          duration: 4400,
+        },
+        {
+          at: 600,
+          type: 'annotation.draw',
+          kind: 'typed',
+          id: 'no-denominator-card',
+          duration: 1800,
+          screen: { x: 0.6, y: 0.16 },
+          className: 'brf-typed brf-typed--alert',
+          lines: [
+            'A GAP, NOT AN ABSENCE',
+            'UNOSAT RECORDS DAMAGED STRUCTURES ONLY',
+            'NO EXAMINED-AREA FOOTPRINT IS PUBLISHED',
+          ],
+        },
+        { at: 3600, type: 'annotation.remove', id: 'no-record-callout' },
+      ],
+    },
+  ],
+});
+
+export const ACT3 = Object.freeze([
+  COMPOSITION,
+  CONCENTRATION,
+  MODEL_VS_OBSERVATION,
+  COVERAGE_GAP,
+]);

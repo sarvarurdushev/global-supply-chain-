@@ -25,7 +25,8 @@
 
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
-import { contoursToRings } from '../../src/nepal/analysis/exposure.js';
+import { contoursToRings, decodePopulationGrid, intensityAt } from '../../src/nepal/analysis/exposure.js';
+import { damageGrid } from '../../src/nepal/analysis/damage.js';
 import { simplifyLine } from '../../src/nepal/access/network.js';
 import { pointInPolygon } from '../../src/nepal/geo/geometry.js';
 import { ANALYSIS, PROCESSED, writeAnalysis } from '../lib/io.mjs';
@@ -107,7 +108,8 @@ export async function buildBriefingGeometry() {
       .map((ring) => flat(simplifyLine(ring, 300))),
   }));
 
-  const { levels } = contoursToRings(contours.data.features);
+  const shakeRings = contoursToRings(contours.data.features);
+  const { levels } = shakeRings;
   const bands = levels.map(({ mmi, rings: levelRings }) => ({
     mmi,
     rings: levelRings.map((ring) => flat(simplifyLine(ring, 400))),
@@ -175,6 +177,43 @@ export async function buildBriefingGeometry() {
     (isMajor ? roadDraw.major : roadDraw.minor).push(simplified.flatMap(([lon, lat]) => [round4(lon), round4(lat)]));
   });
 
+  /*
+   * Where people lived, for drawing: the WorldPop 1 km cells summed into
+   * 6 × 6 blocks (about 5 km). Each block also carries the people in cells the
+   * exposure analysis puts in its HIGH SHAKING, HIGH DENSITY quadrant — with
+   * that analysis' own threshold and density cut, read from its artefact, so
+   * the map lights exactly the cells its figure counts.
+   */
+  const exposure = await load(ANALYSIS, 'nepal-2015-population-exposure.json');
+  const quadrantParams = exposure.results.populationIntensityQuadrants.parameters;
+  const populationFile = await load(PROCESSED, 'nepal-2015-population-1km.json');
+  const grid = populationFile.data.grid;
+  const blocks = new Map();
+  for (const cell of decodePopulationGrid(populationFile.data)) {
+    if (cell.people <= 0) continue;
+    const col = Math.round((cell.lon - grid.originLon) / grid.stepLon);
+    const row = Math.round((grid.originLat - cell.lat) / grid.stepLat);
+    const key = `${Math.floor(col / 6)}:${Math.floor(row / 6)}`;
+    const block = blocks.get(key) ?? { lon: 0, lat: 0, people: 0, highHigh: 0 };
+    block.lon += cell.lon * cell.people;
+    block.lat += cell.lat * cell.people;
+    block.people += cell.people;
+    const mmi = intensityAt(shakeRings, cell.lon, cell.lat);
+    if (mmi !== null && mmi >= quadrantParams.intensityThreshold && cell.people >= quadrantParams.densityCutPeoplePerCell) {
+      block.highHigh += cell.people;
+    }
+    blocks.set(key, block);
+  }
+  const populationBlocks = [...blocks.values()]
+    .filter((block) => block.people >= 50)
+    .map((block) => [round4(block.lon / block.people), round4(block.lat / block.people), Math.round(block.people), Math.round(block.highHigh)]);
+
+  /* The 1 km damage grid, by the damage analysis' own function: busiest cell first. */
+  const damageCells = damageGrid(
+    unosat.data.features.map((f) => ({ coordinates: f.geometry.coordinates, damageClass: f.properties.damageClass })),
+    { cellMetres: 1000 },
+  ).cells.map((cell) => [cell.lon, cell.lat, cell.count]);
+
   /* Checks a wrong drawing would fail: they guard the shapes, not a result. */
   const [ring] = outline;
   const bandOrder = bands.map((band) => band.mmi);
@@ -201,6 +240,20 @@ export async function buildBriefingGeometry() {
       name: 'Shaking bands are ordered by intensity',
       passed: bandOrder.every((mmi, i) => i === 0 || mmi > bandOrder[i - 1]),
       detail: bandOrder.join(', '),
+    },
+    {
+      name: 'The drawn damage grid holds every damage point',
+      passed: damageCells.reduce((sum, cell) => sum + cell[2], 0) === damage.length,
+      detail: `${damageCells.length} cells, ${damageCells.reduce((sum, cell) => sum + cell[2], 0)} points`,
+    },
+    {
+      name: 'The drawn population blocks sum to the high-shaking, high-density figure the exposure analysis reports',
+      passed:
+        Math.abs(
+          populationBlocks.reduce((sum, block) => sum + block[3], 0) -
+            exposure.results.populationIntensityQuadrants.quadrants.find((q) => q.id === 'HIGH_INTENSITY_HIGH_DENSITY').people,
+        ) <= populationBlocks.length,
+      detail: `${populationBlocks.reduce((sum, block) => sum + block[3], 0)} drawn against ${exposure.results.populationIntensityQuadrants.quadrants.find((q) => q.id === 'HIGH_INTENSITY_HIGH_DENSITY').people} reported (block rounding)`,
     },
     {
       name: 'The drawn roads are a subset of the routed network',
@@ -259,6 +312,14 @@ export async function buildBriefingGeometry() {
     shakemapBands: bands,
     damage: { fields: ['lon', 'lat', 'class', 'sensorDate', 'area'], classes: CLASSES, dates, areas, areaAnchors, rows: damage },
     seismicEvents: { fields: ['lon', 'lat', 'magnitude', 'depthKm', 'hoursFromMainShock'], rows: events },
+    population: {
+      fields: ['lon', 'lat', 'people', 'peopleHighShakingHighDensity'],
+      blockCells: 6,
+      minimumPeople: 50,
+      note: 'People-weighted centre of each 6 × 6 block of WorldPop 2015 1 km cells; blocks under 50 people are not drawn.',
+      rows: populationBlocks,
+    },
+    damageGrid: { fields: ['lon', 'lat', 'count'], cellMetres: 1000, order: 'busiest first', rows: damageCells },
     roads: { instant: '2015-04-24', majorClasses: [...MAJOR_ROAD_CLASSES], minorMinimumMetres: 500, major: roadDraw.major, minor: roadDraw.minor },
   };
   const written = await writeAnalysis('nepal-2015-briefing-geometry.json', artefact);

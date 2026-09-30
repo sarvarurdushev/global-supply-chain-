@@ -108,7 +108,7 @@ export const BASELINE_ACCESS = defineScene({
           lines: [
             'ROAD NETWORK · OPENSTREETMAP',
             'AS MAPPED {access.network.instant|dateShort}',
-            '{access.network.ways|int} ROADS · {access.network.lengthKm|int} KM',
+            '{access.network.ways|int} ROAD SEGMENTS · {access.network.lengthKm|int} KM',
           ],
         },
       ],
@@ -223,8 +223,8 @@ export const BASELINE_ACCESS = defineScene({
             'NO MAPPED ROAD NEARBY',
           ],
           tag: DERIVED,
-          dx: 160,
-          dy: -90,
+          dx: -260,
+          dy: -40,
         },
       ],
     },
@@ -305,6 +305,7 @@ export const SCENARIO_ACCESS = defineScene({
         '{access.matching.blockages|int} BLOCKAGES OBSERVED · {access.matching.matched|int} SIT ON A MAPPED ROAD',
       narration:
         'Then the damage. Of {access.matching.blockages|int} road blockages observed from the air, {access.matching.matched|int} sit on a road the map contained.',
+      runs: SIX_FULL,
       minHoldMs: 400,
       actions: [
         { at: 0, type: 'layer.show', layer: 'blockages', duration: 2600 },

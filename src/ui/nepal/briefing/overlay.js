@@ -472,6 +472,20 @@ export function createBriefingOverlay({
     const prepared = groups.map((group) => ({
       ...group,
       ecef: group.lines.map((line) => toEcef(line)),
+      /* [west, south, east, north] per line, in degrees, for view culling. */
+      boxes: group.lines.map((line) => {
+        let w = Infinity;
+        let s = Infinity;
+        let e = -Infinity;
+        let n = -Infinity;
+        for (let k = 0; k < line.length; k += 2) {
+          w = Math.min(w, line[k]);
+          e = Math.max(e, line[k]);
+          s = Math.min(s, line[k + 1]);
+          n = Math.max(n, line[k + 1]);
+        }
+        return [w, s, e, n];
+      }),
     }));
     const t0 = startAt(instant, durationMs);
     const state = { dim: 1, dimFrom: 1, dimTo: 1, dimAt: 0, dimMs: 0 };
@@ -503,9 +517,29 @@ export function createBriefingOverlay({
         }
         c.lineJoin = 'round';
         c.lineCap = 'round';
+        /* Lines wholly outside the view are not projected at all: zoomed in, most of them. */
+        const view = viewer.camera.computeViewRectangle?.(
+          viewer.scene.globe.ellipsoid,
+        );
+        const box = view
+          ? [
+              Cesium.Math.toDegrees(view.west) - 0.05,
+              Cesium.Math.toDegrees(view.south) - 0.05,
+              Cesium.Math.toDegrees(view.east) + 0.05,
+              Cesium.Math.toDegrees(view.north) + 0.05,
+            ]
+          : null;
         for (const group of prepared) {
           c.beginPath();
-          for (const line of group.ecef) tracePath(c, project, line, 1);
+          group.ecef.forEach((line, i) => {
+            const b = group.boxes[i];
+            if (
+              box &&
+              (b[2] < box[0] || b[0] > box[2] || b[3] < box[1] || b[1] > box[3])
+            )
+              return;
+            tracePath(c, project, line, 1);
+          });
           c.strokeStyle = hexToRgba(group.colour, (group.alpha ?? 0.8) * dim);
           c.lineWidth = group.width ?? 1;
           c.stroke();
@@ -1064,6 +1098,7 @@ export function createBriefingOverlay({
     instant = false,
     z = 85,
     className = 'brf-typed',
+    tag = null,
   }) {
     const node = el('div', className);
     const lineNodes = lines.map((line) => {
@@ -1071,6 +1106,8 @@ export function createBriefingOverlay({
       node.append(row);
       return { row, text: line.text ?? line };
     });
+    /* A conclusion carries its class: the tag sits under the words it qualifies. */
+    if (tag) node.append(evidenceTag(tag));
     dom.append(node);
     const t0 = startAt(instant, durationMs);
     const total = lineNodes.reduce((s, l) => s + String(l.text).length, 0);

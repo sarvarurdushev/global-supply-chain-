@@ -35,7 +35,9 @@ test('every template in every scene resolves against the artefacts', () => {
         if (action.fact) assert.doesNotThrow(() => book.get(action.fact), `${scene.id}:${beat.id} fact ${action.fact}`);
         /* Places and routes read from facts must exist and be the right shape. */
         for (const ref of [action.anchor, action.to].filter((r) => r?.fact)) {
-          const at = factAt(ref);
+          /* As the stage reads it: an object with lon/lat, or a [lon, lat] pair. */
+          const found = factAt(ref);
+          const at = Array.isArray(found) ? { lon: found[0], lat: found[1] } : found;
           assert.ok(Number.isFinite(at?.lon) && Number.isFinite(at?.lat), `${scene.id}:${beat.id} ${ref.fact}.${ref.path} is not a place`);
         }
         if (action.line?.fact) {
