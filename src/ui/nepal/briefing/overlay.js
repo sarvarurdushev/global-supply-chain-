@@ -908,11 +908,11 @@ export function createBriefingOverlay({
     if (tag) box.append(evidenceTag(tag));
     dom.append(box);
     const t0 = startAt(instant, durationMs);
-    const place = { x: 0, y: 0, visible: false };
+    const place = { x: 0, y: 0, left: 0, top: 0, visible: false };
     return add({
       id,
       z,
-      draw(c, project) {
+      draw(c, project, _now, info) {
         const p = project(ecef, 0);
         place.visible = p.visible;
         place.x = p.x;
@@ -920,9 +920,21 @@ export function createBriefingOverlay({
         if (!p.visible) return;
         const t = progress(clock, t0, durationMs);
         const lineT = ease.out(Math.min(1, t / 0.45));
-        const bx = p.x + dx;
-        const by = p.y + dy;
-        const elbowX = p.x + dx * 0.35;
+        /* Where the box goes, kept in the frame; the leader ends at its near edge. */
+        const w = box.offsetWidth;
+        const h = box.offsetHeight;
+        const kept = keptInFrame(
+          dx >= 0 ? p.x + dx : p.x + dx - w,
+          p.y + dy - h / 2,
+          w,
+          h,
+          info,
+        );
+        place.left = kept.x;
+        place.top = kept.y;
+        const bx = dx >= 0 ? kept.x : kept.x + w;
+        const by = kept.y + h / 2;
+        const elbowX = p.x + (bx - p.x) * 0.35;
         c.strokeStyle = 'rgba(232,245,239,0.85)';
         c.lineWidth = 1.2;
         c.beginPath();
@@ -936,7 +948,7 @@ export function createBriefingOverlay({
           c.lineTo(p.x + (elbowX - p.x) * f, p.y + (by - p.y) * f);
         } else {
           c.lineTo(elbowX, by);
-          c.lineTo(elbowX + Math.sign(dx || 1) * (drawn - segA), by);
+          c.lineTo(elbowX + Math.sign(bx - elbowX || 1) * (drawn - segA), by);
         }
         c.stroke();
         if (anchorDot) {
@@ -953,8 +965,7 @@ export function createBriefingOverlay({
           box.style.opacity = '0';
           return;
         }
-        const left = dx >= 0 ? place.x + dx : place.x + dx - box.offsetWidth;
-        box.style.transform = `translate(${Math.round(left)}px, ${Math.round(place.y + dy - box.offsetHeight / 2)}px)`;
+        box.style.transform = `translate(${Math.round(place.left)}px, ${Math.round(place.top)}px)`;
         box.style.opacity = String(boxT * fadeOut);
         lineNodes.forEach((node, k) => {
           node.style.opacity = String(
@@ -1165,6 +1176,45 @@ export function createBriefingOverlay({
     const bottom = top + box.height;
     if (bottom <= limit) return top;
     return Math.max(TITLE_CLEAR * info.height, limit - box.height);
+  }
+
+  /*
+   * A CALLOUT STAYS IN THE FRAME. Placed beside its anchor, a callout could
+   * leave the screen or land on the scene title when the camera framed its
+   * anchor near an edge: the rescue result printed the hospital's name over
+   * '32 · A ROUTE, BEFORE AND AFTER', half off the left edge. The box is kept
+   * inside the frame, below the heading and above the caption and controls;
+   * its leader line follows it.
+   */
+  const EDGE = 8;
+  function keptInFrame(left, top, w, h, info) {
+    const origin = dom.getBoundingClientRect();
+    const rel = (node) => {
+      if (!node || node.offsetParent === null) return null;
+      const r = node.getBoundingClientRect();
+      return r.height
+        ? {
+            l: r.left - origin.left,
+            r: r.right - origin.left,
+            t: r.top - origin.top,
+            b: r.bottom - origin.top,
+          }
+        : null;
+    };
+    let x = Math.min(Math.max(left, EDGE), info.width - w - EDGE);
+    let y = Math.max(top, EDGE);
+    const heading = rel(document.querySelector('.brf-heading'));
+    if (heading && x < heading.r && x + w > heading.l && y < heading.b)
+      y = heading.b + EDGE;
+    const floors = [
+      rel(document.querySelector('.brf-caption.is-visible .brf-caption__text')),
+      rel(document.querySelector('.brf-controls')),
+    ].filter((r) => r && x < r.r && x + w > r.l);
+    const floor = floors.length
+      ? Math.min(...floors.map((r) => r.t)) - EDGE
+      : info.height - EDGE;
+    if (y + h > floor) y = Math.max(EDGE, floor - h);
+    return { x, y };
   }
 
   /** A screen-anchored DOM panel (a chart), sliding in. */
