@@ -23,7 +23,12 @@
  * the only source of time. Both are fakes in the tests.
  */
 
-import { beatLengthMs, narrationMs, readingMs } from './timeline.js';
+import {
+  entryLengthMs,
+  narrationMs,
+  readingMs,
+  sceneEndHoldMs,
+} from './timeline.js';
 
 export const STATUS = Object.freeze({
   IDLE: 'idle',
@@ -95,6 +100,39 @@ export function createDirector({ plan, stage, clock, onChange = () => {} }) {
       stagedScene === entry.scene.id &&
       stagedThrough === entry.beatIndex - 1;
     if (continuing) return;
+    /*
+     * Played forward over a beat this run leaves out, inside one scene. The
+     * stage already holds everything up to the last beat played, so only the
+     * left-out beats are applied — not the whole scene again, which snapped
+     * the camera back through every earlier view. Their camera moves are
+     * dropped (the next beat sets its own view) and so are marks the next
+     * beat removes at once, which would otherwise flash on and fade out.
+     */
+    const skippingForward =
+      status === STATUS.PLAYING &&
+      !partial &&
+      stagedScene === entry.scene.id &&
+      stagedThrough >= 0 &&
+      stagedThrough < entry.beatIndex - 1;
+    if (skippingForward) {
+      const removedNext = new Set(
+        entry.beat.actions
+          .filter((action) => action.type === 'annotation.remove')
+          .map((action) => action.id),
+      );
+      for (const beat of entry.priorBeats.slice(stagedThrough + 1)) {
+        for (const action of beat.actions) {
+          if (action.persist === false || action.type === 'audio.cue') continue;
+          if (action.type === 'camera.fly') continue;
+          if (action.type === 'annotation.draw' && removedNext.has(action.id))
+            continue;
+          await stage.run(action, { instant: true, entry });
+          if (gen !== generation) return;
+        }
+      }
+      stagedThrough = entry.beatIndex - 1;
+      return;
+    }
     /* Played into from the previous scene: the stage may animate the change. */
     const natural =
       status === STATUS.PLAYING &&
@@ -177,7 +215,11 @@ export function createDirector({ plan, stage, clock, onChange = () => {} }) {
     await Promise.all([...actionDone, spoken]);
     if (gen !== generation) return;
     /* The minimum readable hold starts when the last thing has landed. */
-    await clock.wait((beat.minHoldMs ?? 0) + (beat.holdMs ?? 0));
+    await clock.wait(
+      (beat.minHoldMs ?? 0) +
+        (beat.holdMs ?? 0) +
+        sceneEndHoldMs(entry, { voiced: stage.hasVoice }),
+    );
     if (gen !== generation) return;
     stagedScene = entry.scene.id;
     stagedThrough = entry.beatIndex;
@@ -238,9 +280,7 @@ export function createDirector({ plan, stage, clock, onChange = () => {} }) {
     },
     /** Estimated length of the current beat in briefing time, for the progress bar. */
     currentBeatMs: () =>
-      plan[index]
-        ? beatLengthMs(plan[index].beat, { voiced: stage.hasVoice })
-        : 0,
+      plan[index] ? entryLengthMs(plan[index], { voiced: stage.hasVoice }) : 0,
 
     play() {
       if (status === STATUS.PLAYING) return false;

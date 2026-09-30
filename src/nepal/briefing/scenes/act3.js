@@ -372,6 +372,8 @@ export const MODEL_VS_OBSERVATION = defineScene({
         'NOT MONOTONIC · WHERE SATELLITES LOOKED MATTERS AS MUCH AS THE SHAKING',
       narration:
         'But it is not monotonic. At seven and a half the destroyed share falls, and inside a single analysis area it falls as intensity rises. Where satellites looked shapes this pattern as much as the shaking does.',
+      /* The three-minute run keeps the finding (real but weak) and leaves the nuance to the longer runs. */
+      runs: SIX_FULL,
       minHoldMs: 1200,
       actions: [
         { at: 0, type: 'layer.filter', layer: 'bands', highlight: 7.5 },

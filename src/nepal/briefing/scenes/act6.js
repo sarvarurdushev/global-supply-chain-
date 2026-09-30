@@ -150,7 +150,7 @@ export const SUMMARY = defineScene({
       caption:
         'MAGNITUDE {quake.magnitude|dec1} · {quake.depthKm|dec1} KM DEEP · {seq.total|int} EARTHQUAKES IN THE SEQUENCE',
       narration:
-        'In summary. A magnitude {quake.magnitude|dec1} earthquake, shallow, followed by {seq.total|int} more in the catalogue.',
+        'In summary. A shallow magnitude {quake.magnitude|dec1} earthquake in {geo.epicentreDistrict} district, followed by {seq.total|int} more — the largest a magnitude {seq.secondary.magnitude|dec1} on {seq.secondary.time|dateLong}.',
       minHoldMs: 500,
       actions: [
         {
@@ -176,8 +176,9 @@ export const SUMMARY = defineScene({
         card(
           'sum-1',
           [
-            'A SHALLOW M{quake.magnitude|dec1} EARTHQUAKE',
+            'A SHALLOW M{quake.magnitude|dec1} EARTHQUAKE · {geo.epicentreDistrict|upper}',
             '{quake.time|dateShort} · {seq.total|int} EVENTS IN THE SEQUENCE',
+            'LARGEST AFTERSHOCK M{seq.secondary.magnitude|dec1} · {seq.secondary.time|dateShort}',
           ],
           { source: 'USGS', cls: 'OBSERVED' },
         ),
@@ -188,8 +189,7 @@ export const SUMMARY = defineScene({
       caption:
         '{exposure.mmi6|mega2} PEOPLE INSIDE MODELLED MMI VI OR STRONGER',
       narration:
-        '{exposure.mmi6|millionWords} people were inside modelled strong shaking.',
-      runs: SIX_FULL,
+        '{exposure.mmi6|millionWords} people were inside modelled strong shaking, strongest in {summary.shaking.districts|list}.',
       minHoldMs: 500,
       actions: [
         { at: 0, type: 'annotation.remove', id: 'sum-1' },
@@ -214,6 +214,7 @@ export const SUMMARY = defineScene({
           'sum-2',
           [
             '{exposure.mmi6|mega2} PEOPLE INSIDE MMI VI+',
+            'STRONGEST MODELLED: {summary.shaking.districts|list}',
             'MODELLED POPULATION × MODELLED SHAKING',
           ],
           { source: 'WORLDPOP × USGS SHAKEMAP', cls: 'DERIVED' },
@@ -262,8 +263,9 @@ export const SUMMARY = defineScene({
         card(
           'sum-3',
           [
-            '{damage.total|int} DAMAGED SITES MAPPED',
+            '{damage.total|int} DAMAGED SITES MAPPED · MOST IN {summary.damageAreas|list}',
             'SHAKING ↔ DAMAGE: CRAMÉR’S V {damage.independence.cramersV|dec2}, SMALL',
+            'IMAGERY OF CHOSEN AREAS · DAMAGED SITES ONLY',
           ],
           { source: 'UNOSAT × USGS SHAKEMAP', cls: 'STATISTIC' },
         ),
@@ -275,7 +277,8 @@ export const SUMMARY = defineScene({
         '{coverage.unrecorded.people|mega2} PEOPLE WHERE NO DAMAGE WAS RECORDED · A GAP, NOT AN ABSENCE',
       narration:
         'Millions lived where nothing was recorded. That is a gap in the observation, not evidence that nothing broke.',
-      runs: SIX_FULL,
+      /* The shorter runs carry this in the damage card and in the coverage-gap scene. */
+      runs: [RUNS.FULL],
       minHoldMs: 500,
       actions: [
         { at: 0, type: 'annotation.remove', id: 'sum-3' },
@@ -359,6 +362,19 @@ export const SUMMARY = defineScene({
           { source: 'OSM 2015 × DOHS 2010 × NGA', cls: 'SCENARIO' },
           600,
         ),
+        /* What was recorded, beside what the scenario made of it. */
+        {
+          ...card(
+            'sum-5-observed',
+            [
+              'RECORDED FROM THE AIR',
+              '{summary.nga.blockedRoads|int} BLOCKED ROADS · {summary.nga.bridgesOut|int} BRIDGES OUT · {summary.nga.landslides|int} LANDSLIDES',
+            ],
+            { source: 'NGA', cls: 'OBSERVED' },
+            2200,
+          ),
+          screen: { x: 0.58, y: 0.4 },
+        },
       ],
     },
     {
@@ -370,6 +386,7 @@ export const SUMMARY = defineScene({
       minHoldMs: 700,
       actions: [
         { at: 0, type: 'annotation.remove', id: 'sum-5' },
+        { at: 0, type: 'annotation.remove', id: 'sum-5-observed' },
         { at: 0, type: 'layer.hide', id: 'cells-cut', layer: 'access-cells' },
         {
           at: 0,
@@ -411,6 +428,11 @@ export const SUMMARY = defineScene({
       actions: [
         { at: 0, type: 'annotation.remove', id: 'sum-6' },
         { at: 0, type: 'layer.hide', layer: 'district-focus' },
+        /* The close is the country and the case, not the last analysis still on the map. */
+        { at: 0, type: 'layer.hide', layer: 'no-road' },
+        { at: 0, type: 'layer.hide', layer: 'envelope' },
+        { at: 0, type: 'layer.hide', layer: 'no-road', id: 'envelope-label' },
+        { at: 0, type: 'layer.hide', layer: 'roads' },
         {
           at: 0,
           type: 'camera.fly',

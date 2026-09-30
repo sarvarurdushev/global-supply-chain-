@@ -425,10 +425,6 @@ export const FACTS = Object.freeze({
       record: 'exposure-population-by-intensity',
     },
   ),
-  'damage.byArea': f('damage', ['results', 'unosat', 'byAnalysisArea'], {
-    ...UNOSAT,
-    record: 'damage-unosat-counts',
-  }),
   'damage.byDate': f('damage', ['results', 'unosat', 'bySensorDate'], {
     ...UNOSAT,
     record: 'damage-unosat-counts',
@@ -571,6 +567,16 @@ export const FACTS = Object.freeze({
       record: 'access-hospital-distance',
     },
   ),
+  'access.areaRoutes': f('access', ['results', 'areaRoutes'], {
+    source: 'UNOSAT × OSM 2015 × NGA',
+    cls: 'SCENARIO',
+    record: 'access-example-route',
+  }),
+  'access.areaSummary': f('access', ['results', 'areaRouteSummary'], {
+    source: 'UNOSAT × OSM 2015 × NGA',
+    cls: 'SCENARIO',
+    record: 'access-example-route',
+  }),
   'access.manbu': f(
     'access',
     ['results', 'areaRoutes', { find: { area: 'Manbu Area' } }],
@@ -626,6 +632,21 @@ export const FACTS = Object.freeze({
   'geo.epicentreDistrict': f('geometry', ['places', 'epicentre', 'district'], {
     source: 'USGS × COD-AB',
     cls: 'DERIVED',
+  }),
+  /* The summary's plain answers, selected by the geometry pipeline from published figures. */
+  'summary.shaking': f('geometry', ['summary', 'strongestShaking'], {
+    source: 'USGS SHAKEMAP × COD-AB',
+    cls: 'DERIVED',
+    record: 'exposure-by-district',
+  }),
+  'summary.damageAreas': f('geometry', ['summary', 'damageAreas'], {
+    ...UNOSAT,
+    record: 'damage-unosat-counts',
+  }),
+  'summary.nga': f('geometry', ['summary', 'ngaObservations'], {
+    source: 'NGA',
+    cls: 'OBSERVED',
+    record: 'infrastructure-geometry-check',
   }),
 });
 

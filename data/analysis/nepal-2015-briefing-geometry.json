@@ -39,6 +39,11 @@
     "detail": "11834089 drawn against 11834041 reported (block rounding)"
    },
    {
+    "name": "The summary’s observation counts equal those the infrastructure analysis worked from",
+    "passed": true,
+    "detail": "179 blocked roads, 5 bridges out, 51 landslides"
+   },
+   {
     "name": "The drawn roads are a subset of the routed network",
     "passed": true,
     "detail": "9814 major and 5610 minor edges drawn of 62583 routed"
@@ -52,7 +57,11 @@
   "data/processed/nepal-2015-unosat-damage-sites.json",
   "data/processed/nepal-2015-seismic.json",
   "data/analysis/nepal-2015-seismic-analysis.json",
-  "data/processed/nepal-2015-osm-access-network.json"
+  "data/processed/nepal-2015-osm-access-network.json",
+  "data/processed/nepal-2015-nga-infrastructure-damage.json",
+  "data/analysis/nepal-2015-population-exposure.json",
+  "data/analysis/nepal-2015-damage-analysis.json",
+  "data/analysis/nepal-2015-infrastructure-analysis.json"
  ],
  "simplification": {
   "method": "Douglas–Peucker on a local equirectangular projection",
@@ -67,6 +76,30 @@
  },
  "counts": {
   "districts": 75
+ },
+ "summary": {
+  "strongestShaking": {
+   "mmi": 8,
+   "districts": [
+    "Dhading",
+    "Gorkha",
+    "Lamjung",
+    "Nuwakot",
+    "Rasuwa",
+    "Sindhupalchok"
+   ],
+   "basis": "districts whose highest modelled contour is the highest contour the ShakeMap publishes"
+  },
+  "damageAreas": [
+   "Manbu Area",
+   "Daraudi valley",
+   "Parkhalchaur"
+  ],
+  "ngaObservations": {
+   "blockedRoads": 179,
+   "bridgesOut": 5,
+   "landslides": 51
+  }
  },
  "places": {
   "epicentre": {

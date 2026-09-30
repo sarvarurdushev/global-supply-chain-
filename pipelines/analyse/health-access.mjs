@@ -483,6 +483,21 @@ export async function analyseHealthAccess() {
       };
     })
     .sort((a, b) => a.area.localeCompare(b.area));
+  /*
+   * The chain from mapped damage to access, in one line: what the observed
+   * blockages did to the route from each named damage area. Counted here so
+   * the briefing states it rather than tallies it.
+   */
+  const CHANGED = new Set(['LONGER', 'DIFFERENT_FACILITY', 'DISCONNECTED']);
+  const areaRouteSummary = {
+    basis: 'the route from the mean position of each named UNOSAT analysis area with at least 20 mapped sites',
+    minimumSites: 20,
+    areas: areaRoutes.length,
+    unchanged: areaRoutes.filter((row) => row.category === 'SIMILAR').length,
+    changed: areaRoutes.filter((row) => CHANGED.has(row.category)).length,
+    noBaselinePath: areaRoutes.filter((row) => row.category === 'NO_BASELINE_PATH').length,
+    offNetwork: areaRoutes.filter((row) => !row.onNetwork).length,
+  };
 
   /*
    * The two example routes, chosen by rule from the populated cells: the
@@ -683,6 +698,13 @@ export async function analyseHealthAccess() {
       passed: !exampleRoutes.cut || (exampleRoutes.cut.baseline.km !== null && exampleRoutes.cut.scenario.km === null),
       detail: exampleRoutes.cut ? `${exampleRoutes.cut.baseline.km} km before, none after` : 'no cell was cut',
     },
+    {
+      name: 'Every named damage area is counted in exactly one route outcome',
+      passed:
+        areaRouteSummary.unchanged + areaRouteSummary.changed + areaRouteSummary.noBaselinePath + areaRouteSummary.offNetwork ===
+        areaRouteSummary.areas,
+      detail: `${areaRouteSummary.unchanged} unchanged, ${areaRouteSummary.changed} changed, ${areaRouteSummary.noBaselinePath} no route before, ${areaRouteSummary.offNetwork} off the network, of ${areaRouteSummary.areas}`,
+    },
   ];
 
   const sourceOf = (file) => ({
@@ -754,6 +776,7 @@ export async function analyseHealthAccess() {
       mostDisrupted,
       mostDisruptedNames: mostDisrupted.map((row) => row.district),
       areaRoutes,
+      areaRouteSummary,
       exampleRoutes,
       bridgeWhatIf,
       listAgreement,

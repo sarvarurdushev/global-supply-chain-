@@ -51,6 +51,14 @@ export const ROUTE_COLOURS = Object.freeze({
   SEVERED: '#ff3d6e',
   NOT_ROUTABLE_BASELINE: '#9b8cff',
 });
+/* The analysis' category names, in the order the colours below follow. */
+const ACCESS_CATEGORY_ORDER = Object.freeze([
+  'SIMILAR',
+  'LONGER',
+  'DIFFERENT_FACILITY',
+  'DISCONNECTED',
+  'NO_BASELINE_PATH',
+]);
 export const ACCESS_CATEGORY_COLOURS = Object.freeze([
   '#5b6b66',
   '#ffb020',
@@ -576,6 +584,27 @@ export function createBriefingStage({
         staggerMs: duration,
         instant,
         z: 34,
+      }),
+    /* Each named damage area, coloured by what the observed blockages did to its route. */
+    'area-routes': ({ instant, duration = 1400 }) =>
+      overlay.marks({
+        id: 'area-routes',
+        rows: book.value('access.areaRoutes').map((area) => {
+          const index = ACCESS_CATEGORY_ORDER.indexOf(area.category);
+          return {
+            lon: area.lon,
+            lat: area.lat,
+            category: area.category,
+            colour: index >= 0 ? ACCESS_CATEGORY_COLOURS[index] : '#8b8f93',
+            size: 7,
+          };
+        }),
+        shape: 'diamond',
+        halo: true,
+        revealMs: 500,
+        staggerMs: duration,
+        instant,
+        z: 48,
       }),
     'no-road': ({ instant, duration = 2000 }) => {
       /*

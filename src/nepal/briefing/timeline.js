@@ -81,7 +81,31 @@ export const PACING = Object.freeze({
   maxGapMs: 6000,
   captionMaxWords: 16,
   captionMaxChars: 110,
+  /**
+   * How long the last thing a scene draws stays on screen before the scene
+   * changes. A figure that lands half a second before a cut is never read.
+   */
+  sceneEndHoldMs: 1500,
 });
+
+/** Actions that take something away rather than put something on screen. */
+const REMOVING = new Set(['annotation.remove', 'layer.hide', 'chart.exit']);
+
+/**
+ * How long the beat holds its final picture: from the moment its last
+ * drawing action lands to the beat's end, at the given pace.
+ */
+export function finalHoldMs(beat, { voiced = true } = {}) {
+  const landed = Math.max(
+    0,
+    ...beat.actions
+      .filter(
+        (action) => action.type !== 'audio.cue' && !REMOVING.has(action.type),
+      )
+      .map((action) => (action.at ?? 0) + actionDuration(action)),
+  );
+  return beatLengthMs(beat, { voiced }) - landed;
+}
 
 export function actionDuration(action) {
   if (Number.isFinite(action.duration)) return action.duration;
@@ -168,6 +192,8 @@ export function planRun(scenes, run = RUNS.FULL) {
   scenes
     .filter((scene) => scene.runs.includes(run))
     .forEach((scene, sceneOrder) => {
+      const played = scene.beats.filter((beat) => beat.runs.includes(run));
+      const last = played[played.length - 1];
       scene.beats.forEach((beat, beatIndex) => {
         if (!beat.runs.includes(run)) return;
         plan.push(
@@ -178,6 +204,8 @@ export function planRun(scenes, run = RUNS.FULL) {
             beat,
             beatIndex,
             priorBeats: Object.freeze(scene.beats.slice(0, beatIndex)),
+            /* The last beat this run plays in the scene: see `sceneEndHoldMs`. */
+            endsScene: beat === last,
           }),
         );
       });
@@ -185,8 +213,23 @@ export function planRun(scenes, run = RUNS.FULL) {
   return Object.freeze(plan);
 }
 
+/**
+ * The hold a run adds to the last beat it plays in a scene, so whatever
+ * landed last is on screen for at least `PACING.sceneEndHoldMs` before the
+ * cut. Depends on the pace: a long spoken line may already give it.
+ */
+export function sceneEndHoldMs(entry, options) {
+  if (!entry?.endsScene) return 0;
+  return Math.max(0, PACING.sceneEndHoldMs - finalHoldMs(entry.beat, options));
+}
+
+/** A planned beat's length: its own, plus any hold the run adds at a scene's end. */
+export function entryLengthMs(entry, options) {
+  return beatLengthMs(entry.beat, options) + sceneEndHoldMs(entry, options);
+}
+
 export function estimateRun(plan, options) {
-  const beats = plan.map((entry) => beatLengthMs(entry.beat, options));
+  const beats = plan.map((entry) => entryLengthMs(entry, options));
   return Object.freeze({
     beats: plan.length,
     scenes: new Set(plan.map((entry) => entry.scene.id)).size,

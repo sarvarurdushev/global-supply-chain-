@@ -16,7 +16,7 @@ import { FACTS, fillTemplate } from './facts.js';
 import {
   RUNS,
   RUN_LABELS,
-  beatLengthMs,
+  entryLengthMs,
   estimateRun,
   longestStillMs,
   planRun,
@@ -203,7 +203,7 @@ export function renderBriefingScript(book, scenes) {
       out.push(
         `| ${clock(t)} | ${String(entry.scene.number).padStart(2, '0')} ${entry.scene.title} | ${entry.beat.id} | ${fill(entry.beat.caption).replace(/\|/g, '\\|')} |`,
       );
-      t += beatLengthMs(entry.beat);
+      t += entryLengthMs(entry);
     }
     out.push('');
   }
@@ -232,7 +232,7 @@ export function renderBriefingScript(book, scenes) {
         );
       out.push('');
     }
-    const length = beatLengthMs(beat);
+    const length = entryLengthMs(entry);
     const beatRuns = beat.runs
       .map((r) => RUN_LABELS[r].split(' ')[0])
       .join(' / ');

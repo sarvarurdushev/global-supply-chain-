@@ -1,7 +1,7 @@
 {
  "schemaVersion": 1,
  "stage": 9,
- "generatedAt": "2026-09-30T02:20:02.375Z",
+ "generatedAt": "2026-09-30T03:11:59.554Z",
  "dataClass": "SCENARIO",
  "criticalCaveat": "Distances along roads mapped in OpenStreetMap on 2015-04-24 — not travel times, not journeys, not hospital capacity. The damaged network applies every blockage observed between 26 April and early May as if all were present at once. Hospitals are those in the 2010 government list unless stated.",
  "sources": [
@@ -86,6 +86,11 @@
     "name": "A cut example has a route before and none after",
     "passed": true,
     "detail": "49.13 km before, none after"
+   },
+   {
+    "name": "Every named damage area is counted in exactly one route outcome",
+    "passed": true,
+    "detail": "8 unchanged, 0 changed, 2 no route before, 1 off the network, of 11"
    }
   ]
  },
@@ -1957,6 +1962,15 @@
     "blockagesOnBaselineRoute": 0
    }
   ],
+  "areaRouteSummary": {
+   "basis": "the route from the mean position of each named UNOSAT analysis area with at least 20 mapped sites",
+   "minimumSites": 20,
+   "areas": 11,
+   "unchanged": 8,
+   "changed": 0,
+   "noBaselinePath": 2,
+   "offNetwork": 1
+  },
   "exampleRoutes": {
    "detourDistribution": {
     "people": 42181,

@@ -375,9 +375,13 @@
   background: rgba(3, 10, 12, 0.78);
   border-left: 2px solid var(--gx-cyan);
 }
-/* A conclusion: one statement, large, with its class under it. */
+/*
+ * A conclusion: one statement, large, with its class under it. The summary
+ * places these at 58 % of the width, so at 1280 px a fixed 560 px ran off the
+ * right edge; 38vw keeps a margin at every width.
+ */
 .brf-typed--conclusion {
-  max-width: 560px;
+  max-width: min(560px, 38vw);
   padding: 14px 18px 12px;
   background: rgba(3, 10, 12, 0.86);
   border-left: 3px solid var(--gx-green);

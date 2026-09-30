@@ -52,3 +52,14 @@ test('every kind has a card with a class and a note, and a missing figure reads 
   assert.ok(inside.rows.some(([, v]) => v === '62 %'));
   assert.ok(inside.rows.some(([, v]) => v === '5.7 %'));
 });
+
+test('every card that offers to play the briefing names a scene the full run holds', async () => {
+  const { BRIEFING_SCENES } = await import('./scenes/index.js');
+  const full = new Set(BRIEFING_SCENES.filter((scene) => scene.runs.includes('full')).map((scene) => scene.id));
+  for (const kind of INSPECT_ORDER) {
+    for (const item of [{ lon: 85, lat: 27, line: [[85, 27]] }, { id: 'us1', lon: 85, lat: 27 }]) {
+      const card = describe({ kind, item }, { mainShockId: 'us1' });
+      if (card.scene) assert.ok(full.has(card.scene), `${kind} → ${card.scene}`);
+    }
+  }
+});

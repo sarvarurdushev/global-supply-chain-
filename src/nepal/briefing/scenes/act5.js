@@ -512,7 +512,7 @@ export const SCENARIO_ACCESS = defineScene({
       caption:
         'MANBU: {access.manbu.sites|int} DAMAGE SITES · NO MAPPED ROAD TO A HOSPITAL, EVEN BEFORE',
       narration:
-        'The larger gap was the map itself. Around Manbu, with {access.manbu.sites|int} damaged sites, no mapped road reached a hospital even before the earthquake.',
+        'The larger gap was the map itself. Around Manbu, with {access.manbu.sites|int} damaged sites, no mapped road reached a hospital even before the earthquake. From the {access.areaSummary.areas|int} named damage areas, {access.areaSummary.changed|int} routes changed.',
       minHoldMs: 900,
       actions: [
         { at: 0, type: 'annotation.remove', id: 'same-share' },
@@ -551,6 +551,34 @@ export const SCENARIO_ACCESS = defineScene({
           tone: 'caveat',
         },
         { at: 3700, type: 'audio.cue', cue: 'reveal' },
+        /* From each named damage area's centre: what the observed blockages did to its route. */
+        { at: 4400, type: 'layer.show', layer: 'area-routes', duration: 1400 },
+        {
+          at: 5200,
+          type: 'annotation.draw',
+          kind: 'typed',
+          id: 'area-summary',
+          duration: 1600,
+          screen: { x: 0.03, y: 0.22 },
+          className: 'brf-typed brf-typed--data',
+          lines: [
+            'FROM THE {access.areaSummary.areas|int} NAMED DAMAGE AREAS',
+            '{access.areaSummary.unchanged|int} ROUTES UNCHANGED · {access.areaSummary.changed|int} CHANGED',
+            '{access.areaSummary.noBaselinePath|int} NO ROAD ROUTE, EVEN BEFORE · {access.areaSummary.offNetwork|int} OFF THE MAP',
+          ],
+          tag: SCENARIO,
+        },
+        /* As the line lands on the damage areas, the diamonds answer it. */
+        {
+          at: 8200,
+          type: 'annotation.draw',
+          kind: 'pulse',
+          id: 'areas-pulse',
+          anchor: 'area:Manbu Area',
+          colour: '#9b8cff',
+          maxPx: 60,
+          count: 2,
+        },
       ],
     },
   ],
@@ -586,7 +614,7 @@ export const RESCUE_ROUTE = defineScene({
       caption:
         'ONE SQUARE KILOMETRE IN {access.cut.origin.district|upper} · {access.cut.origin.people|int} PEOPLE',
       narration:
-        'Take one place: a square kilometre in {access.cut.origin.district}, home to {access.cut.origin.people|int} people.',
+        'Take one place that lost its route: a square kilometre in {access.cut.origin.district}, home to {access.cut.origin.people|int} people.',
       minHoldMs: 400,
       actions: [
         {

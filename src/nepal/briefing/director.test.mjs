@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createClock } from './clock.js';
 import { STATUS, createDirector } from './director.js';
-import { RUNS, defineScene, planRun } from './timeline.js';
+import { PACING, RUNS, defineScene, entryLengthMs, planRun, sceneEndHoldMs } from './timeline.js';
 
 /** Let every pending promise callback run. */
 async function settle() {
@@ -189,6 +189,42 @@ test('a shorter run skips a beat but still builds its state', async () => {
   await run(clock, 30_000);
   const instants = stage.log.filter(([kind]) => kind === 'instant').map(([, id]) => id);
   assert.ok(instants.includes('b1') && instants.includes('b2'), 'beat b is applied, not played');
+  /* Played forward over b: the scene is not entered again, and a is not re-applied. */
+  assert.equal(stage.log.filter(([kind, id]) => kind === 'enter' && id === 's1').length, 1);
+  assert.ok(!instants.includes('a1') && !instants.includes('a2'), 'the beat already on stage is not rebuilt');
+});
+
+test('played over a left-out beat, its camera move and the marks the next beat removes are skipped', async () => {
+  const clock = createClock();
+  const stage = fakeStage();
+  const flyThenCard = defineScene({
+    id: 'sum',
+    question: 'q',
+    runs: [RUNS.FULL, RUNS.THREE],
+    beats: [
+      { id: 'one', caption: 'one', minHoldMs: 200, actions: [{ at: 0, type: 'annotation.draw', id: 'card-1', duration: 0 }] },
+      {
+        id: 'two',
+        caption: 'two',
+        minHoldMs: 200,
+        runs: [RUNS.FULL],
+        actions: [
+          { at: 0, type: 'annotation.remove', id: 'card-1' },
+          { at: 0, type: 'camera.fly', id: 'fly-2', to: 'x' },
+          { at: 0, type: 'layer.show', id: 'layer-2', layer: 'x' },
+          { at: 0, type: 'annotation.draw', id: 'card-2', duration: 0 },
+        ],
+      },
+      { id: 'three', caption: 'three', minHoldMs: 200, actions: [{ at: 0, type: 'annotation.remove', id: 'card-2' }] },
+    ],
+  });
+  const director = createDirector({ plan: planRun([flyThenCard], RUNS.THREE), stage, clock });
+  director.play();
+  await run(clock, 30_000);
+  const instants = stage.log.filter(([kind]) => kind === 'instant').map(([, id]) => id);
+  assert.ok(instants.includes('layer-2'), 'lasting state of the left-out beat is applied');
+  assert.ok(!instants.includes('fly-2'), 'its camera move is not');
+  assert.ok(!instants.includes('card-2'), 'nor a card the next beat removes at once');
 });
 
 test('with a voice, the beat waits for the narration to finish', async () => {
@@ -204,4 +240,22 @@ test('with a voice, the beat waits for the narration to finish', async () => {
   finish();
   await run(clock, 400);
   assert.equal(director.state.beatId, 'y');
+});
+
+test('the last beat a run plays in a scene holds its final picture before the cut', () => {
+  const quick = defineScene({
+    id: 'quick',
+    question: 'q',
+    runs: [RUNS.FULL],
+    beats: [
+      { id: 'first', caption: 'one two', minHoldMs: 0, actions: [{ at: 0, type: 'annotation.draw', id: 'x', duration: 0 }] },
+      { id: 'late', caption: 'one two', minHoldMs: 200, actions: [{ at: 900, type: 'annotation.draw', id: 'y', duration: 1000 }] },
+    ],
+  });
+  const plan = planRun([quick], RUNS.FULL);
+  assert.equal(sceneEndHoldMs(plan[0], { voiced: false }), 0, 'only the scene’s last beat is held');
+  const last = plan[1];
+  assert.ok(sceneEndHoldMs(last, { voiced: false }) > 0);
+  /* Landed at 1.9 s; the held beat ends no sooner than 1.5 s later. */
+  assert.ok(entryLengthMs(last, { voiced: false }) - 1900 >= PACING.sceneEndHoldMs);
 });

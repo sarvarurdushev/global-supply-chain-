@@ -214,6 +214,39 @@ export async function buildBriefingGeometry() {
     { cellMetres: 1000 },
   ).cells.map((cell) => [cell.lon, cell.lat, cell.count]);
 
+  /*
+   * The executive summary's plain answers, selected here so the browser
+   * never ranks or counts: where modelled shaking peaked (the districts
+   * whose highest contour is the highest the ShakeMap publishes), the named
+   * areas with the most mapped damage, and how many NGA observations of
+   * each kind exist. Each is a selection from a published figure, not a
+   * new one.
+   */
+  const damageAnalysis = await load(ANALYSIS, 'nepal-2015-damage-analysis.json');
+  const infrastructure = await load(ANALYSIS, 'nepal-2015-infrastructure-analysis.json');
+  const nga = await load(PROCESSED, 'nepal-2015-nga-infrastructure-damage.json');
+  const districtRows = exposure.results.districtQuadrants;
+  const peakMmi = Math.max(...districtRows.map((row) => row.maxMmi ?? 0));
+  /* Labels in the UNOSAT product that are not places. */
+  const NOT_PLACES = new Set(['Nepal', '(unlabelled)']);
+  const summary = {
+    strongestShaking: {
+      mmi: peakMmi,
+      districts: districtRows.filter((row) => row.maxMmi === peakMmi).map((row) => row.district).sort(),
+      basis: 'districts whose highest modelled contour is the highest contour the ShakeMap publishes',
+    },
+    damageAreas: Object.entries(damageAnalysis.results.unosat.byAnalysisArea)
+      .filter(([area]) => !NOT_PLACES.has(area))
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .slice(0, 3)
+      .map(([area]) => area),
+    ngaObservations: {
+      blockedRoads: nga.data.blockedRoads.features.length,
+      bridgesOut: nga.data.bridgesOut.features.length,
+      landslides: nga.data.landslides.features.length,
+    },
+  };
+
   /* Checks a wrong drawing would fail: they guard the shapes, not a result. */
   const [ring] = outline;
   const bandOrder = bands.map((band) => band.mmi);
@@ -256,6 +289,14 @@ export async function buildBriefingGeometry() {
       detail: `${populationBlocks.reduce((sum, block) => sum + block[3], 0)} drawn against ${exposure.results.populationIntensityQuadrants.quadrants.find((q) => q.id === 'HIGH_INTENSITY_HIGH_DENSITY').people} reported (block rounding)`,
     },
     {
+      name: 'The summary’s observation counts equal those the infrastructure analysis worked from',
+      passed:
+        summary.ngaObservations.blockedRoads === infrastructure.results.geometry.blockedRoads.features &&
+        summary.ngaObservations.bridgesOut === infrastructure.results.bridges.length &&
+        summary.ngaObservations.landslides === infrastructure.results.landslides.length,
+      detail: `${summary.ngaObservations.blockedRoads} blocked roads, ${summary.ngaObservations.bridgesOut} bridges out, ${summary.ngaObservations.landslides} landslides`,
+    },
+    {
       name: 'The drawn roads are a subset of the routed network',
       passed: roadDraw.major.length + roadDraw.minor.length > 0 && roadDraw.major.length + roadDraw.minor.length <= network.data.edges.length,
       detail: `${roadDraw.major.length} major and ${roadDraw.minor.length} minor edges drawn of ${network.data.edges.length} routed`,
@@ -280,6 +321,10 @@ export async function buildBriefingGeometry() {
       'data/processed/nepal-2015-seismic.json',
       'data/analysis/nepal-2015-seismic-analysis.json',
       'data/processed/nepal-2015-osm-access-network.json',
+      'data/processed/nepal-2015-nga-infrastructure-damage.json',
+      'data/analysis/nepal-2015-population-exposure.json',
+      'data/analysis/nepal-2015-damage-analysis.json',
+      'data/analysis/nepal-2015-infrastructure-analysis.json',
     ],
     simplification: {
       method: 'Douglas–Peucker on a local equirectangular projection',
@@ -287,6 +332,7 @@ export async function buildBriefingGeometry() {
       note: 'For drawing only. Areas, counts and memberships are never computed from these shapes.',
     },
     counts: { districts: districtShapes.length },
+    summary,
     /*
      * Framing anchors for the camera and places for labels. The centres are
      * midpoints of extents, used only to point the camera; the country labels
