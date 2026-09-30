@@ -49,6 +49,8 @@ export function createCaptions({ container, clock }) {
     },
     setEnabled(on) {
       enabled = Boolean(on);
+      /* At once, not on the next drawn frame: CC off hides the caption now. */
+      node.classList.toggle('is-visible', enabled && words.length > 0);
     },
     get enabled() {
       return enabled;
