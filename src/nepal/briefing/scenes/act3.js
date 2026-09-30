@@ -435,6 +435,8 @@ export const MODEL_VS_OBSERVATION = defineScene({
         },
         { at: 0, type: 'audio.cue', cue: 'hit' },
         { at: 0, type: 'annotation.remove', id: 'chi' },
+        /* The verdict and the caption carry the figure now; the callouts need the space. */
+        { at: 0, type: 'annotation.remove', id: 'cramer' },
         {
           at: 1400,
           type: 'annotation.draw',

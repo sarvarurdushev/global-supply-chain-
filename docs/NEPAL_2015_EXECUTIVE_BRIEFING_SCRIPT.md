@@ -740,7 +740,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **CAPTION** NOT MONOTONIC · WHERE SATELLITES LOOKED MATTERS AS MUCH AS THE SHAKING
 - **CAMERA** +5.2 s fly to area:Manbu Area · 150 km · pitch -58° · heading -10° · 3.4 s; +9.0 s fly to damageCentre · 320 km · pitch -60° · heading 0° · 3.6 s
 - **MAP** +0.0 s filter bands → highlight 7.5; +8.8 s filter damage → classes 0, 1, 2, 3; +11.2 s filter bands → highlight null
-- **ANNOTATION** +0.0 s remove chi; +1.4 s callout @ area:Manbu Area — MANBU AREA / MMI 7.5: 55.4 % DESTROYED / MMI 8.0: 50.8 % DESTROYED; +3.4 s callout @ area:Sundar Bazar — SUNDAR BAZAR / MMI 7.0: 20.3 % DESTROYED / MMI 7.5: 14.1 % DESTROYED
+- **ANNOTATION** +0.0 s remove chi; +0.0 s remove cramer; +1.4 s callout @ area:Manbu Area — MANBU AREA / MMI 7.5: 55.4 % DESTROYED / MMI 8.0: 50.8 % DESTROYED; +3.4 s callout @ area:Sundar Bazar — SUNDAR BAZAR / MMI 7.0: 20.3 % DESTROYED / MMI 7.5: 14.1 % DESTROYED
 - **CHART** +0.0 s intensity: focus MMI 7.5; +0.6 s intensity: trend MMI 7.5; +2.4 s intensity: verdict; +5.2 s intensity: foot
 - **SOUND** +0.0 s hit
 - **EVIDENCE** damage.manbu — UNOSAT × USGS SHAKEMAP · STATISTIC · record `damage-by-intensity`; damage.sundarBazar — UNOSAT × USGS SHAKEMAP · STATISTIC · record `damage-by-intensity`
