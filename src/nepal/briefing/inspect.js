@@ -238,20 +238,18 @@ export function describe(hit, context = {}) {
             ]
               .filter(Boolean)
               .join(' · ');
+      const slideDistance = slide
+        ? slide.metres < 1000
+          ? `${fmt(slide.metres, 'int')} M`
+          : `${fmt(slide.metres / 1000, 'dec1')} KM`
+        : null;
       return {
         kind,
         title: 'BLOCKED ROAD',
         rows: [
           ['OBSERVED', item.sensedOn ? fmt(item.sensedOn, 'dateShort') : '—'],
           ['ON A ROAD MAPPED THE DAY BEFORE', matchRow],
-          [
-            'NEAREST MAPPED LANDSLIDE',
-            slide
-              ? slide.metres < 1000
-                ? `${fmt(slide.metres, 'int')} M`
-                : `${fmt(slide.metres / 1000, 'dec1')} KM`
-              : '—',
-          ],
+          ['NEAREST MAPPED LANDSLIDE', slideDistance ?? '—'],
           [
             'USED IN',
             uses.length
@@ -274,6 +272,13 @@ export function describe(hit, context = {}) {
             label: 'SHOW THE NEAREST LANDSLIDE',
             enabled: !!slide,
             why: 'ONLY BLOCKED ROADS WERE MEASURED AGAINST LANDSLIDES',
+            rows: slide
+              ? [
+                  ['DISTANCE FROM THIS BLOCKAGE', slideDistance],
+                  ['READ AS', 'NEARNESS IN SPACE · NO CAUSE IS RECORDED'],
+                ]
+              : [],
+            tag: { source: 'NGA', cls: 'DERIVED' },
           },
           {
             id: 'effect',
