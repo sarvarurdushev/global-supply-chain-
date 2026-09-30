@@ -15,7 +15,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | 3 MIN EXECUTIVE | 11 | 26 | 02:44.6 | 02:37.4 | 13.1 s | 3.8 s |
 | 6 MIN BRIEFING | 18 | 58 | 06:01.7 | 05:39.6 | 14.1 s | 3.8 s |
-| FULL ANALYSIS | 40 | 108 | 12:07.0 | 11:18.2 | 14.1 s | 3.8 s |
+| FULL ANALYSIS | 40 | 108 | 12:07.1 | 11:21.8 | 14.1 s | 3.8 s |
 
 ## 3 MIN EXECUTIVE — running order
 
@@ -1354,26 +1354,27 @@ caption’s reading time sets the pace instead (3.2 words a second).
 
 - **SETUP** (landed instantly on entry, so a skip arrives in the right state): +0.0 s veil 0.12; +0.0 s show outline; +0.0 s show mask; +0.0 s show roads; +0.0 s fly to accessCentre · 600 km · pitch -70° · heading 0° · 3.0 s
 
-#### 10:06.8 — mapped · 7.7 s · FULL
+#### 10:06.8 — mapped · 7.8 s · FULL
 
 - **NARRATION** Where roads failed, aircraft were the other way in. 17 airfields and 45 helipads were on the map.
 - **CAPTION** 17 AIRFIELDS AND 45 HELIPADS WERE ON THE MAP
-- **CAMERA** +0.3 s fly to accessCentre · 540 km · pitch -64° · heading 6° · 5.2 s
+- **CAMERA** +0.3 s fly to accessCentre · 400 km · pitch -58° · heading 14° · 7.0 s
 - **MAP** +0.0 s show aerodromes; +0.9 s show helipads
+- **ANNOTATION** +1.4 s count access.airfields.aerodromeCount — AIRFIELDS ON THE MAP; +2.6 s count access.airfields.helipadCount — HELIPADS ON THE MAP
 - **EVIDENCE** access.airfields — OPENSTREETMAP · 24 APR 2015 · OBSERVED · record `access-hospital-distance`
 - **CLASS** OBSERVED
-- **LONGEST STILL** 1.7 s
+- **LONGEST STILL** 0.0 s
 
-#### 10:14.5 — not-use · 6.5 s · FULL
+#### 10:14.6 — not-use · 6.5 s · FULL
 
 - **NARRATION** Places an aircraft could land. Not a record of any flight.
 - **CAPTION** PLACES AN AIRCRAFT COULD LAND · NOT A RECORD OF ANY FLIGHT
 - **CAMERA** +0.2 s fly to district:gorkha · 320 km · pitch -60° · heading -10° · 4.8 s
-- **ANNOTATION** +0.6 s typed — LANDING PLACES · OPENSTREETMAP / AS MAPPED 24 APR 2015 / NO FLIGHTS, AIRCRAFT OR CAPACITY INFERRED
+- **ANNOTATION** +0.0 s remove air-count; +0.0 s remove heli-count; +0.6 s typed — LANDING PLACES · OPENSTREETMAP / AS MAPPED 24 APR 2015 / NO FLIGHTS, AIRCRAFT OR CAPACITY INFERRED
 - **SOUND** +0.0 s reveal
 - **EVIDENCE** access.airfields — OPENSTREETMAP · 24 APR 2015 · OBSERVED · record `access-hospital-distance`
 - **CLASS** OBSERVED
-- **LONGEST STILL** 0.2 s
+- **LONGEST STILL** 0.0 s
 
 ### 35 · Four clocks — Act VI
 
@@ -1381,18 +1382,19 @@ caption’s reading time sets the pace instead (3.2 words a second).
 
 - **SETUP** (landed instantly on entry, so a skip arrives in the right state): +0.0 s veil 0.12; +0.0 s show outline; +0.0 s show mask; +0.0 s fly to damageCentre · 420 km · pitch -66° · heading 0° · 3.0 s
 
-#### 10:21.0 — clocks · 9.3 s · FULL
+#### 10:21.1 — clocks · 9.3 s · FULL
 
 - **NARRATION** Every observation has four clocks. When the ground shook. When a satellite looked. When an analyst mapped it. When it was published.
 - **CAPTION** FOUR CLOCKS: SHAKING · IMAGE · MAPPING · PUBLICATION
-- **CAMERA** +0.3 s fly to damageCentre · 380 km · pitch -62° · heading 6° · 5.2 s
-- **MAP** +0.0 s show damage
+- **CAMERA** +0.3 s fly to damageCentre · 320 km · pitch -60° · heading 12° · 7.0 s
+- **MAP** +0.0 s show damage; +0.0 s filter damage; +3.9 s filter damage; +4.6 s filter damage; +5.3 s filter damage
+- **ANNOTATION** +2.3 s pulse @ epicentre
 - **CHART** +0.6 s enter bars “MEDIAN DAYS · EACH STEP”; +0.7 s lag-bars: revealAll
 - **SOUND** +0.0 s tick
 - **CLASS** none (no figure)
-- **LONGEST STILL** 3.3 s
+- **LONGEST STILL** 1.5 s
 
-#### 10:30.3 — twelve · 9.2 s · FULL
+#### 10:30.4 — twelve · 9.2 s · FULL
 
 - **NARRATION** These layers were published a median of 12 days after the earthquake. A response runs on the clock of its data.
 - **CAPTION** LAYERS PUBLISHED A MEDIAN 12 DAYS AFTER THE EARTHQUAKE
@@ -1409,7 +1411,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 
 - **SETUP** (landed instantly on entry, so a skip arrives in the right state): +0.0 s veil 0.12; +0.0 s show outline; +0.0 s show mask; +0.0 s fly to epicentre · 600 km · pitch -70° · heading 0° · 3.0 s
 
-#### 10:39.5 — statements · 10.3 s · FULL
+#### 10:39.6 — statements · 10.3 s · FULL
 
 - **NARRATION** What we know, because it was observed: the earthquake, the damage read from imagery, the blockages, and the second product’s grades.
 - **CAPTION** OBSERVED · RECORDED BY AN INSTRUMENT OR AN ANALYST, NOT COMPUTED HERE
@@ -1427,7 +1429,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 
 - **SETUP** (landed instantly on entry, so a skip arrives in the right state): +0.0 s veil 0.12; +0.0 s show outline; +0.0 s show mask; +0.0 s fly to shakeCentre · 600 km · pitch -70° · heading 0° · 3.0 s
 
-#### 10:49.8 — statements · 10.3 s · FULL
+#### 10:49.9 — statements · 10.3 s · FULL
 
 - **NARRATION** What we infer, by computing from those observations. Each with its method and its caveat.
 - **CAPTION** DERIVED AND STATISTICAL · COMPUTED HERE, EACH WITH ITS METHOD
@@ -1445,7 +1447,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 
 - **SETUP** (landed instantly on entry, so a skip arrives in the right state): +0.0 s veil 0.12; +0.0 s show outline; +0.0 s show mask; +0.0 s fly to accessCentre · 600 km · pitch -70° · heading 0° · 3.0 s
 
-#### 11:00.1 — statements · 10.3 s · FULL
+#### 11:00.2 — statements · 10.3 s · FULL
 
 - **NARRATION** What we simulate, and only simulate: the road network with every observed blockage applied at once.
 - **CAPTION** SCENARIO · WHAT THE ROAD MAP IMPLIES IF EVERY OBSERVED BLOCKAGE HELD
@@ -1463,7 +1465,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 
 - **SETUP** (landed instantly on entry, so a skip arrives in the right state): +0.0 s veil 0.16; +0.0 s show outline; +0.0 s show mask; +0.0 s fly to accessCentre · 900 km · pitch -76° · heading 0° · 3.0 s
 
-#### 11:10.4 — gaps · 8.1 s · FULL
+#### 11:10.5 — gaps · 8.1 s · FULL
 
 - **NARRATION** What this analysis cannot answer, and what would answer it.
 - **CAPTION** WHAT THE DATA CANNOT TELL US
@@ -1474,7 +1476,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **CLASS** none (no figure)
 - **LONGEST STILL** 0.0 s
 
-#### 11:18.5 — unmeasured · 10.1 s · FULL
+#### 11:18.6 — unmeasured · 10.1 s · FULL
 
 - **NARRATION** No travel times. Nothing about what a hospital could do. And no record of where damage was absent, only where it was found.
 - **CAPTION** NO TRAVEL TIMES · NO HOSPITAL CAPACITY · NO RECORD OF WHERE NOTHING WAS FOUND
@@ -1490,7 +1492,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 
 - **SETUP** (landed instantly on entry, so a skip arrives in the right state): +0.0 s veil 0.16; +0.0 s show outline; +0.0 s show mask; +0.0 s fly to nepal · 1100 km · pitch -80° · heading 0° · 3.0 s
 
-#### 11:28.6 — epicentre · 3.9 s · 3 / 6 / FULL
+#### 11:28.7 — epicentre · 3.9 s · 3 / 6 / FULL
 
 - **NARRATION** In short. A shallow magnitude 7.8 earthquake in Gorkha.
 - **CAPTION** M7.8 · GORKHA · 25 APR 2015
@@ -1501,7 +1503,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **CLASS** DERIVED · OBSERVED
 - **LONGEST STILL** 0.8 s
 
-#### 11:32.5 — shaking · 3.1 s · 3 / 6 / FULL
+#### 11:32.6 — shaking · 3.1 s · 3 / 6 / FULL
 
 - **NARRATION** 13.8 million people inside strong shaking.
 - **CAPTION** 13.84 M PEOPLE INSIDE MODELLED STRONG SHAKING
@@ -1512,7 +1514,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **CLASS** DERIVED
 - **LONGEST STILL** 0.0 s
 
-#### 11:35.6 — damage · 4.7 s · 3 / 6 / FULL
+#### 11:35.7 — damage · 4.7 s · 3 / 6 / FULL
 
 - **NARRATION** 4,583 damaged sites mapped. Half of them in 37 square kilometres.
 - **CAPTION** 4,583 DAMAGED SITES MAPPED · HALF IN 37 KM²
@@ -1523,7 +1525,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **CLASS** OBSERVED · STATISTIC
 - **LONGEST STILL** 1.6 s
 
-#### 11:40.3 — gap · 5.1 s · 3 / 6 / FULL
+#### 11:40.4 — gap · 5.1 s · 3 / 6 / FULL
 
 - **NARRATION** 4.9 million lived where no damage was recorded. A gap, not an absence.
 - **CAPTION** 4.94 M PEOPLE WHERE NO DAMAGE WAS RECORDED · A GAP, NOT AN ABSENCE
@@ -1534,7 +1536,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **CLASS** DATA GAP
 - **LONGEST STILL** 1.8 s
 
-#### 11:45.4 — network · 4.7 s · 3 / 6 / FULL
+#### 11:45.5 — network · 4.7 s · 3 / 6 / FULL
 
 - **NARRATION** Roads were cut in 179 places, and 5 bridges were out.
 - **CAPTION** 179 ROADS CUT · 5 BRIDGES OUT · 51 LANDSLIDES
@@ -1545,7 +1547,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **CLASS** OBSERVED
 - **LONGEST STILL** 1.4 s
 
-#### 11:50.1 — access · 6.4 s · 3 / 6 / FULL
+#### 11:50.2 — access · 6.4 s · 3 / 6 / FULL
 
 - **NARRATION** 86 thousand people lost every mapped road to a hospital. Ramechhap and Sindhuli are where to look first.
 - **CAPTION** 85,783 LOST EVERY MAPPED ROAD TO A HOSPITAL · LOOK FIRST: RAMECHHAP · SINDHULI
@@ -1556,7 +1558,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **CLASS** DERIVED · SCENARIO
 - **LONGEST STILL** 0.1 s
 
-#### 11:56.5 — close · 10.5 s · 3 / 6 / FULL
+#### 11:56.6 — close · 10.5 s · 3 / 6 / FULL
 
 - **NARRATION** What we know. What we infer. What we simulate. And what we still don’t know: travel times, hospital capacity, and where nothing was found.
 - **CAPTION** KNOWN · INFERRED · SIMULATED · AND STILL UNKNOWN
