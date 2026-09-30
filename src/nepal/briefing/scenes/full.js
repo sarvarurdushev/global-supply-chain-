@@ -1313,8 +1313,9 @@ export const LANDSLIDES = defineScene({
             'SEEN SEPARATELY · NO CAUSE RECORDED',
           ],
           tag: { source: 'NGA', cls: 'DERIVED' },
+          /* Below the slide: above it, the box ran into the percentage's label. */
           dx: 130,
-          dy: -80,
+          dy: 60,
           tone: 'caveat',
         },
       ],
