@@ -263,6 +263,13 @@ export const SEQUENCE = defineScene({
         { at: 1500, type: 'audio.cue', cue: 'hit' },
         {
           at: 1700,
+          type: 'chart.update',
+          id: 'mag-bars',
+          op: 'verdict',
+          text: 'MANY SMALL · FEW LARGE',
+        },
+        {
+          at: 1700,
           type: 'annotation.draw',
           kind: 'pulse',
           id: 'largest-0',
@@ -642,6 +649,13 @@ export const DESTROYED_AREAS = defineScene({
           tag: UNOSAT,
           dx: 150,
           dy: -80,
+        },
+        {
+          at: 1200,
+          type: 'chart.update',
+          id: 'area-bars',
+          op: 'verdict',
+          text: 'MANBU · THE LARGEST SINGLE CLUSTER',
         },
         {
           at: 3000,
@@ -1672,6 +1686,13 @@ export const PRESSURE = defineScene({
           screen: { x: 0.03, y: 0.36 },
         },
         { at: 400, type: 'chart.update', id: 'ranks', op: 'revealAll' },
+        {
+          at: 3000,
+          type: 'chart.update',
+          id: 'ranks',
+          op: 'verdict',
+          text: 'A LONG LINE: A RANK THAT DEPENDS ON THE WEIGHTS',
+        },
         /* As the names are said, the map lights them. */
         {
           at: 2200,
@@ -1988,6 +2009,13 @@ export const FOUR_CLOCKS = defineScene({
       minHoldMs: 800,
       actions: [
         { at: 0, type: 'chart.update', id: 'lag-bars', op: 'focus', index: 3 },
+        {
+          at: 2400,
+          type: 'chart.update',
+          id: 'lag-bars',
+          op: 'verdict',
+          text: 'A RESPONSE RUNS ON THE CLOCK OF ITS DATA',
+        },
         {
           at: 300,
           type: 'camera.fly',

@@ -33,6 +33,28 @@ const group = (n) => Math.round(n).toLocaleString('en-GB');
  * One segmented bar: classes revealed one at a time, each segment growing to
  * its share while its count counts. `highlight(key)` dims the others.
  */
+/**
+ * A chart's verdict: the finding in words, directly under the chart title,
+ * fading up when the narration reaches it. Shared by every chart that has a
+ * conclusion to point at.
+ */
+function verdictLine(clock, node, before) {
+  const box = div('brf-chart__verdict', '');
+  node.insertBefore(box, before);
+  let at = null;
+  return {
+    set(text, { instant = false } = {}) {
+      box.textContent = text ?? '';
+      at = text ? (instant ? clock.now() - 2000 : clock.now()) : null;
+    },
+    update() {
+      const t = at === null ? 0 : progress(clock, at, 600);
+      box.style.opacity = String(t);
+      box.style.transform = `translateY(${(1 - t) * 8}px)`;
+    },
+  };
+}
+
 export function createCompositionChart({
   clock,
   title,
@@ -60,6 +82,7 @@ export function createCompositionChart({
   );
   const rows = div('brf-chart__rows', null, node);
   const totalRow = div('brf-chart__total', null, node);
+  const verdict = verdictLine(clock, node, plot);
 
   const segments = classes.map((key) => {
     const rect = svg(
@@ -97,7 +120,9 @@ export function createCompositionChart({
     highlight(key) {
       highlighted = key ?? null;
     },
+    verdict: (text, options) => verdict.set(text, options),
     update() {
+      verdict.update();
       let x = 0;
       for (const s of segments) {
         const t = s.at === null ? 0 : ease.out(progress(clock, s.at, s.ms));
@@ -252,9 +277,7 @@ export function createIntensityChart({
   let trendAt = null;
   let dropAt = null;
   /* The verdict: the finding in words, over the bars it is about. */
-  const verdict = div('brf-chart__verdict', '');
-  node.insertBefore(verdict, body);
-  let verdictAt = null;
+  const verdict = verdictLine(clock, node, body);
   const tops = () =>
     columns.map((col, i) => {
       const x = 20 + i * (barPx + 46) + barPx / 2;
@@ -271,10 +294,7 @@ export function createIntensityChart({
       trendAt = instant ? clock.now() - 2000 : clock.now();
       dropAt = mmi ?? null;
     },
-    verdict(text, { instant = false } = {}) {
-      verdict.textContent = text ?? '';
-      verdictAt = text ? (instant ? clock.now() - 2000 : clock.now()) : null;
-    },
+    verdict: (text, options) => verdict.set(text, options),
     showShares({ instant = false } = {}) {
       sharesAt = instant ? clock.now() - 1000 : clock.now();
     },
@@ -353,9 +373,7 @@ export function createIntensityChart({
         dropPath.setAttribute('opacity', '0');
         dropLabel.setAttribute('opacity', '0');
       }
-      const vt = verdictAt === null ? 0 : progress(clock, verdictAt, 600);
-      verdict.style.opacity = String(vt);
-      verdict.style.transform = `translateY(${(1 - vt) * 8}px)`;
+      verdict.update();
     },
   };
 }
@@ -426,6 +444,7 @@ export function createBarsChart({
   const head = div('brf-chart__head', null, node);
   div('brf-chart__title', title, head);
   if (tag) head.append(tag);
+  const verdict = verdictLine(clock, node, null);
   const max = Math.max(...rows.map((row) => row.value), 1);
   const items = rows.map((row) => {
     const line = div('brf-bars__row', null, node);
@@ -449,7 +468,9 @@ export function createBarsChart({
     focus(index) {
       focus = index ?? null;
     },
+    verdict: (text, options) => verdict.set(text, options),
     update() {
+      verdict.update();
       items.forEach((item, k) => {
         const t =
           item.at === null ? 0 : ease.out(progress(clock, item.at, 900));
@@ -480,6 +501,7 @@ export function createRankChart({
   const head = div('brf-chart__head', null, node);
   div('brf-chart__title', title, head);
   if (tag) head.append(tag);
+  const verdict = verdictLine(clock, node, null);
   const rowPx = 18;
   const height = rows.length * rowPx + 22;
   const plot = svg(
@@ -541,7 +563,9 @@ export function createRankChart({
     revealAll({ instant = false } = {}) {
       at = instant ? clock.now() - 5000 : clock.now();
     },
+    verdict: (text, options) => verdict.set(text, options),
     update() {
+      verdict.update();
       items.forEach((item, k) => {
         const t = at === null ? 0 : ease.out(progress(clock, at + k * 90, 700));
         item.label.setAttribute('opacity', String(t));

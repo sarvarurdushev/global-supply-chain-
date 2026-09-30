@@ -203,6 +203,13 @@ export const COMPOSITION = defineScene({
         },
         { at: 300, type: 'chart.update', id: 'composition', op: 'total' },
         {
+          at: 2200,
+          type: 'chart.update',
+          id: 'composition',
+          op: 'verdict',
+          text: 'SHARES OF MAPPED DAMAGE · NOT OF ALL BUILDINGS',
+        },
+        {
           at: 1200,
           type: 'annotation.draw',
           kind: 'callout',
