@@ -390,17 +390,6 @@ export const POPULATION = defineScene({
           heading: 4,
           duration: 5400,
         },
-        data(
-          'pop-card',
-          [
-            'POPULATION · WORLDPOP 2015',
-            'A MODEL, NOT A CENSUS',
-            'ABOUT ONE-KILOMETRE CELLS',
-          ],
-          { source: 'WORLDPOP 2015', cls: 'DERIVED' },
-          2800,
-          { x: 0.64, y: 0.4 },
-        ),
       ],
     },
     {
@@ -409,7 +398,6 @@ export const POPULATION = defineScene({
       narration: 'The densest cluster, by far: the Kathmandu Valley.',
       minHoldMs: 700,
       actions: [
-        { at: 0, type: 'annotation.remove', id: 'pop-card' },
         {
           at: 0,
           type: 'camera.fly',

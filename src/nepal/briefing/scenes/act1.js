@@ -712,6 +712,16 @@ export const FIRST_HOURS = defineScene({
           duration: 4000,
         },
         { at: 0, type: 'annotation.remove', id: 'day-count' },
+        /* Pull back as the week fills in, so the whole aftershock zone is in frame. */
+        {
+          at: 200,
+          type: 'camera.fly',
+          to: 'shakeCentre',
+          rangeKm: 680,
+          pitch: -62,
+          heading: -6,
+          duration: 4600,
+        },
         {
           at: 400,
           type: 'metric.count',
