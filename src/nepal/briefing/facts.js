@@ -484,6 +484,16 @@ export const FACTS = Object.freeze({
     cls: 'OBSERVED',
     record: 'infrastructure-geometry-check',
   }),
+  /* The first mapped landslide whose nearest blocked road is 0 m away: an example chosen by rule. */
+  'infra.slideOnRoad': f(
+    'infrastructure',
+    ['results', 'landslides', { find: { nearestBlockedRoadMetres: 0 } }],
+    {
+      source: 'NGA',
+      cls: 'DERIVED',
+      record: 'infrastructure-road-landslide-association',
+    },
+  ),
   'infra.bridges': f('infrastructure', ['results', 'bridges'], {
     source: 'NGA',
     cls: 'OBSERVED',

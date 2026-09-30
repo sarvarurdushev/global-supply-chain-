@@ -15,7 +15,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | 3 MIN EXECUTIVE | 11 | 26 | 02:43.4 | 02:27.0 | 12.5 s | 5.7 s |
 | 6 MIN BRIEFING | 18 | 58 | 05:59.7 | 05:23.4 | 14.1 s | 5.7 s |
-| FULL ANALYSIS | 40 | 108 | 12:05.6 | 10:57.4 | 14.1 s | 5.7 s |
+| FULL ANALYSIS | 40 | 108 | 12:05.4 | 10:57.2 | 14.1 s | 5.7 s |
 
 ## 3 MIN EXECUTIVE — running order
 
@@ -876,16 +876,16 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **CLASS** OBSERVED
 - **LONGEST STILL** 0.0 s
 
-#### 06:02.3 — association · 8.1 s · FULL
+#### 06:02.3 — association · 7.9 s · FULL
 
 - **NARRATION** 17 blockages lie within 50 metres of a landslide. A link in space. Neither product claims a cause.
 - **CAPTION** 17 BLOCKAGES WITHIN 50 M OF A LANDSLIDE · ASSOCIATION, NOT CAUSE
-- **CAMERA** +2.4 s fly to district:sindhupalchok · 240 km · pitch -60° · heading -6° · 4.2 s
-- **ANNOTATION** +0.3 s count infra.association.featureShare — OF BLOCKAGES NEAR A MAPPED LANDSLIDE
+- **CAMERA** +2.4 s fly to infra.slideOnRoad · 14 km · pitch -55° · heading 10° · 4.0 s
+- **ANNOTATION** +0.3 s count infra.association.featureShare — OF BLOCKAGES NEAR A MAPPED LANDSLIDE; +4.6 s pulse @ infra.slideOnRoad; +5.0 s callout @ infra.slideOnRoad — LANDSLIDE ON A BLOCKED ROAD / DOLAKHA · 1.2 HA / SEEN SEPARATELY · NO CAUSE RECORDED
 - **SOUND** +0.0 s reveal
-- **EVIDENCE** infra.association — NGA · DERIVED · record `infrastructure-road-landslide-association`
+- **EVIDENCE** infra.association — NGA · DERIVED · record `infrastructure-road-landslide-association`; infra.slideOnRoad — NGA · DERIVED · record `infrastructure-road-landslide-association`
 - **CLASS** DERIVED
-- **LONGEST STILL** 0.6 s
+- **LONGEST STILL** 0.8 s
 
 ### 24 · Bridges — Act IV
 
@@ -893,7 +893,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 
 - **SETUP** (landed instantly on entry, so a skip arrives in the right state): +0.0 s veil 0.12; +0.0 s show outline; +0.0 s show mask; +0.0 s show roads; +0.0 s fly to accessCentre · 520 km · pitch -64° · heading 0° · 3.0 s
 
-#### 06:10.4 — out · 5.8 s · FULL
+#### 06:10.2 — out · 5.8 s · FULL
 
 - **NARRATION** A handful of bridges were observed out, east of Kathmandu.
 - **CAPTION** BRIDGES OBSERVED OUT · THE FIRST IN OKHALDHUNGA
@@ -904,7 +904,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **CLASS** OBSERVED
 - **LONGEST STILL** 0.0 s
 
-#### 06:16.2 — one · 5.8 s · FULL
+#### 06:16.0 — one · 5.8 s · FULL
 
 - **NARRATION** This one, in Kavrepalanchok, was seen out on 4 May 2015. It matters later.
 - **CAPTION** IN KAVREPALANCHOK: OBSERVED OUT ON 04 MAY 2015
@@ -920,7 +920,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 
 - **SETUP** (landed instantly on entry, so a skip arrives in the right state): +0.0 s veil 0.14; +0.0 s show outline; +0.0 s show mask; +0.0 s label @ kathmandu — KATHMANDU; +0.0 s fly to accessCentre · 560 km · pitch -70° · heading 0° · 3.0 s
 
-#### 06:22.0 — main-roads · 5.9 s · FULL
+#### 06:21.8 — main-roads · 5.9 s · FULL
 
 - **NARRATION** The main roads, as mapped the day before.
 - **CAPTION** MAIN ROADS AS MAPPED ON 24 APR 2015 · 2,129 SEGMENTS
@@ -932,7 +932,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **CLASS** OBSERVED
 - **LONGEST STILL** 0.0 s
 
-#### 06:27.9 — blocked · 10.1 s · 6 / FULL
+#### 06:27.7 — blocked · 10.1 s · 6 / FULL
 
 - **NARRATION** In the days that followed, 184 road blockages were observed. Only 21 sit on a main road. Most were on minor roads and tracks.
 - **CAPTION** 184 BLOCKAGES OBSERVED · 21 ON A MAIN ROAD
@@ -944,7 +944,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **CLASS** DERIVED
 - **LONGEST STILL** 4.7 s
 
-#### 06:38.0 — pieces · 5.9 s · 6 / FULL
+#### 06:37.8 — pieces · 5.9 s · 6 / FULL
 
 - **NARRATION** Take them out, and the main network splits. 40 pieces become 49.
 - **CAPTION** THE MAIN NETWORK SPLITS: 40 PIECES BECOME 49
@@ -961,7 +961,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 
 - **SETUP** (landed instantly on entry, so a skip arrives in the right state): +0.0 s veil 0.14; +0.0 s show outline; +0.0 s show mask; +0.0 s label @ kathmandu — KATHMANDU; +0.0 s show roads; +0.0 s fly to accessCentre · 560 km · pitch -68° · heading 0° · 3.0 s
 
-#### 06:43.9 — routes · 5.7 s · 6 / FULL
+#### 06:43.7 — routes · 5.7 s · 6 / FULL
 
 - **NARRATION** Test a main-road route from Kathmandu to each of 14 districts.
 - **CAPTION** A MAIN-ROAD ROUTE FROM KATHMANDU TO 14 DISTRICTS, TESTED
@@ -974,7 +974,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **CLASS** SCENARIO
 - **LONGEST STILL** 0.0 s
 
-#### 06:49.6 — outcomes · 6.2 s · 3 / 6 / FULL
+#### 06:49.4 — outcomes · 6.2 s · 3 / 6 / FULL
 
 - **NARRATION** 8 unchanged. 1 detour. 5 had no main-road route even before.
 - **CAPTION** 8 UNCHANGED · 1 DETOUR · 5 WITH NO MAIN-ROAD ROUTE EVEN BEFORE
@@ -986,7 +986,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **CLASS** SCENARIO
 - **LONGEST STILL** 0.9 s
 
-#### 06:55.8 — detour · 5.5 s · FULL
+#### 06:55.6 — detour · 5.5 s · FULL
 
 - **NARRATION** The one detour, to Nuwakot: 74.3 kilometres became 83.5.
 - **CAPTION** KATHMANDU → NUWAKOT: 74.3 KM BECOMES 83.5 KM
@@ -1003,7 +1003,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 
 - **SETUP** (landed instantly on entry, so a skip arrives in the right state): +0.0 s veil 0.12; +0.0 s show outline; +0.0 s show mask; +0.0 s fly to accessCentre · 600 km · pitch -70° · heading 0° · 3.0 s
 
-#### 07:01.3 — list · 8.5 s · FULL
+#### 07:01.1 — list · 8.5 s · FULL
 
 - **NARRATION** The latest official list of health facilities openly available dates from 21 September 2010. It is used, and labelled, as exactly that.
 - **CAPTION** THE GOVERNMENT LIST, COMPILED 21 SEP 2010 · THE LATEST OPENLY AVAILABLE
@@ -1015,7 +1015,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **CLASS** DERIVED
 - **LONGEST STILL** 2.3 s
 
-#### 07:09.8 — no-capacity · 7.9 s · FULL
+#### 07:09.6 — no-capacity · 7.9 s · FULL
 
 - **NARRATION** Each entry has a type and a place. No beds, no staff, no capacity. None is invented here.
 - **CAPTION** A TYPE FOR EACH · NO BEDS, STAFF OR CAPACITY · NONE IS INVENTED
@@ -1031,7 +1031,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 
 - **SETUP** (landed instantly on entry, so a skip arrives in the right state): +0.0 s veil 0.12; +0.0 s show outline; +0.0 s show mask; +0.0 s show hospitals; +0.0 s fly to accessCentre · 540 km · pitch -66° · heading 0° · 3.0 s
 
-#### 07:17.7 — off-network · 6.6 s · FULL
+#### 07:17.5 — off-network · 6.6 s · FULL
 
 - **NARRATION** 9 of the 38 listed hospitals here are more than 1 kilometres from any mapped road.
 - **CAPTION** 9 OF 38 LISTED HOSPITALS: OVER 1 KM FROM ANY MAPPED ROAD
@@ -1043,7 +1043,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **CLASS** DERIVED
 - **LONGEST STILL** 0.7 s
 
-#### 07:24.3 — grey · 8.7 s · FULL
+#### 07:24.1 — grey · 8.7 s · FULL
 
 - **NARRATION** They are drawn grey. The routing cannot reach them. That says as much about the map as about the hospitals.
 - **CAPTION** GREY CROSSES: HOSPITALS THE ROUTING CANNOT REACH
@@ -1059,7 +1059,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 
 - **SETUP** (landed instantly on entry, so a skip arrives in the right state): +0.0 s veil 0.14; +0.0 s show outline; +0.0 s show mask; +0.0 s fly to accessCentre · 620 km · pitch -74° · heading 0° · 3.0 s
 
-#### 07:33.0 — roads · 6.9 s · 6 / FULL
+#### 07:32.8 — roads · 6.9 s · 6 / FULL
 
 - **NARRATION** Every road on the map the day before: 19,911 kilometres.
 - **CAPTION** ROADS MAPPED BY 24 APR 2015 · 19,911 KM
@@ -1071,7 +1071,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **CLASS** OBSERVED
 - **LONGEST STILL** 0.0 s
 
-#### 07:39.9 — hospitals · 4.6 s · 6 / FULL
+#### 07:39.7 — hospitals · 4.6 s · 6 / FULL
 
 - **NARRATION** The hospitals, from the government list of 21 September 2010.
 - **CAPTION** 38 HOSPITALS · GOVERNMENT LIST COMPILED 21 SEP 2010
@@ -1083,7 +1083,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **CLASS** DERIVED
 - **LONGEST STILL** 0.2 s
 
-#### 07:44.5 — no-road · 7.5 s · 6 / FULL
+#### 07:44.3 — no-road · 7.5 s · 6 / FULL
 
 - **NARRATION** Before any damage, 19 percent of people here lived more than 2 kilometres from a mapped road.
 - **CAPTION** 1.84 M PEOPLE MORE THAN 2 KM FROM ANY MAPPED ROAD
@@ -1095,7 +1095,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **CLASS** DERIVED · SCENARIO
 - **LONGEST STILL** 0.0 s
 
-#### 07:52.0 — median · 7.8 s · 6 / FULL
+#### 07:51.8 — median · 7.8 s · 6 / FULL
 
 - **NARRATION** For people near a road, the median distance to a hospital: 7.5 kilometres. Road distance, not travel time.
 - **CAPTION** MEDIAN TO THE NEAREST HOSPITAL: 7.5 KM OF ROAD · NOT TRAVEL TIME
@@ -1111,7 +1111,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 
 - **SETUP** (landed instantly on entry, so a skip arrives in the right state): +0.0 s veil 0.14; +0.0 s show outline; +0.0 s show mask; +0.0 s show roads; +0.0 s filter roads → dim 0.6; +0.0 s show hospitals; +0.0 s fly to accessCentre · 520 km · pitch -66° · heading 0° · 3.0 s
 
-#### 07:59.8 — blockages · 6.0 s · 6 / FULL
+#### 07:59.6 — blockages · 6.0 s · 6 / FULL
 
 - **NARRATION** Now apply the damage. Of 184 observed blockages, 54 sit on a mapped road.
 - **CAPTION** 184 BLOCKAGES OBSERVED · 54 SIT ON A MAPPED ROAD
@@ -1124,7 +1124,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **CLASS** DERIVED
 - **LONGEST STILL** 0.2 s
 
-#### 08:05.8 — cut · 6.9 s · 3 / 6 / FULL
+#### 08:05.6 — cut · 6.9 s · 3 / 6 / FULL
 
 - **NARRATION** Search again. 86 thousand people lose every mapped road to a hospital.
 - **CAPTION** 85,783 PEOPLE LOST EVERY MAPPED ROAD ROUTE TO A HOSPITAL
@@ -1137,7 +1137,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **CLASS** SCENARIO
 - **LONGEST STILL** 0.1 s
 
-#### 08:12.7 — longer · 4.4 s · 6 / FULL
+#### 08:12.5 — longer · 4.4 s · 6 / FULL
 
 - **NARRATION** Another 42 thousand face a longer route: about 3.7 kilometres more.
 - **CAPTION** 42,181 MORE FACE A LONGER ROUTE · MEDIAN +3.7 KM
@@ -1148,7 +1148,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **CLASS** SCENARIO
 - **LONGEST STILL** 0.4 s
 
-#### 08:17.1 — unchanged · 4.4 s · 3 / 6 / FULL
+#### 08:16.9 — unchanged · 4.4 s · 3 / 6 / FULL
 
 - **NARRATION** For 93 percent of people near a road, nothing changed.
 - **CAPTION** FOR 92.6 % OF PEOPLE NEAR A ROAD, NOTHING CHANGED
@@ -1159,7 +1159,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **CLASS** SCENARIO
 - **LONGEST STILL** 2.1 s
 
-#### 08:21.5 — the-map · 12.5 s · 3 / 6 / FULL
+#### 08:21.3 — the-map · 12.5 s · 3 / 6 / FULL
 
 - **NARRATION** The bigger gap was the map. Around Manbu, 1,524 damaged sites, and no mapped road to a hospital, even before. From the 11 named damage areas, 0 routes changed.
 - **CAPTION** MANBU: 1,524 DAMAGE SITES · NO MAPPED ROAD TO A HOSPITAL, EVEN BEFORE
@@ -1177,7 +1177,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 
 - **SETUP** (landed instantly on entry, so a skip arrives in the right state): +0.0 s veil 0.12; +0.0 s show outline; +0.0 s show mask; +0.0 s show districts; +0.0 s fly to accessCentre · 600 km · pitch -70° · heading 0° · 3.0 s
 
-#### 08:34.0 — question · 7.2 s · FULL
+#### 08:33.8 — question · 7.2 s · FULL
 
 - **NARRATION** Which districts combine the most people in strong shaking, the longest distances, and the most disrupted access?
 - **CAPTION** WHICH DISTRICTS COMBINE HIGH NEED WITH POOR ROAD ACCESS?
@@ -1187,7 +1187,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **CLASS** none (no figure)
 - **LONGEST STILL** 1.2 s
 
-#### 08:41.2 — pareto · 5.8 s · FULL
+#### 08:41.0 — pareto · 5.8 s · FULL
 
 - **NARRATION** 7 districts are beaten on all three by no other. No weighting needed.
 - **CAPTION** THE PARETO SET: CHITAWAN · DHADING · GORKHA · KATHMANDU · NUWAKOT · SINDHULI · SINDHUPALCHOK
@@ -1198,7 +1198,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **CLASS** DERIVED
 - **LONGEST STILL** 2.8 s
 
-#### 08:47.0 — weights · 7.1 s · FULL
+#### 08:46.8 — weights · 7.1 s · FULL
 
 - **NARRATION** Weight the measures four ways. Only Ramechhap and Sindhuli stay in the top 5 every time.
 - **CAPTION** IN THE TOP 5 UNDER EVERY WEIGHTING: RAMECHHAP · SINDHULI
@@ -1216,7 +1216,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 
 - **SETUP** (landed instantly on entry, so a skip arrives in the right state): +0.0 s veil 0.14; +0.0 s show outline; +0.0 s show mask; +0.0 s show roads; +0.0 s filter roads → dim 0.7; +0.0 s hide hospitals; +0.0 s show blockages; +0.0 s filter blockages → alpha 0.5; +0.0 s fly to access.cut.frame · 2.6× its extent · pitch -60° · heading 0° · 3.0 s
 
-#### 08:54.1 — need · 5.5 s · 6 / FULL
+#### 08:53.9 — need · 5.5 s · 6 / FULL
 
 - **NARRATION** Take one place. A square kilometre in Sindhuli: 669 people, in strong shaking.
 - **CAPTION** ONE SQUARE KILOMETRE IN SINDHULI · 669 PEOPLE · MMI 7.5
@@ -1227,7 +1227,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **CLASS** SCENARIO
 - **LONGEST STILL** 1.2 s
 
-#### 08:59.6 — facilities · 7.1 s · 6 / FULL
+#### 08:59.4 — facilities · 7.1 s · 6 / FULL
 
 - **NARRATION** The nearest hospitals as the crow flies are in Sindhuli and Ramechhap. No mapped road reaches either.
 - **CAPTION** THE NEAREST HOSPITALS AS THE CROW FLIES · NO MAPPED ROAD REACHES THEM
@@ -1239,7 +1239,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **CLASS** SCENARIO
 - **LONGEST STILL** 2.3 s
 
-#### 09:06.7 — nearest · 3.9 s · 6 / FULL
+#### 09:06.5 — nearest · 3.9 s · 6 / FULL
 
 - **NARRATION** The nearest one the roads reach is in Kavrepalanchok.
 - **CAPTION** THE NEAREST HOSPITAL THE ROADS REACH: KAVREPALANCHOK
@@ -1248,7 +1248,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **CLASS** SCENARIO
 - **LONGEST STILL** 2.0 s
 
-#### 09:10.6 — before · 4.2 s · 6 / FULL
+#### 09:10.4 — before · 4.2 s · 6 / FULL
 
 - **NARRATION** Before the earthquake: 49.1 kilometres by road.
 - **CAPTION** BEFORE THE EARTHQUAKE: 49.1 KM BY ROAD
@@ -1259,7 +1259,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **CLASS** SCENARIO
 - **LONGEST STILL** 0.1 s
 
-#### 09:14.8 — cut · 4.1 s · 6 / FULL
+#### 09:14.6 — cut · 4.1 s · 6 / FULL
 
 - **NARRATION** On 4 May 2015, the route was observed cut.
 - **CAPTION** 04 MAY 2015: THE ROUTE IS OBSERVED CUT
@@ -1271,7 +1271,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **CLASS** SCENARIO
 - **LONGEST STILL** 0.0 s
 
-#### 09:18.9 — search · 7.2 s · 6 / FULL
+#### 09:18.7 — search · 7.2 s · 6 / FULL
 
 - **NARRATION** Search again, over what still connects. 61.9 kilometres of road, and no hospital on any of it.
 - **CAPTION** SEARCH WHAT STILL CONNECTS: 61.9 KM OF ROAD · NO HOSPITAL
@@ -1283,7 +1283,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **CLASS** SCENARIO
 - **LONGEST STILL** 1.6 s
 
-#### 09:26.1 — result · 5.5 s · 6 / FULL
+#### 09:25.9 — result · 5.5 s · 6 / FULL
 
 - **NARRATION** Result: disconnected. Unmapped tracks may exist, and air access is not modelled.
 - **CAPTION** RESULT: DISCONNECTED FROM EVERY MAPPED HOSPITAL
@@ -1293,7 +1293,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **CLASS** none (no figure)
 - **LONGEST STILL** 2.9 s
 
-#### 09:31.6 — detour · 8.4 s · 6 / FULL
+#### 09:31.4 — detour · 8.4 s · 6 / FULL
 
 - **NARRATION** Elsewhere, the search finds a way round. In Okhaldhunga, 8.8 kilometres becomes 14.0.
 - **CAPTION** ELSEWHERE, A WAY ROUND: 8.8 KM BECOMES 14.0 KM
@@ -1305,7 +1305,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **CLASS** SCENARIO
 - **LONGEST STILL** 0.0 s
 
-#### 09:40.0 — meaning · 12.5 s · FULL
+#### 09:39.8 — meaning · 12.5 s · FULL
 
 - **NARRATION** Across the whole area, the same search, place by place. Distances along mapped roads, not travel times, and nothing about what a hospital could do.
 - **CAPTION** DISTANCE ALONG MAPPED ROADS · NOT TRAVEL TIME · NOT HOSPITAL CAPACITY
@@ -1322,7 +1322,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 
 - **SETUP** (landed instantly on entry, so a skip arrives in the right state): +0.0 s veil 0.12; +0.0 s show outline; +0.0 s show mask; +0.0 s show roads; +0.0 s show hospitals; +0.0 s fly to infra.bridges.1 · 220 km · pitch -60° · heading 0° · 3.0 s
 
-#### 09:52.5 — alone · 6.2 s · FULL
+#### 09:52.3 — alone · 6.2 s · FULL
 
 - **NARRATION** Remove only that bridge, and 14,476 people lose every mapped road to a hospital.
 - **CAPTION** THAT BRIDGE ALONE: 14,476 PEOPLE LOSE EVERY MAPPED ROAD TO A HOSPITAL
@@ -1333,7 +1333,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **CLASS** OBSERVED · SCENARIO
 - **LONGEST STILL** 0.7 s
 
-#### 09:58.7 — another · 6.3 s · FULL
+#### 09:58.5 — another · 6.3 s · FULL
 
 - **NARRATION** Another bridge sends 14,930 people the long way round.
 - **CAPTION** ANOTHER BRIDGE: 14,930 PEOPLE FACE A LONGER ROUTE
@@ -1349,7 +1349,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 
 - **SETUP** (landed instantly on entry, so a skip arrives in the right state): +0.0 s veil 0.12; +0.0 s show outline; +0.0 s show mask; +0.0 s show roads; +0.0 s fly to accessCentre · 600 km · pitch -70° · heading 0° · 3.0 s
 
-#### 10:05.0 — mapped · 7.7 s · FULL
+#### 10:04.8 — mapped · 7.7 s · FULL
 
 - **NARRATION** Where roads failed, aircraft were the other way in. 17 airfields and 45 helipads were on the map.
 - **CAPTION** 17 AIRFIELDS AND 45 HELIPADS WERE ON THE MAP
@@ -1359,7 +1359,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **CLASS** OBSERVED
 - **LONGEST STILL** 1.7 s
 
-#### 10:12.7 — not-use · 6.5 s · FULL
+#### 10:12.5 — not-use · 6.5 s · FULL
 
 - **NARRATION** Places an aircraft could land. Not a record of any flight.
 - **CAPTION** PLACES AN AIRCRAFT COULD LAND · NOT A RECORD OF ANY FLIGHT
@@ -1376,7 +1376,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 
 - **SETUP** (landed instantly on entry, so a skip arrives in the right state): +0.0 s veil 0.12; +0.0 s show outline; +0.0 s show mask; +0.0 s fly to damageCentre · 420 km · pitch -66° · heading 0° · 3.0 s
 
-#### 10:19.2 — clocks · 9.3 s · FULL
+#### 10:19.0 — clocks · 9.3 s · FULL
 
 - **NARRATION** Every observation has four clocks. When the ground shook. When a satellite looked. When an analyst mapped it. When it was published.
 - **CAPTION** FOUR CLOCKS: SHAKING · IMAGE · MAPPING · PUBLICATION
@@ -1387,7 +1387,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **CLASS** none (no figure)
 - **LONGEST STILL** 3.3 s
 
-#### 10:28.5 — twelve · 9.2 s · FULL
+#### 10:28.3 — twelve · 9.2 s · FULL
 
 - **NARRATION** These layers were published a median of 12 days after the earthquake. A response runs on the clock of its data.
 - **CAPTION** LAYERS PUBLISHED A MEDIAN 12 DAYS AFTER THE EARTHQUAKE
@@ -1404,7 +1404,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 
 - **SETUP** (landed instantly on entry, so a skip arrives in the right state): +0.0 s veil 0.12; +0.0 s show outline; +0.0 s show mask; +0.0 s fly to epicentre · 600 km · pitch -70° · heading 0° · 3.0 s
 
-#### 10:37.7 — statements · 10.3 s · FULL
+#### 10:37.5 — statements · 10.3 s · FULL
 
 - **NARRATION** What we know, because it was observed: the earthquake, the damage read from imagery, the blockages, and the second product’s grades.
 - **CAPTION** OBSERVED · RECORDED BY AN INSTRUMENT OR AN ANALYST, NOT COMPUTED HERE
@@ -1422,7 +1422,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 
 - **SETUP** (landed instantly on entry, so a skip arrives in the right state): +0.0 s veil 0.12; +0.0 s show outline; +0.0 s show mask; +0.0 s fly to shakeCentre · 600 km · pitch -70° · heading 0° · 3.0 s
 
-#### 10:48.0 — statements · 10.3 s · FULL
+#### 10:47.8 — statements · 10.3 s · FULL
 
 - **NARRATION** What we infer, by computing from those observations. Each with its method and its caveat.
 - **CAPTION** DERIVED AND STATISTICAL · COMPUTED HERE, EACH WITH ITS METHOD
@@ -1440,7 +1440,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 
 - **SETUP** (landed instantly on entry, so a skip arrives in the right state): +0.0 s veil 0.12; +0.0 s show outline; +0.0 s show mask; +0.0 s fly to accessCentre · 600 km · pitch -70° · heading 0° · 3.0 s
 
-#### 10:58.3 — statements · 10.3 s · FULL
+#### 10:58.1 — statements · 10.3 s · FULL
 
 - **NARRATION** What we simulate, and only simulate: the road network with every observed blockage applied at once.
 - **CAPTION** SCENARIO · WHAT THE ROAD MAP IMPLIES IF EVERY OBSERVED BLOCKAGE HELD
@@ -1458,7 +1458,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 
 - **SETUP** (landed instantly on entry, so a skip arrives in the right state): +0.0 s veil 0.16; +0.0 s show outline; +0.0 s show mask; +0.0 s fly to accessCentre · 900 km · pitch -76° · heading 0° · 3.0 s
 
-#### 11:08.6 — gaps · 8.5 s · FULL
+#### 11:08.4 — gaps · 8.5 s · FULL
 
 - **NARRATION** What this analysis cannot answer, and what would answer it.
 - **CAPTION** WHAT THE DATA CANNOT TELL US
@@ -1469,7 +1469,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **CLASS** none (no figure)
 - **LONGEST STILL** 0.0 s
 
-#### 11:17.1 — unmeasured · 10.1 s · FULL
+#### 11:16.9 — unmeasured · 10.1 s · FULL
 
 - **NARRATION** No travel times. Nothing about what a hospital could do. And no record of where damage was absent, only where it was found.
 - **CAPTION** NO TRAVEL TIMES · NO HOSPITAL CAPACITY · NO RECORD OF WHERE NOTHING WAS FOUND
@@ -1485,7 +1485,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 
 - **SETUP** (landed instantly on entry, so a skip arrives in the right state): +0.0 s veil 0.16; +0.0 s show outline; +0.0 s show mask; +0.0 s fly to nepal · 1100 km · pitch -80° · heading 0° · 3.0 s
 
-#### 11:27.2 — epicentre · 3.9 s · 3 / 6 / FULL
+#### 11:27.0 — epicentre · 3.9 s · 3 / 6 / FULL
 
 - **NARRATION** In short. A shallow magnitude 7.8 earthquake in Gorkha.
 - **CAPTION** M7.8 · GORKHA · 25 APR 2015
@@ -1496,7 +1496,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **CLASS** DERIVED · OBSERVED
 - **LONGEST STILL** 0.8 s
 
-#### 11:31.1 — shaking · 3.1 s · 3 / 6 / FULL
+#### 11:30.9 — shaking · 3.1 s · 3 / 6 / FULL
 
 - **NARRATION** 13.8 million people inside strong shaking.
 - **CAPTION** 13.84 M PEOPLE INSIDE MODELLED STRONG SHAKING
@@ -1507,7 +1507,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **CLASS** DERIVED
 - **LONGEST STILL** 0.0 s
 
-#### 11:34.2 — damage · 4.7 s · 3 / 6 / FULL
+#### 11:34.0 — damage · 4.7 s · 3 / 6 / FULL
 
 - **NARRATION** 4,583 damaged sites mapped. Half of them in 37 square kilometres.
 - **CAPTION** 4,583 DAMAGED SITES MAPPED · HALF IN 37 KM²
@@ -1518,7 +1518,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **CLASS** OBSERVED · STATISTIC
 - **LONGEST STILL** 1.6 s
 
-#### 11:38.9 — gap · 5.1 s · 3 / 6 / FULL
+#### 11:38.7 — gap · 5.1 s · 3 / 6 / FULL
 
 - **NARRATION** 4.9 million lived where no damage was recorded. A gap, not an absence.
 - **CAPTION** 4.94 M PEOPLE WHERE NO DAMAGE WAS RECORDED · A GAP, NOT AN ABSENCE
@@ -1529,7 +1529,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **CLASS** DATA GAP
 - **LONGEST STILL** 1.8 s
 
-#### 11:44.0 — network · 4.7 s · 3 / 6 / FULL
+#### 11:43.8 — network · 4.7 s · 3 / 6 / FULL
 
 - **NARRATION** Roads were cut in 179 places, and 5 bridges were out.
 - **CAPTION** 179 ROADS CUT · 5 BRIDGES OUT · 51 LANDSLIDES
@@ -1540,7 +1540,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **CLASS** OBSERVED
 - **LONGEST STILL** 1.4 s
 
-#### 11:48.7 — access · 6.4 s · 3 / 6 / FULL
+#### 11:48.5 — access · 6.4 s · 3 / 6 / FULL
 
 - **NARRATION** 86 thousand people lost every mapped road to a hospital. Ramechhap and Sindhuli are where to look first.
 - **CAPTION** 85,783 LOST EVERY MAPPED ROAD TO A HOSPITAL · LOOK FIRST: RAMECHHAP · SINDHULI
@@ -1550,7 +1550,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **CLASS** DERIVED · SCENARIO
 - **LONGEST STILL** 2.6 s
 
-#### 11:55.1 — close · 10.5 s · 3 / 6 / FULL
+#### 11:54.9 — close · 10.5 s · 3 / 6 / FULL
 
 - **NARRATION** What we know. What we infer. What we simulate. And what we still don’t know: travel times, hospital capacity, and where nothing was found.
 - **CAPTION** KNOWN · INFERRED · SIMULATED · AND STILL UNKNOWN
