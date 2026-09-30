@@ -82,8 +82,14 @@ export function createDefaultMapSources({
               },
               tileFailureFallback: {
                 id: 'osm',
-                threshold: 2,
-                /* Two failures within 20 s: an outage. Two minutes apart: strays. */
+                /*
+                 * An outage fails every tile a view asks for (a 1280x720 view
+                 * asks for 20-40) within seconds. A flaky or rate-limited
+                 * network fails a handful at once and recovers. Twelve inside
+                 * 20 s is an outage; fewer is a bad moment, and a presentation
+                 * keeps its imagery through it.
+                 */
+                threshold: 12,
                 windowMs: 20000,
                 message: 'Esri Satellite tile requests failed; using OSM',
               },
@@ -106,7 +112,7 @@ export function createDefaultMapSources({
               },
               tileFailureFallback: {
                 id: 'offline',
-                threshold: 3,
+                threshold: 12,
                 windowMs: 20000,
                 message: 'OSM tile requests failed; using the offline grid',
               },

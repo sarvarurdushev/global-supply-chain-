@@ -148,8 +148,7 @@ test('repeated Esri shot handoffs retain imagery and keep tile fallback live', a
   assert.equal(env.removed.length, 0);
   assert.equal(errors.size, 1);
   assert.equal(env.controller.getSwitchGeneration(), generation + 3);
-  errors.raise();
-  errors.raise();
+  for (let i = 0; i < 12; i++) errors.raise();
   await settle();
   assert.equal(env.controller.getActiveId(), 'osm');
   assert.equal(env.removed.length, 1);
@@ -271,12 +270,13 @@ test('Esri construction fallback reports and attributes the source actually rend
   env.controller.destroy();
 });
 
-test('one Esri tile failure stays put, two fall back, and stale errors cannot replace a selection', async () => {
+test('a burst of Esri tile failures falls back, a few stay put, and stale errors cannot replace a selection', async () => {
   const env = publicFixture();
   await env.controller.setStack('esri-imagery');
   assert.equal(env.credits.size, 1);
   const errorEvent = env.providers.get('esri-imagery').errorEvent;
-  errorEvent.raise();
+  /* A flaky network drops a handful of a view's tiles at once: that is not an outage. */
+  for (let i = 0; i < 11; i++) errorEvent.raise();
   await settle();
   assert.equal(env.controller.getActiveId(), 'esri-imagery');
   errorEvent.raise();
@@ -305,13 +305,16 @@ test('stray Esri tile failures minutes apart keep the imagery; a burst still fal
   const env = publicFixture({ now: () => clock });
   await env.controller.setStack('esri-imagery');
   const errorEvent = env.providers.get('esri-imagery').errorEvent;
-  errorEvent.raise();
-  clock += 60000;
-  errorEvent.raise();
+  for (let i = 0; i < 11; i++) {
+    errorEvent.raise();
+    clock += 30000;
+  }
   await settle();
-  assert.equal(env.controller.getActiveId(), 'esri-imagery', 'two strays');
-  clock += 500;
-  errorEvent.raise();
+  assert.equal(env.controller.getActiveId(), 'esri-imagery', 'eleven strays');
+  for (let i = 0; i < 12; i++) {
+    clock += 200;
+    errorEvent.raise();
+  }
   await settle();
   assert.equal(env.controller.getActiveId(), 'osm', 'a burst is an outage');
   env.controller.destroy();
@@ -333,13 +336,12 @@ test('the chain has a floor: Esri fails, OSM tiles fail, the offline grid holds'
   await env.controller.setStack('esri-imagery');
   assert.equal(env.controller.getActiveId(), 'osm');
   const osmErrors = env.providers.get('osm').errorEvent;
-  osmErrors.raise();
-  osmErrors.raise();
+  for (let i = 0; i < 11; i++) osmErrors.raise();
   await settle();
   assert.equal(
     env.controller.getActiveId(),
     'osm',
-    'two OSM misses are not an outage',
+    'a handful of OSM misses is not an outage',
   );
   osmErrors.raise();
   await settle();
