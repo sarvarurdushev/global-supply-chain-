@@ -549,8 +549,9 @@ export const SHAKING = defineScene({
           title: 'PEAK MMI {exposure.kathmandu.maxMmi|dec1}',
           lines: ['DISTRICT PEAK · MODELLED'],
           tag: SHAKEMAP,
-          dx: -230,
-          dy: -80,
+          /* Above and right: up-left, it sat on the intensity legend's header. */
+          dx: 110,
+          dy: -100,
         },
         { at: 3100, type: 'audio.cue', cue: 'reveal' },
       ],
