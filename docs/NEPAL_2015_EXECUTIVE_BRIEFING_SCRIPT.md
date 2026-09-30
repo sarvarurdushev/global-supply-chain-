@@ -14,8 +14,8 @@ caption’s reading time sets the pace instead (3.2 words a second).
 | Run | Scenes | Beats | Voiced | Silent | Longest beat | Longest still stretch |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | 3 MIN EXECUTIVE | 11 | 26 | 02:43.4 | 02:27.0 | 12.5 s | 5.7 s |
-| 6 MIN BRIEFING | 18 | 58 | 05:59.7 | 05:23.4 | 14.1 s | 5.7 s |
-| FULL ANALYSIS | 40 | 108 | 12:05.4 | 10:57.2 | 14.1 s | 5.7 s |
+| 6 MIN BRIEFING | 18 | 58 | 05:59.7 | 05:27.5 | 14.1 s | 5.7 s |
+| FULL ANALYSIS | 40 | 108 | 12:05.4 | 11:01.3 | 14.1 s | 5.7 s |
 
 ## 3 MIN EXECUTIVE — running order
 
@@ -936,13 +936,13 @@ caption’s reading time sets the pace instead (3.2 words a second).
 
 - **NARRATION** In the days that followed, 184 road blockages were observed. Only 21 sit on a main road. Most were on minor roads and tracks.
 - **CAPTION** 184 BLOCKAGES OBSERVED · 21 ON A MAIN ROAD
-- **CAMERA** +0.3 s fly to kathmandu · 360 km · pitch -60° · heading -8° · 4.6 s
+- **CAMERA** +0.3 s fly to kathmandu · 360 km · pitch -60° · heading -8° · 4.6 s; +5.0 s fly to district:sindhupalchok · 170 km · pitch -55° · heading 8° · 4.0 s
 - **MAP** +0.0 s show blockages
 - **ANNOTATION** +0.0 s remove main-card; +2.8 s count access.matching.stage5MajorNetworkMatched — OF 184 BLOCKAGES SIT ON A MAIN ROAD
 - **SOUND** +0.0 s hit
 - **EVIDENCE** access.matching — NGA × OSM 2015 · DERIVED · record `access-blockage-matching-full-network`
 - **CLASS** DERIVED
-- **LONGEST STILL** 4.7 s
+- **LONGEST STILL** 0.6 s
 
 #### 06:37.8 — pieces · 5.9 s · 6 / FULL
 

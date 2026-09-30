@@ -136,6 +136,16 @@ export const MAIN_NETWORK = defineScene({
           duration: 1400,
           tag: { source: 'NGA × OSM 2015', cls: 'DERIVED' },
         },
+        /* "Most were on minor roads and tracks": down to where the markers sit off the main roads. */
+        {
+          at: 5000,
+          type: 'camera.fly',
+          to: 'district:sindhupalchok',
+          rangeKm: 170,
+          pitch: -55,
+          heading: 8,
+          duration: 4000,
+        },
       ],
     },
     {
