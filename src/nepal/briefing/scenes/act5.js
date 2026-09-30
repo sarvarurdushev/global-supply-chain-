@@ -51,6 +51,13 @@ const KEY_BLOCKAGE = {
   label: 'BLOCKAGE',
   sub: 'OBSERVED · ON A MAPPED ROAD',
 };
+/* The grey crosses: observed, but on no road the 2015 map held, so they change no route. */
+const KEY_BLOCKAGE_OFF = {
+  glyph: '×',
+  colour: 'unmatched',
+  label: 'BLOCKAGE',
+  sub: 'OBSERVED · NOT ON THE MAP',
+};
 
 export const BASELINE_ACCESS = defineScene({
   id: 'baseline-access',
@@ -326,7 +333,7 @@ export const SCENARIO_ACCESS = defineScene({
           id: 'access-key-3',
           title: 'HEALTH ACCESS · KEY',
           screen: { x: 0.03, y: 0.6 },
-          rows: [KEY_ROADS, KEY_HOSPITAL, KEY_BLOCKAGE],
+          rows: [KEY_ROADS, KEY_HOSPITAL, KEY_BLOCKAGE, KEY_BLOCKAGE_OFF],
         },
         { at: 900, type: 'chart.update', id: 'access-key-3', op: 'revealAll' },
         {
@@ -412,6 +419,20 @@ export const SCENARIO_ACCESS = defineScene({
           heading: 0,
           duration: 3800,
         },
+        {
+          at: 3000,
+          type: 'annotation.draw',
+          kind: 'typed',
+          id: 'cut-where',
+          duration: 1400,
+          screen: { x: 0.64, y: 0.4 },
+          className: 'brf-typed brf-typed--data',
+          lines: [
+            'WHERE ACCESS CHANGED MOST',
+            '{access.mostDisruptedNames|list}',
+          ],
+          tag: SCENARIO,
+        },
       ],
     },
     {
@@ -441,6 +462,7 @@ export const SCENARIO_ACCESS = defineScene({
           duration: 3600,
         },
         { at: 0, type: 'annotation.remove', id: 'cut-count' },
+        { at: 0, type: 'annotation.remove', id: 'cut-where' },
         {
           at: 600,
           type: 'metric.count',
@@ -466,6 +488,7 @@ export const SCENARIO_ACCESS = defineScene({
       actions: [
         { at: 0, type: 'annotation.remove', id: 'longer-count' },
         { at: 0, type: 'annotation.remove', id: 'cut-count' },
+        { at: 0, type: 'annotation.remove', id: 'cut-where' },
         { at: 0, type: 'layer.filter', layer: 'roads', dim: 1, duration: 1200 },
         {
           at: 300,

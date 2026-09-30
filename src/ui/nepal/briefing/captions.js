@@ -37,9 +37,13 @@ export function createCaptions({ container, clock }) {
 
   return {
     node,
-    show(text) {
+    /**
+     * `instant`: the whole line at once. A beat jumped to while paused is
+     * shown whole, and a paused clock would otherwise hold it at one word.
+     */
+    show(text, { instant = false } = {}) {
       words = text ? String(text).split(/\s+/).filter(Boolean) : [];
-      shownAt = clock.now();
+      shownAt = instant ? -Infinity : clock.now();
       /* Screen readers get the whole line at once. */
       node.setAttribute('aria-label', text ?? '');
     },

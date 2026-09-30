@@ -589,6 +589,16 @@ export const FACTS = Object.freeze({
       record: 'access-hospital-distance',
     },
   ),
+  'access.mostDisrupted': f('access', ['results', 'mostDisrupted'], {
+    source: 'OSM 2015 × DOHS 2010 × NGA',
+    cls: 'SCENARIO',
+    record: 'access-hospital-distance',
+  }),
+  'access.mostDisruptedNames': f('access', ['results', 'mostDisruptedNames'], {
+    source: 'OSM 2015 × DOHS 2010 × NGA',
+    cls: 'SCENARIO',
+    record: 'access-hospital-distance',
+  }),
   'access.pressure': f('access', ['results', 'pressure'], {
     source: 'THIS ANALYSIS',
     cls: 'DERIVED',

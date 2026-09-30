@@ -668,9 +668,14 @@
   z-index: 4;
 }
 
-/* The BEGIN screen shows the product, not explore's rail and panel behind it. */
-.ndi:has(.brf-begin:not([hidden])) .ndi__body,
-.ndi:has(.brf-begin:not([hidden])) .ndi__controls {
+/*
+ * The BEGIN screen shows the product, not explore's rail and panel behind it.
+ * Scoped to a SHOWN briefing root: leaving from BEGIN hides the root, not the
+ * screen inside it, and the unscoped rule kept explore's rail and panel
+ * invisible for the rest of the session.
+ */
+.ndi:has(.brf-root:not([hidden]) .brf-begin:not([hidden])) .ndi__body,
+.ndi:has(.brf-root:not([hidden]) .brf-begin:not([hidden])) .ndi__controls {
   visibility: hidden;
 }
 
@@ -701,4 +706,122 @@
 .brf-bars__value {
   color: #ffffff;
   font-variant-numeric: tabular-nums;
+}
+
+/* ------------------------------------------------------------------ *
+ * Explore's map inspector: the card beside a clicked object, and the
+ * one-line hint that the map answers clicks at all.
+ * ------------------------------------------------------------------ */
+
+.brf-inspector {
+  position: absolute;
+  z-index: 4;
+  width: 300px;
+  padding: 10px 12px 12px;
+  background: rgba(3, 10, 12, 0.94);
+  border: 1px solid rgba(34, 217, 127, 0.4);
+  border-left: 2px solid var(--gx-neon);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.55);
+  font-family: var(--font-mono);
+  color: var(--gx-text);
+  pointer-events: auto;
+}
+.brf-inspector[hidden],
+.brf-inspector-hint[hidden] {
+  display: none;
+}
+.brf-inspector__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.brf-inspector__kind {
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  color: var(--gx-green);
+}
+.brf-inspector__close {
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: rgba(228, 245, 236, 0.7);
+  font: inherit;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+.brf-inspector__close:hover,
+.brf-inspector__close:focus-visible {
+  color: var(--gx-neon);
+}
+.brf-inspector__title {
+  margin: 4px 0 8px;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  color: #e4f5ec;
+}
+.brf-inspector__rows {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 5px 12px;
+  margin: 0;
+  font-size: 10px;
+}
+.brf-inspector__rows dt {
+  letter-spacing: 0.1em;
+  color: rgba(228, 245, 236, 0.62);
+}
+.brf-inspector__rows dd {
+  margin: 0;
+  text-align: right;
+  letter-spacing: 0.06em;
+  color: #e4f5ec;
+}
+.brf-inspector__note {
+  margin: 8px 0 0;
+  font-family: var(--font-sans, Inter, system-ui, sans-serif);
+  font-size: 11px;
+  line-height: 1.45;
+  color: rgba(228, 245, 236, 0.78);
+}
+.brf-inspector__play {
+  margin-top: 10px;
+  padding: 5px 9px;
+  border: 1px solid rgba(34, 217, 127, 0.5);
+  background: rgba(34, 217, 127, 0.08);
+  color: var(--gx-neon);
+  font: inherit;
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  cursor: pointer;
+}
+.brf-inspector__play:hover,
+.brf-inspector__play:focus-visible {
+  background: rgba(34, 217, 127, 0.18);
+}
+
+.brf-inspector-hint {
+  position: absolute;
+  z-index: 3;
+  /* Placed at the foot of the map column by the inspector. */
+  top: 64px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 10px;
+  background: rgba(3, 10, 12, 0.7);
+  border: 1px solid rgba(34, 217, 127, 0.25);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: rgba(228, 245, 236, 0.7);
+  pointer-events: none;
+  white-space: nowrap;
+}
+@media (max-width: 900px) {
+  .brf-inspector {
+    width: min(300px, calc(100vw - 32px));
+  }
+  .brf-inspector-hint {
+    display: none;
+  }
 }

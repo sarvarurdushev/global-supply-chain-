@@ -17,6 +17,7 @@ import { createWorkspace } from '../workspace/shell.js';
 import { createNepalCaseMount } from '../ui/nepal/mount.js';
 import { createNepalCaseLayers } from '../layers/nepal/caseLayers.js';
 import { createBriefing } from '../ui/nepal/briefing/briefing.js';
+import { createExploreInspector } from '../ui/nepal/briefing/inspector.js';
 import NepalGraphWorker from '../workers/nepalGraph.worker.js?worker';
 import { createGlobeAdapter } from '../workspace/globeAdapter.js';
 import {
@@ -201,6 +202,13 @@ export function createApplicationTools({
           isEnabled: isScopeMaskEnabled,
           setEnabled: setScopeMaskEnabled,
         },
+        ...options,
+      }),
+    /* Explore's map inspector: click an object, read what the analysis holds on it. */
+    createInspector: (options) =>
+      createExploreInspector({
+        viewer,
+        requestRender: governorRequestRender,
         ...options,
       }),
   });

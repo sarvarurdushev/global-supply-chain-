@@ -385,6 +385,17 @@ export async function analyseHealthAccess() {
     disruptedShare: row.disruptedShare,
   }));
   const front = paretoFront(pressureItems, PRESSURE_KEYS).map((item) => item.id).sort();
+  /* Where modelled hospital access changed most, by share of road-connected people: the "which areas" answer. */
+  const mostDisrupted = comparable
+    .filter((row) => row.disruptedShare > 0)
+    .sort((a, b) => b.disruptedShare - a.disruptedShare || a.district.localeCompare(b.district))
+    .slice(0, 5)
+    .map((row) => ({
+      district: row.district,
+      disruptedShare: row.disruptedShare,
+      disruptedPercent: Number((row.disruptedShare * 100).toFixed(1)),
+      disconnected: row.byCategory.DISCONNECTED,
+    }));
   const weighting = weightingSensitivity(pressureItems, PRESSURE_KEYS, PRESSURE_SCHEMES, { top: 5 });
 
   /* ---------------- named damage areas: the example routes ---------------- */
@@ -740,6 +751,8 @@ export async function analyseHealthAccess() {
         schemes: PRESSURE_SCHEMES,
         weighting,
       },
+      mostDisrupted,
+      mostDisruptedNames: mostDisrupted.map((row) => row.district),
       areaRoutes,
       exampleRoutes,
       bridgeWhatIf,

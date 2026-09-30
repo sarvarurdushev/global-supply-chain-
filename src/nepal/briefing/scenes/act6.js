@@ -354,8 +354,49 @@ export const SUMMARY = defineScene({
           [
             '{access.hospital.byCategory.DISCONNECTED|int} PEOPLE LOST EVERY MAPPED ROAD ROUTE',
             '{access.hospital.peopleNoMappedRoadNearby|mega2} HAD NO MAPPED ROAD NEARBY',
+            'MOST CHANGED: {access.mostDisruptedNames|list}',
           ],
           { source: 'OSM 2015 × DOHS 2010 × NGA', cls: 'SCENARIO' },
+          600,
+        ),
+      ],
+    },
+    {
+      id: 'first',
+      caption:
+        'WHERE TO LOOK FIRST: {access.stableTop|list} · AND WHERE NOTHING WAS RECORDED',
+      narration:
+        'Where to look first: {access.stableTop|list}, which rank high on need and poor access under every weighting; and the places where nothing was recorded at all.',
+      minHoldMs: 700,
+      actions: [
+        { at: 0, type: 'annotation.remove', id: 'sum-5' },
+        { at: 0, type: 'layer.hide', id: 'cells-cut', layer: 'access-cells' },
+        {
+          at: 0,
+          type: 'layer.show',
+          layer: 'district-focus',
+          keysFrom: { fact: 'access.stableTop' },
+          colour: '#ffb020',
+          duration: 1800,
+        },
+        {
+          at: 200,
+          type: 'camera.fly',
+          to: 'district:sindhuli',
+          rangeKm: 360,
+          pitch: -60,
+          heading: 8,
+          duration: 4000,
+        },
+        card(
+          'sum-6',
+          [
+            'WHERE TO LOOK FIRST',
+            'HIGH NEED, POOR ACCESS UNDER EVERY WEIGHTING: {access.stableTop|list}',
+            'AND THE POPULATED SQUARES WITH NO RECORD',
+            'A PLACE TO START, NOT A PRIORITY LIST',
+          ],
+          { source: 'THIS ANALYSIS', cls: 'DERIVED' },
           600,
         ),
       ],
@@ -368,7 +409,8 @@ export const SUMMARY = defineScene({
         'Every figure in this briefing can be opened, with its source and its method, in Explore.',
       minHoldMs: 1200,
       actions: [
-        { at: 0, type: 'annotation.remove', id: 'sum-5' },
+        { at: 0, type: 'annotation.remove', id: 'sum-6' },
+        { at: 0, type: 'layer.hide', layer: 'district-focus' },
         {
           at: 0,
           type: 'camera.fly',
@@ -387,7 +429,11 @@ export const SUMMARY = defineScene({
           duration: 1800,
           screen: { x: 0.34, y: 0.34 },
           className: 'brf-typed brf-typed--conclusion',
-          lines: ['CASE 001 · NEPAL 2015', 'PRESS E TO EXPLORE THE EVIDENCE'],
+          lines: [
+            'CASE 001 · NEPAL 2015',
+            'NOT KNOWN: TRAVEL TIMES · HOSPITAL CAPACITY · WHERE NOTHING WAS FOUND',
+            'PRESS E TO EXPLORE THE EVIDENCE',
+          ],
         },
         { at: 800, type: 'audio.cue', cue: 'lock' },
       ],

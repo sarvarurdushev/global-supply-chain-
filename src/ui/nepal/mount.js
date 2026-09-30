@@ -104,6 +104,8 @@ export function createNepalCaseMount({
    * the case falls back to the Stage 8 presentation runner.
    */
   createBriefing = null,
+  /* Explore's map inspector (src/ui/nepal/briefing/inspector.js); injected for the same reason. */
+  createInspector = null,
   createWorker = null,
   fetchImpl,
   win = globalThis.window,
@@ -138,6 +140,9 @@ export function createNepalCaseMount({
    */
   let presentation = null;
   let briefing = null;
+  let inspector = null;
+  /* The scene the inspector asked the briefing to open at, consumed on start. */
+  let startScene = null;
   let started = null;
   let open = false;
   /* Set while this module is the one writing `location.hash`. */
@@ -158,9 +163,11 @@ export function createNepalCaseMount({
   function syncPresentation(state, reason) {
     if (!open || reason !== 'mode') return;
     if (briefing) {
-      if (state.mode === MODE.PRESENT)
-        void briefing.start(runFor(experience.presentLength));
-      else if (briefing.active) briefing.leave();
+      if (state.mode === MODE.PRESENT) {
+        const sceneId = startScene;
+        startScene = null;
+        void briefing.start(runFor(experience.presentLength), { sceneId });
+      } else if (briefing.active) briefing.leave();
       return;
     }
     if (state.mode === MODE.PRESENT) {
@@ -230,6 +237,7 @@ export function createNepalCaseMount({
       onChange: (state, reason) => {
         syncHash(state, reason);
         syncPresentation(state, reason);
+        inspector?.refresh();
       },
     });
     briefing = createBriefing
@@ -239,7 +247,10 @@ export function createNepalCaseMount({
             await started;
             return experience.intelligence;
           },
-          suspendMap: (on) => experience.setMapSuspended(on),
+          suspendMap: (on) => {
+            experience.setMapSuspended(on);
+            inspector?.refresh();
+          },
           /* Leaving the briefing lands explore on the scene it was showing. */
           onExplore: (sceneIndex) => {
             if (Number.isInteger(sceneIndex))
@@ -248,6 +259,21 @@ export function createNepalCaseMount({
               experience.investigation.setMode(MODE.EXPLORE);
             }
           },
+        })
+      : null;
+    inspector = createInspector
+      ? createInspector({
+          host: experience.element,
+          fetchImpl,
+          /* Nothing to inspect while the case is closed. */
+          getContext: () => (open ? experience.inspectContext() : null),
+          /* The full run holds every scene, so any card's scene can be played. */
+          onPlayScene: briefing
+            ? (sceneId) => {
+                startScene = sceneId;
+                experience.requestMode(MODE.PRESENT, { length: 'full' });
+              }
+            : null,
         })
       : null;
     return experience;
@@ -293,6 +319,8 @@ export function createNepalCaseMount({
     host.hidden = true;
     launcher.hidden = false;
     doc?.body?.classList?.remove('ndi-open');
+    /* The inspector's hospitals and ring are on the globe, not in the host. */
+    inspector?.refresh();
     if (win?.location && isCaseHash(win.location.hash)) {
       writingHash = true;
       try {
@@ -350,6 +378,9 @@ export function createNepalCaseMount({
     get briefing() {
       return briefing;
     },
+    get inspector() {
+      return inspector;
+    },
     get caseLayers() {
       return caseLayers;
     },
@@ -361,6 +392,8 @@ export function createNepalCaseMount({
       doc?.body?.classList?.remove('ndi-open');
       presentation?.destroy();
       presentation = null;
+      inspector?.destroy();
+      inspector = null;
       briefing?.destroy();
       briefing = null;
       experience?.destroy();

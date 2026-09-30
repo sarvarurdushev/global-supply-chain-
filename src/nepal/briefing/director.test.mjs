@@ -26,7 +26,7 @@ function fakeStage({ voice = false } = {}) {
     run: (action, { instant }) => {
       log.push([instant ? 'instant' : 'play', action.id]);
     },
-    caption: (text) => log.push(['caption', text]),
+    caption: (text, options) => log.push(['caption', text, options?.instant === true]),
     speak: (text) => {
       log.push(['speak', text]);
       return { done: Promise.resolve(), cancel: () => {} };
@@ -148,6 +148,17 @@ test('a jump while paused shows the whole beat and stays paused', async () => {
   assert.equal(director.state.beatId, 'b');
   const shown = stage.log.filter(([kind]) => kind === 'instant').map(([, id]) => id);
   assert.ok(shown.includes('b1') && shown.includes('b2'));
+  /* The paused clock cannot type the caption, so it is shown whole. */
+  assert.deepEqual(stage.log.filter(([kind]) => kind === 'caption').at(-1), ['caption', 'b caption', true]);
+});
+
+test('a beat played in time types its caption on the clock', async () => {
+  const clock = createClock();
+  const stage = fakeStage();
+  const director = createDirector({ plan: planRun(scenes, RUNS.FULL), stage, clock });
+  director.play();
+  await run(clock, 50);
+  assert.deepEqual(stage.log.find(([kind]) => kind === 'caption'), ['caption', 'a caption', false]);
 });
 
 test('speed shortens the briefing in wall time', async () => {

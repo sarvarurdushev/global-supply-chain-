@@ -13,9 +13,9 @@ caption’s reading time sets the pace instead (3.2 words a second).
 
 | Run | Scenes | Beats | Voiced | Silent | Longest beat | Longest still stretch |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| 3 MIN EXECUTIVE | 11 | 24 | 03:03.2 | 02:15.2 | 16.0 s | 5.5 s |
-| 6 MIN BRIEFING | 19 | 54 | 06:25.9 | 05:05.5 | 16.0 s | 5.5 s |
-| FULL ANALYSIS | 40 | 104 | 12:59.5 | 10:08.5 | 16.0 s | 5.5 s |
+| 3 MIN EXECUTIVE | 11 | 25 | 03:13.9 | 02:20.1 | 16.0 s | 5.8 s |
+| 6 MIN BRIEFING | 19 | 55 | 06:36.6 | 05:10.4 | 16.0 s | 5.8 s |
+| FULL ANALYSIS | 40 | 105 | 13:10.2 | 10:13.4 | 16.0 s | 5.8 s |
 
 ## 3 MIN EXECUTIVE — running order
 
@@ -44,7 +44,8 @@ caption’s reading time sets the pace instead (3.2 words a second).
 | 02:26.7 | 40 Executive summary | quake | MAGNITUDE 7.8 · 8.2 KM DEEP · 316 EARTHQUAKES IN THE SEQUENCE |
 | 02:32.8 | 40 Executive summary | damage | 4,583 DAMAGED SITES MAPPED · HALF OF THEM IN 37 SQUARE KILOMETRES |
 | 02:43.7 | 40 Executive summary | access | 85,783 LOST EVERY MAPPED ROAD TO A HOSPITAL · 1.84 M HAD NO MAPPED ROAD |
-| 02:55.6 | 40 Executive summary | close | EVERY FIGURE IN THIS BRIEFING OPENS IN EXPLORE, WITH ITS SOURCE |
+| 02:55.6 | 40 Executive summary | first | WHERE TO LOOK FIRST: RAMECHHAP · SINDHULI · AND WHERE NOTHING WAS RECORDED |
+| 03:06.3 | 40 Executive summary | close | EVERY FIGURE IN THIS BRIEFING OPENS IN EXPLORE, WITH ITS SOURCE |
 
 ## 6 MIN BRIEFING — running order
 
@@ -103,7 +104,8 @@ caption’s reading time sets the pace instead (3.2 words a second).
 | 05:47.8 | 40 Executive summary | damage | 4,583 DAMAGED SITES MAPPED · HALF OF THEM IN 37 SQUARE KILOMETRES |
 | 05:58.7 | 40 Executive summary | gap | 4.94 M PEOPLE WHERE NO DAMAGE WAS RECORDED · A GAP, NOT AN ABSENCE |
 | 06:06.4 | 40 Executive summary | access | 85,783 LOST EVERY MAPPED ROAD TO A HOSPITAL · 1.84 M HAD NO MAPPED ROAD |
-| 06:18.3 | 40 Executive summary | close | EVERY FIGURE IN THIS BRIEFING OPENS IN EXPLORE, WITH ITS SOURCE |
+| 06:18.3 | 40 Executive summary | first | WHERE TO LOOK FIRST: RAMECHHAP · SINDHULI · AND WHERE NOTHING WAS RECORDED |
+| 06:29.0 | 40 Executive summary | close | EVERY FIGURE IN THIS BRIEFING OPENS IN EXPLORE, WITH ITS SOURCE |
 
 ## FULL ANALYSIS — the full script
 
@@ -1113,10 +1115,10 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **CAPTION** 85,783 PEOPLE LOST EVERY MAPPED ROAD ROUTE TO A HOSPITAL
 - **CAMERA** +2.6 s fly to access.cut.frame · 2.6× its extent · pitch -60° · heading 0° · 3.8 s
 - **MAP** +0.0 s filter blockages → alpha 0.55; +0.0 s show cells-cut (categories 3)
-- **ANNOTATION** +0.0 s remove match-card; +0.7 s count access.hospital.byCategory.DISCONNECTED — PEOPLE · NO MAPPED ROUTE TO A HOSPITAL AFTER
+- **ANNOTATION** +0.0 s remove match-card; +0.7 s count access.hospital.byCategory.DISCONNECTED — PEOPLE · NO MAPPED ROUTE TO A HOSPITAL AFTER; +3.0 s typed — WHERE ACCESS CHANGED MOST / SINDHULI · OKHALDHUNGA · RASUWA · NUWAKOT · RAMECHHAP
 - **CHART** +0.2 s exit access-key-3; +0.3 s enter legend “HOSPITAL ACCESS · DAMAGE SCENARIO”; +0.3 s access-change: revealAll
 - **SOUND** +0.0 s reveal
-- **EVIDENCE** access.cut — OSM 2015 × DOHS 2010 × NGA · SCENARIO · record `access-example-route`; access.hospital — OSM 2015 × DOHS 2010 × NGA · SCENARIO · record `access-hospital-distance`
+- **EVIDENCE** access.cut — OSM 2015 × DOHS 2010 × NGA · SCENARIO · record `access-example-route`; access.hospital — OSM 2015 × DOHS 2010 × NGA · SCENARIO · record `access-hospital-distance`; access.mostDisruptedNames — OSM 2015 × DOHS 2010 × NGA · SCENARIO · record `access-hospital-distance`
 - **CLASS** SCENARIO
 - **LONGEST STILL** 0.4 s
 
@@ -1126,7 +1128,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **CAPTION** 42,181 MORE FACE A LONGER ROUTE · MEDIAN +3.7 KM
 - **CAMERA** +0.0 s fly to accessCentre · 470 km · pitch -62° · heading 0° · 3.6 s
 - **MAP** +0.0 s show cells-longer (categories 1, 2)
-- **ANNOTATION** +0.0 s remove cut-count; +0.6 s count access.detours.people — PEOPLE · LONGER ROAD ROUTE TO A HOSPITAL
+- **ANNOTATION** +0.0 s remove cut-count; +0.0 s remove cut-where; +0.6 s count access.detours.people — PEOPLE · LONGER ROAD ROUTE TO A HOSPITAL
 - **EVIDENCE** access.detours — OSM 2015 × DOHS 2010 × NGA · SCENARIO · record `access-hospital-distance`
 - **CLASS** SCENARIO
 - **LONGEST STILL** 0.8 s
@@ -1136,7 +1138,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **NARRATION** But for 93 percent of people near a road, the nearest hospital was as far away as before.
 - **CAPTION** FOR 92.6 % OF PEOPLE NEAR A ROAD, NOTHING CHANGED
 - **MAP** +0.0 s filter roads → dim 1
-- **ANNOTATION** +0.0 s remove longer-count; +0.0 s remove cut-count; +0.3 s count access.hospital.byCategoryShareOfRoadConnected.SIMILAR — OF PEOPLE NEAR A ROAD · NO CHANGE
+- **ANNOTATION** +0.0 s remove longer-count; +0.0 s remove cut-count; +0.0 s remove cut-where; +0.3 s count access.hospital.byCategoryShareOfRoadConnected.SIMILAR — OF PEOPLE NEAR A ROAD · NO CHANGE
 - **SOUND** +2.2 s hit
 - **EVIDENCE** access.hospital — OSM 2015 × DOHS 2010 × NGA · SCENARIO · record `access-hospital-distance`
 - **CLASS** SCENARIO
@@ -1486,18 +1488,29 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **CAPTION** 85,783 LOST EVERY MAPPED ROAD TO A HOSPITAL · 1.84 M HAD NO MAPPED ROAD
 - **CAMERA** +0.0 s fly to accessCentre · 520 km · pitch -66° · heading 0° · 3.4 s
 - **MAP** +0.0 s hide damage; +0.0 s hide damage-grid; +0.0 s show roads; +1.2 s show cells-cut (categories 3); +3.6 s show no-road; +6.4 s filter roads → dim 0.55
-- **ANNOTATION** +0.0 s remove sum-4; +0.6 s typed — 85,783 PEOPLE LOST EVERY MAPPED ROAD ROUTE / 1.84 M HAD NO MAPPED ROAD NEARBY
-- **EVIDENCE** access.hospital — OSM 2015 × DOHS 2010 × NGA · SCENARIO · record `access-hospital-distance`
+- **ANNOTATION** +0.0 s remove sum-4; +0.6 s typed — 85,783 PEOPLE LOST EVERY MAPPED ROAD ROUTE / 1.84 M HAD NO MAPPED ROAD NEARBY / MOST CHANGED: SINDHULI · OKHALDHUNGA · RASUWA · NUWAKOT · RAMECHHAP
+- **EVIDENCE** access.hospital — OSM 2015 × DOHS 2010 × NGA · SCENARIO · record `access-hospital-distance`; access.mostDisruptedNames — OSM 2015 × DOHS 2010 × NGA · SCENARIO · record `access-hospital-distance`
 - **CLASS** SCENARIO
 - **LONGEST STILL** 3.6 s
 
-#### 12:51.9 — close · 7.6 s · 3 / 6 / FULL
+#### 12:51.9 — first · 10.7 s · 3 / 6 / FULL
+
+- **NARRATION** Where to look first: RAMECHHAP · SINDHULI, which rank high on need and poor access under every weighting; and the places where nothing was recorded at all.
+- **CAPTION** WHERE TO LOOK FIRST: RAMECHHAP · SINDHULI · AND WHERE NOTHING WAS RECORDED
+- **CAMERA** +0.2 s fly to district:sindhuli · 360 km · pitch -60° · heading 8° · 4.0 s
+- **MAP** +0.0 s hide cells-cut; +0.0 s show district-focus
+- **ANNOTATION** +0.0 s remove sum-5; +0.6 s typed — WHERE TO LOOK FIRST / HIGH NEED, POOR ACCESS UNDER EVERY WEIGHTING: RAMECHHAP · SINDHULI / AND THE POPULATED SQUARES WITH NO RECORD / A PLACE TO START, NOT A PRIORITY LIST
+- **EVIDENCE** access.stableTop — THIS ANALYSIS · DERIVED · record `access-pressure-pareto`
+- **CLASS** DERIVED
+- **LONGEST STILL** 5.8 s
+
+#### 13:02.6 — close · 7.6 s · 3 / 6 / FULL
 
 - **NARRATION** Every figure in this briefing can be opened, with its source and its method, in Explore.
 - **CAPTION** EVERY FIGURE IN THIS BRIEFING OPENS IN EXPLORE, WITH ITS SOURCE
 - **CAMERA** +0.0 s fly to nepal · 1100 km · pitch -78° · heading 0° · 4.2 s
-- **MAP** +0.4 s veil 0.4
-- **ANNOTATION** +0.0 s remove sum-5; +0.8 s typed — CASE 001 · NEPAL 2015 / PRESS E TO EXPLORE THE EVIDENCE
+- **MAP** +0.0 s hide district-focus; +0.4 s veil 0.4
+- **ANNOTATION** +0.0 s remove sum-6; +0.8 s typed — CASE 001 · NEPAL 2015 / NOT KNOWN: TRAVEL TIMES · HOSPITAL CAPACITY · WHERE NOTHING WAS FOUND / PRESS E TO EXPLORE THE EVIDENCE
 - **SOUND** +0.8 s lock
 - **CLASS** none (no figure)
 - **LONGEST STILL** 2.2 s

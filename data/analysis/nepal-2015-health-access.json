@@ -1,7 +1,7 @@
 {
  "schemaVersion": 1,
  "stage": 9,
- "generatedAt": "2026-09-30T02:12:06.961Z",
+ "generatedAt": "2026-09-30T02:20:02.375Z",
  "dataClass": "SCENARIO",
  "criticalCaveat": "Distances along roads mapped in OpenStreetMap on 2015-04-24 — not travel times, not journeys, not hospital capacity. The damaged network applies every blockage observed between 26 April and early May as if all were present at once. Hospitals are those in the 2010 government list unless stated.",
  "sources": [
@@ -1616,6 +1616,45 @@
     ]
    }
   },
+  "mostDisrupted": [
+   {
+    "district": "Sindhuli",
+    "disruptedShare": 0.7006,
+    "disruptedPercent": 70.1,
+    "disconnected": 54131
+   },
+   {
+    "district": "Okhaldhunga",
+    "disruptedShare": 0.2418,
+    "disruptedPercent": 24.2,
+    "disconnected": 6159
+   },
+   {
+    "district": "Rasuwa",
+    "disruptedShare": 0.1549,
+    "disruptedPercent": 15.5,
+    "disconnected": 2888
+   },
+   {
+    "district": "Nuwakot",
+    "disruptedShare": 0.1459,
+    "disruptedPercent": 14.6,
+    "disconnected": 0
+   },
+   {
+    "district": "Ramechhap",
+    "disruptedShare": 0.1222,
+    "disruptedPercent": 12.2,
+    "disconnected": 7060
+   }
+  ],
+  "mostDisruptedNames": [
+   "Sindhuli",
+   "Okhaldhunga",
+   "Rasuwa",
+   "Nuwakot",
+   "Ramechhap"
+  ],
   "areaRoutes": [
    {
     "area": "Banepa",

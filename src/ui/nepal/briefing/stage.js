@@ -1057,7 +1057,8 @@ export function createBriefingStage({
       overlay.remove(action.id, { instant });
       charts.delete(action.id);
     },
-    'caption.show': (action) => captions.show(text(action.text)),
+    'caption.show': (action, instant) =>
+      captions.show(text(action.text), { instant }),
     'caption.hide': () => captions.show(null),
     'question.show': (action, instant) => {
       if (instant) return;
@@ -1123,7 +1124,8 @@ export function createBriefingStage({
       const ms = action.type === 'camera.fly' ? 0 : (action.duration ?? 0);
       return Promise.all([result, ms > 0 ? clock.wait(ms) : null]);
     },
-    caption: (value) => captions.show(value ? text(value) : null),
+    caption: (value, options) =>
+      captions.show(value ? text(value) : null, options),
     speak: (line, options) => narrator.speak(text(line), options),
     cancel() {
       /* A skipped flight resolves where it is; the next beat sets its own view. */

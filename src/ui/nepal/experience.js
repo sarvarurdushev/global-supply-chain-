@@ -619,6 +619,24 @@ export function createNepalExperience({
       return sceneReady;
     },
 
+    /**
+     * What the map inspector may read: the scene's visible layers, the data
+     * already loaded for it, and the analysis artefacts. Read-only — the
+     * inspector describes what is on screen and never loads or draws for
+     * the scene.
+     */
+    inspectContext() {
+      const state = investigation.state;
+      return Object.freeze({
+        mode: state.mode,
+        sceneId: state.scene?.id ?? null,
+        visibleLayers: Object.freeze([...(state.visibleLayers ?? [])]),
+        data: sceneData(),
+        intelligence,
+        suspended: mapSuspended,
+      });
+    },
+
     /** How the graph was built, and whether its route checks out. */
     networkStatus() {
       return Object.freeze({

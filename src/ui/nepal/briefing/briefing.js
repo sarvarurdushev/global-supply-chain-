@@ -386,7 +386,11 @@ export function createBriefing({
     if (handled) event.preventDefault?.();
   }
 
-  async function start(which = RUNS.SIX) {
+  /**
+   * Start a run. `sceneId` opens it at that scene rather than the first —
+   * the explore inspector's "play this in the briefing".
+   */
+  async function start(which = RUNS.SIX, { sceneId = null } = {}) {
     run = which;
     root.hidden = false;
     begin.hidden = true;
@@ -409,6 +413,7 @@ export function createBriefing({
     });
     sound.cue('ambience');
     director.play();
+    if (sceneId) director.goToScene(sceneId);
     render();
     requestAnimationFrame(progressTick);
     return director;
@@ -419,6 +424,7 @@ export function createBriefing({
     director?.pause();
     active = false;
     root.hidden = true;
+    begin.hidden = true;
     root.classList.remove('is-running');
     overlay?.clear({ instant: true });
     captions?.show(null);

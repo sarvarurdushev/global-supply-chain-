@@ -44,7 +44,7 @@ export const SPEEDS = Object.freeze([0.75, 1, 1.25, 1.5]);
  * Stage contract — every method may return a promise:
  *   enterScene(scene, { instant })       clear the previous scene, set this one up
  *   run(action, { instant, entry })      perform one action; resolve when its animation ends
- *   caption(text|null)                   show or clear the lower-third caption
+ *   caption(text|null, {instant})        show or clear the lower-third caption
  *   speak(text, { rate }) -> {done, cancel}  narration; `done` resolves when spoken
  *   cancel()                             stop every in-flight animation and utterance
  *   pause() / resume()                   narration follows the clock
@@ -218,7 +218,7 @@ export function createDirector({ plan, stage, clock, onChange = () => {} }) {
     if (gen !== generation) return;
     const entry = plan[bounded];
     partial = true;
-    stage.caption(entry.beat.caption ?? null);
+    stage.caption(entry.beat.caption ?? null, { instant: true });
     for (const action of entry.beat.actions) {
       if (action.persist === false || action.type === 'audio.cue') continue;
       await stage.run(action, { instant: true, entry });
