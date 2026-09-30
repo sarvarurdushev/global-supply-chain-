@@ -442,6 +442,11 @@ export const FACTS = Object.freeze({
     cls: 'OBSERVED',
     record: 'damage-copernicus-grading',
   }),
+  'copernicus.grades': f('damage', ['results', 'copernicus', 'grades'], {
+    source: 'COPERNICUS EMSR125',
+    cls: 'OBSERVED',
+    record: 'damage-copernicus-grading',
+  }),
   'copernicus.kathmandu': f(
     'damage',
     ['results', 'copernicus', 'grades', { find: { aoi: 'KATHMANDU' } }],
