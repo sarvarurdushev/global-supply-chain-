@@ -1,0 +1,34 @@
+{
+ "id": "osm-nepal-2015-access",
+ "datasetName": "OpenStreetMap health facilities, airfields and motorable roads, central Nepal, as at 2015-04-24",
+ "publisher": "OpenStreetMap contributors, served by the Overpass API",
+ "sourceUrl": "https://www.openstreetmap.org/",
+ "license": "Open Database License (ODbL) 1.0",
+ "redistribution": "SHARE_ALIKE",
+ "retrievedAt": "2026-09-29",
+ "originalFormat": "Overpass API JSON (way geometry; node and way centres with tags)",
+ "temporalCoverage": "Database state at 2015-04-24T00:00:00Z, the day before the earthquake",
+ "geographicCoverage": "Access envelope 83.8, 27, 86.8, 28.8 (EPSG:4326)",
+ "coordinateSystem": "EPSG:4326",
+ "description": "Every health facility (amenity hospital, clinic, doctors, health_post, health_centre, or any healthcare tag), airfield and heliport, and every motorable road including tracks, as mapped in OpenStreetMap immediately before the 25 April 2015 Gorkha earthquake. Attic queries, so nothing mapped in response to the earthquake is included.",
+ "dataClass": "OBSERVED",
+ "attribution": "© OpenStreetMap contributors, ODbL",
+ "fields": [
+  "osmId",
+  "coordinates",
+  "highway",
+  "bridge",
+  "name",
+  "amenity",
+  "healthcare",
+  "aeroway",
+  "operator"
+ ],
+ "limitations": [
+  "Coverage is uneven. The Kathmandu Valley’s health facilities had been systematically mapped before 2015; most hill districts had not. A facility absent here may have existed and been unmapped.",
+  "OpenStreetMap tags describe what a mapper saw or was told. \"hospital\" is sometimes used for a clinic; no tag here is a statement of services, staffing or capacity, and none is used as one.",
+  "Road classes are not speeds and a mapped road is not a passable road. Network distance is the only quantity this supports.",
+  "Anything outside the access envelope is invisible to the analysis, including hospitals a patient might in fact have reached."
+ ],
+ "schemaVersion": 1
+}

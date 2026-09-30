@@ -1,0 +1,301 @@
+/**
+ * The briefing as data: SCENE → BEAT → ACTION.
+ *
+ * A scene is one question. A beat is one narrated idea — one caption line,
+ * one sentence of voice. An action is one visible change at an offset inside
+ * its beat. Nothing here draws or schedules; the director plays a plan and
+ * the stage performs actions. Keeping the story as data is what makes its
+ * pacing measurable before anyone watches it: `lintTimeline` fails a beat
+ * that would sit still, and `estimateRun` gives a runtime from the same
+ * numbers the director will use.
+ */
+
+import { findForbiddenPhrasing } from '../analysis/terminology.js';
+
+export const RUNS = Object.freeze({
+  THREE: 'three',
+  SIX: 'six',
+  FULL: 'full',
+});
+
+export const RUN_LABELS = Object.freeze({
+  three: '3 MIN EXECUTIVE',
+  six: '6 MIN BRIEFING',
+  full: 'FULL ANALYSIS',
+});
+
+/** Every action the stage understands. Anything else is a typo. */
+export const ACTION_TYPES = Object.freeze([
+  'camera.fly',
+  'camera.hold',
+  'veil',
+  'layer.show',
+  'layer.hide',
+  'layer.filter',
+  'layer.animate',
+  'annotation.draw',
+  'annotation.remove',
+  'annotation.clear',
+  'chart.enter',
+  'chart.update',
+  'chart.highlight',
+  'chart.exit',
+  'caption.show',
+  'caption.hide',
+  'metric.count',
+  'route.trace',
+  'timeline.seek',
+  'question.show',
+  'title.type',
+  'audio.cue',
+]);
+
+/**
+ * How long an action takes when it does not say, in milliseconds of
+ * briefing time. The camera's default is its own `duration`; these are the
+ * reveals, which should be quick enough to keep up with a voice.
+ */
+const DEFAULT_DURATION = Object.freeze({
+  'camera.fly': 3000,
+  'layer.animate': 2500,
+  'annotation.draw': 900,
+  'chart.enter': 1600,
+  'chart.update': 1200,
+  'metric.count': 1600,
+  'route.trace': 2500,
+  'timeline.seek': 4000,
+  'question.show': 2800,
+  'title.type': 1400,
+});
+
+/** Speaking pace for estimates: 150 words a minute, a briefing register. */
+export const WORDS_PER_SECOND = 2.5;
+/** Reading pace for captions when no voice is available. */
+export const READING_WORDS_PER_SECOND = 3.2;
+export const DEFAULT_MIN_HOLD_MS = 1200;
+
+export const PACING = Object.freeze({
+  /** First visible change after a beat starts. */
+  firstActionMs: 500,
+  /** Longest gap between two visible changes inside a beat. */
+  maxGapMs: 6000,
+  captionMaxWords: 16,
+  captionMaxChars: 110,
+});
+
+export function actionDuration(action) {
+  if (Number.isFinite(action.duration)) return action.duration;
+  return DEFAULT_DURATION[action.type] ?? 0;
+}
+
+export function wordCount(text) {
+  return String(text ?? '')
+    .split(/\s+/)
+    .filter(Boolean).length;
+}
+
+/** Milliseconds of narration at the briefing's pace. */
+export function narrationMs(text) {
+  const words = wordCount(text);
+  return words ? Math.round((words / WORDS_PER_SECOND) * 1000) : 0;
+}
+
+/** Milliseconds a caption needs to be read when there is no voice. */
+export function readingMs(text) {
+  const words = wordCount(text);
+  return words
+    ? Math.round((words / READING_WORDS_PER_SECOND) * 1000) + 600
+    : 0;
+}
+
+export function defineBeat(beat) {
+  if (!beat?.id) throw new TypeError('A beat needs an id.');
+  return Object.freeze({
+    caption: null,
+    narration: null,
+    narrationAt: 0,
+    minHoldMs: DEFAULT_MIN_HOLD_MS,
+    ...beat,
+    actions: Object.freeze(
+      (beat.actions ?? []).map((action) => Object.freeze({ at: 0, ...action })),
+    ),
+  });
+}
+
+export function defineScene(scene) {
+  if (!scene?.id) throw new TypeError('A scene needs an id.');
+  const runs = Object.freeze([...(scene.runs ?? [RUNS.FULL])]);
+  return Object.freeze({
+    ...scene,
+    runs,
+    beats: Object.freeze(
+      (scene.beats ?? []).map((beat) =>
+        defineBeat({ ...beat, runs: beat.runs ?? runs }),
+      ),
+    ),
+  });
+}
+
+/**
+ * The beat's own length in briefing time: the later of its last action's
+ * end and its narration's end (or caption's reading time when silent), plus
+ * the minimum hold. `voiced` says which pace applies.
+ */
+export function beatLengthMs(beat, { voiced = true } = {}) {
+  const actionsEnd = Math.max(
+    0,
+    ...beat.actions.map((action) => (action.at ?? 0) + actionDuration(action)),
+  );
+  const spoken = voiced
+    ? (beat.narrationAt ?? 0) + narrationMs(beat.narration)
+    : readingMs(beat.caption ?? beat.narration);
+  return (
+    Math.max(actionsEnd, spoken) +
+    (beat.minHoldMs ?? DEFAULT_MIN_HOLD_MS) +
+    (beat.holdMs ?? 0)
+  );
+}
+
+/**
+ * The ordered list of beats a run plays.
+ *
+ * Each entry carries the beats of its scene that come BEFORE it, whether or
+ * not the run plays them, because entering a scene part-way — a skip, a
+ * shorter run — must still reach the state those beats would have built.
+ */
+export function planRun(scenes, run = RUNS.FULL) {
+  const plan = [];
+  scenes
+    .filter((scene) => scene.runs.includes(run))
+    .forEach((scene, sceneOrder) => {
+      scene.beats.forEach((beat, beatIndex) => {
+        if (!beat.runs.includes(run)) return;
+        plan.push(
+          Object.freeze({
+            key: `${scene.id}:${beat.id}`,
+            scene,
+            sceneOrder,
+            beat,
+            beatIndex,
+            priorBeats: Object.freeze(scene.beats.slice(0, beatIndex)),
+          }),
+        );
+      });
+    });
+  return Object.freeze(plan);
+}
+
+export function estimateRun(plan, options) {
+  const beats = plan.map((entry) => beatLengthMs(entry.beat, options));
+  return Object.freeze({
+    beats: plan.length,
+    scenes: new Set(plan.map((entry) => entry.scene.id)).size,
+    totalMs: beats.reduce((sum, ms) => sum + ms, 0),
+    longestBeatMs: Math.max(0, ...beats),
+  });
+}
+
+/**
+ * The longest stretch of a beat in which nothing on screen changes.
+ *
+ * A change is an action's animation — a border drawing, a counter counting,
+ * a camera flying — so each visible action covers [at, at + duration], and
+ * an instant action covers a nominal 400 ms. The beat runs to the end of its
+ * narration or reading time. Voice is not a visual change: a beat whose last
+ * action lands at 2 s while its sentence runs to 12 s is ten seconds of
+ * stillness, and this reports ten.
+ */
+export function longestStillMs(beat, options) {
+  const end =
+    beatLengthMs(beat, options) -
+    (beat.minHoldMs ?? DEFAULT_MIN_HOLD_MS) -
+    (beat.holdMs ?? 0);
+  const intervals = beat.actions
+    .filter((action) => action.type !== 'audio.cue')
+    .map((action) => [
+      action.at ?? 0,
+      (action.at ?? 0) + Math.max(400, actionDuration(action)),
+    ])
+    .sort((a, b) => a[0] - b[0]);
+  let longest = 0;
+  let covered = 0;
+  for (const [start, stop] of intervals) {
+    if (start > covered) longest = Math.max(longest, start - covered);
+    covered = Math.max(covered, stop);
+  }
+  if (end > covered) longest = Math.max(longest, end - covered);
+  return longest;
+}
+
+/**
+ * Pacing and content rules, as a list of problems. Empty means clean.
+ *
+ * These are the brief's standard turned into checks: a beat must change the
+ * screen within half a second, never go six seconds without a change, keep
+ * its caption to one glance, and use only real action types. Forbidden
+ * phrasing is checked in every caption and every narration line.
+ */
+export function lintTimeline(scenes) {
+  const problems = [];
+  const sceneIds = new Set();
+  for (const scene of scenes) {
+    if (sceneIds.has(scene.id))
+      problems.push(`${scene.id}: duplicate scene id`);
+    sceneIds.add(scene.id);
+    if (!scene.question) problems.push(`${scene.id}: no question`);
+    if (!scene.beats.length) problems.push(`${scene.id}: no beats`);
+    const beatIds = new Set();
+    for (const beat of scene.beats) {
+      const where = `${scene.id}:${beat.id}`;
+      if (beatIds.has(beat.id)) problems.push(`${where}: duplicate beat id`);
+      beatIds.add(beat.id);
+      for (const run of beat.runs) {
+        if (!scene.runs.includes(run))
+          problems.push(`${where}: run "${run}" not in its scene`);
+      }
+      const visible = beat.actions.filter(
+        (action) => action.type !== 'audio.cue',
+      );
+      if (visible.length < 2)
+        problems.push(`${where}: fewer than two visible actions`);
+      for (const action of beat.actions) {
+        if (!ACTION_TYPES.includes(action.type))
+          problems.push(`${where}: unknown action "${action.type}"`);
+      }
+      const times = visible
+        .map((action) => action.at ?? 0)
+        .sort((a, b) => a - b);
+      if (times.length && times[0] > PACING.firstActionMs) {
+        problems.push(
+          `${where}: first change at ${times[0]} ms (limit ${PACING.firstActionMs})`,
+        );
+      }
+      const still = longestStillMs(beat);
+      if (still > PACING.maxGapMs)
+        problems.push(
+          `${where}: ${Math.round(still)} ms without a visible change`,
+        );
+      if (beat.caption) {
+        /* Measured as it will read: a placeholder becomes a short figure, not its template text. */
+        const shown = beat.caption.replace(/\{[^}]+\}/g, '00,000');
+        if (wordCount(shown) > PACING.captionMaxWords)
+          problems.push(
+            `${where}: caption over ${PACING.captionMaxWords} words`,
+          );
+        if (shown.length > PACING.captionMaxChars)
+          problems.push(
+            `${where}: caption over ${PACING.captionMaxChars} characters`,
+          );
+      }
+      for (const text of [
+        beat.caption,
+        beat.narration,
+        ...beat.actions.map((a) => a.text),
+      ]) {
+        if (text && findForbiddenPhrasing(String(text)).length)
+          problems.push(`${where}: forbidden phrasing in "${text}"`);
+      }
+    }
+  }
+  return problems;
+}

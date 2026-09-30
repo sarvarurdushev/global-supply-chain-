@@ -1,0 +1,651 @@
+/**
+ * The executive briefing's visual language.
+ *
+ * Three information scales (see docs/NEPAL_2015_STAGE_9_STORYBOARD.md §4):
+ * on-map annotations, the lower-third caption, and optional detail. Type is
+ * mono uppercase for system text and figures, Inter for the caption. Motion
+ * is fade, type, count and slide — nothing bounces.
+ */
+
+/* While the briefing owns the globe, explore's own chrome steps aside. */
+.ndi[data-briefing='on'] .ndi__body,
+.ndi[data-briefing='on'] .ndi__controls,
+.ndi[data-briefing='on'] .ndi__present {
+  display: none;
+}
+
+.brf-root {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  font-family: var(--font-mono);
+  color: var(--gx-text);
+}
+.brf-root[hidden] {
+  display: none;
+}
+
+.brf-veil {
+  position: absolute;
+  inset: 0;
+  background: #020507;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.brf-overlay,
+.brf-canvas,
+.brf-dom {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.brf-dom > * {
+  position: absolute;
+  left: 0;
+  top: 0;
+  will-change: transform, opacity;
+}
+
+/* ---------------------------------------------------------------- heading */
+
+.brf-heading {
+  position: absolute;
+  z-index: 1;
+  left: 24px;
+  top: 64px;
+  max-width: 560px;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.8);
+}
+/* A soft scrim, so the heading reads over snow and cloud as well as forest. */
+.brf-heading::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: -70px -180px -46px -60px;
+  background: radial-gradient(ellipse at 0% 20%, rgba(2, 8, 10, 0.82) 0%, rgba(2, 8, 10, 0.55) 45%, rgba(2, 8, 10, 0) 75%);
+  pointer-events: none;
+}
+.brf-root:not(.is-running) .brf-heading {
+  display: none;
+}
+.brf-heading__act {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--gx-green);
+}
+.brf-heading__scene {
+  margin-top: 4px;
+  font-size: 15px;
+  letter-spacing: 0.16em;
+  color: var(--gx-text);
+}
+.brf-heading__question {
+  margin-top: 4px;
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 13px;
+  color: rgba(228, 245, 236, 0.72);
+}
+
+/* ---------------------------------------------------------------- caption */
+
+.brf-caption {
+  position: absolute;
+  left: 50%;
+  bottom: 92px;
+  transform: translateX(-50%);
+  width: min(980px, calc(100vw - 48px));
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.brf-caption.is-visible {
+  opacity: 1;
+}
+.brf-caption__text {
+  display: inline-block;
+  padding: 10px 18px;
+  background: rgba(3, 9, 11, 0.72);
+  border-left: 2px solid var(--gx-green);
+  font-size: 17px;
+  letter-spacing: 0.12em;
+  line-height: 1.45;
+  color: #f2fbf6;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+  min-height: 1.45em;
+}
+
+/* ---------------------------------------------------------------- controls */
+
+.brf-controls {
+  position: absolute;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  background: rgba(3, 9, 11, 0.78);
+  border: 1px solid rgba(34, 217, 127, 0.28);
+  pointer-events: auto;
+  opacity: 0.72;
+  transition: opacity 0.2s ease;
+}
+.brf-controls:hover,
+.brf-controls:focus-within {
+  opacity: 1;
+}
+.brf-root:not(.is-running) .brf-controls,
+.brf-root:not(.is-running) .brf-progress,
+.brf-root:not(.is-running) .brf-caption {
+  display: none;
+}
+.brf-btn {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: var(--gx-text);
+  background: transparent;
+  border: 1px solid rgba(228, 245, 236, 0.18);
+  padding: 6px 10px;
+  cursor: pointer;
+}
+.brf-btn:hover:not(:disabled) {
+  border-color: var(--gx-green);
+  color: var(--gx-neon);
+}
+.brf-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.brf-btn--primary {
+  border-color: var(--gx-green);
+  color: var(--gx-neon);
+  min-width: 96px;
+}
+.brf-btn--toggle {
+  opacity: 0.55;
+}
+.brf-btn--toggle.is-on {
+  opacity: 1;
+  border-color: var(--gx-green-dim);
+}
+.brf-volume {
+  width: 72px;
+  accent-color: var(--gx-green);
+}
+.brf-sep {
+  width: 1px;
+  height: 20px;
+  background: rgba(228, 245, 236, 0.18);
+  margin: 0 4px;
+}
+.brf-position {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: rgba(228, 245, 236, 0.7);
+  padding: 0 6px;
+  white-space: nowrap;
+}
+.brf-progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: rgba(228, 245, 236, 0.08);
+}
+.brf-progress__fill {
+  height: 100%;
+  width: 0;
+  background: var(--gx-green);
+}
+
+/* ---------------------------------------------------------------- map text */
+
+.brf-label {
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  color: #f2fbf6;
+  text-shadow: 0 0 6px #000, 0 0 2px #000;
+  white-space: nowrap;
+}
+.brf-label--country {
+  font-size: 15px;
+  letter-spacing: 0.5em;
+  color: rgba(242, 251, 246, 0.6);
+}
+.brf-label--city {
+  font-size: 12px;
+  letter-spacing: 0.28em;
+}
+.brf-label--district {
+  font-size: 10px;
+  letter-spacing: 0.34em;
+  color: rgba(214, 240, 226, 0.78);
+}
+.brf-label--area {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: rgba(255, 214, 196, 0.85);
+}
+
+.brf-callout {
+  min-width: 190px;
+  max-width: 320px;
+  padding: 9px 12px 10px;
+  background: rgba(3, 10, 12, 0.86);
+  border: 1px solid rgba(228, 245, 236, 0.35);
+  border-left: 3px solid var(--gx-green);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+.brf-callout--caveat {
+  border-left-color: var(--gx-amber);
+}
+.brf-callout__title {
+  font-size: 13px;
+  letter-spacing: 0.2em;
+  color: #ffffff;
+}
+.brf-callout__line {
+  margin-top: 4px;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: rgba(228, 245, 236, 0.85);
+}
+
+.brf-tag {
+  display: inline-flex;
+  margin-top: 8px;
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  border: 1px solid rgba(228, 245, 236, 0.25);
+}
+.brf-tag__source {
+  padding: 2px 6px;
+  color: rgba(228, 245, 236, 0.75);
+}
+.brf-tag__class {
+  padding: 2px 6px;
+  color: #041013;
+  background: var(--gx-neon);
+}
+.brf-tag--official .brf-tag__class,
+.brf-provenance__class.brf-tag--official {
+  background: var(--gx-cyan);
+}
+.brf-tag--statistic .brf-tag__class,
+.brf-tag--derived .brf-tag__class,
+.brf-provenance__class.brf-tag--statistic,
+.brf-provenance__class.brf-tag--derived {
+  background: var(--gx-green);
+}
+.brf-tag--model-fit .brf-tag__class,
+.brf-provenance__class.brf-tag--model-fit {
+  background: var(--gx-modelfit);
+}
+.brf-tag--estimate .brf-tag__class {
+  background: var(--gx-amber);
+}
+.brf-tag--scenario .brf-tag__class,
+.brf-provenance__class.brf-tag--scenario {
+  background: var(--gx-violet);
+}
+.brf-tag--data-gap .brf-tag__class {
+  background: var(--gx-gap);
+  color: #e4f5ec;
+}
+.brf-tag--modelled .brf-tag__class {
+  background: var(--gx-amber);
+}
+
+.brf-metric {
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.9);
+}
+.brf-metric__value {
+  font-size: 34px;
+  letter-spacing: 0.04em;
+  color: #ffffff;
+  font-variant-numeric: tabular-nums;
+}
+.brf-metric--xl .brf-metric__value {
+  font-size: 64px;
+  line-height: 1;
+}
+.brf-metric--lg .brf-metric__value {
+  font-size: 40px;
+}
+.brf-metric__label {
+  margin-top: 2px;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: rgba(228, 245, 236, 0.85);
+}
+
+.brf-question {
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse at center, rgba(2, 6, 8, 0.72), rgba(2, 6, 8, 0.2) 70%);
+}
+.brf-question__text {
+  max-width: 900px;
+  padding: 0 32px;
+  text-align: center;
+  font-size: 34px;
+  letter-spacing: 0.16em;
+  line-height: 1.35;
+  color: #ffffff;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.9);
+}
+
+.brf-typed {
+  font-size: 22px;
+  letter-spacing: 0.22em;
+  line-height: 1.55;
+  color: #e4f5ec;
+  text-shadow: 0 0 12px rgba(0, 0, 0, 0.9);
+}
+.brf-typed__line.is-kicker {
+  font-size: 13px;
+  letter-spacing: 0.4em;
+  color: var(--gx-green);
+}
+.brf-typed__line.is-alert {
+  font-size: 34px;
+  color: #ff6b6b;
+  letter-spacing: 0.18em;
+}
+.brf-typed--status {
+  font-size: 14px;
+  letter-spacing: 0.3em;
+  color: var(--gx-amber);
+}
+.brf-typed--data {
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  line-height: 1.7;
+  padding: 10px 14px;
+  background: rgba(3, 10, 12, 0.78);
+  border-left: 2px solid var(--gx-cyan);
+}
+/* A finding that is a loss: the first line reads as the headline. */
+.brf-typed--alert {
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  line-height: 1.8;
+  padding: 12px 16px;
+  background: rgba(20, 4, 10, 0.84);
+  border-left: 3px solid #ff3d6e;
+}
+.brf-typed--alert > :first-child {
+  font-size: 17px;
+  letter-spacing: 0.22em;
+  color: #ff7a98;
+}
+
+/* ---------------------------------------------------------------- charts */
+
+.brf-panel {
+  pointer-events: auto;
+}
+.brf-chart {
+  padding: 12px 14px 12px;
+  background: rgba(3, 10, 12, 0.86);
+  border: 1px solid rgba(228, 245, 236, 0.2);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
+}
+.brf-chart__body {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+}
+.brf-chart__key {
+  display: grid;
+  gap: 6px;
+  padding-top: 6px;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: rgba(228, 245, 236, 0.85);
+}
+.brf-chart__key-row {
+  display: grid;
+  grid-template-columns: 12px 1fr;
+  gap: 8px;
+  align-items: center;
+  white-space: nowrap;
+}
+.brf-chart__key-note {
+  margin-top: 6px;
+  color: rgba(228, 245, 236, 0.55);
+}
+.brf-chart__axis--muted {
+  fill: rgba(228, 245, 236, 0.5);
+  font-size: 10px;
+}
+.brf-chart__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+.brf-chart__head .brf-tag {
+  margin-top: 0;
+}
+.brf-chart__title {
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: var(--gx-green);
+}
+.brf-chart__svg {
+  display: block;
+}
+.brf-chart__rows {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 18px;
+  margin-top: 8px;
+}
+.brf-chart__row {
+  display: grid;
+  grid-template-columns: 12px 1fr auto auto;
+  gap: 8px;
+  align-items: center;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  transition: opacity 0.4s ease;
+}
+.brf-chart__swatch {
+  width: 12px;
+  height: 12px;
+}
+.brf-chart__count {
+  color: #ffffff;
+  font-variant-numeric: tabular-nums;
+}
+.brf-chart__share {
+  color: rgba(228, 245, 236, 0.65);
+  min-width: 52px;
+  text-align: right;
+}
+.brf-chart__total,
+.brf-chart__foot {
+  margin-top: 8px;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: rgba(228, 245, 236, 0.7);
+  min-height: 1em;
+}
+.brf-chart__axis {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  fill: rgba(228, 245, 236, 0.8);
+  letter-spacing: 0.1em;
+}
+.brf-chart__value {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  fill: #ffffff;
+}
+.brf-legend__row {
+  display: grid;
+  grid-template-columns: 12px 116px 1fr;
+  gap: 10px;
+  align-items: center;
+  margin-top: 5px;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+}
+.brf-legend__label {
+  color: #ffffff;
+  white-space: nowrap;
+}
+.brf-chart__swatch--glyph {
+  background: none !important;
+  width: 12px;
+  height: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 12px;
+  text-align: center;
+}
+.brf-chart__swatch--dashed {
+  background: none !important;
+  height: 0;
+  border-top: 2px dashed rgba(168, 230, 196, 0.8);
+}
+.brf-legend__sub {
+  color: rgba(228, 245, 236, 0.7);
+}
+
+/* ---------------------------------------------------------------- provenance */
+
+.brf-provenance {
+  position: absolute;
+  right: 24px;
+  top: 64px;
+  width: 420px;
+  padding: 12px 14px;
+  background: rgba(3, 10, 12, 0.92);
+  border: 1px solid rgba(34, 217, 127, 0.35);
+  pointer-events: auto;
+}
+.brf-provenance[hidden] {
+  display: none;
+}
+.brf-provenance__title {
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  color: var(--gx-green);
+  margin-bottom: 6px;
+}
+.brf-provenance__row {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 4px 10px;
+  padding: 6px 0;
+  border-top: 1px solid rgba(228, 245, 236, 0.08);
+  font-size: 11px;
+}
+.brf-provenance__class {
+  justify-self: start;
+  padding: 1px 6px;
+  color: #041013;
+  background: var(--gx-neon);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+}
+.brf-provenance__path {
+  grid-column: 1 / -1;
+  color: rgba(228, 245, 236, 0.6);
+  font-size: 10px;
+  word-break: break-all;
+}
+
+/* ---------------------------------------------------------------- begin */
+
+.brf-begin {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse at center, rgba(2, 6, 8, 0.55), rgba(2, 6, 8, 0.92) 75%);
+  pointer-events: auto;
+}
+.brf-begin[hidden] {
+  display: none;
+}
+.brf-begin__card {
+  text-align: center;
+  padding: 36px 44px;
+  max-width: 760px;
+}
+.brf-begin__kicker {
+  font-size: 13px;
+  letter-spacing: 0.45em;
+  color: var(--gx-green);
+}
+.brf-begin__title {
+  margin-top: 18px;
+  font-size: 34px;
+  letter-spacing: 0.2em;
+  color: #ffffff;
+}
+.brf-begin__case {
+  margin-top: 12px;
+  font-size: 16px;
+  letter-spacing: 0.28em;
+  color: rgba(228, 245, 236, 0.85);
+}
+.brf-begin__go {
+  margin-top: 36px;
+  padding: 14px 34px;
+  font-size: 15px;
+  letter-spacing: 0.3em;
+  color: #041013;
+  background: var(--gx-neon);
+  border: none;
+}
+.brf-begin__go:hover {
+  background: #ffffff;
+  color: #041013;
+}
+.brf-begin__runs {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 18px;
+}
+.brf-begin__note {
+  margin-top: 22px;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  color: rgba(228, 245, 236, 0.55);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brf-caption,
+  .brf-controls {
+    transition: none;
+  }
+}
+
+/* The header (identity, run buttons) stays above everything the briefing draws. */
+.ndi > .ndi__top {
+  position: relative;
+  z-index: 4;
+}
+
+/* The BEGIN screen shows the product, not explore's rail and panel behind it. */
+.ndi:has(.brf-begin:not([hidden])) .ndi__body,
+.ndi:has(.brf-begin:not([hidden])) .ndi__controls {
+  visibility: hidden;
+}

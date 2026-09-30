@@ -124,7 +124,7 @@ export function createNepalExperience({
    * mount (which owns the runner) reads it; switching run while already
    * presenting is not a mode change, so it is announced as one explicitly.
    */
-  let presentLength = 'full';
+  let presentLength = 'six';
 
   /*
    * What the current presentation beat stages: `panel` picks how much of a
@@ -135,9 +135,14 @@ export function createNepalExperience({
    */
   let beatFocus = null;
   let lastSceneIndex = null;
+  /*
+   * While the executive briefing runs it owns the globe: explore draws no
+   * layers and moves no camera, so two systems never fight over one map.
+   */
+  let mapSuspended = false;
   const liveFocus = () =>
     investigation.state.mode === MODE.PRESENT ? beatFocus : null;
-  function requestMode(mode, { length = 'full' } = {}) {
+  function requestMode(mode, { length = 'six' } = {}) {
     const lengthChanged = mode === MODE.PRESENT && length !== presentLength;
     if (mode === MODE.PRESENT) presentLength = length;
     const already = investigation.state.mode === mode;
@@ -367,7 +372,7 @@ export function createNepalExperience({
       );
     }
 
-    if (caseLayers && intelligence) {
+    if (caseLayers && intelligence && !mapSuspended) {
       const data = sceneData();
       caseLayers.render(
         drawablesForScene({ state, intelligence, data, focus: liveFocus() }),
@@ -430,7 +435,7 @@ export function createNepalExperience({
   let flewTo = null;
 
   function moveCamera({ durationSec = null } = {}) {
-    if (!caseLayers) return;
+    if (!caseLayers || mapSuspended) return;
     const state = investigation.state;
     const target = resolveTarget(state.camera?.target, {
       intelligence,
@@ -450,7 +455,7 @@ export function createNepalExperience({
   const REFOCUS_DEGREES = 0.01;
 
   function refocus() {
-    if (!caseLayers || !flewTo) return;
+    if (!caseLayers || !flewTo || mapSuspended) return;
     const state = investigation.state;
     const target = resolveTarget(state.camera?.target, {
       intelligence,
@@ -647,6 +652,21 @@ export function createNepalExperience({
     },
     get presentLength() {
       return presentLength;
+    },
+    /** Hand the globe to the briefing (true) or take it back (false). */
+    setMapSuspended(on) {
+      const next = Boolean(on);
+      if (next === mapSuspended) return;
+      mapSuspended = next;
+      root.setAttribute('data-briefing', next ? 'on' : 'off');
+      if (next) caseLayers?.render(new Map());
+      else {
+        scheduleRender('immediate');
+        moveCamera();
+      }
+    },
+    get mapSuspended() {
+      return mapSuspended;
     },
     setBeatFocus(focus) {
       const next = focus?.panel || focus?.mapAction ? focus : null;

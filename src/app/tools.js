@@ -3,7 +3,12 @@ import { SceneDirector } from '../scenes/director.js';
 import { initAnnotations } from '../annotations/index.js';
 import { initDrawTool } from '../annotations/drawTool.js';
 import { initGevVoiceCommands } from '../voice/gevRealtime.js';
-import { installScopeMask, destroyScopeMask } from '../scopeMask.js';
+import {
+  installScopeMask,
+  destroyScopeMask,
+  isScopeMaskEnabled,
+  setScopeMaskEnabled,
+} from '../scopeMask.js';
 import { createSupplyChainConsole } from '../ui/supplychain/console.js';
 import { createTradeProxySource } from '../supplychain/sources/tradeProxy.js';
 import { createSupplyChainActions } from '../voice/supplyChainActions.js';
@@ -11,6 +16,7 @@ import { createTourDataRunner } from '../scenes/packs/supplyChain.js';
 import { createWorkspace } from '../workspace/shell.js';
 import { createNepalCaseMount } from '../ui/nepal/mount.js';
 import { createNepalCaseLayers } from '../layers/nepal/caseLayers.js';
+import { createBriefing } from '../ui/nepal/briefing/briefing.js';
 import NepalGraphWorker from '../workers/nepalGraph.worker.js?worker';
 import { createGlobeAdapter } from '../workspace/globeAdapter.js';
 import {
@@ -181,6 +187,21 @@ export function createApplicationTools({
         releaseRender: releaseContinuousRender,
         /* Rings and casings follow the ground in use: imagery or the grid. */
         getStackId: () => mapStackController?.getActiveId?.() ?? null,
+      }),
+    /* The executive briefing: its own overlay and director over the same globe. */
+    createBriefing: (options) =>
+      createBriefing({
+        viewer,
+        holdRender: holdContinuousRender,
+        releaseRender: releaseContinuousRender,
+        requestRender: governorRequestRender,
+        /* The briefing frames the map edge to edge; the scope vignette would
+           crop its annotations, so it is lifted for the run and restored. */
+        scope: {
+          isEnabled: isScopeMaskEnabled,
+          setEnabled: setScopeMaskEnabled,
+        },
+        ...options,
       }),
   });
   defer(() => nepalCase.destroy());

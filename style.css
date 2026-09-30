@@ -25,3 +25,4 @@
 @import './src/ui/styles/identity.css';
 /* A surface of its own, built from the tokens identity.css defines. */
 @import './src/ui/styles/nepal-case.css';
+@import './src/ui/styles/briefing.css';

@@ -72,19 +72,24 @@ export function renderTopBar({
     h('div', { class: 'ndi-top__modes', role: 'group', 'aria-label': 'Mode' }, [
       modeButton('EXPLORE', MODE.EXPLORE, state?.mode, onMode),
       /*
-       * TWO WAYS TO PRESENT. The six-minute run existed only in code: the
-       * header's one PRESENT button always started the full thirteen, so the
-       * run built for a university slot could not be reached from the
-       * product at all.
+       * THREE BRIEFINGS. Each runs the same directed timeline at a different
+       * depth (see src/nepal/briefing): the executive three minutes, the six
+       * minutes a meeting slot allows, and the full analysis.
        */
-      presentButton('PRESENT', 'full', {
-        title: 'Present every scene — about 13 minutes',
+      presentButton('3 MIN', 'three', {
+        title: 'Executive briefing — about 3 minutes',
         state,
         presentLength,
         onMode,
       }),
-      presentButton('6 MIN', 'short', {
-        title: 'Present the argument in eleven scenes — about 6 minutes',
+      presentButton('6 MIN', 'six', {
+        title: 'Briefing — about 6 minutes',
+        state,
+        presentLength,
+        onMode,
+      }),
+      presentButton('FULL', 'full', {
+        title: 'Full analysis briefing',
         state,
         presentLength,
         onMode,

@@ -22,6 +22,8 @@ matrix is the compliance view.
 | 4 | **ODbL share-alike** (datacenters, dams, OSM/Overpass, adsb.lol, Photon, Nominatim, OSRM) | Attribution **and** database share-alike obligations attach to derived databases. |
 | 5 | **OpenSky — non-commercial research/education only** | The primary live-flight source cannot be used commercially. |
 | 6 | **Google Maps Platform** | Proprietary; requires the operator's own key and billing; the Google credit must remain visible. |
+| 7 | **Nepal health facilities (DoHS / WHO, via OCHA on HDX) — HumanitarianResponse.info legacy terms, non-commercial** (Stage 9) | `data/processed/nepal-2010-health-facilities-dohs.json` and the hospital positions it contributes to `data/analysis/nepal-2015-health-access.json`. The legacy terms permit use and sharing for non-commercial purposes with credit to the source; resale is not allowed. The terms page itself returns 403 to this environment and was read from its indexed text (see the registry record's `retrievalNote`). Attribution: "Department of Health Services, Government of Nepal, and WHO; distributed by OCHA Nepal". **Vintage: the file was compiled by 2010-09-21** although HDX dates the dataset 2015. |
+| 8 | **OpenStreetMap as at 2015-04-24 — ODbL** (Stage 9) | `data/processed/nepal-2015-osm-access-network.json` and `nepal-2015-osm-health-facilities.json`, and everything derived from them (`nepal-2015-health-access.json`, the drawn roads in `nepal-2015-briefing-geometry.json`). Derived databases inherit ODbL share-alike; attribution "© OpenStreetMap contributors". |
 
 **Neither NonCommercial dataset can simply be deleted.** Both are woven into code *and tests*
 — the TeleGeography dataset alone is referenced from 30+ files including
@@ -135,6 +137,13 @@ the tests `src/data/telegeographySubmarineCables.test.mjs`,
 
 Removal therefore requires: deleting the data, removing the layer/scene registration, and
 updating the affected tests to assert the layer's *absence*. Budget it as real work.
+
+**Nepal health facilities (Stage 9)** — the hospital list feeds
+`pipelines/analyse/health-access.mjs`. Removing it means re-running that analysis against the
+OpenStreetMap hospitals alone (the pipeline already computes that variant as
+`results.headline.osmHospital`), then updating `src/nepal/briefing/facts.js` (`access.*`),
+`src/nepal/briefing/scenes/act5.js` and the tests that load the artefact
+(`src/nepal/briefing/{facts,scenes/scenes}.test.mjs`).
 
 ---
 

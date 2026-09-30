@@ -73,24 +73,27 @@ test('the mode switch reports and changes who is driving', () => {
     onMode: (mode, options) => picked.push([mode, options?.length ?? null]),
   });
   const buttons = bar.querySelectorAll('button');
+  /* Stage 9: three briefings, each the same directed timeline at a different depth. */
   assert.deepEqual(
     buttons.map((button) => button.textContent),
-    ['EXPLORE', 'PRESENT', '6 MIN'],
+    ['EXPLORE', '3 MIN', '6 MIN', 'FULL'],
   );
   assert.equal(buttons[0].getAttribute('aria-pressed'), 'true');
   buttons[1].click();
   buttons[2].click();
+  buttons[3].click();
   assert.deepEqual(picked, [
+    [MODE.PRESENT, 'three'],
+    [MODE.PRESENT, 'six'],
     [MODE.PRESENT, 'full'],
-    [MODE.PRESENT, 'short'],
   ]);
 
-  /* Presenting the short run lights the short button, not PRESENT. */
+  /* Presenting the six-minute run lights its own button and no other. */
   inv.setMode(MODE.PRESENT);
-  const presenting = renderTopBar({ header, state: inv.state, presentLength: 'short' })
+  const presenting = renderTopBar({ header, state: inv.state, presentLength: 'six' })
     .querySelectorAll('button')
     .map((button) => button.getAttribute('aria-pressed'));
-  assert.deepEqual(presenting, ['false', 'false', 'true']);
+  assert.deepEqual(presenting, ['false', 'false', 'true', 'false']);
 });
 
 test('the rail lists every scene, grouped by act, and marks where you are', () => {

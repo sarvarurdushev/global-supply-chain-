@@ -1,0 +1,32 @@
+{
+ "id": "dohs-who-nepal-health-facilities",
+ "datasetName": "Nepal health facilities (npl_hltfac_DoH_WHO_wgs84)",
+ "publisher": "Department of Health Services (Government of Nepal) and WHO, with the Survey Department of Nepal; distributed by OCHA Nepal as a Common Operational Dataset on HDX",
+ "sourceUrl": "https://data.humdata.org/dataset/67f46fa4-35c1-467f-8e8d-7c10d3d1b055/resource/0a299d32-829b-46d0-9abf-a2daa2553d9a/download/npl-hltfac-doh-who-wgs84.zip",
+ "license": "HumanitarianResponse.info legacy Terms of Use, as carried by HDX for datasets migrated from the COD registry: download and copying for non-commercial use without any right to resell; compilations and derivative works must credit the source",
+ "redistribution": "NON_COMMERCIAL",
+ "retrievedAt": "2026-09-29",
+ "originalFormat": "ESRI Shapefile (points, WGS 84) in a zip, with ESRI XML metadata",
+ "temporalCoverage": "Compiled by 2010: file created 2010-09-21 according to its embedded metadata. HDX lists a dataset date of 2015-01-01. Pre-earthquake.",
+ "geographicCoverage": "Nepal, national",
+ "coordinateSystem": "EPSG:4326",
+ "description": "Point locations of government health facilities by type (hospital, primary health centre, health post, sub health post and administrative health offices), with district and Village Development Committee. No facility names, no identifiers (the ID field is 0 throughout), no services and no capacity.",
+ "dataClass": "OFFICIAL",
+ "attribution": "Department of Health Services, Government of Nepal / WHO; Survey Department of Nepal; distributed by OCHA Nepal via HDX",
+ "discoveredVia": "https://data.humdata.org/dataset/nepal-health-facilities-cod",
+ "retrievalNote": "Licence text read from HDX’s legacy HumanitarianResponse.info licence page as indexed on 2026-09-29; the page itself returns HTTP 403 to this environment and the Wayback Machine is blocked by its egress policy.",
+ "fields": [
+  "HF_TYPE",
+  "DIST_NAME",
+  "VDC_NAME1",
+  "VDC_CODE1",
+  "geometry"
+ ],
+ "limitations": [
+  "Five years older than the earthquake. Facilities opened or closed between 2010 and April 2015 are not reflected.",
+  "Positional accuracy is not documented. 4,279 of 8,975 rows are exact duplicates and are removed; the remaining positions are checked against OpenStreetMap in the access analysis rather than assumed exact.",
+  "No names, no identifiers, no services, no staffing, no bed counts. Nothing about capacity can be said from this source, and nothing is.",
+  "Government facilities only; private clinics and NGO facilities are largely absent."
+ ],
+ "schemaVersion": 1
+}

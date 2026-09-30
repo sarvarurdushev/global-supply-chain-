@@ -98,6 +98,12 @@ export function createNepalCaseMount({
   entry = false,
   container = document.body,
   createLayers = null,
+  /*
+   * Builds the executive briefing over the experience (src/ui/nepal/briefing).
+   * Injected, like the layers, because it needs the Cesium viewer; without it
+   * the case falls back to the Stage 8 presentation runner.
+   */
+  createBriefing = null,
   createWorker = null,
   fetchImpl,
   win = globalThis.window,
@@ -131,6 +137,8 @@ export function createNepalCaseMount({
    * bar, so the mode switch is a line in the same place.
    */
   let presentation = null;
+  let briefing = null;
+  let started = null;
   let open = false;
   /* Set while this module is the one writing `location.hash`. */
   let writingHash = false;
@@ -143,15 +151,30 @@ export function createNepalCaseMount({
    * presenter stopped. Destroying it on every mode flip would lose the place
    * in the script, which is the one thing a presenter cannot afford.
    */
+  /** Which briefing run a header length names. */
+  const runFor = (length) =>
+    length === 'three' ? 'three' : length === 'full' ? 'full' : 'six';
+
   function syncPresentation(state, reason) {
     if (!open || reason !== 'mode') return;
+    if (briefing) {
+      if (state.mode === MODE.PRESENT)
+        void briefing.start(runFor(experience.presentLength));
+      else if (briefing.active) briefing.leave();
+      return;
+    }
     if (state.mode === MODE.PRESENT) {
       /*
        * The header chose a run. A runner for the other one is replaced, not
        * resumed: switching from the full run to the six-minute one mid-way
        * must start the six-minute argument from its first step.
        */
-      const length = experience.presentLength ?? 'full';
+      /*
+       * Without a briefing factory (a host with no globe, or a test) the
+       * Stage 8 presentation still runs, and it has two lengths: the full
+       * run, and the short one that stands in for three and six minutes.
+       */
+      const length = experience.presentLength === 'full' ? 'full' : 'short';
       if (presentation && presentation.script.length !== length) {
         presentation.destroy();
         presentation = null;
@@ -209,6 +232,24 @@ export function createNepalCaseMount({
         syncPresentation(state, reason);
       },
     });
+    briefing = createBriefing
+      ? createBriefing({
+          host: experience.element,
+          getIntelligence: async () => {
+            await started;
+            return experience.intelligence;
+          },
+          suspendMap: (on) => experience.setMapSuspended(on),
+          /* Leaving the briefing lands explore on the scene it was showing. */
+          onExplore: (sceneIndex) => {
+            if (Number.isInteger(sceneIndex))
+              experience.investigation.goTo(sceneIndex);
+            if (experience.investigation.state.mode !== MODE.EXPLORE) {
+              experience.investigation.setMode(MODE.EXPLORE);
+            }
+          },
+        })
+      : null;
     return experience;
   }
 
@@ -233,8 +274,16 @@ export function createNepalCaseMount({
      * likely to be sent to somebody, was the one view with no link.
      */
     syncHash(experience.investigation.state, 'open', { replace });
-    if (first) await experience.start();
-    else experience.render();
+    /*
+     * The front door opens on the briefing's BEGIN screen. A deep link to a
+     * scene opens that scene in explore instead: somebody sent a view, not a
+     * briefing.
+     */
+    if (first && briefing && entry && !isCaseHash(target)) briefing.showBegin();
+    if (first) {
+      started = experience.start();
+      await started;
+    } else experience.render();
     return experience;
   }
 
@@ -298,6 +347,9 @@ export function createNepalCaseMount({
     get presentation() {
       return presentation;
     },
+    get briefing() {
+      return briefing;
+    },
     get caseLayers() {
       return caseLayers;
     },
@@ -309,6 +361,8 @@ export function createNepalCaseMount({
       doc?.body?.classList?.remove('ndi-open');
       presentation?.destroy();
       presentation = null;
+      briefing?.destroy();
+      briefing = null;
       experience?.destroy();
       experience = null;
       caseLayers = null;

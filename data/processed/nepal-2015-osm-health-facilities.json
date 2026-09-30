@@ -1,0 +1,8589 @@
+{
+ "schemaVersion": 1,
+ "generatedAt": "2026-09-29",
+ "dataClass": "OBSERVED",
+ "source": {
+  "datasetId": "osm-nepal-2015-access",
+  "datasetName": "OpenStreetMap health facilities, airfields and motorable roads, central Nepal, as at 2015-04-24",
+  "publisher": "OpenStreetMap contributors, served by the Overpass API",
+  "sourceUrl": "https://www.openstreetmap.org/",
+  "license": "Open Database License (ODbL) 1.0",
+  "redistribution": "SHARE_ALIKE",
+  "retrievedAt": "2026-09-29",
+  "attribution": "© OpenStreetMap contributors, ODbL",
+  "redistributionNotice": "Open Database License (ODbL) 1.0 — © OpenStreetMap contributors, ODbL. This obligation applies to this derived file."
+ },
+ "lineage": [
+  {
+   "step": "SOURCE",
+   "detail": "Overpass attic queries at 2015-04-24T00:00:00Z, 40 tiles of 0.4°"
+  },
+  {
+   "step": "RAW",
+   "detail": "80 responses, 56.10 MB, cached in data/raw"
+  },
+  {
+   "step": "VALIDATE",
+   "detail": "unresolved positions and duplicate ids refused; facilities need a recognised tag"
+  },
+  {
+   "step": "PROCESS",
+   "detail": "ways reduced to a junction graph (50947 nodes, 62583 edges); facilities to points"
+  }
+ ],
+ "quality": {
+  "datasetId": "osm-nepal-2015-access-facilities",
+  "read": 725,
+  "kept": 724,
+  "dropped": 1,
+  "retention": 0.998621,
+  "issues": [
+   {
+    "code": "DUPLICATE_RECORD",
+    "count": 1,
+    "details": [
+     "way/126708147: returned by two tiles"
+    ],
+    "samples": [
+     "way/126708147"
+    ]
+   }
+  ]
+ },
+ "validation": {
+  "instant": "2015-04-24T00:00:00Z",
+  "overpassBaseTimestamp": "2026-09-29T15:35:49Z",
+  "tiles": 40,
+  "ways": 30337,
+  "waysByClass": {
+   "primary": 682,
+   "secondary": 686,
+   "trunk": 392,
+   "tertiary": 941,
+   "residential": 13697,
+   "secondary_link": 10,
+   "unclassified": 4901,
+   "service": 2292,
+   "track": 5339,
+   "living_street": 362,
+   "road": 1011,
+   "tertiary_link": 7,
+   "primary_link": 16,
+   "motorway": 1
+  },
+  "graphNodes": 50947,
+  "graphEdges": 62583,
+  "graphLengthKm": 19911.1,
+  "facilities": 724,
+  "facilitiesByKind": {
+   "helipad": 45,
+   "hospital": 343,
+   "clinic": 196,
+   "doctors": 29,
+   "aerodrome": 17,
+   "health_post": 94
+  }
+ },
+ "limitations": [
+  "Coverage is uneven. The Kathmandu Valley’s health facilities had been systematically mapped before 2015; most hill districts had not. A facility absent here may have existed and been unmapped.",
+  "OpenStreetMap tags describe what a mapper saw or was told. \"hospital\" is sometimes used for a clinic; no tag here is a statement of services, staffing or capacity, and none is used as one.",
+  "Road classes are not speeds and a mapped road is not a passable road. Network distance is the only quantity this supports.",
+  "Anything outside the access envelope is invisible to the analysis, including hospitals a patient might in fact have reached."
+ ],
+ "data": {
+  "bbox": [
+   83.8,
+   27,
+   86.8,
+   28.8
+  ],
+  "facilities": [
+   {
+    "id": "node/1046599248",
+    "kind": "helipad",
+    "name": null,
+    "nameNe": null,
+    "lon": 84.367501,
+    "lat": 28.48824,
+    "tags": {
+     "aeroway": "helipad"
+    }
+   },
+   {
+    "id": "node/1417852753",
+    "kind": "hospital",
+    "name": "Red Cross",
+    "nameNe": null,
+    "lon": 85.513491,
+    "lat": 27.584006,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/1490444239",
+    "kind": "clinic",
+    "name": "Baluwa Health Sub- Post",
+    "nameNe": null,
+    "lon": 85.543411,
+    "lat": 27.723758,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/1490444241",
+    "kind": "clinic",
+    "name": "Christa Community Health Post",
+    "nameNe": null,
+    "lon": 85.533741,
+    "lat": 27.736572,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/1496652911",
+    "kind": "hospital",
+    "name": "Prashuti Griha (प्रसूति गृह)",
+    "nameNe": null,
+    "lon": 85.318809,
+    "lat": 27.689508,
+    "tags": {
+     "amenity": "hospital",
+     "emergency": "yes"
+    }
+   },
+   {
+    "id": "node/1497172311",
+    "kind": "hospital",
+    "name": "Military Hospital",
+    "nameNe": null,
+    "lon": 85.291359,
+    "lat": 27.711349,
+    "tags": {
+     "amenity": "hospital",
+     "emergency": "yes"
+    }
+   },
+   {
+    "id": "node/1617044401",
+    "kind": "hospital",
+    "name": "Amppipal",
+    "nameNe": null,
+    "lon": 84.52968,
+    "lat": 28.069247,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/1654123130",
+    "kind": "hospital",
+    "name": "Fishtail Hospital",
+    "nameNe": null,
+    "lon": 83.989986,
+    "lat": 28.225995,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/1741695868",
+    "kind": "hospital",
+    "name": "Swayambhu Community Health Clinic",
+    "nameNe": null,
+    "lon": 85.29546,
+    "lat": 27.711087,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/1767445004",
+    "kind": "hospital",
+    "name": "Krishna Prasad Hospital",
+    "nameNe": null,
+    "lon": 85.523748,
+    "lat": 27.629627,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/1787056411",
+    "kind": "hospital",
+    "name": "Batuk Bhairav",
+    "nameNe": null,
+    "lon": 85.321562,
+    "lat": 27.668439,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/1787063191",
+    "kind": "hospital",
+    "name": "global hospital",
+    "nameNe": null,
+    "lon": 85.33302,
+    "lat": 27.667072,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/1801257236",
+    "kind": "clinic",
+    "name": "Family Health Clinic",
+    "nameNe": null,
+    "lon": 85.319275,
+    "lat": 27.675251,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/1833834845",
+    "kind": "hospital",
+    "name": "Kavre Health Clinic",
+    "nameNe": null,
+    "lon": 85.524296,
+    "lat": 27.628387,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/1833839894",
+    "kind": "hospital",
+    "name": "Chandeswori Medical Shop",
+    "nameNe": null,
+    "lon": 85.52216,
+    "lat": 27.630221,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/1833840355",
+    "kind": "hospital",
+    "name": null,
+    "nameNe": null,
+    "lon": 85.523899,
+    "lat": 27.632982,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/1891343745",
+    "kind": "hospital",
+    "name": "Dhanwantari Aryuved Hospital and Research Centre",
+    "nameNe": null,
+    "lon": 85.344353,
+    "lat": 27.732438,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/1892801124",
+    "kind": "hospital",
+    "name": "alka",
+    "nameNe": null,
+    "lon": 85.309816,
+    "lat": 27.669922,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/1904498930",
+    "kind": "hospital",
+    "name": "Bharatpur District Hospital",
+    "nameNe": "जिल्ला अस्पताल",
+    "lon": 84.436337,
+    "lat": 27.682181,
+    "tags": {
+     "amenity": "hospital",
+     "emergency": "yes"
+    }
+   },
+   {
+    "id": "node/1905315242",
+    "kind": "clinic",
+    "name": null,
+    "nameNe": null,
+    "lon": 85.321807,
+    "lat": 27.700017,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/1905384996",
+    "kind": "hospital",
+    "name": "Mata Manakamana Arogya clinic",
+    "nameNe": null,
+    "lon": 85.322661,
+    "lat": 27.704896,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/1905959105",
+    "kind": "hospital",
+    "name": "Nepal Red Cross Society",
+    "nameNe": null,
+    "lon": 84.423163,
+    "lat": 27.699179,
+    "tags": {
+     "amenity": "hospital",
+     "emergency": "no"
+    }
+   },
+   {
+    "id": "node/1905962473",
+    "kind": "hospital",
+    "name": "Mary Stopes",
+    "nameNe": null,
+    "lon": 84.423526,
+    "lat": 27.699144,
+    "tags": {
+     "amenity": "hospital",
+     "emergency": "no"
+    }
+   },
+   {
+    "id": "node/1905992892",
+    "kind": "hospital",
+    "name": "District Veterinary Hospital",
+    "nameNe": null,
+    "lon": 84.438487,
+    "lat": 27.675745,
+    "tags": {
+     "amenity": "hospital",
+     "emergency": "no"
+    }
+   },
+   {
+    "id": "node/1906007914",
+    "kind": "hospital",
+    "name": "Bharatpur Family Planning Hospital",
+    "nameNe": null,
+    "lon": 84.438799,
+    "lat": 27.670994,
+    "tags": {
+     "amenity": "hospital",
+     "emergency": "no"
+    }
+   },
+   {
+    "id": "node/1906007947",
+    "kind": "hospital",
+    "name": "College Of Medical Sciences Teaching Hospital",
+    "nameNe": null,
+    "lon": 84.436073,
+    "lat": 27.683723,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/1906007957",
+    "kind": "hospital",
+    "name": "Mahendra Memorial Eye Hospital",
+    "nameNe": null,
+    "lon": 84.439185,
+    "lat": 27.684752,
+    "tags": {
+     "amenity": "hospital",
+     "emergency": "yes"
+    }
+   },
+   {
+    "id": "node/1907891071",
+    "kind": "doctors",
+    "name": "The Perfect Smile Orthodental Clinic",
+    "nameNe": null,
+    "lon": 85.333441,
+    "lat": 27.718478,
+    "tags": {
+     "amenity": "doctors"
+    }
+   },
+   {
+    "id": "node/1918582155",
+    "kind": "clinic",
+    "name": "Heart Clinic",
+    "nameNe": null,
+    "lon": 85.334972,
+    "lat": 27.738352,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "node/1923848934",
+    "kind": "hospital",
+    "name": "Save the Life Community Polyclinic and Research Center",
+    "nameNe": null,
+    "lon": 85.344302,
+    "lat": 27.681251,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/1927427264",
+    "kind": "doctors",
+    "name": "Daans Care Nursing Home",
+    "nameNe": null,
+    "lon": 85.348522,
+    "lat": 27.678584,
+    "tags": {
+     "amenity": "doctors"
+    }
+   },
+   {
+    "id": "node/1927427274",
+    "kind": "doctors",
+    "name": "Kalika Polyclinic and Dental Care Center",
+    "nameNe": null,
+    "lon": 85.348311,
+    "lat": 27.67842,
+    "tags": {
+     "amenity": "doctors"
+    }
+   },
+   {
+    "id": "node/1927536346",
+    "kind": "clinic",
+    "name": "M Family Polyclinic",
+    "nameNe": null,
+    "lon": 85.339385,
+    "lat": 27.671685,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/1936280981",
+    "kind": "clinic",
+    "name": "Deuti Clinic",
+    "nameNe": null,
+    "lon": 85.334917,
+    "lat": 27.682786,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/1936298906",
+    "kind": "aerodrome",
+    "name": "Khanidanda Airport",
+    "nameNe": null,
+    "lon": 86.77226,
+    "lat": 27.180344,
+    "tags": {
+     "aeroway": "aerodrome",
+     "iata": "KDN",
+     "icao": "VNKD",
+     "ele": "1357"
+    }
+   },
+   {
+    "id": "node/1937657336",
+    "kind": "hospital",
+    "name": "Dirghayu health care pvt ltd",
+    "nameNe": null,
+    "lon": 85.315255,
+    "lat": 27.671768,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/1937661897",
+    "kind": "doctors",
+    "name": "Visionhome",
+    "nameNe": null,
+    "lon": 85.316136,
+    "lat": 27.671178,
+    "tags": {
+     "amenity": "doctors"
+    }
+   },
+   {
+    "id": "node/1937688844",
+    "kind": "clinic",
+    "name": "Brigrade Boys Club community health center",
+    "nameNe": null,
+    "lon": 85.316835,
+    "lat": 27.667407,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/1937703835",
+    "kind": "clinic",
+    "name": "Ayur Polyclinic",
+    "nameNe": null,
+    "lon": 85.320406,
+    "lat": 27.676969,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/1937710585",
+    "kind": "doctors",
+    "name": "Nepal Fertility Care Center",
+    "nameNe": null,
+    "lon": 85.303903,
+    "lat": 27.674921,
+    "tags": {
+     "amenity": "doctors"
+    }
+   },
+   {
+    "id": "node/1937710603",
+    "kind": "doctors",
+    "name": "Om Sanjivani Diagnostics Pvt. Ltd.",
+    "nameNe": null,
+    "lon": 85.302515,
+    "lat": 27.678245,
+    "tags": {
+     "amenity": "doctors"
+    }
+   },
+   {
+    "id": "node/1937710606",
+    "kind": "doctors",
+    "name": "Prarambha Treatment and Rehabilitation Center",
+    "nameNe": null,
+    "lon": 85.306768,
+    "lat": 27.678097,
+    "tags": {
+     "amenity": "doctors"
+    }
+   },
+   {
+    "id": "node/1937718380",
+    "kind": "clinic",
+    "name": "Chhahari Nepal",
+    "nameNe": null,
+    "lon": 85.317434,
+    "lat": 27.675041,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/1937718404",
+    "kind": "hospital",
+    "name": "Himalayan Healthcare Inc.",
+    "nameNe": null,
+    "lon": 85.316783,
+    "lat": 27.673044,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/1937718549",
+    "kind": "clinic",
+    "name": "Udaya Dental Service",
+    "nameNe": null,
+    "lon": 85.316022,
+    "lat": 27.675624,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "node/1947098659",
+    "kind": "clinic",
+    "name": "Prakash poly clinic",
+    "nameNe": null,
+    "lon": 85.307249,
+    "lat": 27.695914,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/1957170597",
+    "kind": "hospital",
+    "name": "Chitwan Medical College Teaching Hospital",
+    "nameNe": null,
+    "lon": 84.430729,
+    "lat": 27.685354,
+    "tags": {
+     "amenity": "hospital",
+     "emergency": "yes"
+    }
+   },
+   {
+    "id": "node/1957221771",
+    "kind": "doctors",
+    "name": "Kathmandu Path Labs and Diagnostics",
+    "nameNe": null,
+    "lon": 85.324779,
+    "lat": 27.716122,
+    "tags": {
+     "amenity": "doctors"
+    }
+   },
+   {
+    "id": "node/1957241491",
+    "kind": "doctors",
+    "name": "Manjushree Medical Center",
+    "nameNe": null,
+    "lon": 85.324992,
+    "lat": 27.717438,
+    "tags": {
+     "amenity": "doctors"
+    }
+   },
+   {
+    "id": "node/1960043912",
+    "kind": "hospital",
+    "name": "Durga Bhawani Polyclinic",
+    "nameNe": null,
+    "lon": 85.339718,
+    "lat": 27.724135,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/1960210094",
+    "kind": "hospital",
+    "name": "Narayani Samydayik Hospital",
+    "nameNe": null,
+    "lon": 84.43245,
+    "lat": 27.681676,
+    "tags": {
+     "amenity": "hospital",
+     "emergency": "yes"
+    }
+   },
+   {
+    "id": "node/1962367529",
+    "kind": "clinic",
+    "name": "Community Urban Health Clinic",
+    "nameNe": null,
+    "lon": 85.334673,
+    "lat": 27.71853,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/1966017952",
+    "kind": "helipad",
+    "name": null,
+    "nameNe": null,
+    "lon": 85.290644,
+    "lat": 27.743739,
+    "tags": {
+     "aeroway": "helipad"
+    }
+   },
+   {
+    "id": "node/1967824819",
+    "kind": "clinic",
+    "name": "Samakhusi Community Clinic",
+    "nameNe": null,
+    "lon": 85.313791,
+    "lat": 27.72454,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/1967824831",
+    "kind": "clinic",
+    "name": "United Medical Center",
+    "nameNe": null,
+    "lon": 85.317892,
+    "lat": 27.721352,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/1979213270",
+    "kind": "hospital",
+    "name": "Balkumari Maternity Hospital",
+    "nameNe": null,
+    "lon": 84.409615,
+    "lat": 27.6903,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/1979213340",
+    "kind": "helipad",
+    "name": null,
+    "nameNe": null,
+    "lon": 84.436716,
+    "lat": 27.71031,
+    "tags": {
+     "aeroway": "helipad"
+    }
+   },
+   {
+    "id": "node/1985458243",
+    "kind": "hospital",
+    "name": "CIWEC Clinic Travel Medicine Center",
+    "nameNe": null,
+    "lon": 85.317881,
+    "lat": 27.720271,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/1989114738",
+    "kind": "hospital",
+    "name": "Bhaktapur Hospital Emergency Block",
+    "nameNe": null,
+    "lon": 85.422081,
+    "lat": 27.672076,
+    "tags": {
+     "amenity": "hospital",
+     "emergency": "yes"
+    }
+   },
+   {
+    "id": "node/1989508697",
+    "kind": "clinic",
+    "name": "Singapore Gorkha Polyclinic",
+    "nameNe": null,
+    "lon": 85.347216,
+    "lat": 27.680718,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/2002392569",
+    "kind": "clinic",
+    "name": "Nepal Siddhartha Sadan Polyclinic",
+    "nameNe": null,
+    "lon": 85.315119,
+    "lat": 27.735381,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/2002392571",
+    "kind": "clinic",
+    "name": "Ojaswi Polyclinic",
+    "nameNe": null,
+    "lon": 85.318456,
+    "lat": 27.735488,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/2002501573",
+    "kind": "clinic",
+    "name": "Sai Polyclinic and Diagnostic Centre",
+    "nameNe": null,
+    "lon": 85.316251,
+    "lat": 27.734751,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/2027886569",
+    "kind": "hospital",
+    "name": "Chirayu National Hospital & Medical Institute",
+    "nameNe": null,
+    "lon": 85.33014,
+    "lat": 27.692242,
+    "tags": {
+     "amenity": "hospital",
+     "emergency": "yes"
+    }
+   },
+   {
+    "id": "node/2027887378",
+    "kind": "hospital",
+    "name": "Amvi Dental Clinic",
+    "nameNe": null,
+    "lon": 85.329905,
+    "lat": 27.692354,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/2027895182",
+    "kind": "hospital",
+    "name": "Infertility Center",
+    "nameNe": null,
+    "lon": 85.32902,
+    "lat": 27.690385,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/2036651063",
+    "kind": "hospital",
+    "name": "lamatar health post",
+    "nameNe": null,
+    "lon": 85.39107,
+    "lat": 27.632531,
+    "tags": {
+     "amenity": "hospital",
+     "emergency": "no"
+    }
+   },
+   {
+    "id": "node/2062713750",
+    "kind": "hospital",
+    "name": "Vayodha Hospital",
+    "nameNe": null,
+    "lon": 85.298329,
+    "lat": 27.684702,
+    "tags": {
+     "amenity": "hospital",
+     "emergency": "yes"
+    }
+   },
+   {
+    "id": "node/2074412076",
+    "kind": "clinic",
+    "name": "Xeno Clinic Service",
+    "nameNe": null,
+    "lon": 85.32333,
+    "lat": 27.725615,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/2074428010",
+    "kind": "clinic",
+    "name": "Gaun Ghar Clinic",
+    "nameNe": null,
+    "lon": 85.358812,
+    "lat": 27.745274,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/2077258831",
+    "kind": "hospital",
+    "name": "Subba Medical Centre Pvt ltd",
+    "nameNe": null,
+    "lon": 85.323041,
+    "lat": 27.73782,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/2079575199",
+    "kind": "clinic",
+    "name": "Diamond Poly Clinic",
+    "nameNe": null,
+    "lon": 85.321128,
+    "lat": 27.735338,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/2079675422",
+    "kind": "clinic",
+    "name": "Sewa Polyclinic Pvt.Ltd",
+    "nameNe": null,
+    "lon": 85.333079,
+    "lat": 27.742374,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/2083711667",
+    "kind": "doctors",
+    "name": "Wellness Health Pathology",
+    "nameNe": null,
+    "lon": 85.309108,
+    "lat": 27.705793,
+    "tags": {
+     "amenity": "doctors"
+    }
+   },
+   {
+    "id": "node/2083743561",
+    "kind": "doctors",
+    "name": "JGO Free Health Clinic",
+    "nameNe": null,
+    "lon": 85.306324,
+    "lat": 27.704626,
+    "tags": {
+     "amenity": "doctors"
+    }
+   },
+   {
+    "id": "node/2084372312",
+    "kind": "clinic",
+    "name": "NEO Health Clinic & Lab Pvt.Ltd",
+    "nameNe": null,
+    "lon": 85.330801,
+    "lat": 27.718628,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/2089552909",
+    "kind": "clinic",
+    "name": "Lazimpat Sulav Clinic",
+    "nameNe": null,
+    "lon": 85.32429,
+    "lat": 27.720412,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/2097794106",
+    "kind": "clinic",
+    "name": "Martina Medical Hall",
+    "nameNe": null,
+    "lon": 85.336635,
+    "lat": 27.731119,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/2102709314",
+    "kind": "clinic",
+    "name": "Carving Hands Polyclinic & Diagnostics",
+    "nameNe": null,
+    "lon": 85.334081,
+    "lat": 27.712118,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/2106838618",
+    "kind": "clinic",
+    "name": "Super X ray Clinic",
+    "nameNe": null,
+    "lon": 85.331552,
+    "lat": 27.707939,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/2115537350",
+    "kind": "hospital",
+    "name": "Sindhu Sadhabahar Hospital",
+    "nameNe": null,
+    "lon": 85.827974,
+    "lat": 27.75367,
+    "tags": {
+     "amenity": "hospital",
+     "emergency": "yes"
+    }
+   },
+   {
+    "id": "node/2121884151",
+    "kind": "hospital",
+    "name": "Kunphen Tibetian Medicine",
+    "nameNe": null,
+    "lon": 85.309237,
+    "lat": 27.713065,
+    "tags": {
+     "amenity": "hospital",
+     "emergency": "no"
+    }
+   },
+   {
+    "id": "node/2122386462",
+    "kind": "hospital",
+    "name": "YETI HOSPITAL",
+    "nameNe": null,
+    "lon": 85.282402,
+    "lat": 27.702451,
+    "tags": {
+     "amenity": "hospital",
+     "emergency": "yes"
+    }
+   },
+   {
+    "id": "node/2127188970",
+    "kind": "clinic",
+    "name": null,
+    "nameNe": null,
+    "lon": 85.312648,
+    "lat": 27.719527,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/2130647507",
+    "kind": "hospital",
+    "name": "Maha guthi Poly Clinic",
+    "nameNe": null,
+    "lon": 85.306126,
+    "lat": 27.717668,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/2140382060",
+    "kind": "hospital",
+    "name": "Mahadev Basi Helth post",
+    "nameNe": null,
+    "lon": 85.067104,
+    "lat": 27.750423,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/2141200832",
+    "kind": "hospital",
+    "name": "matepani pokhara",
+    "nameNe": null,
+    "lon": 84.00107,
+    "lat": 28.21769,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/2153239616",
+    "kind": "hospital",
+    "name": "panauti hospital",
+    "nameNe": null,
+    "lon": 85.51698,
+    "lat": 27.592396,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/2164874380",
+    "kind": "hospital",
+    "name": "Khushi Family Dental Clinic",
+    "nameNe": null,
+    "lon": 85.30202,
+    "lat": 27.685578,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/2164877858",
+    "kind": "hospital",
+    "name": " Public Hospital",
+    "nameNe": null,
+    "lon": 85.305407,
+    "lat": 27.665658,
+    "tags": {
+     "amenity": "hospital",
+     "emergency": "yes"
+    }
+   },
+   {
+    "id": "node/2164892992",
+    "kind": "hospital",
+    "name": "Saharibikash Clinic",
+    "nameNe": null,
+    "lon": 85.308521,
+    "lat": 27.664126,
+    "tags": {
+     "amenity": "hospital",
+     "emergency": "no"
+    }
+   },
+   {
+    "id": "node/2165424701",
+    "kind": "hospital",
+    "name": "Nepal Veterinary Hospital",
+    "nameNe": null,
+    "lon": 85.311284,
+    "lat": 27.694821,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/2165424708",
+    "kind": "hospital",
+    "name": "Blue Cross Hospital",
+    "nameNe": null,
+    "lon": 85.315258,
+    "lat": 27.693715,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/2174521364",
+    "kind": "clinic",
+    "name": "National Institute of Psychology",
+    "nameNe": null,
+    "lon": 85.337771,
+    "lat": 27.694514,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/2176750961",
+    "kind": "hospital",
+    "name": null,
+    "nameNe": null,
+    "lon": 85.298587,
+    "lat": 27.691375,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/2218658273",
+    "kind": "hospital",
+    "name": "Divya Sanjivani Hospital",
+    "nameNe": null,
+    "lon": 85.286738,
+    "lat": 27.70659,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/2236622338",
+    "kind": "hospital",
+    "name": "bharosa",
+    "nameNe": null,
+    "lon": 85.337056,
+    "lat": 27.694324,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/2245139224",
+    "kind": "hospital",
+    "name": "S.S Clinic",
+    "nameNe": null,
+    "lon": 85.373739,
+    "lat": 27.674198,
+    "tags": {
+     "amenity": "hospital",
+     "emergency": "no"
+    }
+   },
+   {
+    "id": "node/2245140188",
+    "kind": "hospital",
+    "name": "Nagarik Hospital",
+    "nameNe": null,
+    "lon": 85.374931,
+    "lat": 27.673635,
+    "tags": {
+     "amenity": "hospital",
+     "emergency": "yes"
+    }
+   },
+   {
+    "id": "node/2248198014",
+    "kind": "clinic",
+    "name": "Prime Health Care Center",
+    "nameNe": null,
+    "lon": 85.345606,
+    "lat": 27.720915,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "node/2255935724",
+    "kind": "helipad",
+    "name": null,
+    "nameNe": null,
+    "lon": 84.431929,
+    "lat": 27.993784,
+    "tags": {
+     "aeroway": "helipad"
+    }
+   },
+   {
+    "id": "node/2263128846",
+    "kind": "helipad",
+    "name": null,
+    "nameNe": null,
+    "lon": 83.963839,
+    "lat": 28.012537,
+    "tags": {
+     "aeroway": "helipad"
+    }
+   },
+   {
+    "id": "node/2272931262",
+    "kind": "helipad",
+    "name": null,
+    "nameNe": null,
+    "lon": 84.486336,
+    "lat": 27.63687,
+    "tags": {
+     "aeroway": "helipad"
+    }
+   },
+   {
+    "id": "node/2274830395",
+    "kind": "hospital",
+    "name": "Kantipur Dental Hospital",
+    "nameNe": null,
+    "lon": 85.324292,
+    "lat": 27.736695,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "node/2282086109",
+    "kind": "hospital",
+    "name": "Nepal Diagnostic Center Pvt. Ltd.",
+    "nameNe": null,
+    "lon": 85.311634,
+    "lat": 27.701058,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "node/2282086116",
+    "kind": "hospital",
+    "name": "Sundhara Dental Hospital",
+    "nameNe": null,
+    "lon": 85.311634,
+    "lat": 27.701029,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "node/2282788885",
+    "kind": "hospital",
+    "name": "school of science",
+    "nameNe": null,
+    "lon": 84.414012,
+    "lat": 27.681017,
+    "tags": {
+     "amenity": "hospital",
+     "emergency": "yes"
+    }
+   },
+   {
+    "id": "node/2285565910",
+    "kind": "hospital",
+    "name": "Buddha Dental Hospital",
+    "nameNe": null,
+    "lon": 85.346432,
+    "lat": 27.717984,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "node/2285571904",
+    "kind": "hospital",
+    "name": "Biraj Dental Hospital and Research Center",
+    "nameNe": null,
+    "lon": 85.345773,
+    "lat": 27.716852,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/2287631187",
+    "kind": "clinic",
+    "name": "Nawa Buddha Dental Care",
+    "nameNe": null,
+    "lon": 85.349642,
+    "lat": 27.718883,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "node/2293467391",
+    "kind": "clinic",
+    "name": "Jana Varosa Poly Clinic",
+    "nameNe": null,
+    "lon": 85.363961,
+    "lat": 27.728884,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "node/2297964899",
+    "kind": "helipad",
+    "name": null,
+    "nameNe": null,
+    "lon": 83.976506,
+    "lat": 28.197453,
+    "tags": {
+     "aeroway": "helipad"
+    }
+   },
+   {
+    "id": "node/2307727804",
+    "kind": "clinic",
+    "name": "Siddhartha Poly Clinic",
+    "nameNe": null,
+    "lon": 85.320058,
+    "lat": 27.706156,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "node/2308013115",
+    "kind": "clinic",
+    "name": "Kathmandu Dental Home",
+    "nameNe": null,
+    "lon": 85.312953,
+    "lat": 27.710251,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "node/2311533699",
+    "kind": "clinic",
+    "name": "Jana Polyclinic",
+    "nameNe": null,
+    "lon": 85.277152,
+    "lat": 27.675012,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "node/2315887958",
+    "kind": "helipad",
+    "name": "Namche Bazar Helipad",
+    "nameNe": null,
+    "lon": 86.706281,
+    "lat": 27.803519,
+    "tags": {
+     "aeroway": "helipad"
+    }
+   },
+   {
+    "id": "node/2315910483",
+    "kind": "helipad",
+    "name": null,
+    "nameNe": null,
+    "lon": 84.880785,
+    "lat": 27.015963,
+    "tags": {
+     "aeroway": "helipad"
+    }
+   },
+   {
+    "id": "node/2316139307",
+    "kind": "helipad",
+    "name": null,
+    "nameNe": null,
+    "lon": 84.852732,
+    "lat": 27.024636,
+    "tags": {
+     "aeroway": "helipad"
+    }
+   },
+   {
+    "id": "node/2319501384",
+    "kind": "aerodrome",
+    "name": "Jiri Airport",
+    "nameNe": null,
+    "lon": 86.230658,
+    "lat": 27.62585,
+    "tags": {
+     "aeroway": "aerodrome",
+     "iata": "JIR",
+     "icao": "VNJI",
+     "ele": "1848"
+    }
+   },
+   {
+    "id": "node/2320025820",
+    "kind": "hospital",
+    "name": "Doctor",
+    "nameNe": null,
+    "lon": 84.023609,
+    "lat": 28.666301,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/2322653068",
+    "kind": "hospital",
+    "name": "Kutumsang Health Centre",
+    "nameNe": null,
+    "lon": 85.486244,
+    "lat": 27.927717,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/2337121007",
+    "kind": "clinic",
+    "name": "Swastik Dental Clinic",
+    "nameNe": null,
+    "lon": 85.304047,
+    "lat": 27.715779,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "node/2337121030",
+    "kind": "clinic",
+    "name": "shubhekshya poly clinic",
+    "nameNe": null,
+    "lon": 85.303854,
+    "lat": 27.715032,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "node/2352485018",
+    "kind": "clinic",
+    "name": "Lagankhel Dental Clinic",
+    "nameNe": null,
+    "lon": 85.324083,
+    "lat": 27.666493,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "node/2352485019",
+    "kind": "clinic",
+    "name": "Lalitpur Poly Clinic",
+    "nameNe": null,
+    "lon": 85.324093,
+    "lat": 27.666544,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "node/2352517834",
+    "kind": "clinic",
+    "name": "Lalitpur Dental Service Center",
+    "nameNe": null,
+    "lon": 85.318589,
+    "lat": 27.683369,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "node/2352517835",
+    "kind": "clinic",
+    "name": "Lumbini Dental Clinic",
+    "nameNe": null,
+    "lon": 85.317317,
+    "lat": 27.686929,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "node/2352563576",
+    "kind": "clinic",
+    "name": "Advance Oral Dental Health",
+    "nameNe": null,
+    "lon": 85.29735,
+    "lat": 27.697992,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "node/2352610254",
+    "kind": "clinic",
+    "name": "Sagarmatha Poly Clinic",
+    "nameNe": null,
+    "lon": 85.299274,
+    "lat": 27.698483,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "node/2352610255",
+    "kind": "clinic",
+    "name": "Sanjivani Clinic",
+    "nameNe": null,
+    "lon": 85.30435,
+    "lat": 27.696715,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "node/2352610256",
+    "kind": "clinic",
+    "name": "Shuvarambha Dental Clinic",
+    "nameNe": null,
+    "lon": 85.298128,
+    "lat": 27.697929,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "node/2352666875",
+    "kind": "clinic",
+    "name": "Buddha Minimal Access International (MAI) Center",
+    "nameNe": null,
+    "lon": 85.304213,
+    "lat": 27.698003,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "node/2353843451",
+    "kind": "clinic",
+    "name": "Upatyaka Poly Clinic",
+    "nameNe": null,
+    "lon": 85.315963,
+    "lat": 27.675879,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "node/2355629165",
+    "kind": "clinic",
+    "name": "Ortho Dental Clinic",
+    "nameNe": null,
+    "lon": 85.314435,
+    "lat": 27.67497,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/2355629169",
+    "kind": "clinic",
+    "name": "Prashanti Health Care Center",
+    "nameNe": null,
+    "lon": 85.314413,
+    "lat": 27.674985,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "node/2355652816",
+    "kind": "clinic",
+    "name": "OroPlus Dental Clinic",
+    "nameNe": null,
+    "lon": 85.315772,
+    "lat": 27.675516,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "node/2359710619",
+    "kind": "clinic",
+    "name": "LKS Dental Solution",
+    "nameNe": null,
+    "lon": 85.328685,
+    "lat": 27.689915,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "node/2399736746",
+    "kind": "clinic",
+    "name": "Brighter Dental Clinic",
+    "nameNe": null,
+    "lon": 85.311991,
+    "lat": 27.700213,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "node/2399746904",
+    "kind": "clinic",
+    "name": "Asha X-Ray Clinic",
+    "nameNe": null,
+    "lon": 85.31226,
+    "lat": 27.705689,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "node/2399748665",
+    "kind": "clinic",
+    "name": "Mahabaudhha Clinic",
+    "nameNe": null,
+    "lon": 85.312362,
+    "lat": 27.705783,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "node/2399749797",
+    "kind": "clinic",
+    "name": "Trishuli X-Ray and Clinic",
+    "nameNe": null,
+    "lon": 85.31278,
+    "lat": 27.705711,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "node/2399753629",
+    "kind": "clinic",
+    "name": "Asia Pacific Poly Clinic",
+    "nameNe": null,
+    "lon": 85.318046,
+    "lat": 27.690465,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "node/2399753633",
+    "kind": "clinic",
+    "name": "SRL Diagnostic",
+    "nameNe": null,
+    "lon": 85.318012,
+    "lat": 27.690526,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "node/2399755500",
+    "kind": "clinic",
+    "name": "Cosmetic Dental Clinic",
+    "nameNe": null,
+    "lon": 85.318114,
+    "lat": 27.682689,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "node/2399974682",
+    "kind": "clinic",
+    "name": "Baluwatar Polyclinic",
+    "nameNe": null,
+    "lon": 85.332716,
+    "lat": 27.742471,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "node/2400018825",
+    "kind": "clinic",
+    "name": "Fronline Polyclinic",
+    "nameNe": null,
+    "lon": 85.345767,
+    "lat": 27.697012,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "node/2400020661",
+    "kind": "clinic",
+    "name": "Khajana Polyclinic",
+    "nameNe": null,
+    "lon": 85.348395,
+    "lat": 27.705634,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "node/2416912063",
+    "kind": "helipad",
+    "name": null,
+    "nameNe": null,
+    "lon": 85.04081,
+    "lat": 27.459715,
+    "tags": {
+     "aeroway": "helipad"
+    }
+   },
+   {
+    "id": "node/2419986776",
+    "kind": "helipad",
+    "name": null,
+    "nameNe": null,
+    "lon": 85.134963,
+    "lat": 27.539823,
+    "tags": {
+     "aeroway": "helipad"
+    }
+   },
+   {
+    "id": "node/2425005466",
+    "kind": "hospital",
+    "name": "Nepal Police Hospital",
+    "nameNe": null,
+    "lon": 85.323571,
+    "lat": 27.731024,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/2425657468",
+    "kind": "helipad",
+    "name": null,
+    "nameNe": null,
+    "lon": 84.894007,
+    "lat": 27.46895,
+    "tags": {
+     "aeroway": "helipad"
+    }
+   },
+   {
+    "id": "node/2437098282",
+    "kind": "helipad",
+    "name": null,
+    "nameNe": null,
+    "lon": 85.592964,
+    "lat": 27.063012,
+    "tags": {
+     "aeroway": "helipad"
+    }
+   },
+   {
+    "id": "node/2448274885",
+    "kind": "hospital",
+    "name": "Metro City Hospital",
+    "nameNe": null,
+    "lon": 83.98174,
+    "lat": 28.211683,
+    "tags": {
+     "amenity": "hospital",
+     "emergency": "yes"
+    }
+   },
+   {
+    "id": "node/2448280117",
+    "kind": "hospital",
+    "name": "OM Hospital",
+    "nameNe": null,
+    "lon": 83.990084,
+    "lat": 28.223231,
+    "tags": {
+     "amenity": "hospital",
+     "emergency": "yes"
+    }
+   },
+   {
+    "id": "node/2449083909",
+    "kind": "clinic",
+    "name": "Bhaktapur Heart and Diabetic Center",
+    "nameNe": null,
+    "lon": 85.430168,
+    "lat": 27.672351,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/2456643501",
+    "kind": "hospital",
+    "name": null,
+    "nameNe": null,
+    "lon": 84.426711,
+    "lat": 27.697102,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/2456677959",
+    "kind": "hospital",
+    "name": "Chitwan Hospital",
+    "nameNe": null,
+    "lon": 84.430241,
+    "lat": 27.681677,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/2459077734",
+    "kind": "hospital",
+    "name": "Health Post",
+    "nameNe": null,
+    "lon": 84.530858,
+    "lat": 27.909569,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/2476296771",
+    "kind": "hospital",
+    "name": "abc",
+    "nameNe": null,
+    "lon": 85.283319,
+    "lat": 27.716593,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/2476338392",
+    "kind": "hospital",
+    "name": null,
+    "nameNe": null,
+    "lon": 85.381086,
+    "lat": 27.729732,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/2560776061",
+    "kind": "helipad",
+    "name": null,
+    "nameNe": null,
+    "lon": 85.568073,
+    "lat": 28.211516,
+    "tags": {
+     "aeroway": "helipad"
+    }
+   },
+   {
+    "id": "node/2642321672",
+    "kind": "hospital",
+    "name": "Lekhnath Community Lions Hospital",
+    "nameNe": null,
+    "lon": 84.080095,
+    "lat": 28.165592,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/2662694372",
+    "kind": "hospital",
+    "name": null,
+    "nameNe": null,
+    "lon": 86.078521,
+    "lat": 27.620189,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/2684762108",
+    "kind": "clinic",
+    "name": "Nirvana",
+    "nameNe": null,
+    "lon": 85.311703,
+    "lat": 27.671033,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/2684764541",
+    "kind": "hospital",
+    "name": "oral dental home",
+    "nameNe": null,
+    "lon": 85.316427,
+    "lat": 27.671924,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/2684770935",
+    "kind": "hospital",
+    "name": "Mobile Veterinary Hospital",
+    "nameNe": null,
+    "lon": 85.311865,
+    "lat": 27.673657,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/2687382641",
+    "kind": "clinic",
+    "name": null,
+    "nameNe": null,
+    "lon": 85.347371,
+    "lat": 27.717371,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/2767335856",
+    "kind": "clinic",
+    "name": null,
+    "nameNe": null,
+    "lon": 83.984766,
+    "lat": 28.224533,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/2769787181",
+    "kind": "clinic",
+    "name": "Shova Medical Hall",
+    "nameNe": null,
+    "lon": 83.979896,
+    "lat": 28.262878,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/2824316034",
+    "kind": "hospital",
+    "name": "ART Center",
+    "nameNe": null,
+    "lon": 83.873839,
+    "lat": 28.105124,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/2824322300",
+    "kind": "hospital",
+    "name": "PMTCT Center",
+    "nameNe": null,
+    "lon": 83.873933,
+    "lat": 28.10516,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/2824323800",
+    "kind": "hospital",
+    "name": "HTC Centre",
+    "nameNe": null,
+    "lon": 83.873855,
+    "lat": 28.1053,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/2824324593",
+    "kind": "hospital",
+    "name": "STI Center",
+    "nameNe": null,
+    "lon": 83.873906,
+    "lat": 28.105257,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/2857869822",
+    "kind": "hospital",
+    "name": "Tarini Health Center",
+    "nameNe": null,
+    "lon": 85.308422,
+    "lat": 27.704951,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/2857881360",
+    "kind": "hospital",
+    "name": "Langtang Valley Health Clinic",
+    "nameNe": null,
+    "lon": 85.506575,
+    "lat": 28.216879,
+    "tags": {
+     "amenity": "hospital",
+     "emergency": "yes"
+    }
+   },
+   {
+    "id": "node/2901364761",
+    "kind": "clinic",
+    "name": "Dolakha health post",
+    "nameNe": null,
+    "lon": 86.072118,
+    "lat": 27.679324,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/2901364765",
+    "kind": "hospital",
+    "name": "Gaurishankar General Hospital",
+    "nameNe": null,
+    "lon": 86.075254,
+    "lat": 27.679631,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/2901364775",
+    "kind": "hospital",
+    "name": "Dolakha Lions Eye Centre",
+    "nameNe": null,
+    "lon": 86.075702,
+    "lat": 27.679552,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/2912554272",
+    "kind": "hospital",
+    "name": "Gorkha District Hospital",
+    "nameNe": null,
+    "lon": 84.628128,
+    "lat": 27.994658,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/2977178000",
+    "kind": "hospital",
+    "name": "Hetauda Hospital",
+    "nameNe": null,
+    "lon": 85.028331,
+    "lat": 27.43261,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/303021935",
+    "kind": "aerodrome",
+    "name": "Tenzing-Hillary Airport",
+    "nameNe": null,
+    "lon": 86.73198,
+    "lat": 27.687211,
+    "tags": {
+     "aeroway": "aerodrome",
+     "iata": "LUA",
+     "icao": "VNLK",
+     "ele": "2846"
+    }
+   },
+   {
+    "id": "node/3066382171",
+    "kind": "clinic",
+    "name": null,
+    "nameNe": null,
+    "lon": 85.044861,
+    "lat": 27.399889,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/3074564881",
+    "kind": "clinic",
+    "name": "Children's Diagnosis Center",
+    "nameNe": null,
+    "lon": 85.346185,
+    "lat": 27.716963,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/3074566723",
+    "kind": "clinic",
+    "name": "Dental Clinic",
+    "nameNe": null,
+    "lon": 85.345371,
+    "lat": 27.717054,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/3074569176",
+    "kind": "clinic",
+    "name": "Siddhartha Buddha Dental Clinic",
+    "nameNe": null,
+    "lon": 85.345906,
+    "lat": 27.717006,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/3074585332",
+    "kind": "hospital",
+    "name": null,
+    "nameNe": null,
+    "lon": 85.347579,
+    "lat": 27.717459,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/3074602186",
+    "kind": "clinic",
+    "name": "Razam Medical Center",
+    "nameNe": null,
+    "lon": 85.347185,
+    "lat": 27.718097,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/3092794899",
+    "kind": "clinic",
+    "name": "Health Centre",
+    "nameNe": null,
+    "lon": 85.025297,
+    "lat": 27.396628,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/3121926024",
+    "kind": "clinic",
+    "name": "Apson Piya Medical Hall",
+    "nameNe": null,
+    "lon": 84.377367,
+    "lat": 28.231544,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/3121926148",
+    "kind": "clinic",
+    "name": "Lamjung Eye Care Centre",
+    "nameNe": null,
+    "lon": 84.37791,
+    "lat": 28.226966,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/3121926154",
+    "kind": "clinic",
+    "name": "Medical Hall",
+    "nameNe": null,
+    "lon": 84.377277,
+    "lat": 28.2311,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/3122581508",
+    "kind": "hospital",
+    "name": "Baglungpani Health Post",
+    "nameNe": null,
+    "lon": 84.315788,
+    "lat": 28.245731,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/3122759024",
+    "kind": "hospital",
+    "name": "Bhujung Health Post",
+    "nameNe": null,
+    "lon": 84.266322,
+    "lat": 28.308263,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/3123743150",
+    "kind": "hospital",
+    "name": null,
+    "nameNe": null,
+    "lon": 84.438282,
+    "lat": 28.139964,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/3125478417",
+    "kind": "clinic",
+    "name": "Nepal international clinic",
+    "nameNe": null,
+    "lon": 85.320211,
+    "lat": 27.71302,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/3125993107",
+    "kind": "clinic",
+    "name": "Sanjay Dental Clinic PVT.LTD",
+    "nameNe": null,
+    "lon": 85.358811,
+    "lat": 27.649532,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/3134632750",
+    "kind": "clinic",
+    "name": "Subheta Clinic",
+    "nameNe": null,
+    "lon": 85.305632,
+    "lat": 27.654594,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/3136186084",
+    "kind": "hospital",
+    "name": "shree matri shishu swasthya kendra",
+    "nameNe": null,
+    "lon": 85.389707,
+    "lat": 27.690375,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/3143757536",
+    "kind": "clinic",
+    "name": "Health Centre",
+    "nameNe": null,
+    "lon": 85.532287,
+    "lat": 27.750684,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/3156329581",
+    "kind": "hospital",
+    "name": "Satya Sai Hospital",
+    "nameNe": null,
+    "lon": 85.528428,
+    "lat": 27.62927,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/3156343839",
+    "kind": "clinic",
+    "name": "Baidhya Sher Bahadur Memorial Polyclinic (p) Ltd.",
+    "nameNe": null,
+    "lon": 85.525507,
+    "lat": 27.629933,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/3176537679",
+    "kind": "hospital",
+    "name": "Himalaya Eye Hospital",
+    "nameNe": null,
+    "lon": 83.977176,
+    "lat": 28.190834,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/3176889146",
+    "kind": "clinic",
+    "name": "Vivanta Zahnklinik",
+    "nameNe": null,
+    "lon": 85.330151,
+    "lat": 27.709235,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/3188798590",
+    "kind": "helipad",
+    "name": null,
+    "nameNe": null,
+    "lon": 86.584276,
+    "lat": 27.517151,
+    "tags": {
+     "aeroway": "helipad"
+    }
+   },
+   {
+    "id": "node/3200729485",
+    "kind": "hospital",
+    "name": "Healthpost",
+    "nameNe": null,
+    "lon": 85.319254,
+    "lat": 27.74921,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/3204216965",
+    "kind": "helipad",
+    "name": null,
+    "nameNe": null,
+    "lon": 85.135538,
+    "lat": 27.646691,
+    "tags": {
+     "aeroway": "helipad"
+    }
+   },
+   {
+    "id": "node/3213920067",
+    "kind": "hospital",
+    "name": "Markhu Swastha Chauki",
+    "nameNe": null,
+    "lon": 85.151373,
+    "lat": 27.619851,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/3230169715",
+    "kind": "hospital",
+    "name": "Singati Community Hospital",
+    "nameNe": null,
+    "lon": 86.160595,
+    "lat": 27.736213,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/3234842092",
+    "kind": "helipad",
+    "name": null,
+    "nameNe": null,
+    "lon": 86.110414,
+    "lat": 27.482762,
+    "tags": {
+     "aeroway": "helipad"
+    }
+   },
+   {
+    "id": "node/3234842390",
+    "kind": "helipad",
+    "name": null,
+    "nameNe": null,
+    "lon": 86.10728,
+    "lat": 27.486833,
+    "tags": {
+     "aeroway": "helipad"
+    }
+   },
+   {
+    "id": "node/3238640703",
+    "kind": "helipad",
+    "name": null,
+    "nameNe": null,
+    "lon": 86.06077,
+    "lat": 27.381294,
+    "tags": {
+     "aeroway": "helipad"
+    }
+   },
+   {
+    "id": "node/3254985669",
+    "kind": "clinic",
+    "name": "Indra Medical Hall",
+    "nameNe": null,
+    "lon": 85.280414,
+    "lat": 27.67422,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/3267534953",
+    "kind": "health_post",
+    "name": "dhungkharka upa swastha chowki",
+    "nameNe": null,
+    "lon": 85.48066,
+    "lat": 27.524129,
+    "tags": {
+     "amenity": "health_post"
+    }
+   },
+   {
+    "id": "node/3283396999",
+    "kind": "health_post",
+    "name": "Sajha Swastha Sewa",
+    "nameNe": null,
+    "lon": 84.436942,
+    "lat": 27.681527,
+    "tags": {
+     "amenity": "health_post"
+    }
+   },
+   {
+    "id": "node/3289573673",
+    "kind": "clinic",
+    "name": "Kirtipur Neuro Center and Clinic",
+    "nameNe": null,
+    "lon": 85.279572,
+    "lat": 27.670542,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/3304267148",
+    "kind": "clinic",
+    "name": "Jhigu Bagh Bhairab Polyclinic",
+    "nameNe": null,
+    "lon": 85.280597,
+    "lat": 27.675043,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/3307554781",
+    "kind": "clinic",
+    "name": "Health information and Service Center",
+    "nameNe": null,
+    "lon": 85.276338,
+    "lat": 27.679126,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/3326566394",
+    "kind": "clinic",
+    "name": "Medi Quest Laboratory Clinic Pvt. Ltd",
+    "nameNe": null,
+    "lon": 85.316408,
+    "lat": 27.679568,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/3326566395",
+    "kind": "clinic",
+    "name": "Medi Quest Laboratory Clinic Pvt. Ltd",
+    "nameNe": null,
+    "lon": 85.316351,
+    "lat": 27.679596,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/3335668085",
+    "kind": "hospital",
+    "name": "Omkar Clinic",
+    "nameNe": null,
+    "lon": 85.305284,
+    "lat": 27.669686,
+    "tags": {
+     "amenity": "hospital",
+     "emergency": "no"
+    }
+   },
+   {
+    "id": "node/3343357437",
+    "kind": "hospital",
+    "name": "abaya upchar kendra",
+    "nameNe": null,
+    "lon": 84.422499,
+    "lat": 27.698688,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/3343362893",
+    "kind": "hospital",
+    "name": "avaya upchar kendra",
+    "nameNe": null,
+    "lon": 84.422538,
+    "lat": 27.698723,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/3392229877",
+    "kind": "hospital",
+    "name": "chitwan valley model hospital",
+    "nameNe": null,
+    "lon": 84.431928,
+    "lat": 27.679563,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/3392229878",
+    "kind": "hospital",
+    "name": "bharatpur central hospital",
+    "nameNe": null,
+    "lon": 84.430688,
+    "lat": 27.678641,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/3392281251",
+    "kind": "hospital",
+    "name": "mankamana hospital",
+    "nameNe": null,
+    "lon": 84.432573,
+    "lat": 27.681085,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/3392281252",
+    "kind": "hospital",
+    "name": "om hospital",
+    "nameNe": null,
+    "lon": 84.432257,
+    "lat": 27.681259,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/3392281253",
+    "kind": "hospital",
+    "name": "shanti hospital",
+    "nameNe": null,
+    "lon": 84.431501,
+    "lat": 27.681403,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/3392281256",
+    "kind": "hospital",
+    "name": "national eye hospital",
+    "nameNe": null,
+    "lon": 84.430785,
+    "lat": 27.678216,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/3392281798",
+    "kind": "hospital",
+    "name": "bipi koirala memorial hospital",
+    "nameNe": null,
+    "lon": 84.418451,
+    "lat": 27.664234,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/3392283035",
+    "kind": "hospital",
+    "name": "bharatpur samudaik hospital",
+    "nameNe": null,
+    "lon": 84.433529,
+    "lat": 27.680943,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/3392283036",
+    "kind": "hospital",
+    "name": "chitwan ankha hospital",
+    "nameNe": null,
+    "lon": 84.432342,
+    "lat": 27.681207,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/3392283037",
+    "kind": "hospital",
+    "name": "jay buddha hospital",
+    "nameNe": null,
+    "lon": 84.431357,
+    "lat": 27.681417,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/3392283071",
+    "kind": "hospital",
+    "name": "niko childrens hospital",
+    "nameNe": null,
+    "lon": 84.429444,
+    "lat": 27.685502,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/3392283072",
+    "kind": "hospital",
+    "name": "alive hospital",
+    "nameNe": null,
+    "lon": 84.428718,
+    "lat": 27.685985,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/3392283801",
+    "kind": "hospital",
+    "name": "life care hospital",
+    "nameNe": null,
+    "lon": 84.432306,
+    "lat": 27.683986,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/3392283802",
+    "kind": "hospital",
+    "name": "puspanjali hospital",
+    "nameNe": null,
+    "lon": 84.430175,
+    "lat": 27.682638,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/3392283803",
+    "kind": "hospital",
+    "name": "asha hospital",
+    "nameNe": null,
+    "lon": 84.433386,
+    "lat": 27.680948,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/3392283804",
+    "kind": "hospital",
+    "name": "advance community hospital",
+    "nameNe": null,
+    "lon": 84.431801,
+    "lat": 27.681332,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/3392283805",
+    "kind": "hospital",
+    "name": "maulakalika hospital",
+    "nameNe": null,
+    "lon": 84.430401,
+    "lat": 27.680364,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/3392331573",
+    "kind": "hospital",
+    "name": "Asha Hospital pvt.ltd",
+    "nameNe": null,
+    "lon": 84.433277,
+    "lat": 27.680351,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/3392361328",
+    "kind": "hospital",
+    "name": "Bharatpur Samaudayek Hospital",
+    "nameNe": null,
+    "lon": 84.433468,
+    "lat": 27.680647,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/3392396080",
+    "kind": "hospital",
+    "name": "hemal dental",
+    "nameNe": null,
+    "lon": 84.422406,
+    "lat": 27.694772,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/3392408845",
+    "kind": "hospital",
+    "name": "kantipur dental",
+    "nameNe": null,
+    "lon": 84.422094,
+    "lat": 27.696251,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/3396502785",
+    "kind": "clinic",
+    "name": "Ugratara Unique Polyclinic and Diagnostic Center",
+    "nameNe": null,
+    "lon": 85.281076,
+    "lat": 27.677119,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "node/3404080584",
+    "kind": "hospital",
+    "name": "daefger",
+    "nameNe": null,
+    "lon": 85.508685,
+    "lat": 27.683329,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/3404903235",
+    "kind": "clinic",
+    "name": "Doctor's Clinic",
+    "nameNe": null,
+    "lon": 83.96544,
+    "lat": 28.207055,
+    "tags": {
+     "amenity": "clinic",
+     "operator": "Dr. PK Paul"
+    }
+   },
+   {
+    "id": "node/3408490712",
+    "kind": "hospital",
+    "name": "Rajmarga Samudayak Hospital",
+    "nameNe": null,
+    "lon": 84.833475,
+    "lat": 27.811115,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/3408491510",
+    "kind": "hospital",
+    "name": "Gajuri Hospital",
+    "nameNe": null,
+    "lon": 84.879756,
+    "lat": 27.805271,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/3420801100",
+    "kind": "hospital",
+    "name": "Nanglebhare Health Post",
+    "nameNe": null,
+    "lon": 85.517688,
+    "lat": 27.760908,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/3420819093",
+    "kind": "hospital",
+    "name": "Syuchatar Health Post",
+    "nameNe": null,
+    "lon": 85.26944,
+    "lat": 27.702722,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/3420821593",
+    "kind": "hospital",
+    "name": "Bahirigaun Health Post",
+    "nameNe": null,
+    "lon": 85.266689,
+    "lat": 27.677218,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/3446075301",
+    "kind": "hospital",
+    "name": "eye hospital",
+    "nameNe": null,
+    "lon": 84.807784,
+    "lat": 27.541439,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/3448171227",
+    "kind": "helipad",
+    "name": null,
+    "nameNe": null,
+    "lon": 84.727833,
+    "lat": 27.575068,
+    "tags": {
+     "aeroway": "helipad"
+    }
+   },
+   {
+    "id": "node/3451909072",
+    "kind": "hospital",
+    "name": "Padampur Health Post",
+    "nameNe": null,
+    "lon": 84.506758,
+    "lat": 27.683979,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/3453475229",
+    "kind": "clinic",
+    "name": "Prakash clinic",
+    "nameNe": null,
+    "lon": 84.53144,
+    "lat": 27.683365,
+    "tags": {
+     "amenity": "clinic",
+     "operator": "prakash pijal"
+    }
+   },
+   {
+    "id": "node/3472527245",
+    "kind": "hospital",
+    "name": "Kathar HealthPost",
+    "nameNe": null,
+    "lon": 84.602344,
+    "lat": 27.588164,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/672211925",
+    "kind": "hospital",
+    "name": "Patan Hospital",
+    "nameNe": null,
+    "lon": 85.320379,
+    "lat": 27.668562,
+    "tags": {
+     "amenity": "hospital",
+     "emergency": "yes"
+    }
+   },
+   {
+    "id": "node/764925206",
+    "kind": "hospital",
+    "name": "Bir Hospital",
+    "nameNe": null,
+    "lon": 85.313957,
+    "lat": 27.706414,
+    "tags": {
+     "amenity": "hospital",
+     "emergency": "yes"
+    }
+   },
+   {
+    "id": "node/764926904",
+    "kind": "hospital",
+    "name": "Star Hospital",
+    "nameNe": null,
+    "lon": 85.301107,
+    "lat": 27.684256,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/764946283",
+    "kind": "hospital",
+    "name": "Shree Tribhuwan Chandra Sainik Hospital",
+    "nameNe": null,
+    "lon": 85.313338,
+    "lat": 27.703712,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/764953549",
+    "kind": "hospital",
+    "name": "Sanepa Health Post",
+    "nameNe": null,
+    "lon": 85.302108,
+    "lat": 27.685036,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/852540711",
+    "kind": "doctors",
+    "name": null,
+    "nameNe": null,
+    "lon": 84.403598,
+    "lat": 28.387213,
+    "tags": {
+     "amenity": "doctors"
+    }
+   },
+   {
+    "id": "node/852540919",
+    "kind": "doctors",
+    "name": null,
+    "nameNe": null,
+    "lon": 84.358056,
+    "lat": 28.281296,
+    "tags": {
+     "amenity": "doctors"
+    }
+   },
+   {
+    "id": "node/852541094",
+    "kind": "doctors",
+    "name": null,
+    "nameNe": null,
+    "lon": 84.378711,
+    "lat": 28.243531,
+    "tags": {
+     "amenity": "doctors"
+    }
+   },
+   {
+    "id": "node/852777169",
+    "kind": "doctors",
+    "name": null,
+    "nameNe": null,
+    "lon": 84.373603,
+    "lat": 28.467265,
+    "tags": {
+     "amenity": "doctors"
+    }
+   },
+   {
+    "id": "node/852873680",
+    "kind": "doctors",
+    "name": null,
+    "nameNe": null,
+    "lon": 84.302357,
+    "lat": 28.543958,
+    "tags": {
+     "amenity": "doctors"
+    }
+   },
+   {
+    "id": "node/852891495",
+    "kind": "doctors",
+    "name": null,
+    "nameNe": null,
+    "lon": 84.358053,
+    "lat": 28.518277,
+    "tags": {
+     "amenity": "doctors"
+    }
+   },
+   {
+    "id": "node/852891499",
+    "kind": "doctors",
+    "name": null,
+    "nameNe": null,
+    "lon": 84.355386,
+    "lat": 28.526338,
+    "tags": {
+     "amenity": "doctors"
+    }
+   },
+   {
+    "id": "node/852891586",
+    "kind": "doctors",
+    "name": null,
+    "nameNe": null,
+    "lon": 84.286636,
+    "lat": 28.55175,
+    "tags": {
+     "amenity": "doctors"
+    }
+   },
+   {
+    "id": "node/852891612",
+    "kind": "doctors",
+    "name": null,
+    "nameNe": null,
+    "lon": 84.340119,
+    "lat": 28.533818,
+    "tags": {
+     "amenity": "doctors"
+    }
+   },
+   {
+    "id": "node/852891625",
+    "kind": "doctors",
+    "name": null,
+    "nameNe": null,
+    "lon": 84.242137,
+    "lat": 28.552964,
+    "tags": {
+     "amenity": "doctors"
+    }
+   },
+   {
+    "id": "node/854331953",
+    "kind": "doctors",
+    "name": null,
+    "nameNe": null,
+    "lon": 84.089402,
+    "lat": 28.638836,
+    "tags": {
+     "amenity": "doctors"
+    }
+   },
+   {
+    "id": "node/854331995",
+    "kind": "doctors",
+    "name": null,
+    "nameNe": null,
+    "lon": 84.152005,
+    "lat": 28.617044,
+    "tags": {
+     "amenity": "doctors"
+    }
+   },
+   {
+    "id": "node/854332252",
+    "kind": "doctors",
+    "name": null,
+    "nameNe": null,
+    "lon": 84.023083,
+    "lat": 28.666558,
+    "tags": {
+     "amenity": "doctors"
+    }
+   },
+   {
+    "id": "node/854332344",
+    "kind": "doctors",
+    "name": null,
+    "nameNe": null,
+    "lon": 84.137456,
+    "lat": 28.641934,
+    "tags": {
+     "amenity": "doctors"
+    }
+   },
+   {
+    "id": "node/854367591",
+    "kind": "doctors",
+    "name": null,
+    "nameNe": null,
+    "lon": 83.973337,
+    "lat": 28.669778,
+    "tags": {
+     "amenity": "doctors"
+    }
+   },
+   {
+    "id": "node/943246318",
+    "kind": "hospital",
+    "name": "Manmohan Memorial Hospital",
+    "nameNe": null,
+    "lon": 85.311244,
+    "lat": 27.717939,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "node/994330312",
+    "kind": "hospital",
+    "name": "Dent Inn - The Dental Clinic",
+    "nameNe": null,
+    "lon": 85.318412,
+    "lat": 27.708739,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/108188565",
+    "kind": "hospital",
+    "name": "Tuberculoses Hospital",
+    "nameNe": null,
+    "lon": 84.000335,
+    "lat": 28.212333,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/112117062",
+    "kind": "hospital",
+    "name": "National Trauma Center",
+    "nameNe": null,
+    "lon": 85.313142,
+    "lat": 27.704297,
+    "tags": {
+     "amenity": "hospital",
+     "emergency": "yes"
+    }
+   },
+   {
+    "id": "way/118505122",
+    "kind": "aerodrome",
+    "name": "त्रिभुवन अन्तर्राष्ट्रिय विमानस्थल",
+    "nameNe": null,
+    "lon": 85.359246,
+    "lat": 27.693743,
+    "tags": {
+     "aeroway": "aerodrome",
+     "operator": "Civil Aviation Authority of Nepal (CAAN)",
+     "iata": "KTM",
+     "icao": "VNKT",
+     "ele": "1338"
+    }
+   },
+   {
+    "id": "way/120435385",
+    "kind": "hospital",
+    "name": "Tilganga Institute of Opthalmology",
+    "nameNe": null,
+    "lon": 85.350755,
+    "lat": 27.7054,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/120510900",
+    "kind": "hospital",
+    "name": "Manipal Hospital",
+    "nameNe": null,
+    "lon": 83.997211,
+    "lat": 28.233246,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/120634698",
+    "kind": "hospital",
+    "name": "Hariyo Kharka Hospital",
+    "nameNe": null,
+    "lon": 83.988039,
+    "lat": 28.192743,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/123889550",
+    "kind": "hospital",
+    "name": "KIST hospital",
+    "nameNe": null,
+    "lon": 85.334972,
+    "lat": 27.663076,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "community",
+     "emergency": "yes"
+    }
+   },
+   {
+    "id": "way/124304055",
+    "kind": "hospital",
+    "name": "Norvic Hospital",
+    "nameNe": null,
+    "lon": 85.319172,
+    "lat": 27.690087,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private",
+     "emergency": "yes"
+    }
+   },
+   {
+    "id": "way/124304057",
+    "kind": "hospital",
+    "name": "Paropakar Maternity Hospital",
+    "nameNe": "परोपकार प्रसुति गृह",
+    "lon": 85.318875,
+    "lat": 27.689345,
+    "tags": {
+     "amenity": "hospital",
+     "emergency": "yes"
+    }
+   },
+   {
+    "id": "way/124713260",
+    "kind": "hospital",
+    "name": "Civil Service Hospital",
+    "nameNe": null,
+    "lon": 85.339244,
+    "lat": 27.686594,
+    "tags": {
+     "amenity": "hospital",
+     "emergency": "yes"
+    }
+   },
+   {
+    "id": "way/126708147",
+    "kind": "aerodrome",
+    "name": "Pokhara Airport",
+    "nameNe": null,
+    "lon": 83.981155,
+    "lat": 28.200601,
+    "tags": {
+     "aeroway": "aerodrome",
+     "operator": "Pokhara Civil Aviation Office",
+     "iata": "PKR",
+     "icao": "VNPK",
+     "ele": "827m"
+    }
+   },
+   {
+    "id": "way/138451637",
+    "kind": "hospital",
+    "name": "Ayurvedic Hospital",
+    "nameNe": null,
+    "lon": 85.30544,
+    "lat": 27.707863,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/153036178",
+    "kind": "hospital",
+    "name": "Madi Hospital",
+    "nameNe": null,
+    "lon": 84.320655,
+    "lat": 27.454161,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/155195639",
+    "kind": "helipad",
+    "name": null,
+    "nameNe": null,
+    "lon": 86.730536,
+    "lat": 27.687671,
+    "tags": {
+     "aeroway": "helipad"
+    }
+   },
+   {
+    "id": "way/163599016",
+    "kind": "hospital",
+    "name": "Human Rehabilitation and Development Centre",
+    "nameNe": null,
+    "lon": 85.510829,
+    "lat": 27.628646,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/163603048",
+    "kind": "hospital",
+    "name": "Kathmandu University Hospital",
+    "nameNe": null,
+    "lon": 85.546918,
+    "lat": 27.616431,
+    "tags": {
+     "amenity": "hospital",
+     "emergency": "yes"
+    }
+   },
+   {
+    "id": "way/169429521",
+    "kind": "doctors",
+    "name": "Gyarisan Gad Army Medical",
+    "nameNe": null,
+    "lon": 85.307406,
+    "lat": 27.705302,
+    "tags": {
+     "amenity": "doctors"
+    }
+   },
+   {
+    "id": "way/172477835",
+    "kind": "hospital",
+    "name": "Scheer Memorial Hospital",
+    "nameNe": null,
+    "lon": 85.52765,
+    "lat": 27.633049,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/175444699",
+    "kind": "hospital",
+    "name": "Health Post",
+    "nameNe": null,
+    "lon": 85.180541,
+    "lat": 27.862412,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/176768699",
+    "kind": "hospital",
+    "name": "National Institute of neurological and allied sciences",
+    "nameNe": null,
+    "lon": 85.346007,
+    "lat": 27.748718,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private",
+     "emergency": "yes"
+    }
+   },
+   {
+    "id": "way/176772311",
+    "kind": "hospital",
+    "name": "Shahid Gangalal National Heart Centre",
+    "nameNe": null,
+    "lon": 85.343539,
+    "lat": 27.745881,
+    "tags": {
+     "amenity": "hospital",
+     "emergency": "yes"
+    }
+   },
+   {
+    "id": "way/176939407",
+    "kind": "hospital",
+    "name": "Kanti Children's Hospital",
+    "nameNe": null,
+    "lon": 85.328207,
+    "lat": 27.734823,
+    "tags": {
+     "amenity": "hospital",
+     "emergency": "yes"
+    }
+   },
+   {
+    "id": "way/178915323",
+    "kind": "doctors",
+    "name": "Nepal  Heart Care Center",
+    "nameNe": null,
+    "lon": 85.309746,
+    "lat": 27.677071,
+    "tags": {
+     "amenity": "doctors"
+    }
+   },
+   {
+    "id": "way/178927729",
+    "kind": "hospital",
+    "name": "Alka Hospital",
+    "nameNe": null,
+    "lon": 85.31507,
+    "lat": 27.674574,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/179096427",
+    "kind": "hospital",
+    "name": "Bhaktapur Hospital",
+    "nameNe": null,
+    "lon": 85.421923,
+    "lat": 27.672387,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/179243141",
+    "kind": "hospital",
+    "name": "Ayurvedic Hospital",
+    "nameNe": null,
+    "lon": 85.289394,
+    "lat": 27.676809,
+    "tags": {
+     "amenity": "hospital",
+     "operator": "Tribhuwan University"
+    }
+   },
+   {
+    "id": "way/179243142",
+    "kind": "hospital",
+    "name": "Ayurvedic Teaching Hospital (OPD)",
+    "nameNe": null,
+    "lon": 85.290248,
+    "lat": 27.675774,
+    "tags": {
+     "amenity": "hospital",
+     "operator": "Tribhuwan University"
+    }
+   },
+   {
+    "id": "way/179469145",
+    "kind": "hospital",
+    "name": "BioMed Hospital",
+    "nameNe": null,
+    "lon": 85.331108,
+    "lat": 27.722718,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/180082316",
+    "kind": "clinic",
+    "name": "Basundhara Polyclinic",
+    "nameNe": null,
+    "lon": 85.335989,
+    "lat": 27.741034,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/180682229",
+    "kind": "hospital",
+    "name": "Wellness Hospital",
+    "nameNe": null,
+    "lon": 85.341012,
+    "lat": 27.743807,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/181032115",
+    "kind": "clinic",
+    "name": "Biraj Dental Hospital",
+    "nameNe": null,
+    "lon": 85.348842,
+    "lat": 27.679863,
+    "tags": {
+     "amenity": "clinic",
+     "operator": "Biraj Dental Hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/181240970",
+    "kind": "health_post",
+    "name": "Champadevi Health Post",
+    "nameNe": null,
+    "lon": 85.257145,
+    "lat": 27.666486,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/181427346",
+    "kind": "hospital",
+    "name": "ManMohan Cardiothoracic Vascular & Transplant Center",
+    "nameNe": null,
+    "lon": 85.328723,
+    "lat": 27.735852,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/181427418",
+    "kind": "hospital",
+    "name": "TUTH Emergency Center",
+    "nameNe": "टिचिङ अस्पताल",
+    "lon": 85.330585,
+    "lat": 27.735965,
+    "tags": {
+     "amenity": "hospital",
+     "emergency": "yes"
+    }
+   },
+   {
+    "id": "way/181575432",
+    "kind": "hospital",
+    "name": "Mental Hospital",
+    "nameNe": null,
+    "lon": 85.322387,
+    "lat": 27.667994,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/182115996",
+    "kind": "clinic",
+    "name": "City Polyclinic",
+    "nameNe": null,
+    "lon": 85.346215,
+    "lat": 27.678308,
+    "tags": {
+     "amenity": "clinic",
+     "operator": "City Polyclinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/184101833",
+    "kind": "hospital",
+    "name": "Siddhi Memorial Hospital",
+    "nameNe": null,
+    "lon": 85.432342,
+    "lat": 27.668332,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "community"
+    }
+   },
+   {
+    "id": "way/184884802",
+    "kind": "helipad",
+    "name": null,
+    "nameNe": null,
+    "lon": 85.321752,
+    "lat": 27.716506,
+    "tags": {
+     "aeroway": "helipad"
+    }
+   },
+   {
+    "id": "way/184884803",
+    "kind": "helipad",
+    "name": null,
+    "nameNe": null,
+    "lon": 85.321948,
+    "lat": 27.716955,
+    "tags": {
+     "aeroway": "helipad"
+    }
+   },
+   {
+    "id": "way/185408109",
+    "kind": "helipad",
+    "name": null,
+    "nameNe": null,
+    "lon": 85.362264,
+    "lat": 27.697655,
+    "tags": {
+     "aeroway": "helipad"
+    }
+   },
+   {
+    "id": "way/185943151",
+    "kind": "hospital",
+    "name": "Nepal Eye Hospital",
+    "nameNe": null,
+    "lon": 85.313971,
+    "lat": 27.692849,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/185943152",
+    "kind": "hospital",
+    "name": "Nepal Eye Hospital",
+    "nameNe": null,
+    "lon": 85.313637,
+    "lat": 27.693112,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "government",
+     "emergency": "yes"
+    }
+   },
+   {
+    "id": "way/185943727",
+    "kind": "hospital",
+    "name": "National Tuberculosis Center",
+    "nameNe": null,
+    "lon": 85.382623,
+    "lat": 27.67391,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/185943730",
+    "kind": "hospital",
+    "name": "SAARCTuberculosis Center",
+    "nameNe": null,
+    "lon": 85.381997,
+    "lat": 27.67391,
+    "tags": {
+     "amenity": "hospital",
+     "operator": "SAARCTuberculosis Center",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/186777941",
+    "kind": "hospital",
+    "name": "Khopasi Health Post",
+    "nameNe": null,
+    "lon": 85.536273,
+    "lat": 27.564417,
+    "tags": {
+     "amenity": "hospital",
+     "emergency": "no"
+    }
+   },
+   {
+    "id": "way/188452510",
+    "kind": "helipad",
+    "name": null,
+    "nameNe": null,
+    "lon": 84.411763,
+    "lat": 27.726507,
+    "tags": {
+     "aeroway": "helipad"
+    }
+   },
+   {
+    "id": "way/189326442",
+    "kind": "helipad",
+    "name": null,
+    "nameNe": null,
+    "lon": 85.329735,
+    "lat": 27.726537,
+    "tags": {
+     "aeroway": "helipad"
+    }
+   },
+   {
+    "id": "way/190889375",
+    "kind": "hospital",
+    "name": "Om Hospital and Research Center",
+    "nameNe": null,
+    "lon": 85.344854,
+    "lat": 27.721342,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/191552792",
+    "kind": "hospital",
+    "name": "Pawai Gamde Hospital",
+    "nameNe": null,
+    "lon": 83.913752,
+    "lat": 28.121693,
+    "tags": {
+     "amenity": "hospital",
+     "emergency": "yes"
+    }
+   },
+   {
+    "id": "way/194057065",
+    "kind": "hospital",
+    "name": null,
+    "nameNe": null,
+    "lon": 85.335444,
+    "lat": 27.708026,
+    "tags": {
+     "amenity": "hospital",
+     "operator": "welcare hospital and research centre"
+    }
+   },
+   {
+    "id": "way/194732734",
+    "kind": "health_post",
+    "name": "Panga Balkumari Sub Health Post",
+    "nameNe": null,
+    "lon": 85.275432,
+    "lat": 27.668272,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/194899597",
+    "kind": "hospital",
+    "name": "Spinal Injury Rahabilitation Center",
+    "nameNe": null,
+    "lon": 85.492136,
+    "lat": 27.637441,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/197474200",
+    "kind": "hospital",
+    "name": "BP Smriti Hospital",
+    "nameNe": null,
+    "lon": 85.326675,
+    "lat": 27.739429,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "community"
+    }
+   },
+   {
+    "id": "way/197615452",
+    "kind": "hospital",
+    "name": "Ishan Bal Tatha Mahila Aspataal",
+    "nameNe": null,
+    "lon": 85.332955,
+    "lat": 27.742435,
+    "tags": {
+     "amenity": "hospital",
+     "operator": "Ishan Bal Tatha Mahila Aspataal",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/197753616",
+    "kind": "hospital",
+    "name": "Sahara Hospital",
+    "nameNe": null,
+    "lon": 85.32615,
+    "lat": 27.737382,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/198032237",
+    "kind": "hospital",
+    "name": "Nepal Medical College and Teaching Hospital",
+    "nameNe": null,
+    "lon": 85.380615,
+    "lat": 27.733513,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/198110733",
+    "kind": "hospital",
+    "name": "Annapurna Neurological Institute and Applied Sciences",
+    "nameNe": null,
+    "lon": 85.32157,
+    "lat": 27.694813,
+    "tags": {
+     "amenity": "hospital",
+     "operator": "Annapurna Neurological Institute and Applied Sciences",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/199973024",
+    "kind": "hospital",
+    "name": "Bir Hospital",
+    "nameNe": null,
+    "lon": 85.313353,
+    "lat": 27.705211,
+    "tags": {
+     "amenity": "hospital",
+     "emergency": "yes"
+    }
+   },
+   {
+    "id": "way/201380503",
+    "kind": "hospital",
+    "name": "swatha parichyan",
+    "nameNe": null,
+    "lon": 85.32523,
+    "lat": 27.705758,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/203556781",
+    "kind": "hospital",
+    "name": null,
+    "nameNe": null,
+    "lon": 86.048859,
+    "lat": 27.662922,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/203556807",
+    "kind": "hospital",
+    "name": "TshoRolpa Hospital",
+    "nameNe": null,
+    "lon": 86.048431,
+    "lat": 27.663466,
+    "tags": {
+     "amenity": "hospital",
+     "emergency": "yes"
+    }
+   },
+   {
+    "id": "way/203685817",
+    "kind": "hospital",
+    "name": "Dr.Iwanura Memorial Hospital and Research Center",
+    "nameNe": null,
+    "lon": 85.411699,
+    "lat": 27.672387,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/204127848",
+    "kind": "hospital",
+    "name": "Manipal Hospital",
+    "nameNe": null,
+    "lon": 83.99665,
+    "lat": 28.236478,
+    "tags": {
+     "amenity": "hospital",
+     "emergency": "yes"
+    }
+   },
+   {
+    "id": "way/204342774",
+    "kind": "hospital",
+    "name": "Himal Dental Hospital",
+    "nameNe": null,
+    "lon": 85.346427,
+    "lat": 27.717765,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/205438152",
+    "kind": "hospital",
+    "name": "Ayurvedic Hospital",
+    "nameNe": null,
+    "lon": 85.289901,
+    "lat": 27.675983,
+    "tags": {
+     "amenity": "hospital",
+     "operator": "Tribhuwan University"
+    }
+   },
+   {
+    "id": "way/205718505",
+    "kind": "hospital",
+    "name": "Mahendra Narayan Nidhi Memorial Hospital",
+    "nameNe": null,
+    "lon": 85.345644,
+    "lat": 27.70568,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "community"
+    }
+   },
+   {
+    "id": "way/205723462",
+    "kind": "clinic",
+    "name": "Revive Polyclinic Private Limited",
+    "nameNe": null,
+    "lon": 85.346332,
+    "lat": 27.705496,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/206056043",
+    "kind": "clinic",
+    "name": "MV Polyclinic",
+    "nameNe": null,
+    "lon": 85.348016,
+    "lat": 27.69847,
+    "tags": {
+     "amenity": "clinic",
+     "operator": "MV Polyclinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/206056045",
+    "kind": "clinic",
+    "name": "City Top Polyclinic and Medical Center",
+    "nameNe": null,
+    "lon": 85.348076,
+    "lat": 27.69844,
+    "tags": {
+     "amenity": "clinic",
+     "operator": "City Top Polyclinic and Medical Center"
+    }
+   },
+   {
+    "id": "way/206130424",
+    "kind": "clinic",
+    "name": "Pk Diagnostic Center",
+    "nameNe": null,
+    "lon": 85.349142,
+    "lat": 27.697726,
+    "tags": {
+     "amenity": "clinic",
+     "operator": "Pk Diagnostic Center",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/206715775",
+    "kind": "health_post",
+    "name": "Sainbu Health Post",
+    "nameNe": null,
+    "lon": 85.30515,
+    "lat": 27.647187,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/206816619",
+    "kind": "clinic",
+    "name": "Samaj Dental Care & clinic",
+    "nameNe": null,
+    "lon": 85.33856,
+    "lat": 27.690808,
+    "tags": {
+     "amenity": "clinic",
+     "operator": "Samaj Dental Care & clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/207106730",
+    "kind": "health_post",
+    "name": "Dharmasthali Health Post",
+    "nameNe": null,
+    "lon": 85.300844,
+    "lat": 27.76477,
+    "tags": {
+     "amenity": "health_post",
+     "operator": "Dhapasi Health Post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/207412810",
+    "kind": "hospital",
+    "name": "Suvechhya Hospital",
+    "nameNe": null,
+    "lon": 85.281095,
+    "lat": 27.709095,
+    "tags": {
+     "amenity": "hospital",
+     "emergency": "yes"
+    }
+   },
+   {
+    "id": "way/208175247",
+    "kind": "hospital",
+    "name": "Janamitre Hospital",
+    "nameNe": null,
+    "lon": 85.30332,
+    "lat": 27.728184,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "community"
+    }
+   },
+   {
+    "id": "way/208681773",
+    "kind": "hospital",
+    "name": "Nepal Plastic Surgery Hospital",
+    "nameNe": null,
+    "lon": 85.337787,
+    "lat": 27.643462,
+    "tags": {
+     "amenity": "hospital",
+     "operator": "Nepal Plastic Surgery Hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/209182010",
+    "kind": "hospital",
+    "name": "kb polyclinic",
+    "nameNe": null,
+    "lon": 85.521943,
+    "lat": 27.629692,
+    "tags": {
+     "amenity": "hospital",
+     "emergency": "yes"
+    }
+   },
+   {
+    "id": "way/209488771",
+    "kind": "clinic",
+    "name": "Smile Dental Hospital",
+    "nameNe": null,
+    "lon": 85.361709,
+    "lat": 27.720535,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/209538203",
+    "kind": "clinic",
+    "name": "Janaki Polyclinic",
+    "nameNe": null,
+    "lon": 85.351501,
+    "lat": 27.673947,
+    "tags": {
+     "amenity": "clinic",
+     "operator": "Janaki Polyclinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/209638924",
+    "kind": "hospital",
+    "name": "Mental hospital",
+    "nameNe": null,
+    "lon": 85.415521,
+    "lat": 27.735481,
+    "tags": {
+     "amenity": "hospital",
+     "operator": "Mental Hopital"
+    }
+   },
+   {
+    "id": "way/209781455",
+    "kind": "hospital",
+    "name": "Kalaiya Hospital",
+    "nameNe": null,
+    "lon": 85.002586,
+    "lat": 27.027423,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/209874600",
+    "kind": "hospital",
+    "name": "Mental hospital",
+    "nameNe": null,
+    "lon": 85.415594,
+    "lat": 27.735574,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/210206522",
+    "kind": "health_post",
+    "name": "Bishnudevi Primary Health Center",
+    "nameNe": null,
+    "lon": 85.276674,
+    "lat": 27.680582,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/210562223",
+    "kind": "hospital",
+    "name": "Chartered Dental Hospital",
+    "nameNe": null,
+    "lon": 85.333704,
+    "lat": 27.742136,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/211083277",
+    "kind": "clinic",
+    "name": "Jana Swastha Kendra",
+    "nameNe": null,
+    "lon": 85.430319,
+    "lat": 27.670582,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/211436969",
+    "kind": "hospital",
+    "name": "Laliguras Hospital",
+    "nameNe": null,
+    "lon": 85.321447,
+    "lat": 27.658423,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/211651975",
+    "kind": "clinic",
+    "name": "Sunaulo Vabisya Nepal",
+    "nameNe": null,
+    "lon": 85.345803,
+    "lat": 27.713856,
+    "tags": {
+     "amenity": "clinic",
+     "operator": "Sunaulo Vabisya Nepal",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/211750710",
+    "kind": "hospital",
+    "name": "Sumeru Hospital",
+    "nameNe": null,
+    "lon": 85.325758,
+    "lat": 27.644825,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private",
+     "emergency": "yes"
+    }
+   },
+   {
+    "id": "way/211851297",
+    "kind": "clinic",
+    "name": "Elite Pathology Clinic & dental House",
+    "nameNe": null,
+    "lon": 85.339918,
+    "lat": 27.700957,
+    "tags": {
+     "amenity": "clinic",
+     "operator": "Elite Pathology Clinic & dental House",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/211858815",
+    "kind": "hospital",
+    "name": "Shuvatara Hospital",
+    "nameNe": null,
+    "lon": 85.31879,
+    "lat": 27.661607,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private",
+     "emergency": "yes"
+    }
+   },
+   {
+    "id": "way/211891413",
+    "kind": "health_post",
+    "name": "Pukhulachi Health Post",
+    "nameNe": null,
+    "lon": 85.462449,
+    "lat": 27.730053,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/211897513",
+    "kind": "hospital",
+    "name": "Natural Health Hospital",
+    "nameNe": null,
+    "lon": 85.34559,
+    "lat": 27.69593,
+    "tags": {
+     "amenity": "hospital",
+     "operator": "Natural Health Hospital",
+     "operator:type": "community"
+    }
+   },
+   {
+    "id": "way/211903388",
+    "kind": "clinic",
+    "name": "Sindu Dental clinic",
+    "nameNe": null,
+    "lon": 85.341111,
+    "lat": 27.701236,
+    "tags": {
+     "amenity": "clinic",
+     "operator": "Sindu Dental Clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/212678297",
+    "kind": "clinic",
+    "name": "Charu Polyclinic and Diagonostic Centre",
+    "nameNe": null,
+    "lon": 85.345583,
+    "lat": 27.716974,
+    "tags": {
+     "amenity": "clinic",
+     "operator": "Charu Polyclinic and Diagonostic Centre",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/213277509",
+    "kind": "hospital",
+    "name": "Chautara District Hospital",
+    "nameNe": null,
+    "lon": 85.710944,
+    "lat": 27.780455,
+    "tags": {
+     "amenity": "hospital",
+     "emergency": "yes"
+    }
+   },
+   {
+    "id": "way/213485542",
+    "kind": "clinic",
+    "name": "Cosmos Diagonosis and Research Centre",
+    "nameNe": null,
+    "lon": 85.339794,
+    "lat": 27.708115,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/213485583",
+    "kind": "clinic",
+    "name": "Reliance Medicare and Research Centre",
+    "nameNe": null,
+    "lon": 85.339562,
+    "lat": 27.708087,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/215554749",
+    "kind": "hospital",
+    "name": "Helping Hands Community Hospital",
+    "nameNe": null,
+    "lon": 85.346219,
+    "lat": 27.717514,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/215554750",
+    "kind": "clinic",
+    "name": "Siddhi Poly Path Lab",
+    "nameNe": null,
+    "lon": 85.327108,
+    "lat": 27.707355,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/216443708",
+    "kind": "hospital",
+    "name": "Nepal Beijing Friendship Hospital",
+    "nameNe": null,
+    "lon": 85.329984,
+    "lat": 27.73149,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/216495799",
+    "kind": "clinic",
+    "name": "Bhaktapur Janaswastha",
+    "nameNe": null,
+    "lon": 85.439,
+    "lat": 27.673714,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "community"
+    }
+   },
+   {
+    "id": "way/216607337",
+    "kind": "hospital",
+    "name": null,
+    "nameNe": null,
+    "lon": 85.335258,
+    "lat": 27.70795,
+    "tags": {
+     "amenity": "hospital",
+     "operator": "Welcare Hospital and research centre"
+    }
+   },
+   {
+    "id": "way/216607338",
+    "kind": "hospital",
+    "name": "Welcare Hospital and research centre",
+    "nameNe": null,
+    "lon": 85.335371,
+    "lat": 27.708011,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/216607346",
+    "kind": "hospital",
+    "name": null,
+    "nameNe": null,
+    "lon": 85.335375,
+    "lat": 27.708094,
+    "tags": {
+     "amenity": "hospital",
+     "operator": "welcare hospital and research centre"
+    }
+   },
+   {
+    "id": "way/216705743",
+    "kind": "hospital",
+    "name": "Maruti Children Hospital",
+    "nameNe": null,
+    "lon": 85.328707,
+    "lat": 27.735293,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/217129152",
+    "kind": "clinic",
+    "name": "Samrat Polyclinic",
+    "nameNe": null,
+    "lon": 85.346012,
+    "lat": 27.719888,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/217604069",
+    "kind": "clinic",
+    "name": "siddhi poly clinic and diagonistic center",
+    "nameNe": null,
+    "lon": 85.331887,
+    "lat": 27.708486,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/217832006",
+    "kind": "clinic",
+    "name": "Meridian Health Care Center",
+    "nameNe": null,
+    "lon": 85.33553,
+    "lat": 27.738766,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/218203441",
+    "kind": "hospital",
+    "name": "Green City Hospital",
+    "nameNe": null,
+    "lon": 85.322778,
+    "lat": 27.737264,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/218658111",
+    "kind": "clinic",
+    "name": "Shrijanshil Polyclinic",
+    "nameNe": null,
+    "lon": 85.371432,
+    "lat": 27.694403,
+    "tags": {
+     "amenity": "clinic",
+     "operator": "Shrijanshil Polyclinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/218939781",
+    "kind": "aerodrome",
+    "name": "Meghauli Airport",
+    "nameNe": null,
+    "lon": 84.229126,
+    "lat": 27.577437,
+    "tags": {
+     "aeroway": "aerodrome",
+     "iata": "MEY",
+     "icao": "VNMG",
+     "ele": "152"
+    }
+   },
+   {
+    "id": "way/218983847",
+    "kind": "health_post",
+    "name": "Jhaukhel Sub Health Post",
+    "nameNe": null,
+    "lon": 85.427422,
+    "lat": 27.703434,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/218984210",
+    "kind": "hospital",
+    "name": "New Life Health Care Pvt. Ltd.",
+    "nameNe": null,
+    "lon": 85.350078,
+    "lat": 27.714425,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/218991123",
+    "kind": "clinic",
+    "name": "Metro Clinic Pvt. Ltd.",
+    "nameNe": null,
+    "lon": 85.317271,
+    "lat": 27.691074,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/218996293",
+    "kind": "clinic",
+    "name": "Lions Health Service Centre",
+    "nameNe": null,
+    "lon": 85.343404,
+    "lat": 27.715317,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "community"
+    }
+   },
+   {
+    "id": "way/219072866",
+    "kind": "hospital",
+    "name": "mhf",
+    "nameNe": null,
+    "lon": 85.330145,
+    "lat": 27.753688,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/219228171",
+    "kind": "clinic",
+    "name": "Om shibaba memorial poly clinic",
+    "nameNe": null,
+    "lon": 85.2911,
+    "lat": 27.726596,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/219394126",
+    "kind": "clinic",
+    "name": "Shrijana Medical Centre & Polyclinic",
+    "nameNe": null,
+    "lon": 85.346445,
+    "lat": 27.718019,
+    "tags": {
+     "amenity": "clinic",
+     "operator": "buddha dental hospital/shrijana medical centre & polyclinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/219395680",
+    "kind": "hospital",
+    "name": "Om Samaj Dental Hospital",
+    "nameNe": null,
+    "lon": 85.346325,
+    "lat": 27.717643,
+    "tags": {
+     "amenity": "hospital",
+     "operator": "Om Samaj Dental Hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/219618845",
+    "kind": "clinic",
+    "name": "Chhatrapati Free Clinic",
+    "nameNe": null,
+    "lon": 85.30857,
+    "lat": 27.710685,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "community"
+    }
+   },
+   {
+    "id": "way/219618916",
+    "kind": "hospital",
+    "name": "Pashupati Community Hospital",
+    "nameNe": null,
+    "lon": 85.351826,
+    "lat": 27.719099,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "community"
+    }
+   },
+   {
+    "id": "way/219619001",
+    "kind": "hospital",
+    "name": "Nagarik Hospital",
+    "nameNe": null,
+    "lon": 85.375059,
+    "lat": 27.673452,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "community",
+     "emergency": "yes"
+    }
+   },
+   {
+    "id": "way/219627305",
+    "kind": "hospital",
+    "name": "North point Hospital",
+    "nameNe": null,
+    "lon": 85.346487,
+    "lat": 27.75204,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/219630643",
+    "kind": "hospital",
+    "name": "mediasia diagonastics centre",
+    "nameNe": null,
+    "lon": 85.339772,
+    "lat": 27.743867,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/219640820",
+    "kind": "clinic",
+    "name": "Advance Policlinic",
+    "nameNe": null,
+    "lon": 85.323935,
+    "lat": 27.727311,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/219723951",
+    "kind": "clinic",
+    "name": "Gothatar Polyclinic and lab centre",
+    "nameNe": null,
+    "lon": 85.372725,
+    "lat": 27.698191,
+    "tags": {
+     "amenity": "clinic",
+     "operator": "Gothatar Polyclinic ans Lab Centre",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/219973934",
+    "kind": "hospital",
+    "name": "Nepal Korea Friendship Hospital",
+    "nameNe": null,
+    "lon": 85.383778,
+    "lat": 27.678856,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "community"
+    }
+   },
+   {
+    "id": "way/220113392",
+    "kind": "hospital",
+    "name": "Golfutar Eye Hospital",
+    "nameNe": null,
+    "lon": 85.345655,
+    "lat": 27.751323,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/220113394",
+    "kind": "health_post",
+    "name": "mahankal upa swastha chowki",
+    "nameNe": null,
+    "lon": 85.347184,
+    "lat": 27.750262,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/220118011",
+    "kind": "hospital",
+    "name": "Anmol Hospital And research Centre",
+    "nameNe": null,
+    "lon": 85.353652,
+    "lat": 27.764104,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/220118013",
+    "kind": "health_post",
+    "name": "Budhanilakantha swasthi chowki",
+    "nameNe": null,
+    "lon": 85.354326,
+    "lat": 27.766509,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/220212853",
+    "kind": "hospital",
+    "name": "Samaj Dental Hospital",
+    "nameNe": null,
+    "lon": 85.357657,
+    "lat": 27.725727,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/220213917",
+    "kind": "hospital",
+    "name": "Sechan Clinic & Hospice",
+    "nameNe": null,
+    "lon": 85.359881,
+    "lat": 27.724564,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/220235471",
+    "kind": "health_post",
+    "name": "Gundu Health post",
+    "nameNe": null,
+    "lon": 85.409113,
+    "lat": 27.647834,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/220247523",
+    "kind": "health_post",
+    "name": "Chapali Bhadrakali upa swastha chowki",
+    "nameNe": null,
+    "lon": 85.362154,
+    "lat": 27.771135,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/220263462",
+    "kind": "health_post",
+    "name": "Chhaling Health Post",
+    "nameNe": null,
+    "lon": 85.450738,
+    "lat": 27.7012,
+    "tags": {
+     "amenity": "health_post",
+     "operator": "Chhaling Health Post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/220295541",
+    "kind": "health_post",
+    "name": "Bode Swastha Chauki",
+    "nameNe": null,
+    "lon": 85.392619,
+    "lat": 27.692117,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/220295683",
+    "kind": "health_post",
+    "name": "Nagadesh Swastha Chauki",
+    "nameNe": null,
+    "lon": 85.385719,
+    "lat": 27.685129,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/220316414",
+    "kind": "hospital",
+    "name": "Punarjiban Hospital",
+    "nameNe": null,
+    "lon": 85.340767,
+    "lat": 27.672604,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/220336145",
+    "kind": "hospital",
+    "name": "Madhyapur Hospital",
+    "nameNe": null,
+    "lon": 85.386822,
+    "lat": 27.673133,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/220414578",
+    "kind": "hospital",
+    "name": "Anmol Hospital and Research Centre",
+    "nameNe": null,
+    "lon": 85.343953,
+    "lat": 27.731843,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/220560204",
+    "kind": "health_post",
+    "name": "Tathali Health post",
+    "nameNe": null,
+    "lon": 85.481033,
+    "lat": 27.665522,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/220565947",
+    "kind": "health_post",
+    "name": "Sudal Sub Health post",
+    "nameNe": null,
+    "lon": 85.481416,
+    "lat": 27.682852,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/220975989",
+    "kind": "hospital",
+    "name": "motherland hospital pvt.Ltd",
+    "nameNe": null,
+    "lon": 85.361429,
+    "lat": 27.691348,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/220986127",
+    "kind": "hospital",
+    "name": "gandhi samudayik hospital",
+    "nameNe": null,
+    "lon": 85.36841,
+    "lat": 27.696666,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "community"
+    }
+   },
+   {
+    "id": "way/220987130",
+    "kind": "hospital",
+    "name": "biraj dental hospital & research centre",
+    "nameNe": null,
+    "lon": 85.34577,
+    "lat": 27.716863,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/221006337",
+    "kind": "clinic",
+    "name": "Chabahil Polyclinic",
+    "nameNe": null,
+    "lon": 85.3508,
+    "lat": 27.71876,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/221047767",
+    "kind": "hospital",
+    "name": "Kathmandu E.N.T. Hospital and Research Center",
+    "nameNe": null,
+    "lon": 85.318244,
+    "lat": 27.703622,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/221201559",
+    "kind": "health_post",
+    "name": "Bageshwari Health Post",
+    "nameNe": null,
+    "lon": 85.47737,
+    "lat": 27.692998,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/221295252",
+    "kind": "hospital",
+    "name": "All Nepal Hospital",
+    "nameNe": null,
+    "lon": 85.31752,
+    "lat": 27.734539,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/221295256",
+    "kind": "hospital",
+    "name": "International Friendship Children's Hospital",
+    "nameNe": null,
+    "lon": 85.326386,
+    "lat": 27.731471,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "community"
+    }
+   },
+   {
+    "id": "way/221327923",
+    "kind": "clinic",
+    "name": "Bal Bikash Samaj Clinic",
+    "nameNe": null,
+    "lon": 85.36475,
+    "lat": 27.733309,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "community"
+    }
+   },
+   {
+    "id": "way/221344946",
+    "kind": "hospital",
+    "name": "Sarvanga Hospital",
+    "nameNe": null,
+    "lon": 85.316678,
+    "lat": 27.685595,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/221353876",
+    "kind": "hospital",
+    "name": "Fatima Healing Centre",
+    "nameNe": null,
+    "lon": 85.364018,
+    "lat": 27.726725,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/221353886",
+    "kind": "hospital",
+    "name": "Blue Lotus Hospital",
+    "nameNe": null,
+    "lon": 85.310633,
+    "lat": 27.694264,
+    "tags": {
+     "amenity": "hospital",
+     "operator": "Blue Lotus Hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/221353887",
+    "kind": "clinic",
+    "name": "The Dental Venue",
+    "nameNe": null,
+    "lon": 85.31063,
+    "lat": 27.695148,
+    "tags": {
+     "amenity": "clinic",
+     "operator": "The Dental Venue",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/221372881",
+    "kind": "health_post",
+    "name": "Gokarna Primary Health Care",
+    "nameNe": null,
+    "lon": 85.387338,
+    "lat": 27.739367,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/221376213",
+    "kind": "hospital",
+    "name": "Stupa Community Hospital",
+    "nameNe": null,
+    "lon": 85.364884,
+    "lat": 27.72077,
+    "tags": {
+     "amenity": "hospital",
+     "operator": "Stupa Community Hospital",
+     "operator:type": "community"
+    }
+   },
+   {
+    "id": "way/221381159",
+    "kind": "clinic",
+    "name": "Venus Health Care & Research Centre",
+    "nameNe": null,
+    "lon": 85.343114,
+    "lat": 27.710821,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/221425312",
+    "kind": "clinic",
+    "name": "Golmeshowr Pharmacy & Doctor's Clinic",
+    "nameNe": null,
+    "lon": 85.363837,
+    "lat": 27.726338,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/221694253",
+    "kind": "hospital",
+    "name": "Kathmandu Model Hospital",
+    "nameNe": null,
+    "lon": 85.320139,
+    "lat": 27.702694,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/221727448",
+    "kind": "hospital",
+    "name": "Blue Cross Diagnostic Center",
+    "nameNe": null,
+    "lon": 85.318128,
+    "lat": 27.706288,
+    "tags": {
+     "amenity": "hospital",
+     "operator": "Blue Cross Diagnostic Center",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/221727449",
+    "kind": "hospital",
+    "name": "Kathmandu Model Hospital Dental Department",
+    "nameNe": null,
+    "lon": 85.318192,
+    "lat": 27.706536,
+    "tags": {
+     "amenity": "hospital",
+     "operator": "Kathmandu Model Hospital Dental Department",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/221824840",
+    "kind": "hospital",
+    "name": "Kundalini Hospital",
+    "nameNe": null,
+    "lon": 85.306316,
+    "lat": 27.679585,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/221824844",
+    "kind": "hospital",
+    "name": "Sumeru City Hospital",
+    "nameNe": null,
+    "lon": 85.314815,
+    "lat": 27.676018,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/222136578",
+    "kind": "hospital",
+    "name": "Vayodha Hospital",
+    "nameNe": null,
+    "lon": 85.298308,
+    "lat": 27.684276,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/222136598",
+    "kind": "helipad",
+    "name": null,
+    "nameNe": null,
+    "lon": 85.298179,
+    "lat": 27.684463,
+    "tags": {
+     "aeroway": "helipad",
+     "operator": "Vayodha Hospital"
+    }
+   },
+   {
+    "id": "way/222147048",
+    "kind": "health_post",
+    "name": "Kapan Swastha Chowki",
+    "nameNe": null,
+    "lon": 85.362354,
+    "lat": 27.738942,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/222180172",
+    "kind": "hospital",
+    "name": "Kirtipur Hospital",
+    "nameNe": null,
+    "lon": 85.273743,
+    "lat": 27.682563,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "community"
+    }
+   },
+   {
+    "id": "way/222180847",
+    "kind": "clinic",
+    "name": "Life Medical Centre Polytechnic",
+    "nameNe": null,
+    "lon": 85.349908,
+    "lat": 27.701243,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/222180855",
+    "kind": "clinic",
+    "name": "Nozomi Polyclinic",
+    "nameNe": null,
+    "lon": 85.350577,
+    "lat": 27.697001,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/222180856",
+    "kind": "clinic",
+    "name": "Reliable Polyclinic and Pathology Lab",
+    "nameNe": null,
+    "lon": 85.348762,
+    "lat": 27.703323,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/222340118",
+    "kind": "health_post",
+    "name": "Ward 15 Swastha Clinic",
+    "nameNe": null,
+    "lon": 85.326243,
+    "lat": 27.656867,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/222724349",
+    "kind": "hospital",
+    "name": "shiva jyoti hospital & research center",
+    "nameNe": null,
+    "lon": 85.297981,
+    "lat": 27.685655,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/222753144",
+    "kind": "clinic",
+    "name": "Aradhana Health Care Centre",
+    "nameNe": null,
+    "lon": 85.324553,
+    "lat": 27.747935,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/222779972",
+    "kind": "hospital",
+    "name": "Kantipur Hospital",
+    "nameNe": null,
+    "lon": 85.344984,
+    "lat": 27.68574,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/222838860",
+    "kind": "clinic",
+    "name": "JMC Polyclinic",
+    "nameNe": null,
+    "lon": 85.350348,
+    "lat": 27.70307,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/222864245",
+    "kind": "hospital",
+    "name": "Meteri Hospital",
+    "nameNe": null,
+    "lon": 85.359631,
+    "lat": 27.674149,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/222864663",
+    "kind": "hospital",
+    "name": "manohara samudayik swastha kendra",
+    "nameNe": null,
+    "lon": 85.359746,
+    "lat": 27.673458,
+    "tags": {
+     "amenity": "hospital",
+     "operator": "manohara samudayik swastha kendra",
+     "operator:type": "community"
+    }
+   },
+   {
+    "id": "way/222872126",
+    "kind": "clinic",
+    "name": "Jiwanta Swastha Sewa Sadan",
+    "nameNe": null,
+    "lon": 85.29921,
+    "lat": 27.690381,
+    "tags": {
+     "amenity": "clinic",
+     "operator": "Jiwanta Swastha Sewa Sadan",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/222872129",
+    "kind": "hospital",
+    "name": "Swastik Dental Hospital Pvt. Ltd.",
+    "nameNe": null,
+    "lon": 85.297169,
+    "lat": 27.685295,
+    "tags": {
+     "amenity": "hospital",
+     "operator": "Swastik Dental Hospital Pvt. Ltd.",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/222872131",
+    "kind": "clinic",
+    "name": "Tiwari Poly Clinic and Diagnostic Center",
+    "nameNe": null,
+    "lon": 85.298883,
+    "lat": 27.691984,
+    "tags": {
+     "amenity": "clinic",
+     "operator": "Tiwari Poly Clinic and Diagnostic Center",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/223033987",
+    "kind": "hospital",
+    "name": "Midat Hospital",
+    "nameNe": null,
+    "lon": 85.324863,
+    "lat": 27.666824,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/223091874",
+    "kind": "hospital",
+    "name": "HAM'S Hospital",
+    "nameNe": null,
+    "lon": 85.329502,
+    "lat": 27.685144,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/223255252",
+    "kind": "hospital",
+    "name": "Sukraraj Tropical and Infectious Disease Hospital",
+    "nameNe": null,
+    "lon": 85.306598,
+    "lat": 27.69487,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/223270495",
+    "kind": "hospital",
+    "name": "Family Health Care and Reacher Centre",
+    "nameNe": null,
+    "lon": 85.344985,
+    "lat": 27.732271,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/223275408",
+    "kind": "health_post",
+    "name": "Gongabu Sub-Health Post",
+    "nameNe": null,
+    "lon": 85.319221,
+    "lat": 27.749212,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/223275409",
+    "kind": "hospital",
+    "name": "Grande International Hospital",
+    "nameNe": null,
+    "lon": 85.325496,
+    "lat": 27.752887,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/223299785",
+    "kind": "hospital",
+    "name": "Omni Care Hospital",
+    "nameNe": null,
+    "lon": 85.340868,
+    "lat": 27.703373,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/223301199",
+    "kind": "clinic",
+    "name": "Pashupati Poyclinicl",
+    "nameNe": null,
+    "lon": 85.342049,
+    "lat": 27.702321,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/223383511",
+    "kind": "clinic",
+    "name": "urban health clinic",
+    "nameNe": null,
+    "lon": 85.34531,
+    "lat": 27.713353,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/223407552",
+    "kind": "clinic",
+    "name": "Saudi Nepal Medical Centre Pvt. Ltd.",
+    "nameNe": null,
+    "lon": 85.318852,
+    "lat": 27.685532,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/223500623",
+    "kind": "clinic",
+    "name": "Astamatrika Polyclinic",
+    "nameNe": null,
+    "lon": 85.301767,
+    "lat": 27.67495,
+    "tags": {
+     "amenity": "clinic",
+     "operator": "Astamatrika Polyclinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/223500984",
+    "kind": "health_post",
+    "name": "Danchi Sub Health Post",
+    "nameNe": null,
+    "lon": 85.409961,
+    "lat": 27.727852,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/223502956",
+    "kind": "hospital",
+    "name": "People's Life Care Hospital",
+    "nameNe": null,
+    "lon": 85.460717,
+    "lat": 27.727504,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/223502957",
+    "kind": "clinic",
+    "name": "Sankarapur Polyclinic",
+    "nameNe": null,
+    "lon": 85.458354,
+    "lat": 27.726553,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/223503865",
+    "kind": "hospital",
+    "name": "Om Samaj Dental Hospital",
+    "nameNe": null,
+    "lon": 85.260812,
+    "lat": 27.686594,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/223503866",
+    "kind": "hospital",
+    "name": "Om Samaj Hospital",
+    "nameNe": null,
+    "lon": 85.270918,
+    "lat": 27.68918,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/223503867",
+    "kind": "hospital",
+    "name": "Sahid Memorial Hospital",
+    "nameNe": null,
+    "lon": 85.281165,
+    "lat": 27.694536,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/223503869",
+    "kind": "hospital",
+    "name": "OM Samaj Hospital",
+    "nameNe": null,
+    "lon": 85.270937,
+    "lat": 27.689168,
+    "tags": {
+     "amenity": "hospital",
+     "operator": "Om Samaj Hospital"
+    }
+   },
+   {
+    "id": "way/223503879",
+    "kind": "hospital",
+    "name": null,
+    "nameNe": null,
+    "lon": 85.28092,
+    "lat": 27.695526,
+    "tags": {
+     "amenity": "hospital",
+     "operator": "Sahid Memorial Hospital"
+    }
+   },
+   {
+    "id": "way/223504496",
+    "kind": "clinic",
+    "name": "Comrehebsive Swasha Sanstha",
+    "nameNe": null,
+    "lon": 85.33516,
+    "lat": 27.648467,
+    "tags": {
+     "amenity": "clinic",
+     "operator": "Comrehebsive Swasha Sanstha",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/223504501",
+    "kind": "hospital",
+    "name": "Tranquiliy Hospital and Research Center",
+    "nameNe": null,
+    "lon": 85.329952,
+    "lat": 27.651725,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/223518696",
+    "kind": "health_post",
+    "name": "Aalapot Health Post",
+    "nameNe": null,
+    "lon": 85.429379,
+    "lat": 27.748797,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/223518699",
+    "kind": "clinic",
+    "name": "Bhadrabas Community Health Service Center",
+    "nameNe": null,
+    "lon": 85.421654,
+    "lat": 27.74063,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/223671356",
+    "kind": "health_post",
+    "name": "indrayeni health post",
+    "nameNe": null,
+    "lon": 85.434697,
+    "lat": 27.730014,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/223934498",
+    "kind": "health_post",
+    "name": "Khokana Upa-Swatha Chauki",
+    "nameNe": null,
+    "lon": 85.299566,
+    "lat": 27.635574,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/224253813",
+    "kind": "health_post",
+    "name": "Badegaon Primary health Centre",
+    "nameNe": null,
+    "lon": 85.351576,
+    "lat": 27.617552,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/224266770",
+    "kind": "clinic",
+    "name": "Community Health Promotion Centre",
+    "nameNe": null,
+    "lon": 85.355147,
+    "lat": 27.647666,
+    "tags": {
+     "amenity": "clinic",
+     "operator": "Community Health Promotion Centre",
+     "operator:type": "community"
+    }
+   },
+   {
+    "id": "way/224318613",
+    "kind": "health_post",
+    "name": "Bishangkhu Narayan Health Post",
+    "nameNe": null,
+    "lon": 85.376622,
+    "lat": 27.601263,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/224378832",
+    "kind": "health_post",
+    "name": "Bishankhu Narayan Health Post",
+    "nameNe": null,
+    "lon": 85.364498,
+    "lat": 27.61293,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "community"
+    }
+   },
+   {
+    "id": "way/224387570",
+    "kind": "health_post",
+    "name": "District Pre-Primary Health Post",
+    "nameNe": null,
+    "lon": 85.358346,
+    "lat": 27.624266,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/224458571",
+    "kind": "hospital",
+    "name": "Baluwatar Polyclinic",
+    "nameNe": null,
+    "lon": 85.332719,
+    "lat": 27.742462,
+    "tags": {
+     "amenity": "hospital",
+     "operator": "Baluwatar Polyclinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/224659298",
+    "kind": "health_post",
+    "name": "Kabhresthali Health Post",
+    "nameNe": null,
+    "lon": 85.300948,
+    "lat": 27.784649,
+    "tags": {
+     "amenity": "health_post",
+     "operator": "Kabhresthali Health Post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/224701085",
+    "kind": "health_post",
+    "name": "Jhor Mahankal Upa Swasthya Chowki",
+    "nameNe": null,
+    "lon": 85.330462,
+    "lat": 27.797777,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/224701128",
+    "kind": "health_post",
+    "name": "Sangla Primary health post",
+    "nameNe": null,
+    "lon": 85.318484,
+    "lat": 27.789968,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/224724636",
+    "kind": "hospital",
+    "name": "Diyas Hospital",
+    "nameNe": null,
+    "lon": 85.304591,
+    "lat": 27.652764,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/224876834",
+    "kind": "hospital",
+    "name": "Bageshwori Hospital",
+    "nameNe": null,
+    "lon": 85.253053,
+    "lat": 27.686936,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/224877233",
+    "kind": "health_post",
+    "name": "Thecho Health Post",
+    "nameNe": null,
+    "lon": 85.318645,
+    "lat": 27.620272,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/224951447",
+    "kind": "clinic",
+    "name": "ktm metropolitan community city health clinic",
+    "nameNe": null,
+    "lon": 85.288839,
+    "lat": 27.714202,
+    "tags": {
+     "amenity": "clinic",
+     "operator": "ktm metropolitan community city health clinic",
+     "operator:type": "community"
+    }
+   },
+   {
+    "id": "way/225014818",
+    "kind": "health_post",
+    "name": "Godavari Sub Health Post",
+    "nameNe": null,
+    "lon": 85.365598,
+    "lat": 27.603409,
+    "tags": {
+     "amenity": "health_post",
+     "operator": "Godavari Sub Health Post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/225029312",
+    "kind": "health_post",
+    "name": "Goldhunga Upa Swastha Chauki",
+    "nameNe": null,
+    "lon": 85.282991,
+    "lat": 27.753127,
+    "tags": {
+     "amenity": "health_post",
+     "operator": "Goldhunga Upa Swastha Chauki",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/225115094",
+    "kind": "health_post",
+    "name": "Dadhikot health post",
+    "nameNe": null,
+    "lon": 85.392249,
+    "lat": 27.6565,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/225120474",
+    "kind": "clinic",
+    "name": "Primary Health Post",
+    "nameNe": null,
+    "lon": 85.393697,
+    "lat": 27.638189,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "way/225121717",
+    "kind": "health_post",
+    "name": "Gagalphedi VDC office",
+    "nameNe": null,
+    "lon": 85.445249,
+    "lat": 27.751167,
+    "tags": {
+     "amenity": "health_post"
+    }
+   },
+   {
+    "id": "way/225121718",
+    "kind": "health_post",
+    "name": "Shree Gagalphedi Swasthya Chauki",
+    "nameNe": null,
+    "lon": 85.445291,
+    "lat": 27.751233,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/225240575",
+    "kind": "health_post",
+    "name": "Lapsiphedi Health Post",
+    "nameNe": null,
+    "lon": 85.496221,
+    "lat": 27.750435,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/225273381",
+    "kind": "hospital",
+    "name": "Jitpurfedi Swasthya Upachowki",
+    "nameNe": null,
+    "lon": 85.278868,
+    "lat": 27.777064,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/225411941",
+    "kind": "clinic",
+    "name": "Vision Polyclinic",
+    "nameNe": null,
+    "lon": 85.344492,
+    "lat": 27.677264,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/225422527",
+    "kind": "health_post",
+    "name": "Lokanthali Sub Health Post",
+    "nameNe": null,
+    "lon": 85.361866,
+    "lat": 27.677856,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/225422528",
+    "kind": "hospital",
+    "name": "Mid- City Hospital",
+    "nameNe": null,
+    "lon": 85.361986,
+    "lat": 27.674305,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/225431364",
+    "kind": "clinic",
+    "name": "Shree Kunta Polyclinic and Research Center",
+    "nameNe": null,
+    "lon": 85.345054,
+    "lat": 27.676348,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/225517518",
+    "kind": "health_post",
+    "name": "Kharipati Ayurbedh Health Post",
+    "nameNe": null,
+    "lon": 85.470541,
+    "lat": 27.704017,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/225518413",
+    "kind": "health_post",
+    "name": "Baluwa Upa Swasthya Chowki",
+    "nameNe": null,
+    "lon": 85.390941,
+    "lat": 27.752115,
+    "tags": {
+     "amenity": "health_post",
+     "operator": "Baluwa Upa Swasthya Chowki",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/225518767",
+    "kind": "hospital",
+    "name": "Samudayik Swasthya Bhawan",
+    "nameNe": null,
+    "lon": 85.38276,
+    "lat": 27.750195,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "community"
+    }
+   },
+   {
+    "id": "way/225594248",
+    "kind": "health_post",
+    "name": "Nayapati Health Post",
+    "nameNe": null,
+    "lon": 85.412262,
+    "lat": 27.746958,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/225594249",
+    "kind": "health_post",
+    "name": "Sankhu Illaka Health Post",
+    "nameNe": null,
+    "lon": 85.466952,
+    "lat": 27.736742,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/225594254",
+    "kind": "health_post",
+    "name": "Suntol Sub-Health Post",
+    "nameNe": null,
+    "lon": 85.480395,
+    "lat": 27.720586,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/225641956",
+    "kind": "clinic",
+    "name": "Suryavinayak Polyclinic",
+    "nameNe": null,
+    "lon": 85.425059,
+    "lat": 27.664836,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/225648689",
+    "kind": "health_post",
+    "name": "Primary Health Care and Research Center",
+    "nameNe": null,
+    "lon": 85.327741,
+    "lat": 27.603886,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "community"
+    }
+   },
+   {
+    "id": "way/225653150",
+    "kind": "health_post",
+    "name": "Chunikhel Upaswasthya chowki",
+    "nameNe": null,
+    "lon": 85.368385,
+    "lat": 27.754232,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/225655061",
+    "kind": "health_post",
+    "name": "Chaimale Sub Health Post",
+    "nameNe": null,
+    "lon": 85.258433,
+    "lat": 27.591183,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/225655062",
+    "kind": "health_post",
+    "name": "Dakshinkali Health Post",
+    "nameNe": null,
+    "lon": 85.264923,
+    "lat": 27.611034,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/225655063",
+    "kind": "health_post",
+    "name": "Sesh Narayan Community Health Post",
+    "nameNe": null,
+    "lon": 85.26511,
+    "lat": 27.615793,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "community"
+    }
+   },
+   {
+    "id": "way/225655513",
+    "kind": "health_post",
+    "name": "Talkudude Chaur Sub Health Post",
+    "nameNe": null,
+    "lon": 85.255216,
+    "lat": 27.623233,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/225656520",
+    "kind": "health_post",
+    "name": "Primary Health Post ChalnaKhel",
+    "nameNe": null,
+    "lon": 85.280104,
+    "lat": 27.636863,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/225658475",
+    "kind": "health_post",
+    "name": "Saukhel Sub Health Post",
+    "nameNe": null,
+    "lon": 85.285881,
+    "lat": 27.6266,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/225659845",
+    "kind": "clinic",
+    "name": "Buddha International Medical Centre",
+    "nameNe": null,
+    "lon": 85.339175,
+    "lat": 27.690732,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "way/225659847",
+    "kind": "hospital",
+    "name": "Everest Hospital",
+    "nameNe": null,
+    "lon": 85.332859,
+    "lat": 27.688502,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/225659850",
+    "kind": "clinic",
+    "name": "Kastamandap Poly Clinic",
+    "nameNe": null,
+    "lon": 85.336198,
+    "lat": 27.691086,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/225659852",
+    "kind": "hospital",
+    "name": "Nepal Skin Hospital",
+    "nameNe": null,
+    "lon": 85.329739,
+    "lat": 27.689365,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/225659853",
+    "kind": "hospital",
+    "name": "Raj Joshi Polyclinic",
+    "nameNe": null,
+    "lon": 85.335502,
+    "lat": 27.688916,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/225659854",
+    "kind": "hospital",
+    "name": "Sahara Health Care",
+    "nameNe": null,
+    "lon": 85.338993,
+    "lat": 27.690749,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/225659856",
+    "kind": "hospital",
+    "name": "Centre For Liver Disease",
+    "nameNe": null,
+    "lon": 85.3287,
+    "lat": 27.689914,
+    "tags": {
+     "amenity": "hospital",
+     "operator": "Centre For Liver Disease",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/225660491",
+    "kind": "hospital",
+    "name": "Himal Hospital",
+    "nameNe": null,
+    "lon": 85.328284,
+    "lat": 27.710267,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/225663312",
+    "kind": "clinic",
+    "name": "Apollo Polyclinic",
+    "nameNe": null,
+    "lon": 85.332103,
+    "lat": 27.703946,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/225708079",
+    "kind": "clinic",
+    "name": "Bhaisharjya Washa Pasha",
+    "nameNe": null,
+    "lon": 85.434225,
+    "lat": 27.67163,
+    "tags": {
+     "amenity": "clinic",
+     "operator": "Bhaisharjya Washa Pasha",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/225708080",
+    "kind": "clinic",
+    "name": "Lokeshwor Pharma",
+    "nameNe": null,
+    "lon": 85.360274,
+    "lat": 27.67507,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/225708081",
+    "kind": "clinic",
+    "name": "Santosh Drug House",
+    "nameNe": null,
+    "lon": 85.361079,
+    "lat": 27.675615,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/226041071",
+    "kind": "health_post",
+    "name": "Bungmati Health Post",
+    "nameNe": null,
+    "lon": 85.30349,
+    "lat": 27.627616,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/226044702",
+    "kind": "health_post",
+    "name": "Chhampi Sub Health Post",
+    "nameNe": null,
+    "lon": 85.312613,
+    "lat": 27.60148,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/226044703",
+    "kind": "health_post",
+    "name": "Devichour Health Post",
+    "nameNe": null,
+    "lon": 85.302464,
+    "lat": 27.56641,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/226045846",
+    "kind": "hospital",
+    "name": "Susma Koirala Memorial Hospital",
+    "nameNe": null,
+    "lon": 85.453073,
+    "lat": 27.723836,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/226053389",
+    "kind": "clinic",
+    "name": "Samudayik Dental Hospital",
+    "nameNe": null,
+    "lon": 85.365056,
+    "lat": 27.67424,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/226056945",
+    "kind": "clinic",
+    "name": "Upakar National Health Care Center",
+    "nameNe": null,
+    "lon": 85.347925,
+    "lat": 27.679164,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/226058167",
+    "kind": "health_post",
+    "name": "lele Health post",
+    "nameNe": null,
+    "lon": 85.343423,
+    "lat": 27.56548,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/226058965",
+    "kind": "health_post",
+    "name": "Bhardev Sub Health post",
+    "nameNe": null,
+    "lon": 85.378818,
+    "lat": 27.547467,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/226060155",
+    "kind": "health_post",
+    "name": "Phutung Sub-health Post",
+    "nameNe": null,
+    "lon": 85.311425,
+    "lat": 27.763268,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/226060156",
+    "kind": "clinic",
+    "name": "Shubhakamana Policlinic",
+    "nameNe": null,
+    "lon": 85.309695,
+    "lat": 27.757563,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/226061819",
+    "kind": "clinic",
+    "name": "Sewa Dental Home",
+    "nameNe": null,
+    "lon": 85.422415,
+    "lat": 27.67173,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/226062179",
+    "kind": "clinic",
+    "name": "Siddhi Ganesh Saccos Health Clinic",
+    "nameNe": null,
+    "lon": 85.434202,
+    "lat": 27.669956,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "community"
+    }
+   },
+   {
+    "id": "way/226066305",
+    "kind": "health_post",
+    "name": "Balambu sub health post",
+    "nameNe": null,
+    "lon": 85.246406,
+    "lat": 27.692995,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/226066306",
+    "kind": "health_post",
+    "name": "Dahachowk health post",
+    "nameNe": null,
+    "lon": 85.235878,
+    "lat": 27.702792,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/226067601",
+    "kind": "health_post",
+    "name": "Baad Bhanjyang Sub-health post",
+    "nameNe": null,
+    "lon": 85.205378,
+    "lat": 27.706474,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/226267323",
+    "kind": "health_post",
+    "name": "Community Health Center",
+    "nameNe": null,
+    "lon": 85.474754,
+    "lat": 27.712453,
+    "tags": {
+     "amenity": "health_post"
+    }
+   },
+   {
+    "id": "way/226269202",
+    "kind": "health_post",
+    "name": "Nagarkot health post",
+    "nameNe": null,
+    "lon": 85.488616,
+    "lat": 27.710684,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/226284390",
+    "kind": "health_post",
+    "name": "Harisiddhi Samudayik Swastha Kendra",
+    "nameNe": null,
+    "lon": 85.3419,
+    "lat": 27.637226,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/226284392",
+    "kind": "hospital",
+    "name": "Kathmandu Hospital",
+    "nameNe": null,
+    "lon": 85.338097,
+    "lat": 27.642658,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/226335431",
+    "kind": "hospital",
+    "name": "Nepal orthopaedic Hospital",
+    "nameNe": null,
+    "lon": 85.381165,
+    "lat": 27.720169,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/226356620",
+    "kind": "clinic",
+    "name": "Praptee Polyclinic",
+    "nameNe": null,
+    "lon": 85.314537,
+    "lat": 27.693146,
+    "tags": {
+     "amenity": "clinic",
+     "operator": "Praptee Polyclinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/226396927",
+    "kind": "clinic",
+    "name": "Kshamadevi Polyclinic",
+    "nameNe": null,
+    "lon": 85.346967,
+    "lat": 27.692417,
+    "tags": {
+     "amenity": "clinic",
+     "operator": "Kshamadevi Polyclinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/226396928",
+    "kind": "clinic",
+    "name": "Safal medical Center",
+    "nameNe": null,
+    "lon": 85.353634,
+    "lat": 27.695697,
+    "tags": {
+     "amenity": "clinic",
+     "operator": "Safal medical Center",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/226396929",
+    "kind": "clinic",
+    "name": "Trishuli Medical & Polyclinic",
+    "nameNe": null,
+    "lon": 85.354315,
+    "lat": 27.695212,
+    "tags": {
+     "amenity": "clinic",
+     "operator": "Trishuli Medical & Polyclinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/226397159",
+    "kind": "clinic",
+    "name": "Asha Dental clinic",
+    "nameNe": null,
+    "lon": 85.342565,
+    "lat": 27.687029,
+    "tags": {
+     "amenity": "clinic",
+     "operator": "Asha Dental clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/226397160",
+    "kind": "clinic",
+    "name": "Jagaran Dental Home",
+    "nameNe": null,
+    "lon": 85.342726,
+    "lat": 27.68696,
+    "tags": {
+     "amenity": "clinic",
+     "operator": "Jagaran Denal Home",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/226423598",
+    "kind": "clinic",
+    "name": "Diabetes, Thyroid and Endocrinology",
+    "nameNe": null,
+    "lon": 85.31639,
+    "lat": 27.688143,
+    "tags": {
+     "amenity": "clinic",
+     "operator": "Diabetes, Thyroid and Endocrinology",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/226429179",
+    "kind": "clinic",
+    "name": "Aaram Dental Care Home",
+    "nameNe": null,
+    "lon": 85.296909,
+    "lat": 27.697565,
+    "tags": {
+     "amenity": "clinic",
+     "operator": "Aaram Dental Care Home",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/226429180",
+    "kind": "hospital",
+    "name": "Chest Hospital",
+    "nameNe": null,
+    "lon": 85.297183,
+    "lat": 27.699304,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/226429181",
+    "kind": "hospital",
+    "name": "Shree Jyoti Hospital and Research Center",
+    "nameNe": null,
+    "lon": 85.297461,
+    "lat": 27.698574,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/226429182",
+    "kind": "hospital",
+    "name": "Spark Health Homes Hospital",
+    "nameNe": null,
+    "lon": 85.294814,
+    "lat": 27.697659,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/226439738",
+    "kind": "hospital",
+    "name": "Kathmandu Hospital",
+    "nameNe": null,
+    "lon": 85.311065,
+    "lat": 27.694301,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/226472193",
+    "kind": "health_post",
+    "name": "Machhegaun Health Post",
+    "nameNe": null,
+    "lon": 85.249974,
+    "lat": 27.669334,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/226472194",
+    "kind": "health_post",
+    "name": "Mahadevsthan Sub-health Post",
+    "nameNe": null,
+    "lon": 85.225645,
+    "lat": 27.688242,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/226472195",
+    "kind": "health_post",
+    "name": "Matathirtha Sub-health Post",
+    "nameNe": null,
+    "lon": 85.23973,
+    "lat": 27.6775,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/226472196",
+    "kind": "health_post",
+    "name": "Naya Naikap Sub-health Post",
+    "nameNe": null,
+    "lon": 85.260383,
+    "lat": 27.691474,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/226472197",
+    "kind": "hospital",
+    "name": "Neelam Hospital",
+    "nameNe": null,
+    "lon": 85.250524,
+    "lat": 27.688906,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/226472198",
+    "kind": "hospital",
+    "name": "Nirog Hospital",
+    "nameNe": null,
+    "lon": 85.222034,
+    "lat": 27.690775,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/226472199",
+    "kind": "health_post",
+    "name": "Purano Naikap Sub-health Post",
+    "nameNe": null,
+    "lon": 85.260555,
+    "lat": 27.69417,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/226472200",
+    "kind": "health_post",
+    "name": "Satungal Area Health Post",
+    "nameNe": null,
+    "lon": 85.249306,
+    "lat": 27.683248,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/226472201",
+    "kind": "clinic",
+    "name": "Smriti Polyclinic and Diagnostic",
+    "nameNe": null,
+    "lon": 85.250767,
+    "lat": 27.687099,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/226472203",
+    "kind": "health_post",
+    "name": "Tinthana Sub-health Post",
+    "nameNe": null,
+    "lon": 85.270089,
+    "lat": 27.687888,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/226475866",
+    "kind": "clinic",
+    "name": "Community City Health Clinic",
+    "nameNe": null,
+    "lon": 85.339743,
+    "lat": 27.72494,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/226507792",
+    "kind": "health_post",
+    "name": "Thankot Sub-health Post",
+    "nameNe": null,
+    "lon": 85.221938,
+    "lat": 27.693338,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/226509348",
+    "kind": "health_post",
+    "name": "Khadka Bhadrakali Sub-Health Post",
+    "nameNe": null,
+    "lon": 85.346214,
+    "lat": 27.758933,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/226603884",
+    "kind": "clinic",
+    "name": "Lagankhel Poly Clinic",
+    "nameNe": null,
+    "lon": 85.323872,
+    "lat": 27.667311,
+    "tags": {
+     "amenity": "clinic",
+     "operator": "Lagankhel Poly Clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/226690705",
+    "kind": "hospital",
+    "name": "national kidney center",
+    "nameNe": null,
+    "lon": 85.295775,
+    "lat": 27.724559,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/226831608",
+    "kind": "hospital",
+    "name": "National Hospital and Cancer Research Center",
+    "nameNe": null,
+    "lon": 85.314554,
+    "lat": 27.673419,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/226833777",
+    "kind": "health_post",
+    "name": "Bahirigaun Sub Health Post",
+    "nameNe": null,
+    "lon": 85.270763,
+    "lat": 27.682073,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/226833778",
+    "kind": "health_post",
+    "name": "Chitubihar Sub Health Post",
+    "nameNe": null,
+    "lon": 85.278017,
+    "lat": 27.677403,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/226833779",
+    "kind": "health_post",
+    "name": "Chobar Sub Health Post",
+    "nameNe": null,
+    "lon": 85.28126,
+    "lat": 27.655341,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/226835291",
+    "kind": "clinic",
+    "name": "Chinese People Hospital",
+    "nameNe": null,
+    "lon": 85.361909,
+    "lat": 27.720467,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/226835292",
+    "kind": "clinic",
+    "name": "Riza Polyclinic and Diagonostic Centre",
+    "nameNe": null,
+    "lon": 85.345263,
+    "lat": 27.714562,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/226852863",
+    "kind": "hospital",
+    "name": "Hamro Sahayatri Hosp and Birthing Center",
+    "nameNe": null,
+    "lon": 85.352634,
+    "lat": 27.676521,
+    "tags": {
+     "amenity": "hospital",
+     "operator": "Hamro Sahayatri Hosp and Birthing Center",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/226852865",
+    "kind": "clinic",
+    "name": "Patan Clinic",
+    "nameNe": null,
+    "lon": 85.322187,
+    "lat": 27.658856,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "community"
+    }
+   },
+   {
+    "id": "way/226883918",
+    "kind": "health_post",
+    "name": "Jorpati Sub Health Post",
+    "nameNe": null,
+    "lon": 85.375798,
+    "lat": 27.731034,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/226884056",
+    "kind": "health_post",
+    "name": "Mulpani Primary Health Care Center",
+    "nameNe": null,
+    "lon": 85.40554,
+    "lat": 27.714715,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/226885065",
+    "kind": "hospital",
+    "name": "Medicare National Hospital and Research Center",
+    "nameNe": null,
+    "lon": 85.346416,
+    "lat": 27.718385,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/226935925",
+    "kind": "hospital",
+    "name": "Aadarsha Dental Hosptial",
+    "nameNe": null,
+    "lon": 85.309035,
+    "lat": 27.737302,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/226935926",
+    "kind": "clinic",
+    "name": "Community Health Clinic",
+    "nameNe": null,
+    "lon": 85.307948,
+    "lat": 27.736555,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "community"
+    }
+   },
+   {
+    "id": "way/226935928",
+    "kind": "hospital",
+    "name": "Mero Dental Hospital",
+    "nameNe": null,
+    "lon": 85.31471,
+    "lat": 27.735333,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/226935929",
+    "kind": "clinic",
+    "name": "Namaste Nepal Medical Center",
+    "nameNe": null,
+    "lon": 85.314293,
+    "lat": 27.734589,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/226935930",
+    "kind": "clinic",
+    "name": "Syrup Medical Centre",
+    "nameNe": null,
+    "lon": 85.315268,
+    "lat": 27.734658,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/226935931",
+    "kind": "hospital",
+    "name": "Vinayak Hospital & Maternity Home",
+    "nameNe": null,
+    "lon": 85.314924,
+    "lat": 27.734562,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/226936305",
+    "kind": "clinic",
+    "name": "Hardik Polyclinic",
+    "nameNe": null,
+    "lon": 85.341253,
+    "lat": 27.668947,
+    "tags": {
+     "amenity": "clinic",
+     "operator": "Hardik Polyclinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/226936937",
+    "kind": "health_post",
+    "name": "Dhapasi Health Post",
+    "nameNe": null,
+    "lon": 85.33027,
+    "lat": 27.746253,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/226936943",
+    "kind": "health_post",
+    "name": "Manmaiju Sub-health Post",
+    "nameNe": null,
+    "lon": 85.305505,
+    "lat": 27.748505,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/226936948",
+    "kind": "health_post",
+    "name": "Tokha Saraswati Sub-Health Post",
+    "nameNe": null,
+    "lon": 85.330863,
+    "lat": 27.765978,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/226937083",
+    "kind": "hospital",
+    "name": "Nepal jana Swasthya Kendra",
+    "nameNe": null,
+    "lon": 85.302392,
+    "lat": 27.7368,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "community"
+    }
+   },
+   {
+    "id": "way/226969445",
+    "kind": "clinic",
+    "name": "Sipadol Janaswastha",
+    "nameNe": null,
+    "lon": 85.433298,
+    "lat": 27.664288,
+    "tags": {
+     "amenity": "clinic",
+     "operator": "Sipadol Janaswastha",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/226972113",
+    "kind": "clinic",
+    "name": "Binayak Pharma & Clinic",
+    "nameNe": null,
+    "lon": 85.43711,
+    "lat": 27.677072,
+    "tags": {
+     "amenity": "clinic",
+     "operator": "Binayak Pharma & Clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/226972114",
+    "kind": "clinic",
+    "name": "Khwopa Pharma & Clinic",
+    "nameNe": null,
+    "lon": 85.437136,
+    "lat": 27.677027,
+    "tags": {
+     "amenity": "clinic",
+     "operator": "Khwopa Pharma & Clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/226974433",
+    "kind": "clinic",
+    "name": "Dental Temple",
+    "nameNe": null,
+    "lon": 85.337864,
+    "lat": 27.699541,
+    "tags": {
+     "amenity": "clinic",
+     "operator": "Dental Temple",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/226974434",
+    "kind": "clinic",
+    "name": "Samaj Dental Care",
+    "nameNe": null,
+    "lon": 85.33657,
+    "lat": 27.691126,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "community"
+    }
+   },
+   {
+    "id": "way/226974435",
+    "kind": "hospital",
+    "name": "Venus International Hospital",
+    "nameNe": null,
+    "lon": 85.337634,
+    "lat": 27.69719,
+    "tags": {
+     "amenity": "hospital",
+     "operator": "Venus International Hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/226978803",
+    "kind": "hospital",
+    "name": "Ayush Hospital",
+    "nameNe": null,
+    "lon": 85.335944,
+    "lat": 27.686327,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/226978804",
+    "kind": "clinic",
+    "name": "Gothatar JanaSwastha",
+    "nameNe": null,
+    "lon": 85.369827,
+    "lat": 27.70325,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/226978805",
+    "kind": "clinic",
+    "name": "New Pashupati Medical clinic",
+    "nameNe": null,
+    "lon": 85.331793,
+    "lat": 27.68135,
+    "tags": {
+     "amenity": "clinic",
+     "operator": "New Pashupati Medical clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/226978806",
+    "kind": "clinic",
+    "name": "Shubham Polyclinic",
+    "nameNe": null,
+    "lon": 85.335303,
+    "lat": 27.688044,
+    "tags": {
+     "amenity": "clinic",
+     "operator": "Shubham Polyclinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/226981339",
+    "kind": "clinic",
+    "name": "Kathmandu JanaSwastha",
+    "nameNe": null,
+    "lon": 85.308419,
+    "lat": 27.704952,
+    "tags": {
+     "amenity": "clinic",
+     "operator": "Kathmandu JanaSwastha",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/227085228",
+    "kind": "hospital",
+    "name": "Human Development Community Service(HDCS)",
+    "nameNe": null,
+    "lon": 85.299553,
+    "lat": 27.659052,
+    "tags": {
+     "amenity": "hospital",
+     "emergency": "no"
+    }
+   },
+   {
+    "id": "way/227115386",
+    "kind": "hospital",
+    "name": "Nobel Hospital",
+    "nameNe": null,
+    "lon": 85.348246,
+    "lat": 27.698236,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/227119772",
+    "kind": "hospital",
+    "name": "Kathmandu Medical Teaching Hospital",
+    "nameNe": null,
+    "lon": 85.353509,
+    "lat": 27.696086,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/227266290",
+    "kind": "hospital",
+    "name": "Shankarapur Hospital",
+    "nameNe": null,
+    "lon": 85.376564,
+    "lat": 27.721498,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/227276592",
+    "kind": "clinic",
+    "name": "Shesmati Polyclinic and Diagonostic Centre",
+    "nameNe": null,
+    "lon": 85.301499,
+    "lat": 27.742874,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/227893818",
+    "kind": "hospital",
+    "name": "B & B Hospital",
+    "nameNe": null,
+    "lon": 85.329372,
+    "lat": 27.664918,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/227893819",
+    "kind": "hospital",
+    "name": "Global Hospital",
+    "nameNe": null,
+    "lon": 85.332994,
+    "lat": 27.666473,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/227894763",
+    "kind": "hospital",
+    "name": "BP Children Eye Ear Hospital",
+    "nameNe": null,
+    "lon": 85.353595,
+    "lat": 27.670703,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "community"
+    }
+   },
+   {
+    "id": "way/227894764",
+    "kind": "hospital",
+    "name": "Lion Eye Hospital",
+    "nameNe": null,
+    "lon": 85.343159,
+    "lat": 27.686922,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "community"
+    }
+   },
+   {
+    "id": "way/227896534",
+    "kind": "health_post",
+    "name": "Changu Narayan Primary Health Post",
+    "nameNe": null,
+    "lon": 85.440118,
+    "lat": 27.707824,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/227932709",
+    "kind": "health_post",
+    "name": "Ramkot Health Post",
+    "nameNe": null,
+    "lon": 85.249961,
+    "lat": 27.722195,
+    "tags": {
+     "amenity": "health_post",
+     "operator": "Ramkot Health Post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/227933475",
+    "kind": "health_post",
+    "name": "Sitapaila Sub Health Post",
+    "nameNe": null,
+    "lon": 85.27534,
+    "lat": 27.713878,
+    "tags": {
+     "amenity": "health_post",
+     "operator": "Sitapaila Sub Health Post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/227939182",
+    "kind": "hospital",
+    "name": "Santi Sewa Griha",
+    "nameNe": null,
+    "lon": 85.350908,
+    "lat": 27.704617,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/228198508",
+    "kind": "hospital",
+    "name": "Helping Hands Community Hospital",
+    "nameNe": null,
+    "lon": 85.297853,
+    "lat": 27.765573,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "community"
+    }
+   },
+   {
+    "id": "way/228482743",
+    "kind": "health_post",
+    "name": "Sundarijal Sub Health Post",
+    "nameNe": null,
+    "lon": 85.421231,
+    "lat": 27.761133,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/228710145",
+    "kind": "helipad",
+    "name": "Proposed Helipad",
+    "nameNe": null,
+    "lon": 85.631661,
+    "lat": 27.653097,
+    "tags": {
+     "aeroway": "helipad"
+    }
+   },
+   {
+    "id": "way/228710272",
+    "kind": "helipad",
+    "name": "Existing Helipad 15m dia",
+    "nameNe": null,
+    "lon": 85.631642,
+    "lat": 27.655544,
+    "tags": {
+     "aeroway": "helipad"
+    }
+   },
+   {
+    "id": "way/229032303",
+    "kind": "health_post",
+    "name": "Dukuchhap Sub Health Post",
+    "nameNe": null,
+    "lon": 85.298882,
+    "lat": 27.591541,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/229036468",
+    "kind": "health_post",
+    "name": "Chapagaun Sub Health Post",
+    "nameNe": null,
+    "lon": 85.331635,
+    "lat": 27.592235,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/229128705",
+    "kind": "hospital",
+    "name": "Kantipur Dental Hospital",
+    "nameNe": null,
+    "lon": 85.338732,
+    "lat": 27.740882,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/229128706",
+    "kind": "hospital",
+    "name": "National Dental Hosptial",
+    "nameNe": null,
+    "lon": 85.326016,
+    "lat": 27.728935,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/229128707",
+    "kind": "hospital",
+    "name": "People's Dental College & Hospital",
+    "nameNe": null,
+    "lon": 85.306619,
+    "lat": 27.724447,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/229129612",
+    "kind": "hospital",
+    "name": "Metro Radiology and Imaging",
+    "nameNe": null,
+    "lon": 85.326093,
+    "lat": 27.715387,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/229141390",
+    "kind": "health_post",
+    "name": "Ichangunarayan Health Post",
+    "nameNe": null,
+    "lon": 85.274864,
+    "lat": 27.722307,
+    "tags": {
+     "amenity": "health_post",
+     "operator": "Ichangunarayan Health Post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/229142491",
+    "kind": "health_post",
+    "name": "Bhimdhunga Health Post",
+    "nameNe": null,
+    "lon": 85.239162,
+    "lat": 27.727713,
+    "tags": {
+     "amenity": "health_post",
+     "operator": "Bhimdhunga Health Post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/229167625",
+    "kind": "aerodrome",
+    "name": "Ramechhap Airport",
+    "nameNe": null,
+    "lon": 86.059723,
+    "lat": 27.392943,
+    "tags": {
+     "aeroway": "aerodrome",
+     "iata": "RHP",
+     "icao": "VNRC",
+     "ele": "494"
+    }
+   },
+   {
+    "id": "way/229364023",
+    "kind": "hospital",
+    "name": "Nepal APF Hospital",
+    "nameNe": null,
+    "lon": 85.253845,
+    "lat": 27.690343,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/229364026",
+    "kind": "helipad",
+    "name": null,
+    "nameNe": null,
+    "lon": 85.252126,
+    "lat": 27.68944,
+    "tags": {
+     "aeroway": "helipad"
+    }
+   },
+   {
+    "id": "way/230055223",
+    "kind": "hospital",
+    "name": null,
+    "nameNe": null,
+    "lon": 85.547785,
+    "lat": 27.616673,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/230055228",
+    "kind": "hospital",
+    "name": "Pediatrics and Gyn/Obs",
+    "nameNe": null,
+    "lon": 85.547728,
+    "lat": 27.616251,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/231049689",
+    "kind": "hospital",
+    "name": "College of Dental Science and Hospital",
+    "nameNe": null,
+    "lon": 85.380251,
+    "lat": 27.73379,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/231628208",
+    "kind": "hospital",
+    "name": "Life Care Hospital",
+    "nameNe": null,
+    "lon": 85.310604,
+    "lat": 27.69946,
+    "tags": {
+     "amenity": "hospital",
+     "operator": "Life Care Hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/231629043",
+    "kind": "clinic",
+    "name": "Anmol Medical Center",
+    "nameNe": null,
+    "lon": 85.312484,
+    "lat": 27.706159,
+    "tags": {
+     "amenity": "clinic",
+     "operator": "Anmol Medical Center",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/231630359",
+    "kind": "hospital",
+    "name": "Capital Hospital",
+    "nameNe": null,
+    "lon": 85.321879,
+    "lat": 27.702774,
+    "tags": {
+     "amenity": "hospital",
+     "operator": "Capital Hospital",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/231662316",
+    "kind": "hospital",
+    "name": "Bhaktapur Cancer Hospital",
+    "nameNe": null,
+    "lon": 85.422097,
+    "lat": 27.673243,
+    "tags": {
+     "amenity": "hospital",
+     "operator:type": "government",
+     "emergency": "yes"
+    }
+   },
+   {
+    "id": "way/231978571",
+    "kind": "health_post",
+    "name": "Bajrabarahi Primary Health Care & Research Center",
+    "nameNe": null,
+    "lon": 85.40434,
+    "lat": 27.603008,
+    "tags": {
+     "amenity": "health_post",
+     "operator:type": "government"
+    }
+   },
+   {
+    "id": "way/231979172",
+    "kind": "clinic",
+    "name": "DI Skin Hospital and Research Center",
+    "nameNe": null,
+    "lon": 85.333138,
+    "lat": 27.736613,
+    "tags": {
+     "amenity": "clinic",
+     "operator:type": "private"
+    }
+   },
+   {
+    "id": "way/233234380",
+    "kind": "hospital",
+    "name": "B.P. Koirala Memorial Cancer Hospital",
+    "nameNe": null,
+    "lon": 84.41674,
+    "lat": 27.665033,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/235113119",
+    "kind": "aerodrome",
+    "name": "Simara airport",
+    "nameNe": null,
+    "lon": 84.980053,
+    "lat": 27.160035,
+    "tags": {
+     "aeroway": "aerodrome"
+    }
+   },
+   {
+    "id": "way/235805953",
+    "kind": "aerodrome",
+    "name": "Bharatpur Airport",
+    "nameNe": null,
+    "lon": 84.428671,
+    "lat": 27.676912,
+    "tags": {
+     "aeroway": "aerodrome",
+     "iata": "BHR",
+     "icao": "VNBP"
+    }
+   },
+   {
+    "id": "way/236736871",
+    "kind": "hospital",
+    "name": "मत्रिसिसु मितेरी हस्पिटल",
+    "nameNe": null,
+    "lon": 83.981922,
+    "lat": 28.25825,
+    "tags": {
+     "amenity": "hospital",
+     "emergency": "yes"
+    }
+   },
+   {
+    "id": "way/236948713",
+    "kind": "clinic",
+    "name": "community health center",
+    "nameNe": null,
+    "lon": 85.42884,
+    "lat": 27.670039,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "way/239081179",
+    "kind": "hospital",
+    "name": "Fewa City Hospital",
+    "nameNe": null,
+    "lon": 83.981681,
+    "lat": 28.206862,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/239083427",
+    "kind": "hospital",
+    "name": "Charak Hospital",
+    "nameNe": null,
+    "lon": 83.987217,
+    "lat": 28.211103,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/240358404",
+    "kind": "hospital",
+    "name": "swatha parichyan",
+    "nameNe": null,
+    "lon": 85.324964,
+    "lat": 27.706018,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/249485807",
+    "kind": "helipad",
+    "name": null,
+    "nameNe": null,
+    "lon": 85.503038,
+    "lat": 28.215544,
+    "tags": {
+     "aeroway": "helipad"
+    }
+   },
+   {
+    "id": "way/249747796",
+    "kind": "hospital",
+    "name": "Lukla Hospital",
+    "nameNe": null,
+    "lon": 86.731986,
+    "lat": 27.684835,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/262821660",
+    "kind": "hospital",
+    "name": "Aragyoga Hospital",
+    "nameNe": null,
+    "lon": 85.311755,
+    "lat": 27.673602,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/265006463",
+    "kind": "helipad",
+    "name": null,
+    "nameNe": null,
+    "lon": 85.294594,
+    "lat": 28.111471,
+    "tags": {
+     "aeroway": "helipad"
+    }
+   },
+   {
+    "id": "way/275166951",
+    "kind": "aerodrome",
+    "name": "Manang Airport at Humde",
+    "nameNe": null,
+    "lon": 84.088031,
+    "lat": 28.641123,
+    "tags": {
+     "aeroway": "aerodrome",
+     "iata": "NGX",
+     "icao": "VNMA"
+    }
+   },
+   {
+    "id": "way/277795957",
+    "kind": "helipad",
+    "name": null,
+    "nameNe": null,
+    "lon": 85.460439,
+    "lat": 28.200532,
+    "tags": {
+     "aeroway": "helipad"
+    }
+   },
+   {
+    "id": "way/277984662",
+    "kind": "hospital",
+    "name": "Trishuli Hospital",
+    "nameNe": null,
+    "lon": 85.140946,
+    "lat": 27.924636,
+    "tags": {
+     "amenity": "hospital",
+     "emergency": "yes"
+    }
+   },
+   {
+    "id": "way/277998313",
+    "kind": "hospital",
+    "name": "District Hospital Syangja",
+    "nameNe": null,
+    "lon": 83.873963,
+    "lat": 28.105074,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/278988770",
+    "kind": "helipad",
+    "name": null,
+    "nameNe": null,
+    "lon": 85.342074,
+    "lat": 27.788235,
+    "tags": {
+     "aeroway": "helipad"
+    }
+   },
+   {
+    "id": "way/288155639",
+    "kind": "hospital",
+    "name": "Tanahu District Hospital",
+    "nameNe": null,
+    "lon": 84.265381,
+    "lat": 27.972145,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/288156775",
+    "kind": "hospital",
+    "name": "Western Regional Hospital",
+    "nameNe": null,
+    "lon": 83.998032,
+    "lat": 28.212681,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/291296342",
+    "kind": "helipad",
+    "name": null,
+    "nameNe": null,
+    "lon": 84.628049,
+    "lat": 28.004511,
+    "tags": {
+     "aeroway": "helipad"
+    }
+   },
+   {
+    "id": "way/291730712",
+    "kind": "aerodrome",
+    "name": "Gorkha Airport",
+    "nameNe": null,
+    "lon": 84.46621,
+    "lat": 28.038416,
+    "tags": {
+     "aeroway": "aerodrome",
+     "iata": "GKH",
+     "icao": "VNGK",
+     "ele": "475"
+    }
+   },
+   {
+    "id": "way/294149767",
+    "kind": "hospital",
+    "name": "Hetauda Hospital",
+    "nameNe": null,
+    "lon": 85.028027,
+    "lat": 27.432686,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/298464454",
+    "kind": "helipad",
+    "name": null,
+    "nameNe": null,
+    "lon": 85.133192,
+    "lat": 27.887035,
+    "tags": {
+     "aeroway": "helipad"
+    }
+   },
+   {
+    "id": "way/299232293",
+    "kind": "helipad",
+    "name": null,
+    "nameNe": null,
+    "lon": 84.56486,
+    "lat": 27.684831,
+    "tags": {
+     "aeroway": "helipad"
+    }
+   },
+   {
+    "id": "way/299287081",
+    "kind": "helipad",
+    "name": null,
+    "nameNe": null,
+    "lon": 86.711409,
+    "lat": 27.735718,
+    "tags": {
+     "aeroway": "helipad"
+    }
+   },
+   {
+    "id": "way/300465732",
+    "kind": "helipad",
+    "name": null,
+    "nameNe": null,
+    "lon": 86.170143,
+    "lat": 27.550241,
+    "tags": {
+     "aeroway": "helipad"
+    }
+   },
+   {
+    "id": "way/301884716",
+    "kind": "hospital",
+    "name": "National Ayurvedic Research and Training Center",
+    "nameNe": null,
+    "lon": 85.288008,
+    "lat": 27.676738,
+    "tags": {
+     "amenity": "hospital",
+     "operator": "Tribhuwan University"
+    }
+   },
+   {
+    "id": "way/302548412",
+    "kind": "hospital",
+    "name": "Bharatpur eye hospital",
+    "nameNe": null,
+    "lon": 84.42873,
+    "lat": 27.688218,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/303116446",
+    "kind": "helipad",
+    "name": null,
+    "nameNe": null,
+    "lon": 84.622406,
+    "lat": 27.99939,
+    "tags": {
+     "aeroway": "helipad"
+    }
+   },
+   {
+    "id": "way/306487064",
+    "kind": "hospital",
+    "name": "Padhma Nursing Homes",
+    "nameNe": "पध्म नर्सिङ्ग होम्स",
+    "lon": 83.986529,
+    "lat": 28.219604,
+    "tags": {
+     "amenity": "hospital",
+     "emergency": "yes"
+    }
+   },
+   {
+    "id": "way/306782858",
+    "kind": "clinic",
+    "name": "Bode health post",
+    "nameNe": null,
+    "lon": 85.392615,
+    "lat": 27.69216,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "way/307134371",
+    "kind": "hospital",
+    "name": "Lamjung Community Hospital",
+    "nameNe": null,
+    "lon": 84.380572,
+    "lat": 28.229282,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/307258506",
+    "kind": "clinic",
+    "name": "Sayaptri Medical Hall",
+    "nameNe": null,
+    "lon": 83.959805,
+    "lat": 28.206451,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "way/307822169",
+    "kind": "clinic",
+    "name": "Gopal Pharmacy",
+    "nameNe": null,
+    "lon": 85.318025,
+    "lat": 27.630754,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "way/311686821",
+    "kind": "hospital",
+    "name": "health post",
+    "nameNe": null,
+    "lon": 86.551863,
+    "lat": 27.198194,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/311900679",
+    "kind": "hospital",
+    "name": "Himalaya Eye Hospital",
+    "nameNe": null,
+    "lon": 83.977408,
+    "lat": 28.19053,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/312895324",
+    "kind": "aerodrome",
+    "name": "Syangboche Airfield",
+    "nameNe": null,
+    "lon": 86.712357,
+    "lat": 27.811371,
+    "tags": {
+     "aeroway": "aerodrome",
+     "iata": "SYH",
+     "icao": "VNSB",
+     "ele": "3763"
+    }
+   },
+   {
+    "id": "way/312966029",
+    "kind": "helipad",
+    "name": null,
+    "nameNe": null,
+    "lon": 86.587505,
+    "lat": 27.504855,
+    "tags": {
+     "aeroway": "helipad"
+    }
+   },
+   {
+    "id": "way/312966049",
+    "kind": "aerodrome",
+    "name": "Phaplu Airport",
+    "nameNe": null,
+    "lon": 86.585175,
+    "lat": 27.518017,
+    "tags": {
+     "aeroway": "aerodrome",
+     "iata": "PPL",
+     "icao": "VNPL",
+     "ele": "2468"
+    }
+   },
+   {
+    "id": "way/312966050",
+    "kind": "hospital",
+    "name": "Phaplu Hospital",
+    "nameNe": null,
+    "lon": 86.585843,
+    "lat": 27.515324,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/313783468",
+    "kind": "hospital",
+    "name": "Kharanitar Health Post",
+    "nameNe": null,
+    "lon": 85.307222,
+    "lat": 27.92308,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/313924660",
+    "kind": "hospital",
+    "name": "Bajrabarahi Healthpost",
+    "nameNe": null,
+    "lon": 85.118199,
+    "lat": 27.643393,
+    "tags": {
+     "amenity": "hospital",
+     "operator": "community"
+    }
+   },
+   {
+    "id": "way/314270667",
+    "kind": "clinic",
+    "name": "Gau Ghar Clinic",
+    "nameNe": null,
+    "lon": 85.132595,
+    "lat": 27.630481,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "way/314363677",
+    "kind": "helipad",
+    "name": null,
+    "nameNe": null,
+    "lon": 85.138054,
+    "lat": 27.650674,
+    "tags": {
+     "aeroway": "helipad"
+    }
+   },
+   {
+    "id": "way/314363678",
+    "kind": "helipad",
+    "name": null,
+    "nameNe": null,
+    "lon": 85.135539,
+    "lat": 27.646677,
+    "tags": {
+     "aeroway": "helipad"
+    }
+   },
+   {
+    "id": "way/314372567",
+    "kind": "hospital",
+    "name": "Army Hospital",
+    "nameNe": null,
+    "lon": 85.136713,
+    "lat": 27.652866,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/314372568",
+    "kind": "hospital",
+    "name": "army health post",
+    "nameNe": null,
+    "lon": 85.136516,
+    "lat": 27.652832,
+    "tags": {
+     "amenity": "hospital",
+     "operator": "Nepal Army Satbaini Gad"
+    }
+   },
+   {
+    "id": "way/314619565",
+    "kind": "aerodrome",
+    "name": "Rumjatar Airport",
+    "nameNe": null,
+    "lon": 86.551036,
+    "lat": 27.30256,
+    "tags": {
+     "aeroway": "aerodrome",
+     "iata": "RUM",
+     "icao": "VNRT",
+     "ele": "1371"
+    }
+   },
+   {
+    "id": "way/314876719",
+    "kind": "aerodrome",
+    "name": "Lamidanda Airport",
+    "nameNe": null,
+    "lon": 86.672456,
+    "lat": 27.252652,
+    "tags": {
+     "aeroway": "aerodrome",
+     "iata": "LDN",
+     "icao": "VNLD",
+     "ele": "1227"
+    }
+   },
+   {
+    "id": "way/317139834",
+    "kind": "clinic",
+    "name": "Lubhoo Health Post",
+    "nameNe": null,
+    "lon": 85.372829,
+    "lat": 27.643958,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "way/324729915",
+    "kind": "hospital",
+    "name": "Shree Tribhuwan Chandra Sainik Hospital",
+    "nameNe": null,
+    "lon": 85.313362,
+    "lat": 27.703724,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/326872248",
+    "kind": "helipad",
+    "name": null,
+    "nameNe": null,
+    "lon": 85.288931,
+    "lat": 27.671147,
+    "tags": {
+     "aeroway": "helipad"
+    }
+   },
+   {
+    "id": "way/327288874",
+    "kind": "hospital",
+    "name": "Niko Children's Hospital & Research Center (P) Ltd",
+    "nameNe": null,
+    "lon": 84.429332,
+    "lat": 27.685325,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/327552972",
+    "kind": "aerodrome",
+    "name": "Nepal airport",
+    "nameNe": null,
+    "lon": 84.310971,
+    "lat": 27.637748,
+    "tags": {
+     "aeroway": "aerodrome"
+    }
+   },
+   {
+    "id": "way/327966961",
+    "kind": "hospital",
+    "name": "Mary Healthcare Center cum Dental Home & Research Center",
+    "nameNe": null,
+    "lon": 84.429205,
+    "lat": 27.685481,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/328109194",
+    "kind": "hospital",
+    "name": "Alive Hospital & Trauma Center",
+    "nameNe": null,
+    "lon": 84.428654,
+    "lat": 27.685622,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/328109196",
+    "kind": "hospital",
+    "name": "Sahara Hospital & Physiotherapy Rehabilitation Center",
+    "nameNe": null,
+    "lon": 84.428306,
+    "lat": 27.685953,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/328315675",
+    "kind": "hospital",
+    "name": "Baguwa Sub- Health Post",
+    "nameNe": null,
+    "lon": 84.719919,
+    "lat": 28.030875,
+    "tags": {
+     "amenity": "hospital",
+     "operator": "Nischal Basnet"
+    }
+   },
+   {
+    "id": "way/328914788",
+    "kind": "clinic",
+    "name": "Urban Healt Clinic",
+    "nameNe": null,
+    "lon": 84.438098,
+    "lat": 27.705975,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "way/328915093",
+    "kind": "clinic",
+    "name": "Parijaat Medical Hall",
+    "nameNe": null,
+    "lon": 84.442102,
+    "lat": 27.699807,
+    "tags": {
+     "amenity": "clinic"
+    }
+   },
+   {
+    "id": "way/330314049",
+    "kind": "hospital",
+    "name": null,
+    "nameNe": null,
+    "lon": 84.431992,
+    "lat": 27.679604,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/330314070",
+    "kind": "hospital",
+    "name": null,
+    "nameNe": null,
+    "lon": 84.431885,
+    "lat": 27.679623,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/336771790",
+    "kind": "hospital",
+    "name": "manahari hospital",
+    "nameNe": null,
+    "lon": 84.807544,
+    "lat": 27.539948,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/337532230",
+    "kind": "hospital",
+    "name": "manahari hospital",
+    "nameNe": null,
+    "lon": 84.807629,
+    "lat": 27.540243,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/338018478",
+    "kind": "hospital",
+    "name": "Community Health Post",
+    "nameNe": null,
+    "lon": 84.112602,
+    "lat": 27.572407,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/338314635",
+    "kind": "hospital",
+    "name": "Jivan Medical Hall",
+    "nameNe": null,
+    "lon": 84.511455,
+    "lat": 27.683718,
+    "tags": {
+     "amenity": "hospital"
+    }
+   },
+   {
+    "id": "way/338831890",
+    "kind": "doctors",
+    "name": "Upper Tamakoshi Project Healthposts",
+    "nameNe": null,
+    "lon": 86.217791,
+    "lat": 27.845575,
+    "tags": {
+     "amenity": "doctors"
+    }
+   },
+   {
+    "id": "way/338831891",
+    "kind": "health_post",
+    "name": null,
+    "nameNe": null,
+    "lon": 86.107395,
+    "lat": 27.487822,
+    "tags": {
+     "amenity": "health_post"
+    }
+   },
+   {
+    "id": "way/339901309",
+    "kind": "aerodrome",
+    "name": null,
+    "nameNe": null,
+    "lon": 83.887992,
+    "lat": 27.417309,
+    "tags": {
+     "aeroway": "aerodrome"
+    }
+   },
+   {
+    "id": "way/45019553",
+    "kind": "hospital",
+    "name": "Hillary Hospital",
+    "nameNe": null,
+    "lon": 86.704747,
+    "lat": 27.823759,
+    "tags": {
+     "amenity": "hospital"
+    }
+   }
+  ]
+ }
+}

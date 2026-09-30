@@ -1,0 +1,436 @@
+OpenStreetMap health facilities, airfields and motorable roads, central Nepal, as at 2015-04-24
+
+roads: osm-nepal-2015-access: read 30737, kept 30337, dropped 400 (retention 98.70%)
+  DUPLICATE_RECORD x399
+    - way 196482617: duplicate way across tiles
+    - way 196482619: duplicate way across tiles
+    - way 196482624: duplicate way across tiles
+    - way 206591027: duplicate way across tiles
+    - way 92360232: duplicate way across tiles
+    - way 169119642: duplicate way across tiles
+    - way 339916127: duplicate way across tiles
+    - way 339916132: duplicate way across tiles
+    - way 339916144: duplicate way across tiles
+    - way 339916198: duplicate way across tiles
+    - way 339916220: duplicate way across tiles
+    - way 339916250: duplicate way across tiles
+    - way 209773201: duplicate way across tiles
+    - way 209788505: duplicate way across tiles
+    - way 223558151: duplicate way across tiles
+    - way 223559765: duplicate way across tiles
+    - way 223559766: duplicate way across tiles
+    - way 223559768: duplicate way across tiles
+    - way 223559769: duplicate way across tiles
+    - way 223561523: duplicate way across tiles
+    - way 223561788: duplicate way across tiles
+    - way 223561790: duplicate way across tiles
+    - way 223561791: duplicate way across tiles
+    - way 223562953: duplicate way across tiles
+    - way 223567277: duplicate way across tiles
+    - way 233020051: duplicate way across tiles
+    - way 233020053: duplicate way across tiles
+    - way 233020054: duplicate way across tiles
+    - way 233020055: duplicate way across tiles
+    - way 233020057: duplicate way across tiles
+    - way 233020436: duplicate way across tiles
+    - way 233028226: duplicate way across tiles
+    - way 233028231: duplicate way across tiles
+    - way 233028234: duplicate way across tiles
+    - way 233028759: duplicate way across tiles
+    - way 233028760: duplicate way across tiles
+    - way 233028764: duplicate way across tiles
+    - way 233031181: duplicate way across tiles
+    - way 233031184: duplicate way across tiles
+    - way 233031194: duplicate way across tiles
+    - way 233031205: duplicate way across tiles
+    - way 233031206: duplicate way across tiles
+    - way 233031249: duplicate way across tiles
+    - way 233031600: duplicate way across tiles
+    - way 233031604: duplicate way across tiles
+    - way 233031607: duplicate way across tiles
+    - way 233031617: duplicate way across tiles
+    - way 233031618: duplicate way across tiles
+    - way 233031622: duplicate way across tiles
+    - way 233032857: duplicate way across tiles
+    - way 233032859: duplicate way across tiles
+    - way 233032864: duplicate way across tiles
+    - way 233032865: duplicate way across tiles
+    - way 233032877: duplicate way across tiles
+    - way 233036414: duplicate way across tiles
+    - way 233036938: duplicate way across tiles
+    - way 233038116: duplicate way across tiles
+    - way 233038292: duplicate way across tiles
+    - way 235088536: duplicate way across tiles
+    - way 235109780: duplicate way across tiles
+    - way 235212260: duplicate way across tiles
+    - way 235212881: duplicate way across tiles
+    - way 235214097: duplicate way across tiles
+    - way 235214194: duplicate way across tiles
+    - way 235286752: duplicate way across tiles
+    - way 329247915: duplicate way across tiles
+    - way 329247918: duplicate way across tiles
+    - way 329247919: duplicate way across tiles
+    - way 334399058: duplicate way across tiles
+    - way 235588717: duplicate way across tiles
+    - way 300788298: duplicate way across tiles
+    - way 330437128: duplicate way across tiles
+    - way 333391282: duplicate way across tiles
+    - way 329181492: duplicate way across tiles
+    - way 329191644: duplicate way across tiles
+    - way 331410580: duplicate way across tiles
+    - way 334452206: duplicate way across tiles
+    - way 315636269: duplicate way across tiles
+    - way 335562716: duplicate way across tiles
+    - way 311684115: duplicate way across tiles
+    - way 314876739: duplicate way across tiles
+    - way 92943811: duplicate way across tiles
+    - way 328809764: duplicate way across tiles
+    - way 329033595: duplicate way across tiles
+    - way 332805824: duplicate way across tiles
+    - way 339299068: duplicate way across tiles
+    - way 339899580: duplicate way across tiles
+    - way 118505079: duplicate way across tiles
+    - way 139301661: duplicate way across tiles
+    - way 139301667: duplicate way across tiles
+    - way 218926844: duplicate way across tiles
+    - way 218927225: duplicate way across tiles
+    - way 218927879: duplicate way across tiles
+    - way 328927389: duplicate way across tiles
+    - way 187060663: duplicate way across tiles
+    - way 217889664: duplicate way across tiles
+    - way 217892645: duplicate way across tiles
+    - way 218117160: duplicate way across tiles
+    - way 218117164: duplicate way across tiles
+    - way 218117349: duplicate way across tiles
+    - way 218117351: duplicate way across tiles
+    - way 218465530: duplicate way across tiles
+    - way 218466824: duplicate way across tiles
+    - way 218619330: duplicate way across tiles
+    - way 218622429: duplicate way across tiles
+    - way 218623556: duplicate way across tiles
+    - way 218644275: duplicate way across tiles
+    - way 218645725: duplicate way across tiles
+    - way 218647382: duplicate way across tiles
+    - way 218647387: duplicate way across tiles
+    - way 303398827: duplicate way across tiles
+    - way 303398832: duplicate way across tiles
+    - way 327728983: duplicate way across tiles
+    - way 328932706: duplicate way across tiles
+    - way 328932707: duplicate way across tiles
+    - way 188865974: duplicate way across tiles
+    - way 209013028: duplicate way across tiles
+    - way 219288713: duplicate way across tiles
+    - way 233591668: duplicate way across tiles
+    - way 233591845: duplicate way across tiles
+    - way 233591847: duplicate way across tiles
+    - way 233592581: duplicate way across tiles
+    - way 234340566: duplicate way across tiles
+    - way 236947340: duplicate way across tiles
+    - way 244054077: duplicate way across tiles
+    - way 244054080: duplicate way across tiles
+    - way 244054264: duplicate way across tiles
+    - way 244054276: duplicate way across tiles
+    - way 244056505: duplicate way across tiles
+    - way 244164197: duplicate way across tiles
+    - way 244164198: duplicate way across tiles
+    - way 244164201: duplicate way across tiles
+    - way 244164204: duplicate way across tiles
+    - way 244164206: duplicate way across tiles
+    - way 244164207: duplicate way across tiles
+    - way 244164210: duplicate way across tiles
+    - way 244164539: duplicate way across tiles
+    - way 244164541: duplicate way across tiles
+    - way 244164543: duplicate way across tiles
+    - way 244223620: duplicate way across tiles
+    - way 244223622: duplicate way across tiles
+    - way 244223623: duplicate way across tiles
+    - way 244224283: duplicate way across tiles
+    - way 244226851: duplicate way across tiles
+    - way 244311808: duplicate way across tiles
+    - way 244329518: duplicate way across tiles
+    - way 244329525: duplicate way across tiles
+    - way 244329529: duplicate way across tiles
+    - way 244330839: duplicate way across tiles
+    - way 244331010: duplicate way across tiles
+    - way 244331414: duplicate way across tiles
+    - way 244331942: duplicate way across tiles
+    - way 302373274: duplicate way across tiles
+    - way 302852183: duplicate way across tiles
+    - way 302852185: duplicate way across tiles
+    - way 302852246: duplicate way across tiles
+    - way 302860568: duplicate way across tiles
+    - way 302994463: duplicate way across tiles
+    - way 302994513: duplicate way across tiles
+    - way 303000267: duplicate way across tiles
+    - way 303258880: duplicate way across tiles
+    - way 303258886: duplicate way across tiles
+    - way 303261042: duplicate way across tiles
+    - way 303398830: duplicate way across tiles
+    - way 331681237: duplicate way across tiles
+    - way 32133065: duplicate way across tiles
+    - way 32135509: duplicate way across tiles
+    - way 38605102: duplicate way across tiles
+    - way 43918636: duplicate way across tiles
+    - way 119903519: duplicate way across tiles
+    - way 119903522: duplicate way across tiles
+    - way 155210265: duplicate way across tiles
+    - way 155210282: duplicate way across tiles
+    - way 155210290: duplicate way across tiles
+    - way 172656263: duplicate way across tiles
+    - way 172698499: duplicate way across tiles
+    - way 172698510: duplicate way across tiles
+    - way 172698518: duplicate way across tiles
+    - way 179908082: duplicate way across tiles
+    - way 186284202: duplicate way across tiles
+    - way 188435249: duplicate way across tiles
+    - way 194607858: duplicate way across tiles
+    - way 206551985: duplicate way across tiles
+    - way 206551986: duplicate way across tiles
+    - way 206878297: duplicate way across tiles
+    - way 206890297: duplicate way across tiles
+    - way 206890298: duplicate way across tiles
+    - way 206890312: duplicate way across tiles
+    - way 206890317: duplicate way across tiles
+    - way 206890323: duplicate way across tiles
+    - way 207075015: duplicate way across tiles
+    - way 209422630: duplicate way across tiles
+    - way 209422638: duplicate way across tiles
+    - way 216520275: duplicate way across tiles
+    - way 216520288: duplicate way across tiles
+    - way 216957613: duplicate way across tiles
+    - way 216957614: duplicate way across tiles
+    - way 216957615: duplicate way across tiles
+    - way 217334041: duplicate way across tiles
+    - way 217334045: duplicate way across tiles
+    - way 217334047: duplicate way across tiles
+    - way 219610780: duplicate way across tiles
+    - way 219688936: duplicate way across tiles
+    - way 219698991: duplicate way across tiles
+    - way 219698992: duplicate way across tiles
+    - way 219698993: duplicate way across tiles
+    - way 223982633: duplicate way across tiles
+    - way 229132954: duplicate way across tiles
+    - way 230501716: duplicate way across tiles
+    - way 230546800: duplicate way across tiles
+    - way 257407730: duplicate way across tiles
+    - way 311602372: duplicate way across tiles
+    - way 311602867: duplicate way across tiles
+    - way 329181490: duplicate way across tiles
+    - way 329184075: duplicate way across tiles
+    - way 335072210: duplicate way across tiles
+    - way 335627852: duplicate way across tiles
+    - way 335647121: duplicate way across tiles
+    - way 61113412: duplicate way across tiles
+    - way 206891811: duplicate way across tiles
+    - way 235975768: duplicate way across tiles
+    - way 236102918: duplicate way across tiles
+    - way 236109260: duplicate way across tiles
+    - way 291149608: duplicate way across tiles
+    - way 304418416: duplicate way across tiles
+    - way 304418419: duplicate way across tiles
+    - way 317582416: duplicate way across tiles
+    - way 317582421: duplicate way across tiles
+    - way 329171981: duplicate way across tiles
+    - way 329376477: duplicate way across tiles
+    - way 331129340: duplicate way across tiles
+    - way 331285296: duplicate way across tiles
+    - way 331299469: duplicate way across tiles
+    - way 331299475: duplicate way across tiles
+    - way 331299481: duplicate way across tiles
+    - way 331299496: duplicate way across tiles
+    - way 331305872: duplicate way across tiles
+    - way 331305875: duplicate way across tiles
+    - way 331305878: duplicate way across tiles
+    - way 313974244: duplicate way across tiles
+    - way 316832647: duplicate way across tiles
+    - way 316832679: duplicate way across tiles
+    - way 318700970: duplicate way across tiles
+    - way 319071013: duplicate way across tiles
+    - way 331298806: duplicate way across tiles
+    - way 314460961: duplicate way across tiles
+    - way 328923841: duplicate way across tiles
+    - way 329103300: duplicate way across tiles
+    - way 329121452: duplicate way across tiles
+    - way 329121458: duplicate way across tiles
+    - way 140332537: duplicate way across tiles
+    - way 176715835: duplicate way across tiles
+    - way 216643915: duplicate way across tiles
+    - way 329111020: duplicate way across tiles
+    - way 329113151: duplicate way across tiles
+    - way 329113152: duplicate way across tiles
+    - way 329114756: duplicate way across tiles
+    - way 329121450: duplicate way across tiles
+    - way 329142174: duplicate way across tiles
+    - way 140332488: duplicate way across tiles
+    - way 140332490: duplicate way across tiles
+    - way 140332491: duplicate way across tiles
+    - way 140332501: duplicate way across tiles
+    - way 140332502: duplicate way across tiles
+    - way 140332515: duplicate way across tiles
+    - way 166750350: duplicate way across tiles
+    - way 243481669: duplicate way across tiles
+    - way 259255369: duplicate way across tiles
+    - way 282534133: duplicate way across tiles
+    - way 291573651: duplicate way across tiles
+    - way 302738758: duplicate way across tiles
+    - way 302739343: duplicate way across tiles
+    - way 328243733: duplicate way across tiles
+    - way 328246130: duplicate way across tiles
+    - way 332670205: duplicate way across tiles
+    - way 27034627: duplicate way across tiles
+    - way 32134934: duplicate way across tiles
+    - way 32135047: duplicate way across tiles
+    - way 32206889: duplicate way across tiles
+    - way 112447347: duplicate way across tiles
+    - way 153237936: duplicate way across tiles
+    - way 171033677: duplicate way across tiles
+    - way 206857751: duplicate way across tiles
+    - way 206858667: duplicate way across tiles
+    - way 206867692: duplicate way across tiles
+    - way 206868350: duplicate way across tiles
+    - way 206897148: duplicate way across tiles
+    - way 282531895: duplicate way across tiles
+    - way 282532510: duplicate way across tiles
+    - way 302751369: duplicate way across tiles
+    - way 302751372: duplicate way across tiles
+    - way 327982659: duplicate way across tiles
+    - way 327982667: duplicate way across tiles
+    - way 335709699: duplicate way across tiles
+    - way 61478675: duplicate way across tiles
+    - way 154534680: duplicate way across tiles
+    - way 213124633: duplicate way across tiles
+    - way 223618722: duplicate way across tiles
+    - way 303977025: duplicate way across tiles
+    - way 316953818: duplicate way across tiles
+    - way 322507246: duplicate way across tiles
+    - way 322666693: duplicate way across tiles
+    - way 322666695: duplicate way across tiles
+    - way 328226003: duplicate way across tiles
+    - way 328231142: duplicate way across tiles
+    - way 328231149: duplicate way across tiles
+    - way 328238034: duplicate way across tiles
+    - way 328241706: duplicate way across tiles
+    - way 334578673: duplicate way across tiles
+    - way 316832655: duplicate way across tiles
+    - way 167173578: duplicate way across tiles
+    - way 24613048: duplicate way across tiles
+    - way 27021565: duplicate way across tiles
+    - way 27021590: duplicate way across tiles
+    - way 57375886: duplicate way across tiles
+    - way 57375889: duplicate way across tiles
+    - way 57376146: duplicate way across tiles
+    - way 57376148: duplicate way across tiles
+    - way 71445043: duplicate way across tiles
+    - way 71445086: duplicate way across tiles
+    - way 71445087: duplicate way across tiles
+    - way 108189086: duplicate way across tiles
+    - way 108189087: duplicate way across tiles
+    - way 108189933: duplicate way across tiles
+    - way 108189941: duplicate way across tiles
+    - way 108193550: duplicate way across tiles
+    - way 108218583: duplicate way across tiles
+    - way 108218584: duplicate way across tiles
+    - way 108222179: duplicate way across tiles
+    - way 108979075: duplicate way across tiles
+    - way 117380660: duplicate way across tiles
+    - way 119748519: duplicate way across tiles
+    - way 119748549: duplicate way across tiles
+    - way 120329890: duplicate way across tiles
+    - way 120409029: duplicate way across tiles
+    - way 120521286: duplicate way across tiles
+    - way 120633668: duplicate way across tiles
+    - way 120849992: duplicate way across tiles
+    - way 120849995: duplicate way across tiles
+    - way 124762348: duplicate way across tiles
+    - way 124762352: duplicate way across tiles
+    - way 124764407: duplicate way across tiles
+    - way 124764408: duplicate way across tiles
+    - way 124764413: duplicate way across tiles
+    - way 124792627: duplicate way across tiles
+    - way 124892073: duplicate way across tiles
+    - way 125193558: duplicate way across tiles
+    - way 125194632: duplicate way across tiles
+    - way 125196021: duplicate way across tiles
+    - way 125197182: duplicate way across tiles
+    - way 125199498: duplicate way across tiles
+    - way 203968442: duplicate way across tiles
+    - way 204198447: duplicate way across tiles
+    - way 220704663: duplicate way across tiles
+    - way 234977792: duplicate way across tiles
+    - way 239167361: duplicate way across tiles
+    - way 299960555: duplicate way across tiles
+    - way 310308641: duplicate way across tiles
+    - way 310310753: duplicate way across tiles
+    - way 310310754: duplicate way across tiles
+    - way 310310756: duplicate way across tiles
+    - way 317254135: duplicate way across tiles
+    - way 162339855: duplicate way across tiles
+    - way 162413534: duplicate way across tiles
+    - way 316549313: duplicate way across tiles
+    - way 335333373: duplicate way across tiles
+    - way 84792450: duplicate way across tiles
+    - way 282528038: duplicate way across tiles
+    - way 245590653: duplicate way across tiles
+    - way 291790537: duplicate way across tiles
+    - way 328866543: duplicate way across tiles
+    - way 39366308: duplicate way across tiles
+    - way 300531990: duplicate way across tiles
+    - way 61155286: duplicate way across tiles
+    - way 167173571: duplicate way across tiles
+    - way 302563016: duplicate way across tiles
+    - way 302563022: duplicate way across tiles
+    - way 302563049: duplicate way across tiles
+    - way 162413492: duplicate way across tiles
+    - way 245597973: duplicate way across tiles
+    - way 328683400: duplicate way across tiles
+    - way 267507617: duplicate way across tiles
+    - way 267507644: duplicate way across tiles
+    - way 302576462: duplicate way across tiles
+    - way 306231088: duplicate way across tiles
+    - way 61155283: duplicate way across tiles
+    - way 300337061: duplicate way across tiles
+    - way 302563007: duplicate way across tiles
+    - way 302563018: duplicate way across tiles
+    - way 61155281: duplicate way across tiles
+    - way 302563008: duplicate way across tiles
+  INVALID_GEOMETRY x1
+    - way 36485779: way has fewer than two positions
+
+facilities: osm-nepal-2015-access-facilities: read 725, kept 724, dropped 1 (retention 99.86%)
+  DUPLICATE_RECORD x1
+    - way/126708147: returned by two tiles
+
+{
+ "instant": "2015-04-24T00:00:00Z",
+ "overpassBaseTimestamp": "2026-09-29T15:35:49Z",
+ "tiles": 40,
+ "ways": 30337,
+ "waysByClass": {
+  "primary": 682,
+  "secondary": 686,
+  "trunk": 392,
+  "tertiary": 941,
+  "residential": 13697,
+  "secondary_link": 10,
+  "unclassified": 4901,
+  "service": 2292,
+  "track": 5339,
+  "living_street": 362,
+  "road": 1011,
+  "tertiary_link": 7,
+  "primary_link": 16,
+  "motorway": 1
+ },
+ "graphNodes": 50947,
+ "graphEdges": 62583,
+ "graphLengthKm": 19911.1,
+ "facilities": 724,
+ "facilitiesByKind": {
+  "helipad": 45,
+  "hospital": 343,
+  "clinic": 196,
+  "doctors": 29,
+  "aerodrome": 17,
+  "health_post": 94
+ }
+}

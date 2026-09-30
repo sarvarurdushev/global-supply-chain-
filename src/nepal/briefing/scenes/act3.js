@@ -1,0 +1,450 @@
+/**
+ * ACT III — PHYSICAL DAMAGE (vertical-slice scenes 13 and 18).
+ */
+
+import { RUNS, defineScene } from '../timeline.js';
+
+const ALL = [RUNS.THREE, RUNS.SIX, RUNS.FULL];
+const SIX_FULL = [RUNS.SIX, RUNS.FULL];
+const UNOSAT = { source: 'UNOSAT', cls: 'OBSERVED' };
+const STAT = { source: 'UNOSAT × USGS SHAKEMAP', cls: 'STATISTIC' };
+
+/* Place names, so a cluster of dots is somewhere. */
+const districtLabel = (key, text) => ({
+  type: 'annotation.draw',
+  kind: 'label',
+  id: `d-${key}`,
+  anchor: `district:${key}`,
+  text,
+  size: 'district',
+});
+
+const damageBase = [
+  { type: 'veil', opacity: 0.1 },
+  { type: 'layer.show', layer: 'outline', colour: '#3cf2a0' },
+  { type: 'layer.show', layer: 'mask', alpha: 0.55 },
+  districtLabel('gorkha', 'GORKHA'),
+  districtLabel('dhading', 'DHADING'),
+  districtLabel('lamjung', 'LAMJUNG'),
+  districtLabel('nuwakot', 'NUWAKOT'),
+  districtLabel('chitawan', 'CHITWAN'),
+  {
+    type: 'annotation.draw',
+    kind: 'label',
+    id: 'ktm',
+    anchor: 'kathmandu',
+    text: 'KATHMANDU',
+    size: 'city',
+    dx: 44,
+    dy: -22,
+  },
+];
+
+export const COMPOSITION = defineScene({
+  id: 'damage-composition',
+  number: 13,
+  act: 'III',
+  title: 'Damage composition',
+  question: 'How severe was the observed damage?',
+  explore: 8,
+  runs: ALL,
+  setup: [
+    ...damageBase,
+    {
+      type: 'camera.fly',
+      to: 'damageCentre',
+      rangeKm: 330,
+      pitch: -62,
+      heading: 0,
+    },
+    { type: 'layer.show', layer: 'damage' },
+    { type: 'layer.filter', layer: 'damage', classes: [], dim: 0.22 },
+  ],
+  beats: [
+    {
+      id: 'destroyed',
+      caption:
+        '{damage.destroyed|int} OF {damage.total|int} MAPPED SITES: DESTROYED',
+      narration:
+        'Of the {damage.total|int} damaged sites mapped from satellite imagery, {damage.destroyed|int} were classed as destroyed.',
+      minHoldMs: 500,
+      actions: [
+        {
+          at: 0,
+          type: 'chart.enter',
+          chart: 'composition',
+          id: 'composition',
+          screen: { x: 0.03, y: 0.66 },
+        },
+        {
+          at: 300,
+          type: 'chart.update',
+          id: 'composition',
+          op: 'reveal',
+          index: 0,
+          duration: 1600,
+        },
+        {
+          at: 300,
+          type: 'layer.filter',
+          layer: 'damage',
+          classes: [0],
+          dim: 0.1,
+          duration: 900,
+        },
+        {
+          at: 400,
+          type: 'camera.fly',
+          to: 'damageCentre',
+          rangeKm: 300,
+          pitch: -60,
+          heading: 6,
+          duration: 5200,
+        },
+        { at: 1900, type: 'audio.cue', cue: 'reveal' },
+        {
+          at: 2300,
+          type: 'annotation.draw',
+          kind: 'callout',
+          id: 'manbu',
+          anchor: 'area:Manbu Area',
+          title: 'MANBU AREA',
+          lines: ['LARGEST CLUSTER · {damage.areaManbu|int} SITES'],
+          tag: UNOSAT,
+          dx: -210,
+          dy: -80,
+        },
+      ],
+    },
+    {
+      id: 'severe',
+      caption: '{damage.severe|int} SEVERE',
+      narration: '{damage.severe|int} severe.',
+      runs: SIX_FULL,
+      minHoldMs: 300,
+      actions: [
+        {
+          at: 0,
+          type: 'chart.update',
+          id: 'composition',
+          op: 'reveal',
+          index: 1,
+          duration: 1300,
+        },
+        {
+          at: 0,
+          type: 'layer.filter',
+          layer: 'damage',
+          classes: [1],
+          dim: 0.1,
+          duration: 700,
+        },
+        { at: 0, type: 'annotation.remove', id: 'manbu' },
+      ],
+    },
+    {
+      id: 'moderate-possible',
+      caption:
+        '{damage.moderate|int} MODERATE · {damage.possible|int} POSSIBLE',
+      narration:
+        '{damage.moderate|int} moderate. {damage.possible|int} possible.',
+      runs: SIX_FULL,
+      minHoldMs: 300,
+      actions: [
+        {
+          at: 0,
+          type: 'chart.update',
+          id: 'composition',
+          op: 'reveal',
+          index: 2,
+          duration: 1100,
+        },
+        {
+          at: 0,
+          type: 'layer.filter',
+          layer: 'damage',
+          classes: [2],
+          dim: 0.1,
+          duration: 600,
+        },
+        {
+          at: 1500,
+          type: 'chart.update',
+          id: 'composition',
+          op: 'reveal',
+          index: 3,
+          duration: 900,
+        },
+        {
+          at: 1500,
+          type: 'layer.filter',
+          layer: 'damage',
+          classes: [3],
+          dim: 0.1,
+          duration: 600,
+        },
+      ],
+    },
+    {
+      id: 'together',
+      caption:
+        'DESTROYED {damage.shareDestroyed|pct1} · SEVERE {damage.shareSevere|pct1} · MODERATE {damage.shareModerate|pct1} · POSSIBLE {damage.sharePossible|pct1}',
+      narration:
+        'Together: {damage.shareDestroyed|dec1} percent destroyed, {damage.shareSevere|dec1} percent severe.',
+      minHoldMs: 900,
+      actions: [
+        { at: 0, type: 'chart.update', id: 'composition', op: 'revealAll' },
+        {
+          at: 0,
+          type: 'layer.filter',
+          layer: 'damage',
+          classes: [0, 1, 2, 3],
+          duration: 900,
+        },
+        { at: 300, type: 'chart.update', id: 'composition', op: 'total' },
+        {
+          at: 1200,
+          type: 'annotation.draw',
+          kind: 'callout',
+          id: 'caveat',
+          anchor: 'area:Bhaktapur',
+          title: 'DAMAGE-ONLY RECORD',
+          lines: ['NO UNDAMAGED BUILDINGS RECORDED', 'NOT FIELD-VALIDATED'],
+          tag: UNOSAT,
+          dx: 120,
+          dy: 70,
+          tone: 'caveat',
+        },
+      ],
+    },
+  ],
+});
+
+export const MODEL_VS_OBSERVATION = defineScene({
+  id: 'model-vs-observation',
+  number: 18,
+  act: 'III',
+  title: 'Model versus observation',
+  question: 'Did stronger shaking mean more severe damage?',
+  explore: 9,
+  runs: ALL,
+  setup: [
+    ...damageBase,
+    {
+      type: 'camera.fly',
+      to: 'damageCentre',
+      rangeKm: 360,
+      pitch: -64,
+      heading: 0,
+    },
+  ],
+  beats: [
+    {
+      id: 'question',
+      caption: 'DID STRONGER SHAKING MEAN MORE SEVERE DAMAGE?',
+      narration:
+        'Did stronger modelled shaking mean more severe observed damage?',
+      minHoldMs: 300,
+      actions: [
+        {
+          at: 0,
+          type: 'question.show',
+          text: 'DID STRONGER SHAKING MEAN MORE SEVERE DAMAGE?',
+          duration: 2600,
+          holdMs: 900,
+        },
+        { at: 0, type: 'audio.cue', cue: 'hit' },
+        {
+          at: 400,
+          type: 'layer.show',
+          layer: 'bands',
+          minMmi: 7,
+          duration: 3800,
+        },
+      ],
+    },
+    {
+      id: 'overlay',
+      caption: 'THREE MODELLED BANDS · AND THE DAMAGE OBSERVED INSIDE EACH',
+      narration:
+        'Here are the three strongest modelled intensity bands, and the damage satellites observed inside them.',
+      minHoldMs: 300,
+      actions: [
+        { at: 0, type: 'layer.show', layer: 'damage', duration: 1400 },
+        {
+          at: 0,
+          type: 'camera.fly',
+          to: 'damageCentre',
+          rangeKm: 320,
+          pitch: -60,
+          heading: 8,
+          duration: 4800,
+        },
+        {
+          at: 900,
+          type: 'chart.enter',
+          chart: 'intensity',
+          id: 'intensity',
+          screen: { x: 0.03, y: 0.5 },
+        },
+        { at: 1200, type: 'chart.update', id: 'intensity', op: 'grow' },
+      ],
+    },
+    {
+      id: 'shares',
+      caption:
+        'DESTROYED SHARE · MMI {damage.byIntensity.0.mmi} {damage.byIntensity.0.destroyedShare|pct1} · {damage.byIntensity.1.mmi} {damage.byIntensity.1.destroyedShare|pct1} · {damage.byIntensity.2.mmi} {damage.byIntensity.2.destroyedShare|pct1}',
+      narration:
+        'Look at the destroyed share. At intensity eight it is {damage.byIntensity.2.destroyedShare|dec1} percent. At seven, {damage.byIntensity.0.destroyedShare|dec1}.',
+      runs: SIX_FULL,
+      minHoldMs: 400,
+      actions: [
+        { at: 0, type: 'chart.update', id: 'intensity', op: 'shares' },
+        {
+          at: 200,
+          type: 'layer.filter',
+          layer: 'damage',
+          classes: [0],
+          dim: 0.12,
+          duration: 800,
+        },
+        { at: 1600, type: 'layer.filter', layer: 'bands', highlight: 8 },
+        {
+          at: 1600,
+          type: 'chart.update',
+          id: 'intensity',
+          op: 'focus',
+          mmi: 8,
+        },
+      ],
+    },
+    {
+      id: 'statistic',
+      caption:
+        'DETECTABLE · BUT SMALL · CRAMÉR’S V = {damage.independence.cramersV|dec3}',
+      narration:
+        'The association is real: with this many observations, chance alone cannot produce it. But it is weak. Cramér’s V is {damage.independence.cramersV|dec2}.',
+      minHoldMs: 700,
+      actions: [
+        {
+          at: 0,
+          type: 'chart.update',
+          id: 'intensity',
+          op: 'focus',
+          mmi: null,
+        },
+        { at: 0, type: 'layer.filter', layer: 'bands', highlight: null },
+        {
+          at: 300,
+          type: 'annotation.draw',
+          kind: 'typed',
+          id: 'chi',
+          duration: 1400,
+          screen: { x: 0.62, y: 0.2 },
+          className: 'brf-typed brf-typed--data',
+          lines: [
+            'INDEPENDENCE TEST · χ²',
+            'χ² = {damage.independence.statistic|dec1} · DF {damage.independence.df|int}',
+            'P = {damage.independence.p|sci}',
+            'ASSOCIATION DETECTABLE',
+          ],
+        },
+        {
+          at: 2200,
+          type: 'metric.count',
+          id: 'cramer',
+          fact: 'damage.independence',
+          key: 'cramersV',
+          format: 'dec3',
+          label: 'CRAMÉR’S V · A SMALL EFFECT',
+          screen: { x: 0.62, y: 0.42 },
+          size: 'xl',
+          duration: 1600,
+          tag: STAT,
+        },
+        { at: 3600, type: 'audio.cue', cue: 'reveal' },
+      ],
+    },
+    {
+      id: 'reversal',
+      caption:
+        'NOT MONOTONIC · WHERE SATELLITES LOOKED MATTERS AS MUCH AS THE SHAKING',
+      narration:
+        'But it is not monotonic. At seven and a half the destroyed share falls, and inside a single analysis area it falls as intensity rises. Where satellites looked shapes this pattern as much as the shaking does.',
+      minHoldMs: 1200,
+      actions: [
+        { at: 0, type: 'layer.filter', layer: 'bands', highlight: 7.5 },
+        {
+          at: 5200,
+          type: 'camera.fly',
+          to: 'area:Manbu Area',
+          rangeKm: 150,
+          pitch: -58,
+          heading: -10,
+          duration: 3400,
+        },
+        {
+          at: 8800,
+          type: 'layer.filter',
+          layer: 'damage',
+          classes: [0, 1, 2, 3],
+          duration: 900,
+        },
+        {
+          at: 9000,
+          type: 'camera.fly',
+          to: 'damageCentre',
+          rangeKm: 320,
+          pitch: -60,
+          heading: 0,
+          duration: 3600,
+        },
+        { at: 11200, type: 'layer.filter', layer: 'bands', highlight: null },
+        { at: 0, type: 'chart.update', id: 'intensity', op: 'focus', mmi: 7.5 },
+        { at: 0, type: 'audio.cue', cue: 'hit' },
+        { at: 0, type: 'annotation.remove', id: 'chi' },
+        {
+          at: 1400,
+          type: 'annotation.draw',
+          kind: 'callout',
+          id: 'manbu-within',
+          anchor: 'area:Manbu Area',
+          title: 'MANBU AREA',
+          lines: [
+            'MMI {damage.manbu.bands.0.mmi|dec1}: {damage.manbu.bands.0.destroyedSharePercent|pct1} DESTROYED',
+            'MMI {damage.manbu.bands.1.mmi|dec1}: {damage.manbu.bands.1.destroyedSharePercent|pct1} DESTROYED',
+          ],
+          tag: STAT,
+          dx: -250,
+          dy: -70,
+          tone: 'caveat',
+        },
+        {
+          at: 3400,
+          type: 'annotation.draw',
+          kind: 'callout',
+          id: 'sundar-within',
+          anchor: 'area:Sundar Bazar',
+          title: 'SUNDAR BAZAR',
+          lines: [
+            'MMI {damage.sundarBazar.bands.0.mmi|dec1}: {damage.sundarBazar.bands.0.destroyedSharePercent|pct1} DESTROYED',
+            'MMI {damage.sundarBazar.bands.1.mmi|dec1}: {damage.sundarBazar.bands.1.destroyedSharePercent|pct1} DESTROYED',
+          ],
+          tag: STAT,
+          dx: 150,
+          dy: 90,
+          tone: 'caveat',
+        },
+        {
+          at: 5200,
+          type: 'chart.update',
+          id: 'intensity',
+          op: 'foot',
+          text: 'SELECTION: BOTH PRODUCTS WERE TASKED WHERE DAMAGE WAS EXPECTED',
+        },
+      ],
+    },
+  ],
+});
+
+export const ACT3 = Object.freeze([COMPOSITION, MODEL_VS_OBSERVATION]);

@@ -1,0 +1,533 @@
+/**
+ * ACT I — INCIDENT DETECTION.
+ *
+ * Every figure is a `{fact}` placeholder or a `fact:` reference, resolved
+ * from the Stage 3–5 artefacts at run time (facts.js). Offsets are in
+ * milliseconds of briefing time; the director scales them with speed.
+ */
+
+import { RUNS, defineScene } from '../timeline.js';
+
+const ALL = [RUNS.THREE, RUNS.SIX, RUNS.FULL];
+const SIX_FULL = [RUNS.SIX, RUNS.FULL];
+
+const USGS = { source: 'USGS', cls: 'OBSERVED' };
+const SHAKEMAP = {
+  source: 'USGS SHAKEMAP · MODELLED INTENSITY',
+  cls: 'OBSERVED',
+};
+
+export const INCOMING = defineScene({
+  id: 'incoming',
+  number: 1,
+  act: 'I',
+  title: 'Incoming incident',
+  question: 'What has happened?',
+  explore: 0,
+  runs: ALL,
+  setup: [
+    { type: 'veil', opacity: 0.94 },
+    { type: 'layer.show', layer: 'graticule' },
+    {
+      type: 'camera.fly',
+      to: { lon: 40, lat: 18 },
+      rangeKm: 21000,
+      pitch: -90,
+    },
+  ],
+  beats: [
+    {
+      id: 'detected',
+      caption:
+        'INCIDENT DETECTED · {quake.time|dateShort} · {quake.time|utcHM}',
+      narration:
+        '{quake.time|dateLong}. {quake.time|utcHM}. A major earthquake is detected in South Asia.',
+      minHoldMs: 600,
+      actions: [
+        { at: 0, type: 'audio.cue', cue: 'tick' },
+        {
+          at: 0,
+          type: 'title.type',
+          id: 'title',
+          duration: 2600,
+          screen: { x: 0.07, y: 0.32 },
+          lines: [
+            { text: 'NATURAL DISASTER INTELLIGENCE', className: 'is-kicker' },
+            { text: 'INCIDENT DETECTED', className: 'is-alert' },
+            { text: '{quake.time|dateShort}' },
+            { text: '{quake.time|utcHM}' },
+          ],
+        },
+        { at: 400, type: 'veil', opacity: 0.8, duration: 2400 },
+        { at: 2800, type: 'audio.cue', cue: 'reveal' },
+      ],
+    },
+    {
+      id: 'locating',
+      caption: 'LOCATING THE EVENT',
+      narration: 'Locating the event.',
+      minHoldMs: 400,
+      actions: [
+        {
+          at: 0,
+          type: 'annotation.draw',
+          kind: 'typed',
+          id: 'locating',
+          duration: 900,
+          screen: { x: 0.07, y: 0.56 },
+          className: 'brf-typed brf-typed--status',
+          lines: ['LOCATING EVENT …'],
+        },
+        { at: 200, type: 'veil', opacity: 0.3, duration: 3000 },
+        { at: 1600, type: 'annotation.remove', id: 'title' },
+        {
+          at: 300,
+          type: 'camera.fly',
+          to: 'epicentre',
+          rangeKm: 7500,
+          pitch: -90,
+          duration: 3600,
+        },
+        {
+          at: 2600,
+          type: 'annotation.draw',
+          kind: 'bracket',
+          id: 'find',
+          anchor: 'epicentre',
+          size: 150,
+          duration: 900,
+        },
+      ],
+    },
+  ],
+});
+
+export const LOCATE = defineScene({
+  id: 'locate',
+  number: 2,
+  act: 'I',
+  title: 'Locate Nepal',
+  question: 'Where on Earth is this?',
+  explore: 1,
+  runs: ALL,
+  setup: [
+    { type: 'veil', opacity: 0.3 },
+    { type: 'camera.fly', to: 'epicentre', rangeKm: 7500, pitch: -90 },
+  ],
+  beats: [
+    {
+      id: 'south-asia',
+      caption: 'SOUTH ASIA · THE CENTRAL HIMALAYA',
+      narration:
+        'The event is in the central Himalaya, between India and China.',
+      runs: SIX_FULL,
+      minHoldMs: 300,
+      actions: [
+        { at: 0, type: 'veil', opacity: 0.12, duration: 2500 },
+        {
+          at: 0,
+          type: 'camera.fly',
+          to: 'nepal',
+          rangeKm: 2700,
+          pitch: -82,
+          duration: 3400,
+        },
+        {
+          at: 500,
+          type: 'annotation.draw',
+          kind: 'label',
+          id: 'india',
+          anchor: 'india',
+          text: 'INDIA',
+          size: 'country',
+        },
+        {
+          at: 900,
+          type: 'annotation.draw',
+          kind: 'label',
+          id: 'china',
+          anchor: 'china',
+          text: 'CHINA',
+          size: 'country',
+        },
+      ],
+    },
+    {
+      id: 'border',
+      caption: 'NEPAL',
+      narration:
+        'This is Nepal. Its border runs the length of the central Himalaya.',
+      minHoldMs: 500,
+      actions: [
+        { at: 0, type: 'layer.show', layer: 'outline', duration: 3200 },
+        { at: 0, type: 'audio.cue', cue: 'trace' },
+        {
+          at: 400,
+          type: 'layer.show',
+          layer: 'mask',
+          alpha: 0.6,
+          duration: 1600,
+        },
+        { at: 1200, type: 'annotation.remove', id: 'india' },
+        { at: 1200, type: 'annotation.remove', id: 'china' },
+        {
+          at: 2900,
+          type: 'annotation.draw',
+          kind: 'callout',
+          id: 'nepal-callout',
+          anchor: 'nepal',
+          title: 'NEPAL',
+          lines: [
+            'HIMALAYAN REGION',
+            '{geo.districtCount|int} DISTRICTS IN 2015',
+          ],
+          tag: { source: 'OCHA COD-AB', cls: 'OFFICIAL' },
+          dx: 170,
+          dy: -120,
+          duration: 1000,
+        },
+        { at: 3000, type: 'audio.cue', cue: 'reveal' },
+      ],
+    },
+    {
+      id: 'epicentre',
+      caption:
+        'KATHMANDU · AND THE EPICENTRE, IN {geo.epicentreDistrict|upper}',
+      narration:
+        'The capital, Kathmandu, sits in a valley here. The rupture began to the north-west, in {geo.epicentreDistrict} district.',
+      minHoldMs: 300,
+      actions: [
+        {
+          at: 0,
+          type: 'annotation.draw',
+          kind: 'label',
+          id: 'ktm',
+          anchor: 'kathmandu',
+          text: 'KATHMANDU',
+          size: 'city',
+          dx: 44,
+          dy: -22,
+        },
+        {
+          at: 0,
+          type: 'annotation.draw',
+          kind: 'bracket',
+          id: 'ktm-bracket',
+          anchor: 'kathmandu',
+          size: 46,
+        },
+        { at: 1200, type: 'annotation.remove', id: 'nepal-callout' },
+        {
+          at: 1500,
+          type: 'annotation.draw',
+          kind: 'pulse',
+          id: 'epi-pulse',
+          anchor: 'epicentre',
+          colour: '#ff5a5f',
+          maxPx: 60,
+        },
+        { at: 1500, type: 'audio.cue', cue: 'pulse' },
+        {
+          at: 1900,
+          type: 'annotation.draw',
+          kind: 'callout',
+          id: 'epi-callout',
+          anchor: 'epicentre',
+          title: 'EPICENTRE · {geo.epicentreDistrict|upper}',
+          lines: ['{quake.place|upper}'],
+          tag: USGS,
+          dx: -210,
+          dy: -90,
+        },
+        {
+          at: 3700,
+          type: 'camera.fly',
+          to: 'epicentre',
+          rangeKm: 900,
+          pitch: -68,
+          duration: 3200,
+        },
+      ],
+    },
+  ],
+});
+
+export const MAIN_SHOCK = defineScene({
+  id: 'main-shock',
+  number: 4,
+  act: 'I',
+  title: 'Main shock',
+  question: 'How big was it, and how deep?',
+  explore: 2,
+  runs: ALL,
+  keep: ['outline', 'mask', 'epi-pulse', 'ktm'],
+  setup: [
+    { type: 'veil', opacity: 0.12 },
+    { type: 'layer.show', layer: 'outline' },
+    { type: 'layer.show', layer: 'mask', alpha: 0.6 },
+    {
+      type: 'annotation.draw',
+      kind: 'pulse',
+      id: 'epi-pulse',
+      anchor: 'epicentre',
+      colour: '#ff5a5f',
+      maxPx: 60,
+    },
+    {
+      type: 'annotation.draw',
+      kind: 'label',
+      id: 'ktm',
+      anchor: 'kathmandu',
+      text: 'KATHMANDU',
+      size: 'city',
+      dx: 44,
+      dy: -22,
+    },
+    { type: 'camera.fly', to: 'epicentre', rangeKm: 900, pitch: -68 },
+  ],
+  beats: [
+    {
+      id: 'magnitude',
+      caption: 'MAGNITUDE {quake.magnitude|dec1}',
+      narration: 'Magnitude {quake.magnitude|dec1}.',
+      minHoldMs: 600,
+      actions: [
+        {
+          at: 0,
+          type: 'camera.fly',
+          to: 'epicentre',
+          rangeKm: 520,
+          pitch: -58,
+          heading: 12,
+          duration: 2600,
+        },
+        { at: 0, type: 'audio.cue', cue: 'hit' },
+        {
+          at: 0,
+          type: 'annotation.draw',
+          kind: 'pulse',
+          id: 'epi-pulse',
+          anchor: 'epicentre',
+          colour: '#ff5a5f',
+          maxPx: 140,
+          count: 4,
+        },
+        {
+          at: 500,
+          type: 'metric.count',
+          id: 'magnitude',
+          fact: 'quake.magnitude',
+          format: 'dec1',
+          label: 'MOMENT MAGNITUDE (MW)',
+          anchor: 'epicentre',
+          size: 'xl',
+          dx: 44,
+          dy: -70,
+          duration: 1700,
+        },
+      ],
+    },
+    {
+      id: 'depth',
+      caption: 'FOCAL DEPTH {quake.depthKm|dec1} KM · {quake.time|utcTime}',
+      narration:
+        'Its focus was {quake.depthKm|dec1} kilometres deep. The energy was released close to the surface.',
+      minHoldMs: 700,
+      actions: [
+        {
+          at: 0,
+          type: 'metric.count',
+          id: 'depth',
+          fact: 'quake.depthKm',
+          format: 'dec1',
+          label: 'KM FOCAL DEPTH',
+          anchor: 'epicentre',
+          size: 'lg',
+          dx: 44,
+          dy: 36,
+          duration: 1400,
+        },
+        {
+          at: 900,
+          type: 'annotation.draw',
+          kind: 'typed',
+          id: 'time',
+          duration: 1100,
+          screen: { x: 0.66, y: 0.18 },
+          className: 'brf-typed brf-typed--data',
+          lines: [
+            'ORIGIN TIME',
+            '{quake.time|utcTime}',
+            '{quake.time|dateShort}',
+            'USGS {quake.id|upper}',
+          ],
+        },
+        {
+          at: 2400,
+          type: 'annotation.draw',
+          kind: 'callout',
+          id: 'shallow',
+          anchor: 'epicentre',
+          title: 'SHALLOW',
+          lines: ['ENERGY RELEASED CLOSE TO THE SURFACE'],
+          tag: USGS,
+          dx: -240,
+          dy: 70,
+        },
+      ],
+    },
+  ],
+});
+
+export const SHAKING = defineScene({
+  id: 'shaking',
+  number: 5,
+  act: 'I',
+  title: 'Shaking expands',
+  question: 'Where did the ground shake, and how hard?',
+  explore: 4,
+  runs: ALL,
+  keep: ['outline', 'mask', 'epi-pulse', 'ktm'],
+  setup: [
+    { type: 'veil', opacity: 0.12 },
+    { type: 'layer.show', layer: 'outline' },
+    { type: 'layer.show', layer: 'mask', alpha: 0.6 },
+    {
+      type: 'annotation.draw',
+      kind: 'pulse',
+      id: 'epi-pulse',
+      anchor: 'epicentre',
+      colour: '#ff5a5f',
+      maxPx: 60,
+    },
+    {
+      type: 'annotation.draw',
+      kind: 'label',
+      id: 'ktm',
+      anchor: 'kathmandu',
+      text: 'KATHMANDU',
+      size: 'city',
+      dx: 44,
+      dy: -22,
+    },
+    {
+      type: 'camera.fly',
+      to: 'epicentre',
+      rangeKm: 520,
+      pitch: -58,
+      heading: 12,
+    },
+  ],
+  beats: [
+    {
+      id: 'spread',
+      caption: 'THE SHAKING SPREADS EAST ALONG THE MOUNTAINS',
+      narration: 'Within seconds, the shaking spread east along the mountains.',
+      minHoldMs: 400,
+      actions: [
+        {
+          at: 0,
+          type: 'camera.fly',
+          to: 'shakeCentre',
+          rangeKm: 1150,
+          pitch: -72,
+          heading: 0,
+          duration: 3200,
+        },
+        { at: 300, type: 'layer.show', layer: 'bands', duration: 5200 },
+        { at: 300, type: 'audio.cue', cue: 'trace' },
+      ],
+    },
+    {
+      id: 'scale',
+      caption: 'MODELLED INTENSITY · VI STRONG · VII VERY STRONG · VIII SEVERE',
+      narration:
+        'The intensity is modelled on the Mercalli scale. Six is strong, seven very strong, eight severe.',
+      runs: SIX_FULL,
+      minHoldMs: 400,
+      actions: [
+        {
+          at: 0,
+          type: 'chart.enter',
+          chart: 'mmiLegend',
+          id: 'mmi-legend',
+          screen: { x: 0.03, y: 0.5 },
+        },
+        { at: 200, type: 'chart.update', id: 'mmi-legend', op: 'revealAll' },
+        { at: 1600, type: 'layer.filter', layer: 'bands', highlight: 7 },
+        {
+          at: 1600,
+          type: 'chart.update',
+          id: 'mmi-legend',
+          op: 'focus',
+          index: 2,
+        },
+        { at: 3800, type: 'layer.filter', layer: 'bands', highlight: null },
+        {
+          at: 3800,
+          type: 'chart.update',
+          id: 'mmi-legend',
+          op: 'focus',
+          index: null,
+        },
+      ],
+    },
+    {
+      id: 'kathmandu',
+      caption:
+        'KATHMANDU: MMI {exposure.kathmandu.maxMmi|dec1} · {exposure.kathmandu.exposed|mega2} PEOPLE INSIDE MMI VI+',
+      narration:
+        'It reached the Kathmandu Valley at intensity {exposure.kathmandu.maxMmi|dec1}. {exposure.kathmandu.exposedPercent|int} percent of the district’s {exposure.kathmandu.exposed|millionWords} modelled residents were inside intensity six or stronger.',
+      minHoldMs: 800,
+      actions: [
+        {
+          at: 0,
+          type: 'annotation.draw',
+          kind: 'bracket',
+          id: 'ktm-bracket',
+          anchor: 'kathmandu',
+          size: 64,
+        },
+        {
+          at: 300,
+          type: 'camera.fly',
+          to: 'kathmandu',
+          rangeKm: 720,
+          pitch: -66,
+          heading: -8,
+          duration: 3000,
+        },
+        {
+          at: 700,
+          type: 'metric.count',
+          id: 'ktm-people',
+          fact: 'exposure.kathmandu',
+          key: 'exposed',
+          format: 'mega2',
+          label: 'MODELLED RESIDENTS · KATHMANDU · INSIDE MMI VI+',
+          anchor: 'kathmandu',
+          size: 'lg',
+          dx: 56,
+          dy: 50,
+          duration: 1800,
+          tag: { source: 'WORLDPOP × USGS SHAKEMAP', cls: 'DERIVED' },
+        },
+        {
+          at: 3000,
+          type: 'annotation.draw',
+          kind: 'callout',
+          id: 'ktm-mmi',
+          anchor: 'kathmandu',
+          title: 'PEAK MMI {exposure.kathmandu.maxMmi|dec1}',
+          lines: ['DISTRICT PEAK · MODELLED'],
+          tag: SHAKEMAP,
+          dx: -230,
+          dy: -80,
+        },
+        { at: 3100, type: 'audio.cue', cue: 'reveal' },
+      ],
+    },
+  ],
+});
+
+export const ACT1 = Object.freeze([INCOMING, LOCATE, MAIN_SHOCK, SHAKING]);

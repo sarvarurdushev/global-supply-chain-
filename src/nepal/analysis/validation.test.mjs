@@ -53,7 +53,8 @@ test('every committed analysis artefact emits a countable check list', async () 
    */
   const dir = path.join(ROOT, 'data', 'analysis');
   const files = (await readdir(dir)).filter((name) => name.endsWith('.json'));
-  assert.equal(files.length, 5, 'expected five analysis artefacts');
+  /* Stages 3–5 wrote five; Stage 9 adds the health-access analysis and the briefing geometry. */
+  assert.equal(files.length, 7, 'expected seven analysis artefacts');
   const artefacts = await Promise.all(
     files.map(async (name) => JSON.parse(await readFile(path.join(dir, name), 'utf8'))),
   );
