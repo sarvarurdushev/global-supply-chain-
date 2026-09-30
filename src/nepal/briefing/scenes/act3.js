@@ -771,6 +771,8 @@ export const COVERAGE_GAP = defineScene({
           heading: -6,
           duration: 4400,
         },
+        /* The square's callout goes before the card arrives: the pull-back slides it under the card. */
+        { at: 500, type: 'annotation.remove', id: 'no-record-callout' },
         {
           at: 600,
           type: 'annotation.draw',
@@ -785,7 +787,6 @@ export const COVERAGE_GAP = defineScene({
             'NO EXAMINED-AREA FOOTPRINT IS PUBLISHED',
           ],
         },
-        { at: 3600, type: 'annotation.remove', id: 'no-record-callout' },
       ],
     },
   ],

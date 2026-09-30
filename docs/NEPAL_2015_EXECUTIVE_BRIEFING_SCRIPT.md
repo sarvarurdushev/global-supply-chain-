@@ -798,7 +798,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **NARRATION** No record is not no damage. The product lists only what it found, and publishes no map of where it looked.
 - **CAPTION** NO RECORD IS NOT NO DAMAGE · THE PRODUCT LISTS ONLY WHAT IT FOUND
 - **CAMERA** +0.2 s fly to kathmandu · 120 km · pitch -60° · heading -6° · 4.4 s
-- **ANNOTATION** +0.0 s remove unrecorded-count; +0.6 s typed — A GAP, NOT AN ABSENCE / UNOSAT RECORDS DAMAGED STRUCTURES ONLY / NO EXAMINED-AREA FOOTPRINT IS PUBLISHED; +3.6 s remove no-record-callout
+- **ANNOTATION** +0.0 s remove unrecorded-count; +0.5 s remove no-record-callout; +0.6 s typed — A GAP, NOT AN ABSENCE / UNOSAT RECORDS DAMAGED STRUCTURES ONLY / NO EXAMINED-AREA FOOTPRINT IS PUBLISHED
 - **SOUND** +0.0 s hit
 - **CLASS** none (no figure)
 - **LONGEST STILL** 3.8 s
