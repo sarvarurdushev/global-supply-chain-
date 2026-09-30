@@ -172,12 +172,12 @@ caption’s reading time sets the pace instead (3.2 words a second).
 
 - **NARRATION** Kathmandu, the capital, sits in this valley. The rupture began to the north-west, in Gorkha.
 - **CAPTION** KATHMANDU · AND THE EPICENTRE, IN GORKHA
-- **CAMERA** +3.7 s fly to epicentre · 900 km · pitch -68° · heading 0° · 3.2 s
+- **CAMERA** +0.0 s fly to kathmandu · 2000 km · pitch -74° · heading 0° · 3.6 s; +3.7 s fly to epicentre · 900 km · pitch -68° · heading 0° · 3.2 s
 - **ANNOTATION** +0.0 s label @ kathmandu — KATHMANDU; +0.0 s bracket @ kathmandu; +1.2 s remove nepal-callout; +1.5 s pulse @ epicentre; +1.9 s callout @ epicentre — EPICENTRE · GORKHA / 67 KM NNE OF BHARATPUR, NEPAL
 - **SOUND** +1.5 s pulse
 - **EVIDENCE** geo.epicentreDistrict — USGS × COD-AB · DERIVED; quake.place — USGS · OBSERVED
 - **CLASS** DERIVED · OBSERVED
-- **LONGEST STILL** 0.9 s
+- **LONGEST STILL** 0.1 s
 
 ### 03 · Administrative geography — Act I
 

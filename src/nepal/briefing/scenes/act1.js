@@ -204,6 +204,15 @@ export const LOCATE = defineScene({
         'Kathmandu, the capital, sits in this valley. The rupture began to the north-west, in {geo.epicentreDistrict}.',
       minHoldMs: 300,
       actions: [
+        /* Towards the valley as it is named; the camera sat parked here for 5 s. */
+        {
+          at: 0,
+          type: 'camera.fly',
+          to: 'kathmandu',
+          rangeKm: 2000,
+          pitch: -74,
+          duration: 3600,
+        },
         {
           at: 0,
           type: 'annotation.draw',
