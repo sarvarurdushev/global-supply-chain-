@@ -1154,27 +1154,49 @@ export function createBriefingOverlay({
    */
   const BAND_GAP = 10;
   const TITLE_CLEAR = 0.19;
+  /*
+   * The band the caption and the controls own, as rectangles in overlay
+   * pixels. The caption types in word by word and can wrap to two lines, so
+   * its band is reserved at two lines' height whatever it holds now: a chart
+   * placed against the caption's current box jumped up when the line wrapped.
+   */
+  function bottomBand() {
+    const origin = dom.getBoundingClientRect();
+    const rel = (r) => ({
+      l: r.left - origin.left,
+      r: r.right - origin.left,
+      t: r.top - origin.top,
+      b: r.bottom - origin.top,
+    });
+    const band = [];
+    const caption = document.querySelector('.brf-caption');
+    const text = caption?.querySelector('.brf-caption__text');
+    if (caption && text && caption.offsetParent !== null) {
+      const box = rel(caption.getBoundingClientRect());
+      const style = getComputedStyle(text);
+      const line =
+        parseFloat(style.lineHeight) || parseFloat(style.fontSize) * 1.45;
+      const pad =
+        parseFloat(style.paddingTop) + parseFloat(style.paddingBottom) || 20;
+      band.push({ ...box, t: box.b - (2 * line + pad) });
+    }
+    const controls = document.querySelector('.brf-controls');
+    if (controls && controls.offsetParent !== null)
+      band.push(rel(controls.getBoundingClientRect()));
+    return band;
+  }
+  /** The highest top edge of the band under a box spanning [left, left + w]. */
+  function floorUnder(left, w, fallback) {
+    const under = bottomBand().filter((r) => r.l < left + w && r.r > left);
+    return under.length
+      ? Math.min(...under.map((r) => r.t)) - BAND_GAP
+      : fallback;
+  }
   function liftedTop(wrap, top, left, info) {
     const box = wrap.getBoundingClientRect();
     if (!box.height) return top;
-    const origin = dom.getBoundingClientRect();
-    const blockers = [
-      document.querySelector('.brf-caption.is-visible .brf-caption__text'),
-      document.querySelector('.brf-controls'),
-    ]
-      .filter((node) => node && node.offsetParent !== null)
-      .map((node) => node.getBoundingClientRect())
-      .filter(
-        (rect) =>
-          rect.height &&
-          rect.left - origin.left < left + box.width &&
-          rect.right - origin.left > left,
-      );
-    if (!blockers.length) return top;
-    const limit =
-      Math.min(...blockers.map((rect) => rect.top - origin.top)) - BAND_GAP;
-    const bottom = top + box.height;
-    if (bottom <= limit) return top;
+    const limit = floorUnder(left, box.width, info.height);
+    if (top + box.height <= limit) return top;
     return Math.max(TITLE_CLEAR * info.height, limit - box.height);
   }
 
@@ -1206,13 +1228,7 @@ export function createBriefingOverlay({
     const heading = rel(document.querySelector('.brf-heading'));
     if (heading && x < heading.r && x + w > heading.l && y < heading.b)
       y = heading.b + EDGE;
-    const floors = [
-      rel(document.querySelector('.brf-caption.is-visible .brf-caption__text')),
-      rel(document.querySelector('.brf-controls')),
-    ].filter((r) => r && x < r.r && x + w > r.l);
-    const floor = floors.length
-      ? Math.min(...floors.map((r) => r.t)) - EDGE
-      : info.height - EDGE;
+    const floor = floorUnder(x, w, info.height - EDGE);
     if (y + h > floor) y = Math.max(EDGE, floor - h);
     return { x, y };
   }
