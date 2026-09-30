@@ -2101,6 +2101,7 @@ const byClass = (
   lines,
   tag,
   stops,
+  shows,
 ) =>
   defineScene({
     id,
@@ -2140,6 +2141,8 @@ const byClass = (
             duration: 4200,
           },
           conclusion(`${id}-card`, lines, tag, 500),
+          /* The map lights up what the card lists, one line at a time. */
+          ...shows,
           {
             at: 4600,
             type: 'camera.fly',
@@ -2170,6 +2173,25 @@ export const WHAT_WE_KNOW = byClass(
   ],
   { source: 'USGS · UNOSAT · NGA · COPERNICUS', cls: 'OBSERVED' },
   ['epicentre', 'damageCentre'],
+  [
+    {
+      at: 1000,
+      type: 'annotation.draw',
+      kind: 'pulse',
+      id: 'know-epi',
+      anchor: 'epicentre',
+      colour: '#ff5a5f',
+      maxPx: 60,
+    },
+    { at: 2200, type: 'layer.show', layer: 'damage', duration: 1800 },
+    {
+      at: 3600,
+      type: 'layer.show',
+      layer: 'blockages',
+      plain: true,
+      duration: 1800,
+    },
+  ],
 );
 
 export const WHAT_WE_INFER = byClass(
@@ -2188,6 +2210,22 @@ export const WHAT_WE_INFER = byClass(
   ],
   { source: 'THIS ANALYSIS', cls: 'DERIVED' },
   ['shakeCentre', 'kathmandu'],
+  [
+    {
+      at: 900,
+      type: 'layer.show',
+      layer: 'bands',
+      minMmi: 6,
+      duration: 2200,
+    },
+    {
+      at: 2600,
+      type: 'layer.show',
+      layer: 'damage-grid',
+      top: { fact: 'damage.gridHalf', path: ['units'] },
+      duration: 1800,
+    },
+  ],
 );
 
 export const WHAT_WE_SIMULATE = byClass(
@@ -2206,6 +2244,23 @@ export const WHAT_WE_SIMULATE = byClass(
   ],
   { source: 'OSM 2015 × DOHS 2010 × NGA', cls: 'SCENARIO' },
   ['accessCentre', 'district:sindhuli'],
+  [
+    {
+      at: 900,
+      type: 'layer.show',
+      layer: 'access-cells',
+      id: 'cells-cut',
+      categories: [3],
+      duration: 1800,
+    },
+    {
+      at: 2400,
+      type: 'layer.show',
+      layer: 'blockages',
+      plain: true,
+      duration: 1600,
+    },
+  ],
 );
 
 export const FULL_ONLY = Object.freeze([

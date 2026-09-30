@@ -1414,12 +1414,12 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **NARRATION** What we know, because it was observed: the earthquake, the damage read from imagery, the blockages, and the second product’s grades.
 - **CAPTION** OBSERVED · RECORDED BY AN INSTRUMENT OR AN ANALYST, NOT COMPUTED HERE
 - **CAMERA** +0.2 s fly to epicentre · 520 km · pitch -64° · heading 6° · 4.2 s; +4.6 s fly to damageCentre · 380 km · pitch -60° · heading -6° · 4.2 s
-- **MAP** +0.0 s veil 0.3
-- **ANNOTATION** +0.5 s typed — OBSERVED / M7.8 · 8.2 KM DEEP · 316 EVENTS / 4,583 DAMAGED SITES MAPPED FROM IMAGERY / 184 BLOCKAGES AND BRIDGES OUT / 41,042 STRUCTURES GRADED BY COPERNICUS
+- **MAP** +0.0 s veil 0.3; +2.2 s show damage; +3.6 s show blockages
+- **ANNOTATION** +0.5 s typed — OBSERVED / M7.8 · 8.2 KM DEEP · 316 EVENTS / 4,583 DAMAGED SITES MAPPED FROM IMAGERY / 184 BLOCKAGES AND BRIDGES OUT / 41,042 STRUCTURES GRADED BY COPERNICUS; +1.0 s pulse @ epicentre
 - **SOUND** +0.0 s reveal
 - **EVIDENCE** access.matching — NGA × OSM 2015 · DERIVED · record `access-blockage-matching-full-network`; copernicus.totals — COPERNICUS EMSR125 · OBSERVED · record `damage-copernicus-grading`; damage.total — UNOSAT · OBSERVED · record `damage-unosat-counts`; quake.depthKm — USGS · OBSERVED · record `seismic-depth-distribution`; quake.magnitude — USGS · OBSERVED · record `seismic-magnitude-distribution`; seq.total — USGS · OBSERVED · record `seismic-temporal-series`
 - **CLASS** DERIVED · OBSERVED
-- **LONGEST STILL** 0.2 s
+- **LONGEST STILL** 0.0 s
 
 ### 37 · What we infer — Act VI
 
@@ -1432,7 +1432,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **NARRATION** What we infer, by computing from those observations. Each with its method and its caveat.
 - **CAPTION** DERIVED AND STATISTICAL · COMPUTED HERE, EACH WITH ITS METHOD
 - **CAMERA** +0.2 s fly to shakeCentre · 520 km · pitch -64° · heading 6° · 4.2 s; +4.6 s fly to kathmandu · 380 km · pitch -60° · heading -6° · 4.2 s
-- **MAP** +0.0 s veil 0.3
+- **MAP** +0.0 s veil 0.3; +0.9 s show bands; +2.6 s show damage-grid
 - **ANNOTATION** +0.5 s typed — DERIVED · STATISTIC / 13.84 M PEOPLE INSIDE MODELLED MMI VI+ / SHAKING ↔ DAMAGE: CRAMÉR’S V 0.17, SMALL / HALF OF MAPPED SITES IN 37 SQUARE KILOMETRES / 4.94 M PEOPLE WHERE NOTHING WAS RECORDED
 - **SOUND** +0.0 s reveal
 - **EVIDENCE** coverage.unrecorded — WORLDPOP × UNOSAT · DATA GAP · record `damage-population-quadrants`; damage.gridHalf — UNOSAT · STATISTIC · record `damage-spatial-concentration`; damage.independence — UNOSAT × USGS SHAKEMAP · STATISTIC · record `damage-by-intensity`; exposure.mmi6 — USGS SHAKEMAP × WORLDPOP · DERIVED · record `exposure-population-by-intensity`
@@ -1450,7 +1450,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **NARRATION** What we simulate, and only simulate: the road network with every observed blockage applied at once.
 - **CAPTION** SCENARIO · WHAT THE ROAD MAP IMPLIES IF EVERY OBSERVED BLOCKAGE HELD
 - **CAMERA** +0.2 s fly to accessCentre · 520 km · pitch -64° · heading 6° · 4.2 s; +4.6 s fly to district:sindhuli · 380 km · pitch -60° · heading -6° · 4.2 s
-- **MAP** +0.0 s veil 0.3
+- **MAP** +0.0 s veil 0.3; +0.9 s show cells-cut (categories 3); +2.4 s show blockages
 - **ANNOTATION** +0.5 s typed — SCENARIO / 85,783 LOSE EVERY MAPPED ROAD TO A HOSPITAL / 42,181 FACE A LONGER ROUTE · MEDIAN +3.7 KM / ONE BRIDGE ALONE: 14,476 CUT OFF / DISTANCE, NOT TIME · NO HOSPITAL CAPACITY
 - **SOUND** +0.0 s reveal
 - **EVIDENCE** access.bridges — OSM 2015 × DOHS 2010 × NGA · SCENARIO · record `access-hospital-distance`; access.detours — OSM 2015 × DOHS 2010 × NGA · SCENARIO · record `access-hospital-distance`; access.hospital — OSM 2015 × DOHS 2010 × NGA · SCENARIO · record `access-hospital-distance`
