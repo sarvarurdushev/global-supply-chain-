@@ -13,6 +13,7 @@ export class MapSourceController {
       onError = null,
       requestRender = () => viewer?.scene?.requestRender?.(),
       createImageryLayer = (provider) => new Cesium.ImageryLayer(provider),
+      now = () => Date.now(),
     },
   ) {
     this.viewer = viewer;
@@ -25,6 +26,7 @@ export class MapSourceController {
     this._onError = onError;
     this._requestRender = requestRender;
     this._createImageryLayer = createImageryLayer;
+    this._now = now;
     this._credits = createMapCredits(viewer);
     this._abort = new AbortController();
     this._imageryProviders = new Map();
@@ -261,7 +263,15 @@ export class MapSourceController {
     )?.tileFailureFallback;
     const errorEvent = resolution.provider?.errorEvent;
     if (!fallback || !errorEvent?.addEventListener) return;
-    let failures = 0;
+    /*
+     * AN OUTAGE IS A BURST. A dead provider fails every tile it is asked for,
+     * within seconds; a live one on a flaky network drops a tile now and then.
+     * Counting every failure since the provider was chosen let two stray
+     * tiles minutes apart switch a whole presentation off satellite imagery
+     * for good. Only failures inside the window count.
+     */
+    const windowMs = fallback.windowMs ?? Infinity;
+    let recent = [];
     let pending = false;
     this._removeImageryErrorListener = errorEvent.addEventListener((error) => {
       if (
@@ -269,11 +279,14 @@ export class MapSourceController {
         this._activeImageryProvider !== resolution.provider
       )
         return;
+      const at = this._now();
+      recent = recent.filter((time) => at - time < windowMs);
+      recent.push(at);
       const retryCount = Number(error?.timesRetried);
-      failures =
+      const failures =
         Number.isInteger(retryCount) && retryCount >= 0
-          ? Math.max(failures + 1, retryCount + 1)
-          : failures + 1;
+          ? Math.max(recent.length, retryCount + 1)
+          : recent.length;
       if (failures < fallback.threshold || pending) return;
       pending = true;
       this._onError?.(

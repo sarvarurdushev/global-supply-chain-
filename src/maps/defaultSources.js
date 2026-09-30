@@ -83,6 +83,8 @@ export function createDefaultMapSources({
               tileFailureFallback: {
                 id: 'osm',
                 threshold: 2,
+                /* Two failures within 20 s: an outage. Two minutes apart: strays. */
+                windowMs: 20000,
                 message: 'Esri Satellite tile requests failed; using OSM',
               },
             }
@@ -105,6 +107,7 @@ export function createDefaultMapSources({
               tileFailureFallback: {
                 id: 'offline',
                 threshold: 3,
+                windowMs: 20000,
                 message: 'OSM tile requests failed; using the offline grid',
               },
             }

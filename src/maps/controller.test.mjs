@@ -70,7 +70,7 @@ const settle = async () => {
   for (let i = 0; i < 20; i++) await Promise.resolve();
 };
 const descriptor = (id) => ({ id, label: id, kind: 'imagery' });
-function publicFixture() {
+function publicFixture(options = {}) {
   const tileset = { show: true };
   const registry = createDefaultMapSources({ googleTileset: tileset });
   const providers = new Map();
@@ -84,7 +84,7 @@ function publicFixture() {
       create: async () => ({ provider: { id: 'terrain' } }),
     };
   }
-  return { ...fixture(registry), registry, providers, tileset };
+  return { ...fixture(registry, options), registry, providers, tileset };
 }
 
 test('an additional imagery source needs no controller branch and owns its cached resources', async () => {
@@ -292,6 +292,28 @@ test('one Esri tile failure stays put, two fall back, and stale errors cannot re
   errorEvent.raise({ timesRetried: 9 });
   await settle();
   assert.equal(env.controller.getActiveId(), 'photoreal');
+  env.controller.destroy();
+});
+
+test('stray Esri tile failures minutes apart keep the imagery; a burst still falls back', async () => {
+  /*
+   * Watching the recorded briefing: two tiles that failed a minute apart
+   * switched the globe off satellite imagery for the rest of the run. An
+   * outage fails every tile at once; a flaky network drops one now and then.
+   */
+  let clock = 0;
+  const env = publicFixture({ now: () => clock });
+  await env.controller.setStack('esri-imagery');
+  const errorEvent = env.providers.get('esri-imagery').errorEvent;
+  errorEvent.raise();
+  clock += 60000;
+  errorEvent.raise();
+  await settle();
+  assert.equal(env.controller.getActiveId(), 'esri-imagery', 'two strays');
+  clock += 500;
+  errorEvent.raise();
+  await settle();
+  assert.equal(env.controller.getActiveId(), 'osm', 'a burst is an outage');
   env.controller.destroy();
 });
 
