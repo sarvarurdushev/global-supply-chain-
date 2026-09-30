@@ -15,7 +15,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | 3 MIN EXECUTIVE | 11 | 26 | 02:41.8 | 02:22.7 | 12.5 s | 5.7 s |
 | 6 MIN BRIEFING | 18 | 58 | 05:58.1 | 05:19.1 | 14.1 s | 5.7 s |
-| FULL ANALYSIS | 40 | 108 | 12:03.8 | 10:52.4 | 14.1 s | 5.7 s |
+| FULL ANALYSIS | 40 | 108 | 12:03.8 | 10:52.7 | 14.1 s | 5.7 s |
 
 ## 3 MIN EXECUTIVE — running order
 
@@ -472,7 +472,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 #### 02:37.6 — rule · 7.1 s · FULL
 
 - **NARRATION** Dense means at least 134 people in a square kilometre: the busiest quarter of populated cells.
-- **CAPTION** HIGH DENSITY = THE TOP 75 % OF POPULATED CELLS, NOT A BORROWED FIGURE
+- **CAPTION** HIGH DENSITY = ABOVE THE 75 % QUANTILE OF POPULATED CELLS, NOT A BORROWED FIGURE
 - **CAMERA** +0.0 s fly to kathmandu · 300 km · pitch -64° · heading 0° · 3.6 s
 - **ANNOTATION** +0.0 s remove densest-callout; +0.0 s remove densest; +0.5 s typed — HOW “HIGH” IS DEFINED / SHAKING: MMI ≥ 6 / DENSITY: ≥ 134.1 PEOPLE PER CELL / THE 75 % QUANTILE OF POPULATED CELLS
 - **EVIDENCE** exposure.quadrantParams — USGS SHAKEMAP × WORLDPOP · DERIVED · record `exposure-population-intensity-quadrants`

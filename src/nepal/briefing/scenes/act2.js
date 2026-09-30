@@ -279,7 +279,7 @@ export const DENSITY_MEETS_SHAKING = defineScene({
     {
       id: 'rule',
       caption:
-        'HIGH DENSITY = THE TOP {exposure.quadrantParams.densityQuantile|shareToPct} OF POPULATED CELLS, NOT A BORROWED FIGURE',
+        'HIGH DENSITY = ABOVE THE {exposure.quadrantParams.densityQuantile|shareToPct} QUANTILE OF POPULATED CELLS, NOT A BORROWED FIGURE',
       narration:
         'Dense means at least {exposure.quadrantParams.densityCutPeoplePerCell|int} people in a square kilometre: the busiest quarter of populated cells.',
       runs: [RUNS.FULL],

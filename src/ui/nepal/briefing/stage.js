@@ -96,6 +96,11 @@ export function createBriefingStage({
   /** The flight in progress; it advances with the briefing clock. */
   let flight = null;
   const pendingRemovals = new Set();
+  /* Drawn and staying: present, and not fading out on its way to removal. */
+  const isLive = (id) => {
+    const item = overlay.get(id);
+    return Boolean(item) && item.removingAt === undefined;
+  };
 
   /* ------------------------------------------------------------ places */
 
@@ -1112,7 +1117,7 @@ export function createBriefingStage({
       const make = layers[action.layer];
       if (!make) throw new Error(`Unknown layer "${action.layer}".`);
       /* `ifAbsent`: a shorter run may not have shown it yet; a longer one already did. */
-      if (action.ifAbsent && overlay.get(action.id ?? action.layer)) return;
+      if (action.ifAbsent && isLive(action.id ?? action.layer)) return;
       make({ ...action, instant });
     },
     'layer.hide': (action, instant) =>
@@ -1186,11 +1191,17 @@ export function createBriefingStage({
       for (const id of [...charts.keys()])
         if (!(scene.keep ?? []).includes(id)) charts.delete(id);
       captions.show(null);
+      /*
+       * A kept object is not drawn twice. One the last scene is still fading
+       * out is NOT kept: in normal play the clear above only starts its fade,
+       * so skipping it here would let the fade take the new scene's copy with
+       * it (scene 13 lost its outline and every damage point that way).
+       */
       for (const action of scene.setup ?? []) {
-        if (action.id && overlay.get(action.id)) continue;
+        if (action.id && isLive(action.id)) continue;
         if (
           action.layer &&
-          overlay.get(action.id ?? action.layer) &&
+          isLive(action.id ?? action.layer) &&
           action.type === 'layer.show'
         )
           continue;
