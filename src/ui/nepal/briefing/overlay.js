@@ -1001,7 +1001,9 @@ export function createBriefingOverlay({
         node.style.opacity = visible
           ? String(ease.out(progress(clock, t0, durationMs)) * fadeOut)
           : '0';
-        node.style.transform = `translate(${Math.round(x + dx)}px, ${Math.round(y + dy - node.offsetHeight)}px)`;
+        /* A negative dx puts the label to the left of its anchor, as it does a callout. */
+        const left = dx >= 0 ? x + dx : x + dx - node.offsetWidth;
+        node.style.transform = `translate(${Math.round(left)}px, ${Math.round(y + dy - node.offsetHeight)}px)`;
       },
       dispose() {
         node.remove();

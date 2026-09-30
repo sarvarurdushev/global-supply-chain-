@@ -693,12 +693,17 @@ export const RESCUE_ROUTE = defineScene({
       minHoldMs: 300,
       actions: [
         { at: 0, type: 'annotation.remove', id: 'origin-label' },
+        /*
+         * Wide enough, centred on the place, to hold the two straight-line
+         * guesses (south and east) and the hospital the roads do reach
+         * (north-west), all within about 33 km.
+         */
         {
           at: 0,
           type: 'camera.fly',
-          to: { fact: 'access.cut', path: ['frame'] },
-          spanFactor: 2.3,
-          pitch: -62,
+          to: { fact: 'access.cut', path: ['origin'] },
+          rangeKm: 130,
+          pitch: -72,
           heading: 0,
           duration: 3400,
         },
@@ -787,6 +792,16 @@ export const RESCUE_ROUTE = defineScene({
       actions: [
         { at: 0, type: 'annotation.remove', id: 'crow-0' },
         { at: 0, type: 'annotation.remove', id: 'crow-1' },
+        /* Attention moves north-west, to the hospital the roads reach. */
+        {
+          at: 200,
+          type: 'camera.fly',
+          to: { fact: 'access.cut', path: ['frame'] },
+          spanFactor: 2.3,
+          pitch: -62,
+          heading: 0,
+          duration: 4200,
+        },
         {
           at: 200,
           type: 'annotation.draw',
@@ -951,7 +966,7 @@ export const RESCUE_ROUTE = defineScene({
           anchor: { fact: 'access.cut', path: ['origin'] },
           text: '{access.cut.investigation.reachableAfter.lengthKm|dec1} KM STILL CONNECTED · NO HOSPITAL',
           size: 'city',
-          dx: 30,
+          dx: -30,
           dy: 30,
         },
       ],
