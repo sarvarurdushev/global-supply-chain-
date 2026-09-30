@@ -728,6 +728,26 @@ export const COVERAGE_GAP = defineScene({
           dy: -90,
           tone: 'caveat',
         },
+        /* The voice is still on the gap: close in on the empty square and mark it. */
+        {
+          at: 5000,
+          type: 'camera.fly',
+          to: { fact: 'coverage.unrecorded', path: ['examples', 0] },
+          rangeKm: 46,
+          pitch: -50,
+          heading: 22,
+          duration: 4600,
+        },
+        {
+          at: 5600,
+          type: 'annotation.draw',
+          kind: 'pulse',
+          id: 'no-record-pulse',
+          anchor: { fact: 'coverage.unrecorded', path: ['examples', 0] },
+          colour: '#ffb020',
+          maxPx: 70,
+          count: 3,
+        },
       ],
     },
     {
