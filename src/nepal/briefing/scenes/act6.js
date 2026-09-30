@@ -10,7 +10,6 @@
 import { RUNS, defineScene } from '../timeline.js';
 
 const ALL = [RUNS.THREE, RUNS.SIX, RUNS.FULL];
-const SIX_FULL = [RUNS.SIX, RUNS.FULL];
 
 const base = [
   { type: 'veil', opacity: 0.16 },
@@ -18,15 +17,19 @@ const base = [
   { type: 'layer.show', layer: 'mask', alpha: 0.6 },
 ];
 
-const card = (id, lines, tag, at = 500) => ({
-  at,
+/*
+ * One line of the summary's recap list. Each stop adds the next line below
+ * the last, so the list builds as the camera travels.
+ */
+const recap = (n, line, tag) => ({
+  at: 600,
   type: 'annotation.draw',
   kind: 'typed',
-  id,
-  duration: 1400,
-  screen: { x: 0.58, y: 0.14 },
-  className: 'brf-typed brf-typed--conclusion',
-  lines,
+  id: `recap-${n}`,
+  duration: 1000,
+  screen: { x: 0.03, y: 0.19 + (n - 1) * 0.085 },
+  className: 'brf-typed brf-typed--recap',
+  lines: [line],
   tag,
 });
 
@@ -37,7 +40,8 @@ export const UNKNOWNS = defineScene({
   title: 'What we do not know',
   question: 'What can this analysis not answer?',
   explore: 17,
-  runs: SIX_FULL,
+  /* In the shorter runs the summary's close says what is not known. */
+  runs: [RUNS.FULL],
   keep: ['outline', 'mask'],
   setup: [
     ...base,
@@ -53,8 +57,7 @@ export const UNKNOWNS = defineScene({
     {
       id: 'gaps',
       caption: 'WHAT THE DATA CANNOT TELL US',
-      narration:
-        'Some questions this analysis cannot answer, and it says so. These are the gaps, and what would fill them.',
+      narration: 'What this analysis cannot answer, and what would answer it.',
       minHoldMs: 900,
       actions: [
         { at: 0, type: 'veil', opacity: 0.42, duration: 1600 },
@@ -95,7 +98,7 @@ export const UNKNOWNS = defineScene({
       caption:
         'NO TRAVEL TIMES · NO HOSPITAL CAPACITY · NO RECORD OF WHERE NOTHING WAS FOUND',
       narration:
-        'So this briefing gives no travel times, says nothing about what a hospital could do, and cannot say where damage was absent — only where it was recorded.',
+        'No travel times. Nothing about what a hospital could do. And no record of where damage was absent, only where it was found.',
       runs: [RUNS.FULL],
       minHoldMs: 900,
       actions: [
@@ -144,25 +147,31 @@ export const SUMMARY = defineScene({
     ...base,
     { type: 'camera.fly', to: 'nepal', rangeKm: 1100, pitch: -80, heading: 0 },
   ],
+  /*
+   * A rapid recap, not a slide: the camera travels the case once, one stop
+   * per finding, and each stop adds one line to a list that builds on the
+   * left. The close clears the list and says what kind of knowledge each
+   * finding is.
+   */
   beats: [
     {
-      id: 'quake',
+      id: 'epicentre',
       caption:
-        'MAGNITUDE {quake.magnitude|dec1} · {quake.depthKm|dec1} KM DEEP · {seq.total|int} EARTHQUAKES IN THE SEQUENCE',
+        'M{quake.magnitude|dec1} · {geo.epicentreDistrict|upper} · {quake.time|dateShort}',
       narration:
-        'In summary. A shallow magnitude {quake.magnitude|dec1} earthquake in {geo.epicentreDistrict} district, followed by {seq.total|int} more — the largest a magnitude {seq.secondary.magnitude|dec1} on {seq.secondary.time|dateLong}.',
-      minHoldMs: 500,
+        'In short. A shallow magnitude {quake.magnitude|dec1} earthquake in {geo.epicentreDistrict}.',
+      minHoldMs: 300,
       actions: [
         {
           at: 0,
           type: 'camera.fly',
           to: 'epicentre',
-          rangeKm: 520,
-          pitch: -62,
+          rangeKm: 460,
+          pitch: -60,
           heading: 8,
-          duration: 3200,
+          duration: 2800,
         },
-        { at: 0, type: 'veil', opacity: 0.12, duration: 1200 },
+        { at: 0, type: 'veil', opacity: 0.1, duration: 1000 },
         {
           at: 300,
           type: 'annotation.draw',
@@ -170,104 +179,74 @@ export const SUMMARY = defineScene({
           id: 'sum-epi',
           anchor: 'epicentre',
           colour: '#ff5a5f',
-          maxPx: 90,
+          maxPx: 80,
           count: 2,
         },
-        card(
-          'sum-1',
-          [
-            'A SHALLOW M{quake.magnitude|dec1} EARTHQUAKE · {geo.epicentreDistrict|upper}',
-            '{quake.time|dateShort} · {seq.total|int} EVENTS IN THE SEQUENCE',
-            'LARGEST AFTERSHOCK M{seq.secondary.magnitude|dec1} · {seq.secondary.time|dateShort}',
-          ],
+        recap(
+          1,
+          'M{quake.magnitude|dec1} · {geo.epicentreDistrict|upper} · {seq.total|int} EVENTS',
           { source: 'USGS', cls: 'OBSERVED' },
         ),
       ],
     },
     {
-      id: 'exposure',
-      caption:
-        '{exposure.mmi6|mega2} PEOPLE INSIDE MODELLED MMI VI OR STRONGER',
-      narration:
-        '{exposure.mmi6|millionWords} people were inside modelled strong shaking, strongest in {summary.shaking.districts|list}.',
-      minHoldMs: 500,
+      id: 'shaking',
+      caption: '{exposure.mmi6|mega2} PEOPLE INSIDE MODELLED STRONG SHAKING',
+      narration: '{exposure.mmi6|millionWords} people inside strong shaking.',
+      minHoldMs: 300,
       actions: [
-        { at: 0, type: 'annotation.remove', id: 'sum-1' },
         {
           at: 0,
           type: 'layer.show',
           layer: 'bands',
           minMmi: 6,
-          duration: 2200,
+          duration: 1800,
           ifAbsent: true,
         },
         {
           at: 0,
           type: 'camera.fly',
           to: 'shakeCentre',
-          rangeKm: 720,
+          rangeKm: 700,
           pitch: -68,
           heading: 0,
-          duration: 3000,
+          duration: 2800,
         },
-        card(
-          'sum-2',
-          [
-            '{exposure.mmi6|mega2} PEOPLE INSIDE MMI VI+',
-            'STRONGEST MODELLED: {summary.shaking.districts|list}',
-            'MODELLED POPULATION × MODELLED SHAKING',
-          ],
-          { source: 'WORLDPOP × USGS SHAKEMAP', cls: 'DERIVED' },
-        ),
+        recap(2, '{exposure.mmi6|mega2} PEOPLE IN STRONG SHAKING', {
+          source: 'WORLDPOP × USGS',
+          cls: 'DERIVED',
+        }),
       ],
     },
     {
       id: 'damage',
       caption:
-        '{damage.total|int} DAMAGED SITES MAPPED · HALF OF THEM IN {damage.gridHalf.units|int} SQUARE KILOMETRES',
+        '{damage.total|int} DAMAGED SITES MAPPED · HALF IN {damage.gridHalf.units|int} KM²',
       narration:
-        '{damage.total|int} damaged sites were mapped from above, half of them in just {damage.gridHalf.units|int} square kilometres — and the link to modelled shaking is real but weak.',
-      minHoldMs: 500,
+        '{damage.total|int} damaged sites mapped. Half of them in {damage.gridHalf.units|int} square kilometres.',
+      minHoldMs: 300,
       actions: [
-        { at: 0, type: 'annotation.remove', id: 'sum-2' },
         { at: 0, type: 'layer.hide', layer: 'bands' },
         {
           at: 0,
           type: 'layer.show',
           layer: 'damage',
-          duration: 1600,
+          duration: 1400,
           ifAbsent: true,
         },
         {
           at: 0,
           type: 'camera.fly',
           to: 'damageCentre',
-          rangeKm: 320,
+          rangeKm: 300,
           pitch: -60,
           heading: 6,
-          duration: 3200,
+          duration: 2800,
         },
-        {
-          at: 3600,
-          type: 'layer.show',
-          layer: 'damage-grid',
-          duration: 1800,
-          ifAbsent: true,
-        },
-        {
-          at: 5800,
-          type: 'layer.filter',
-          layer: 'damage-grid',
-          top: { fact: 'damage.gridHalf', path: ['units'] },
-        },
-        card(
-          'sum-3',
-          [
-            '{damage.total|int} DAMAGED SITES MAPPED · MOST IN {summary.damageAreas|list}',
-            'SHAKING ↔ DAMAGE: CRAMÉR’S V {damage.independence.cramersV|dec2}, SMALL',
-            'IMAGERY OF CHOSEN AREAS · DAMAGED SITES ONLY',
-          ],
-          { source: 'UNOSAT × USGS SHAKEMAP', cls: 'STATISTIC' },
+        recap(
+          3,
+          '{damage.total|int} SITES · HALF IN {damage.gridHalf.units|int} KM²',
+          { source: 'UNOSAT', cls: 'OBSERVED' },
         ),
       ],
     },
@@ -276,61 +255,91 @@ export const SUMMARY = defineScene({
       caption:
         '{coverage.unrecorded.people|mega2} PEOPLE WHERE NO DAMAGE WAS RECORDED · A GAP, NOT AN ABSENCE',
       narration:
-        'Millions lived where nothing was recorded. That is a gap in the observation, not evidence that nothing broke.',
-      /* The shorter runs carry this in the damage card and in the coverage-gap scene. */
-      runs: [RUNS.FULL],
-      minHoldMs: 500,
+        '{coverage.unrecorded.people|millionWords} lived where no damage was recorded. A gap, not an absence.',
+      minHoldMs: 300,
       actions: [
-        { at: 0, type: 'annotation.remove', id: 'sum-3' },
+        {
+          at: 0,
+          type: 'layer.show',
+          layer: 'population',
+          duration: 1600,
+          ifAbsent: true,
+        },
         {
           at: 0,
           type: 'camera.fly',
-          to: 'kathmandu',
-          rangeKm: 160,
+          to: { fact: 'coverage.unrecorded', path: ['examples', 0] },
+          rangeKm: 110,
           pitch: -58,
-          heading: -8,
-          duration: 3200,
+          heading: 10,
+          duration: 3000,
         },
-        card(
-          'sum-4',
-          [
-            '{coverage.unrecorded.people|mega2} PEOPLE · NO DAMAGE RECORD',
-            'NO RECORD IS NOT NO DAMAGE',
-          ],
-          { source: 'WORLDPOP × UNOSAT', cls: 'DATA GAP' },
-        ),
+        recap(4, '{coverage.unrecorded.people|mega2} WITH NO DAMAGE RECORD', {
+          source: 'WORLDPOP × UNOSAT',
+          cls: 'DATA GAP',
+        }),
       ],
     },
     {
-      id: 'access',
+      id: 'network',
       caption:
-        '{access.hospital.byCategory.DISCONNECTED|int} LOST EVERY MAPPED ROAD TO A HOSPITAL · {access.hospital.peopleNoMappedRoadNearby|mega2} HAD NO MAPPED ROAD',
+        '{summary.nga.blockedRoads|int} ROADS CUT · {summary.nga.bridgesOut|int} BRIDGES OUT · {summary.nga.landslides|int} LANDSLIDES',
       narration:
-        'On the road network, the observed damage cut {access.hospital.byCategory.DISCONNECTED|thousandWords} people off from every mapped route to a hospital. But {access.hospital.peopleNoMappedRoadNearby|millionWords} had no mapped road nearby to begin with.',
-      minHoldMs: 700,
+        'Roads were cut in {summary.nga.blockedRoads|int} places, and {summary.nga.bridgesOut|int} bridges were out.',
+      minHoldMs: 300,
       actions: [
-        { at: 0, type: 'annotation.remove', id: 'sum-4' },
+        { at: 0, type: 'layer.hide', layer: 'population' },
         { at: 0, type: 'layer.hide', layer: 'damage' },
-        { at: 0, type: 'layer.hide', layer: 'damage-grid' },
         {
           at: 0,
           type: 'layer.show',
           layer: 'roads',
           centre: 'kathmandu',
-          duration: 2400,
+          duration: 2000,
           ifAbsent: true,
         },
         {
           at: 0,
           type: 'camera.fly',
           to: 'accessCentre',
-          rangeKm: 520,
-          pitch: -66,
+          rangeKm: 440,
+          pitch: -64,
           heading: 0,
-          duration: 3400,
+          duration: 3000,
         },
         {
-          at: 1200,
+          at: 900,
+          type: 'layer.show',
+          layer: 'blockages',
+          plain: true,
+          duration: 1400,
+          ifAbsent: true,
+        },
+        recap(
+          5,
+          '{summary.nga.blockedRoads|int} ROADS CUT · {summary.nga.bridgesOut|int} BRIDGES OUT',
+          { source: 'NGA', cls: 'OBSERVED' },
+        ),
+      ],
+    },
+    {
+      id: 'access',
+      caption:
+        '{access.hospital.byCategory.DISCONNECTED|int} LOST EVERY MAPPED ROAD TO A HOSPITAL · LOOK FIRST: {access.stableTop|list}',
+      narration:
+        '{access.hospital.byCategory.DISCONNECTED|thousandWords} people lost every mapped road to a hospital. {access.stableTop|names} are where to look first.',
+      minHoldMs: 400,
+      actions: [
+        { at: 0, type: 'layer.hide', layer: 'blockages' },
+        {
+          at: 0,
+          type: 'layer.filter',
+          layer: 'roads',
+          dim: 0.55,
+          duration: 1000,
+        },
+        {
+          at: 300,
           type: 'layer.show',
           layer: 'access-cells',
           id: 'cells-cut',
@@ -339,99 +348,35 @@ export const SUMMARY = defineScene({
           ifAbsent: true,
         },
         {
-          at: 3600,
-          type: 'layer.show',
-          layer: 'no-road',
-          duration: 2400,
-          ifAbsent: true,
-        },
-        {
-          at: 6400,
-          type: 'layer.filter',
-          layer: 'roads',
-          dim: 0.55,
-          duration: 1200,
-        },
-        card(
-          'sum-5',
-          [
-            '{access.hospital.byCategory.DISCONNECTED|int} PEOPLE LOST EVERY MAPPED ROAD ROUTE',
-            '{access.hospital.peopleNoMappedRoadNearby|mega2} HAD NO MAPPED ROAD NEARBY',
-            'MOST CHANGED: {access.mostDisruptedNames|list}',
-          ],
-          { source: 'OSM 2015 × DOHS 2010 × NGA', cls: 'SCENARIO' },
-          600,
-        ),
-        /* What was recorded, beside what the scenario made of it. */
-        {
-          ...card(
-            'sum-5-observed',
-            [
-              'RECORDED FROM THE AIR',
-              '{summary.nga.blockedRoads|int} BLOCKED ROADS · {summary.nga.bridgesOut|int} BRIDGES OUT · {summary.nga.landslides|int} LANDSLIDES',
-            ],
-            { source: 'NGA', cls: 'OBSERVED' },
-            2200,
-          ),
-          screen: { x: 0.58, y: 0.4 },
-        },
-      ],
-    },
-    {
-      id: 'first',
-      caption:
-        'WHERE TO LOOK FIRST: {access.stableTop|list} · AND WHERE NOTHING WAS RECORDED',
-      narration:
-        'Where to look first: {access.stableTop|list}, which rank high on need and poor access under every weighting; and the places where nothing was recorded at all.',
-      minHoldMs: 700,
-      actions: [
-        { at: 0, type: 'annotation.remove', id: 'sum-5' },
-        { at: 0, type: 'annotation.remove', id: 'sum-5-observed' },
-        { at: 0, type: 'layer.hide', id: 'cells-cut', layer: 'access-cells' },
-        {
-          at: 0,
+          at: 1800,
           type: 'layer.show',
           layer: 'district-focus',
           keysFrom: { fact: 'access.stableTop' },
           colour: '#ffb020',
-          duration: 1800,
+          duration: 1600,
         },
-        {
-          at: 200,
-          type: 'camera.fly',
-          to: 'district:sindhuli',
-          rangeKm: 360,
-          pitch: -60,
-          heading: 8,
-          duration: 4000,
-        },
-        card(
-          'sum-6',
-          [
-            'WHERE TO LOOK FIRST',
-            'HIGH NEED, POOR ACCESS UNDER EVERY WEIGHTING: {access.stableTop|list}',
-            'AND THE POPULATED SQUARES WITH NO RECORD',
-            'A PLACE TO START, NOT A PRIORITY LIST',
-          ],
-          { source: 'THIS ANALYSIS', cls: 'DERIVED' },
-          600,
+        recap(
+          6,
+          '{access.hospital.byCategory.DISCONNECTED|int} LOST ROAD ACCESS · LOOK FIRST: {access.stableTop|list}',
+          { source: 'OSM 2015 × DOHS 2010 × NGA', cls: 'SCENARIO' },
         ),
       ],
     },
     {
       id: 'close',
-      caption:
-        'EVERY FIGURE IN THIS BRIEFING OPENS IN EXPLORE, WITH ITS SOURCE',
+      caption: 'KNOWN · INFERRED · SIMULATED · AND STILL UNKNOWN',
       narration:
-        'Every figure in this briefing can be opened, with its source and its method, in Explore.',
-      minHoldMs: 1200,
+        'What we know. What we infer. What we simulate. And what we still don’t know: travel times, hospital capacity, and where nothing was found.',
+      minHoldMs: 900,
       actions: [
-        { at: 0, type: 'annotation.remove', id: 'sum-6' },
+        ...[1, 2, 3, 4, 5, 6].map((n) => ({
+          at: 0,
+          type: 'annotation.remove',
+          id: `recap-${n}`,
+        })),
+        { at: 0, type: 'annotation.remove', id: 'sum-epi' },
         { at: 0, type: 'layer.hide', layer: 'district-focus' },
-        /* The close is the country and the case, not the last analysis still on the map. */
-        { at: 0, type: 'layer.hide', layer: 'no-road' },
-        { at: 0, type: 'layer.hide', layer: 'envelope' },
-        { at: 0, type: 'layer.hide', layer: 'no-road', id: 'envelope-label' },
+        { at: 0, type: 'layer.hide', id: 'cells-cut', layer: 'access-cells' },
         { at: 0, type: 'layer.hide', layer: 'roads' },
         {
           at: 0,
@@ -440,21 +385,22 @@ export const SUMMARY = defineScene({
           rangeKm: 1100,
           pitch: -78,
           heading: 0,
-          duration: 4200,
+          duration: 3800,
         },
-        { at: 400, type: 'veil', opacity: 0.4, duration: 2600 },
+        { at: 400, type: 'veil', opacity: 0.45, duration: 2400 },
         {
-          at: 800,
+          at: 700,
           type: 'annotation.draw',
           kind: 'typed',
-          id: 'close-card',
-          duration: 1800,
-          screen: { x: 0.34, y: 0.34 },
-          className: 'brf-typed brf-typed--conclusion',
+          id: 'four-kinds',
+          duration: 3200,
+          screen: { x: 0.3, y: 0.3 },
+          className: 'brf-typed brf-typed--closing',
           lines: [
-            'CASE 001 · NEPAL 2015',
-            'NOT KNOWN: TRAVEL TIMES · HOSPITAL CAPACITY · WHERE NOTHING WAS FOUND',
-            'PRESS E TO EXPLORE THE EVIDENCE',
+            'WHAT WE KNOW · THE EARTHQUAKE · THE DAMAGE MAPPED · THE BLOCKAGES',
+            'WHAT WE INFER · WHO WAS EXPOSED · WHERE DAMAGE CONCENTRATED',
+            'WHAT WE SIMULATE · HOSPITAL ACCESS WITH EVERY BLOCKAGE APPLIED',
+            'WHAT WE STILL DON’T KNOW · TRAVEL TIME · HOSPITAL CAPACITY · WHERE NOTHING WAS FOUND',
           ],
         },
         { at: 800, type: 'audio.cue', cue: 'lock' },

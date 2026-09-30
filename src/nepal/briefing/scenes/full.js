@@ -72,40 +72,48 @@ export const ADMIN_GEOGRAPHY = defineScene({
       caption:
         '{geo.districtCount|int} DISTRICTS · THE ADMINISTRATIVE MAP OF THE TIME',
       narration:
-        'Nepal was then divided into {geo.districtCount|int} districts, the unit most of the figures that follow are counted in.',
+        'At the time, Nepal had {geo.districtCount|int} districts. Most figures here are counted by district.',
       minHoldMs: 400,
       actions: [
-        { at: 0, type: 'layer.show', layer: 'districts', duration: 3400 },
+        {
+          at: 0,
+          type: 'layer.show',
+          layer: 'districts',
+          strong: true,
+          duration: 3600,
+        },
         { at: 0, type: 'audio.cue', cue: 'trace' },
+        {
+          at: 300,
+          type: 'metric.count',
+          id: 'district-count',
+          fact: 'geo.districtCount',
+          format: 'int',
+          label: 'DISTRICTS · THE ADMINISTRATIVE MAP OF THE TIME',
+          screen: { x: 0.64, y: 0.18 },
+          size: 'xl',
+          duration: 3200,
+          tag: COD_AB,
+        },
         {
           at: 300,
           type: 'camera.fly',
           to: 'nepal',
-          rangeKm: 880,
-          pitch: -74,
-          heading: 4,
-          duration: 5000,
+          rangeKm: 820,
+          pitch: -72,
+          heading: 5,
+          duration: 7000,
         },
-        data(
-          'cod-card',
-          [
-            'ADMINISTRATIVE BOUNDARIES · COD-AB',
-            '{geo.districtCount|int} DISTRICTS',
-            'THE ADMINISTRATIVE FRAME OF THE TIME',
-          ],
-          COD_AB,
-          1600,
-        ),
       ],
     },
     {
       id: 'names',
       caption: 'GORKHA · SINDHUPALCHOK · KATHMANDU: NAMES THAT WILL RETURN',
       narration:
-        'Three names will keep returning: Gorkha, where the rupture began; Sindhupalchok; and Kathmandu.',
+        'Three names will return. Gorkha, where the rupture began. Sindhupalchok. And Kathmandu.',
       minHoldMs: 500,
       actions: [
-        { at: 0, type: 'annotation.remove', id: 'cod-card' },
+        { at: 0, type: 'annotation.remove', id: 'district-count' },
         {
           at: 0,
           type: 'layer.show',
@@ -183,9 +191,20 @@ export const SEQUENCE = defineScene({
       caption:
         '{seq.total|int} EARTHQUAKES · {seq.bands.1.count|int} IN BAND {seq.bands.1.label|upper}',
       narration:
-        '{seq.total|int} earthquakes in the catalogue. Most were moderate: {seq.bands.1.count|int} fall in the {seq.bands.1.label} band.',
+        '{seq.total|int} earthquakes in all. Most were moderate: {seq.bands.1.count|int} in the {seq.bands.1.label} band.',
       minHoldMs: 500,
       actions: [
+        {
+          at: 300,
+          type: 'metric.count',
+          id: 'seq-total',
+          fact: 'seq.total',
+          format: 'int',
+          label: 'EARTHQUAKES IN THE CATALOGUE',
+          screen: { x: 0.64, y: 0.18 },
+          size: 'xl',
+          duration: 1800,
+        },
         { at: 0, type: 'layer.filter', layer: 'events', minMagnitude: 5 },
         { at: 0, type: 'audio.cue', cue: 'reveal' },
         {
@@ -207,6 +226,13 @@ export const SEQUENCE = defineScene({
           rowsFrom: { fact: 'seq.bands', label: 'label', value: 'count' },
         },
         { at: 500, type: 'chart.update', id: 'mag-bars', op: 'revealAll' },
+        {
+          at: 3000,
+          type: 'chart.update',
+          id: 'mag-bars',
+          op: 'focus',
+          index: 1,
+        },
       ],
     },
     {
@@ -214,10 +240,47 @@ export const SEQUENCE = defineScene({
       caption:
         'MANY SMALL, FEW LARGE · b = {seq.gr.bValue|dec2} · COMPLETE ABOVE M{seq.completeness.mc|dec1}',
       narration:
-        'The sizes follow the usual law: many small, few large. The fitted b-value is {seq.gr.bValue|dec2}, and the catalogue is complete above magnitude {seq.completeness.mc|dec1}.',
+        'Many small, few large: the usual pattern. The fitted b-value is {seq.gr.bValue|dec2}. The catalogue is complete above magnitude {seq.completeness.mc|dec1}.',
       minHoldMs: 600,
       actions: [
+        { at: 0, type: 'annotation.remove', id: 'seq-total' },
         { at: 0, type: 'layer.filter', layer: 'events', minMagnitude: null },
+        {
+          at: 0,
+          type: 'chart.update',
+          id: 'mag-bars',
+          op: 'focus',
+          index: null,
+        },
+        { at: 1500, type: 'layer.filter', layer: 'events', minMagnitude: 6 },
+        {
+          at: 1500,
+          type: 'chart.update',
+          id: 'mag-bars',
+          op: 'focus',
+          index: 4,
+        },
+        { at: 1500, type: 'audio.cue', cue: 'hit' },
+        {
+          at: 1700,
+          type: 'annotation.draw',
+          kind: 'pulse',
+          id: 'largest-0',
+          anchor: { fact: 'seq.largest', path: [0] },
+          colour: '#ff3d6e',
+          maxPx: 90,
+          count: 3,
+        },
+        {
+          at: 1900,
+          type: 'annotation.draw',
+          kind: 'pulse',
+          id: 'largest-1',
+          anchor: { fact: 'seq.largest', path: [1] },
+          colour: '#ffb020',
+          maxPx: 80,
+          count: 3,
+        },
         data(
           'gr-card',
           [
@@ -226,7 +289,7 @@ export const SEQUENCE = defineScene({
             'FROM {seq.gr.eventsUsed|int} EVENTS ABOVE M{seq.completeness.mc|dec1}',
           ],
           FIT,
-          400,
+          3000,
         ),
         {
           at: 3200,
@@ -244,11 +307,12 @@ export const SEQUENCE = defineScene({
       caption:
         'SHALLOW: {seq.depthBands.1.count|int} OF THEM IN THE {seq.depthBands.1.label|upper} BAND',
       narration:
-        'And they were shallow: {seq.depthBands.1.count|int} were in the {seq.depthBands.1.label} band.',
+        'And shallow: {seq.depthBands.1.count|int} in the {seq.depthBands.1.label} band.',
       minHoldMs: 600,
       actions: [
         { at: 0, type: 'chart.exit', id: 'mag-bars' },
         { at: 0, type: 'annotation.remove', id: 'gr-card' },
+        { at: 0, type: 'layer.filter', layer: 'events', minMagnitude: null },
         {
           at: 200,
           type: 'chart.enter',
@@ -294,9 +358,20 @@ export const POPULATION = defineScene({
       id: 'people',
       caption: '{exposure.total|mega2} PEOPLE · MODELLED, NOT COUNTED',
       narration:
-        'Where people lived: about {exposure.total|millionWords} in the modelled population. Each point is a block of it, larger where more lived.',
+        'Now the people. About {exposure.total|millionWords}, modelled, not counted. Larger points, more people.',
       minHoldMs: 500,
       actions: [
+        {
+          at: 900,
+          type: 'metric.count',
+          id: 'pop-total',
+          fact: 'exposure.total',
+          format: 'mega2',
+          label: 'PEOPLE · MODELLED, NOT COUNTED',
+          screen: { x: 0.64, y: 0.18 },
+          size: 'xl',
+          duration: 1800,
+        },
         { at: 0, type: 'layer.show', layer: 'population', duration: 3800 },
         { at: 0, type: 'audio.cue', cue: 'reveal' },
         {
@@ -316,14 +391,15 @@ export const POPULATION = defineScene({
             'ABOUT ONE-KILOMETRE CELLS',
           ],
           { source: 'WORLDPOP 2015', cls: 'DERIVED' },
-          1600,
+          2800,
+          { x: 0.64, y: 0.4 },
         ),
       ],
     },
     {
       id: 'valley',
       caption: 'THE DENSEST CLUSTER: THE KATHMANDU VALLEY',
-      narration: 'The densest cluster by far is the Kathmandu Valley.',
+      narration: 'The densest cluster, by far: the Kathmandu Valley.',
       minHoldMs: 700,
       actions: [
         { at: 0, type: 'annotation.remove', id: 'pop-card' },
@@ -389,7 +465,7 @@ export const EVIDENCE_ARRIVES = defineScene({
       caption:
         'DAMAGE APPEARS AS THE IMAGERY WAS READ · FIRST IMAGE {damage.lags.eventToAcquisition.min|int} DAY AFTER',
       narration:
-        'The damage became visible only as imagery arrived: the first image {damage.lags.eventToAcquisition.min|int} day after the earthquake, the last well over a week later.',
+        'Damage became visible only as imagery arrived. The first image, {damage.lags.eventToAcquisition.min|int} day after. The last, more than a week later.',
       minHoldMs: 500,
       actions: [
         { at: 0, type: 'layer.show', layer: 'damage', duration: 800 },
@@ -417,6 +493,19 @@ export const EVIDENCE_ARRIVES = defineScene({
           rowsFrom: { fact: 'damage.byDate', label: 'key', value: 'value' },
         },
         { at: 700, type: 'chart.update', id: 'date-bars', op: 'revealAll' },
+        {
+          at: 3400,
+          type: 'annotation.draw',
+          kind: 'typed',
+          id: 'first-last',
+          duration: 1200,
+          screen: { x: 0.64, y: 0.18 },
+          className: 'brf-typed brf-typed--data',
+          lines: [
+            'FIRST IMAGE · DAY {damage.lags.eventToAcquisition.min|int}',
+            'LAST IMAGE · DAY {damage.lags.eventToAcquisition.max|int}',
+          ],
+        },
       ],
     },
     {
@@ -424,9 +513,10 @@ export const EVIDENCE_ARRIVES = defineScene({
       caption:
         'MEDIAN {damage.lags.eventToAcquisition.median|int} DAYS FROM EARTHQUAKE TO IMAGE',
       narration:
-        'The median was {damage.lags.eventToAcquisition.median|int} days from the earthquake to the image. Every map of damage is a map of when someone could look.',
+        'The median wait: {damage.lags.eventToAcquisition.median|int} days from earthquake to image. A damage map is also a map of when someone could look.',
       minHoldMs: 700,
       actions: [
+        { at: 0, type: 'annotation.remove', id: 'first-last' },
         {
           at: 0,
           type: 'camera.fly',
@@ -467,9 +557,20 @@ export const DESTROYED_AREAS = defineScene({
       caption:
         '{damage.destroyed|int} DESTROYED · SPREAD ACROSS THE ANALYSIS AREAS',
       narration:
-        '{damage.destroyed|int} sites were classed destroyed. They are spread across the analysis areas, heaviest around Manbu.',
+        '{damage.destroyed|int} destroyed sites, spread across the analysis areas. Heaviest around Manbu.',
       minHoldMs: 500,
       actions: [
+        {
+          at: 200,
+          type: 'metric.count',
+          id: 'destroyed-total',
+          fact: 'damage.destroyed',
+          format: 'int',
+          label: 'SITES CLASSED DESTROYED',
+          screen: { x: 0.64, y: 0.18 },
+          size: 'xl',
+          duration: 1800,
+        },
         {
           at: 0,
           type: 'layer.filter',
@@ -512,7 +613,7 @@ export const DESTROYED_AREAS = defineScene({
       caption:
         'MANBU: {damage.areaManbu|int} MAPPED SITES, THE LARGEST CLUSTER',
       narration:
-        'Around Manbu alone, {damage.areaManbu|int} sites were mapped: the largest single cluster.',
+        'Around Manbu alone, {damage.areaManbu|int} sites: the largest single cluster.',
       minHoldMs: 600,
       actions: [
         {
@@ -571,9 +672,31 @@ export const SEVERE_MODERATE = defineScene({
       id: 'severe',
       caption: '{damage.severe|int} SEVERE · {damage.moderate|int} MODERATE',
       narration:
-        '{damage.severe|int} were classed severe and {damage.moderate|int} moderate: buildings damaged, but standing.',
+        '{damage.severe|int} severe, {damage.moderate|int} moderate. Damaged, but standing.',
       minHoldMs: 500,
       actions: [
+        {
+          at: 200,
+          type: 'metric.count',
+          id: 'severe-total',
+          fact: 'damage.severe',
+          format: 'int',
+          label: 'SEVERE · DAMAGED, STANDING',
+          screen: { x: 0.64, y: 0.16 },
+          size: 'xl',
+          duration: 1800,
+        },
+        {
+          at: 1100,
+          type: 'metric.count',
+          id: 'moderate-total',
+          fact: 'damage.moderate',
+          format: 'int',
+          label: 'MODERATE',
+          screen: { x: 0.64, y: 0.34 },
+          size: 'lg',
+          duration: 1400,
+        },
         {
           at: 0,
           type: 'layer.filter',
@@ -619,9 +742,11 @@ export const SEVERE_MODERATE = defineScene({
       id: 'confidence',
       caption: 'NONE OF IT FIELD-VALIDATED AT PUBLICATION',
       narration:
-        'All of it was read from imagery. None had been checked on the ground when it was published.',
+        'All of it read from imagery. None of it checked on the ground at publication.',
       minHoldMs: 700,
       actions: [
+        { at: 0, type: 'annotation.remove', id: 'severe-total' },
+        { at: 0, type: 'annotation.remove', id: 'moderate-total' },
         {
           at: 0,
           type: 'layer.filter',
@@ -679,7 +804,7 @@ export const GORKHA = defineScene({
       caption:
         'GORKHA: {dp.gorkha.damagePoints|int} MAPPED SITES · {dp.gorkha.population|int} PEOPLE',
       narration:
-        'Gorkha, the epicentre district: {dp.gorkha.damagePoints|int} mapped damage sites among about {dp.gorkha.population|thousandWords} people.',
+        'Gorkha, the epicentre district. {dp.gorkha.damagePoints|int} mapped damage sites, among about {dp.gorkha.population|thousandWords} people.',
       minHoldMs: 500,
       actions: [
         {
@@ -728,6 +853,18 @@ export const GORKHA = defineScene({
         'And {access.gorkha.noMappedRoadShare|int} percent of its people had no mapped road within reach.',
       minHoldMs: 700,
       actions: [
+        {
+          at: 400,
+          type: 'metric.count',
+          id: 'gorkha-noroad',
+          fact: 'access.gorkha',
+          key: 'noMappedRoadShare',
+          format: 'pct1',
+          label: 'OF GORKHA’S PEOPLE · NO MAPPED ROAD NEARBY',
+          screen: { x: 0.64, y: 0.18 },
+          size: 'xl',
+          duration: 1800,
+        },
         { at: 0, type: 'annotation.remove', id: 'gorkha-card' },
         {
           at: 0,
@@ -768,9 +905,21 @@ export const SECOND_SYSTEM = defineScene({
       caption:
         'COPERNICUS GRADED {copernicus.totals.total|int} STRUCTURES · {copernicus.totals.notAffected|int} UNDAMAGED',
       narration:
-        'A second system, Copernicus, graded every structure in its areas, the undamaged too: {copernicus.totals.total|int} in all.',
+        'A second system, Copernicus, graded every structure in its areas, including the undamaged. {copernicus.totals.total|int} in all.',
       minHoldMs: 500,
       actions: [
+        {
+          at: 3600,
+          type: 'metric.count',
+          id: 'cop-total',
+          fact: 'copernicus.totals',
+          key: 'total',
+          format: 'int',
+          label: 'STRUCTURES GRADED · UNDAMAGED INCLUDED',
+          screen: { x: 0.64, y: 0.62 },
+          size: 'lg',
+          duration: 1800,
+        },
         { at: 0, type: 'audio.cue', cue: 'reveal' },
         {
           at: 300,
@@ -799,10 +948,35 @@ export const SECOND_SYSTEM = defineScene({
       caption:
         'KATHMANDU AREA: {copernicus.kathmandu.destroyed|int} DESTROYED OF {copernicus.kathmandu.total|int} GRADED',
       narration:
-        'That gives what the first product lacks, a denominator: in its Kathmandu area, {copernicus.kathmandu.destroyed|int} destroyed out of {copernicus.kathmandu.total|int} graded.',
+        'That gives the missing denominator. In its Kathmandu area: {copernicus.kathmandu.destroyed|int} destroyed, out of {copernicus.kathmandu.total|int}.',
       minHoldMs: 700,
       actions: [
+        {
+          at: 1800,
+          type: 'metric.count',
+          id: 'ktm-destroyed',
+          fact: 'copernicus.kathmandu',
+          key: 'destroyed',
+          format: 'int',
+          label: 'DESTROYED · KATHMANDU AREA',
+          screen: { x: 0.64, y: 0.18 },
+          size: 'xl',
+          duration: 1800,
+        },
+        {
+          at: 3400,
+          type: 'metric.count',
+          id: 'ktm-total',
+          fact: 'copernicus.kathmandu',
+          key: 'total',
+          format: 'int',
+          label: 'GRADED IN THE SAME AREA',
+          screen: { x: 0.64, y: 0.36 },
+          size: 'lg',
+          duration: 1400,
+        },
         { at: 0, type: 'chart.exit', id: 'aoi-bars' },
+        { at: 0, type: 'annotation.remove', id: 'cop-total' },
         {
           at: 200,
           type: 'camera.fly',
@@ -820,7 +994,8 @@ export const SECOND_SYSTEM = defineScene({
             'NOT ALIGNED WITH UNOSAT’S FOUR CLASSES',
           ],
           COPERNICUS,
-          600,
+          4600,
+          { x: 0.64, y: 0.52 },
         ),
       ],
     },
@@ -853,7 +1028,7 @@ export const MAP_WAS_THIN = defineScene({
       id: 'main',
       caption: 'THE MAIN ROADS AS MAPPED ON {infra.baseline.instant|dateShort}',
       narration:
-        'This is the main-road network as the map held it the day before the earthquake.',
+        'The main roads, as the map held them the day before the earthquake.',
       minHoldMs: 400,
       actions: [
         {
@@ -882,7 +1057,7 @@ export const MAP_WAS_THIN = defineScene({
       caption:
         'TODAY THE SAME MAP HOLDS {infra.baseline.mappingGrowthSince2015|dec1} TIMES AS MANY MAIN-ROAD SEGMENTS',
       narration:
-        'The same map today holds {infra.baseline.mappingGrowthSince2015|dec1} times as many main-road segments here. The day before the earthquake, most of today’s network was not yet drawn.',
+        'Today the same map holds {infra.baseline.mappingGrowthSince2015|dec1} times as many main-road segments here. Back then, most of today’s network was not yet drawn.',
       minHoldMs: 700,
       actions: [
         {
@@ -958,7 +1133,7 @@ export const BLOCKAGES = defineScene({
       caption:
         '{infra.geometry.features|int} BLOCKED-ROAD MARKERS · MEDIAN {infra.geometry.lengthMetres.median|int} M LONG',
       narration:
-        'The blocked roads arrive as {infra.geometry.features|int} short markers, a median of {infra.geometry.lengthMetres.median|int} metres each.',
+        'Blocked roads arrive as {infra.geometry.features|int} short markers. A median of {infra.geometry.lengthMetres.median|int} metres each.',
       minHoldMs: 500,
       actions: [
         {
@@ -994,7 +1169,7 @@ export const BLOCKAGES = defineScene({
       id: 'meaning',
       caption: 'A MARKER SAYS WHERE A ROAD WAS CUT, NOT HOW MUCH ROAD WAS LOST',
       narration:
-        'So they support one kind of claim: where a road was cut. Not how many kilometres of road were lost.',
+        'Each one says where a road was cut. Not how much road was lost.',
       minHoldMs: 700,
       actions: [
         { at: 0, type: 'annotation.remove', id: 'marker-card' },
@@ -1048,8 +1223,7 @@ export const LANDSLIDES = defineScene({
     {
       id: 'slides',
       caption: 'MAPPED LANDSLIDES · AND THE BLOCKAGES BESIDE THEM',
-      narration:
-        'Now the landslides mapped from the same imagery, and the blockages beside them.',
+      narration: 'Now the mapped landslides, and the blockages beside them.',
       minHoldMs: 500,
       actions: [
         {
@@ -1086,7 +1260,7 @@ export const LANDSLIDES = defineScene({
       caption:
         '{infra.association.features|int} BLOCKAGES WITHIN {infra.association.toleranceMetres|int} M OF A LANDSLIDE · ASSOCIATION, NOT CAUSE',
       narration:
-        '{infra.association.features|int} blockages lie within {infra.association.toleranceMetres|int} metres of a mapped landslide. That is an association in space. Neither product says one caused the other.',
+        '{infra.association.features|int} blockages lie within {infra.association.toleranceMetres|int} metres of a landslide. A link in space. Neither product claims a cause.',
       minHoldMs: 700,
       actions: [
         { at: 0, type: 'audio.cue', cue: 'reveal' },
@@ -1147,8 +1321,7 @@ export const BRIDGES = defineScene({
       id: 'out',
       caption:
         'BRIDGES OBSERVED OUT · THE FIRST IN {infra.bridges.0.district|upper}',
-      narration:
-        'A handful of bridges were observed out, scattered east of Kathmandu.',
+      narration: 'A handful of bridges were observed out, east of Kathmandu.',
       minHoldMs: 500,
       actions: [
         {
@@ -1180,7 +1353,7 @@ export const BRIDGES = defineScene({
       caption:
         'IN {infra.bridges.1.district|upper}: OBSERVED OUT ON {infra.bridges.1.sensedOn|dateShort}',
       narration:
-        'This one, in {infra.bridges.1.district}, was observed out on {infra.bridges.1.sensedOn|dateLong}. It will matter later.',
+        'This one, in {infra.bridges.1.district}, was seen out on {infra.bridges.1.sensedOn|dateLong}. It matters later.',
       minHoldMs: 600,
       actions: [
         {
@@ -1249,7 +1422,7 @@ export const FACILITY_DATA = defineScene({
       caption:
         'THE GOVERNMENT LIST, COMPILED {access.lists.codCompiled|dateShort} · THE LATEST OPENLY AVAILABLE',
       narration:
-        'The most recent official list of health facilities openly available was compiled in {access.lists.codCompiled|dateLong}. It is used, and labelled, as exactly that.',
+        'The latest official list of health facilities openly available dates from {access.lists.codCompiled|dateLong}. It is used, and labelled, as exactly that.',
       minHoldMs: 500,
       actions: [
         { at: 0, type: 'audio.cue', cue: 'reveal' },
@@ -1295,7 +1468,7 @@ export const FACILITY_DATA = defineScene({
       caption:
         'A TYPE FOR EACH · NO BEDS, STAFF OR CAPACITY · NONE IS INVENTED',
       narration:
-        'Each entry has a type and a place. None has beds, staff or capacity, and this briefing invents none.',
+        'Each entry has a type and a place. No beds, no staff, no capacity. None is invented here.',
       minHoldMs: 700,
       actions: [
         { at: 0, type: 'annotation.remove', id: 'cod-card' },
@@ -1340,7 +1513,7 @@ export const FACILITY_MAP = defineScene({
       caption:
         '{access.lists.offNetwork.codHospitals|int} OF {access.lists.codHospitals|int} LISTED HOSPITALS: OVER {access.params.facilitySnapMetres|kmFromMetres} FROM ANY MAPPED ROAD',
       narration:
-        '{access.lists.offNetwork.codHospitals|int} of the {access.lists.codHospitals|int} listed hospitals here were more than {access.params.facilitySnapMetres|kmWordsFromMetres} from any road on the map.',
+        '{access.lists.offNetwork.codHospitals|int} of the {access.lists.codHospitals|int} listed hospitals here are more than {access.params.facilitySnapMetres|kmWordsFromMetres} from any mapped road.',
       minHoldMs: 600,
       actions: [
         {
@@ -1361,7 +1534,7 @@ export const FACILITY_MAP = defineScene({
           duration: 5000,
         },
         {
-          at: 2600,
+          at: 800,
           type: 'metric.count',
           id: 'off-net',
           fact: 'access.lists',
@@ -1380,7 +1553,7 @@ export const FACILITY_MAP = defineScene({
       id: 'grey',
       caption: 'GREY CROSSES: HOSPITALS THE ROUTING CANNOT REACH',
       narration:
-        'They are drawn grey. The routing cannot reach them, which says as much about the map as about the hospitals.',
+        'They are drawn grey. The routing cannot reach them. That says as much about the map as about the hospitals.',
       minHoldMs: 700,
       actions: [
         { at: 0, type: 'annotation.remove', id: 'off-net' },
@@ -1430,7 +1603,7 @@ export const PRESSURE = defineScene({
       id: 'question',
       caption: 'WHICH DISTRICTS COMBINE HIGH NEED WITH POOR ROAD ACCESS?',
       narration:
-        'Which districts combine the most people in strong shaking, the longest hospital distances, and the most disrupted access?',
+        'Which districts combine the most people in strong shaking, the longest distances, and the most disrupted access?',
       minHoldMs: 400,
       actions: [
         {
@@ -1456,7 +1629,7 @@ export const PRESSURE = defineScene({
       id: 'pareto',
       caption: 'THE PARETO SET: {access.pareto|list}',
       narration:
-        '{access.pareto.length|int} districts are not beaten on all three measures by any other. That needs no weighting at all.',
+        '{access.pareto.length|int} districts are beaten on all three by no other. No weighting needed.',
       minHoldMs: 600,
       actions: [
         {
@@ -1485,7 +1658,7 @@ export const PRESSURE = defineScene({
       caption:
         'IN THE TOP {access.pressure.weighting.top|int} UNDER EVERY WEIGHTING: {access.stableTop|list}',
       narration:
-        'Weight the measures four different ways, and only {access.stableTop|list} stay in the top {access.pressure.weighting.top|int} every time. Everything else depends on the weights.',
+        'Weight the measures four ways. Only {access.stableTop|names} stay in the top {access.pressure.weighting.top|int} every time.',
       minHoldMs: 900,
       actions: [
         { at: 0, type: 'annotation.remove', id: 'pareto-card' },
@@ -1499,6 +1672,15 @@ export const PRESSURE = defineScene({
           screen: { x: 0.03, y: 0.36 },
         },
         { at: 400, type: 'chart.update', id: 'ranks', op: 'revealAll' },
+        /* As the names are said, the map lights them. */
+        {
+          at: 2200,
+          type: 'layer.show',
+          layer: 'district-focus',
+          keysFrom: { fact: 'access.stableTop' },
+          colour: '#ffb020',
+          duration: 1600,
+        },
         {
           at: 400,
           type: 'camera.fly',
@@ -1540,7 +1722,7 @@ export const BRIDGE_WHAT_IF = defineScene({
       caption:
         'THAT BRIDGE ALONE: {access.bridges.1.peopleCut|int} PEOPLE LOSE EVERY MAPPED ROAD TO A HOSPITAL',
       narration:
-        'Take out only that bridge, and {access.bridges.1.peopleCut|int} people lose every mapped road route to a hospital.',
+        'Remove only that bridge, and {access.bridges.1.peopleCut|int} people lose every mapped road to a hospital.',
       minHoldMs: 600,
       actions: [
         {
@@ -1664,7 +1846,7 @@ export const LANDING_PLACES = defineScene({
       caption:
         '{access.airfields.aerodromeCount|int} AIRFIELDS AND {access.airfields.helipadCount|int} HELIPADS WERE ON THE MAP',
       narration:
-        'Where roads failed, aircraft were the other way in. {access.airfields.aerodromeCount|int} airfields and {access.airfields.helipadCount|int} helipads were on the map the day before.',
+        'Where roads failed, aircraft were the other way in. {access.airfields.aerodromeCount|int} airfields and {access.airfields.helipadCount|int} helipads were on the map.',
       minHoldMs: 500,
       actions: [
         {
@@ -1706,8 +1888,7 @@ export const LANDING_PLACES = defineScene({
     {
       id: 'not-use',
       caption: 'PLACES AN AIRCRAFT COULD LAND · NOT A RECORD OF ANY FLIGHT',
-      narration:
-        'The map shows where an aircraft could land. It says nothing about which were used, and neither does this briefing.',
+      narration: 'Places an aircraft could land. Not a record of any flight.',
       minHoldMs: 700,
       actions: [
         { at: 0, type: 'audio.cue', cue: 'reveal' },
@@ -1761,7 +1942,7 @@ export const FOUR_CLOCKS = defineScene({
       id: 'clocks',
       caption: 'FOUR CLOCKS: SHAKING · IMAGE · MAPPING · PUBLICATION',
       narration:
-        'Every observation carries four clocks: when the ground shook, when a satellite looked, when an analyst mapped it, and when it was published.',
+        'Every observation has four clocks. When the ground shook. When a satellite looked. When an analyst mapped it. When it was published.',
       minHoldMs: 500,
       actions: [
         { at: 0, type: 'layer.show', layer: 'damage', duration: 1600 },
@@ -1803,7 +1984,7 @@ export const FOUR_CLOCKS = defineScene({
       caption:
         'LAYERS PUBLISHED A MEDIAN {damage.lags.eventToPublication.median|int} DAYS AFTER THE EARTHQUAKE',
       narration:
-        'The layers this briefing reads were published a median of {damage.lags.eventToPublication.median|int} days after the earthquake. A response works on the clock of the data it has.',
+        'These layers were published a median of {damage.lags.eventToPublication.median|int} days after the earthquake. A response runs on the clock of its data.',
       minHoldMs: 800,
       actions: [
         { at: 0, type: 'chart.update', id: 'lag-bars', op: 'focus', index: 3 },
@@ -1900,7 +2081,7 @@ export const WHAT_WE_KNOW = byClass(
   'What we know',
   'What was observed directly?',
   'OBSERVED · RECORDED BY AN INSTRUMENT OR AN ANALYST, NOT COMPUTED HERE',
-  'What we know, because it was observed: the earthquake, the damage mapped from imagery, the blockages, and the second product’s grades.',
+  'What we know, because it was observed: the earthquake, the damage read from imagery, the blockages, and the second product’s grades.',
   [
     'OBSERVED',
     'M{quake.magnitude|dec1} · {quake.depthKm|dec1} KM DEEP · {seq.total|int} EVENTS',
@@ -1918,7 +2099,7 @@ export const WHAT_WE_INFER = byClass(
   'What we infer',
   'What was computed from the observations?',
   'DERIVED AND STATISTICAL · COMPUTED HERE, EACH WITH ITS METHOD',
-  'What we infer by computing from those observations, each with its method and its caveat.',
+  'What we infer, by computing from those observations. Each with its method and its caveat.',
   [
     'DERIVED · STATISTIC',
     '{exposure.mmi6|mega2} PEOPLE INSIDE MODELLED MMI VI+',

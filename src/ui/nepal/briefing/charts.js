@@ -224,11 +224,56 @@ export function createIntensityChart({
   let grownAt = null;
   let sharesAt = null;
   let focus = null;
+  /*
+   * The trend: a line through each band's destroyed share, drawn left to
+   * right; the step into `dropAt` is red, because that step is the finding.
+   */
+  const trendPath = svg(
+    'polyline',
+    {
+      fill: 'none',
+      stroke: '#e8f5ef',
+      'stroke-width': 2,
+      'stroke-dasharray': '4 4',
+      opacity: 0,
+    },
+    plot,
+  );
+  const dropPath = svg(
+    'polyline',
+    { fill: 'none', stroke: '#ff3d6e', 'stroke-width': 3.5, opacity: 0 },
+    plot,
+  );
+  const dropLabel = svg(
+    'text',
+    { 'text-anchor': 'middle', class: 'brf-chart__drop', opacity: 0 },
+    plot,
+  );
+  let trendAt = null;
+  let dropAt = null;
+  /* The verdict: the finding in words, over the bars it is about. */
+  const verdict = div('brf-chart__verdict', '');
+  node.insertBefore(verdict, body);
+  let verdictAt = null;
+  const tops = () =>
+    columns.map((col, i) => {
+      const x = 20 + i * (barPx + 46) + barPx / 2;
+      const y = heightPx - (col.band.composition.Destroyed / 100) * heightPx;
+      return [x, y];
+    });
 
   return {
     node,
     grow({ instant = false } = {}) {
       grownAt = instant ? clock.now() - 2000 : clock.now();
+    },
+    trend(mmi, { instant = false } = {}) {
+      trendAt = instant ? clock.now() - 2000 : clock.now();
+      dropAt = mmi ?? null;
+    },
+    verdict(text, { instant = false } = {}) {
+      verdict.textContent = text ?? '';
+      verdictAt = text ? (instant ? clock.now() - 2000 : clock.now()) : null;
     },
     showShares({ instant = false } = {}) {
       sharesAt = instant ? clock.now() - 1000 : clock.now();
@@ -258,6 +303,59 @@ export function createIntensityChart({
         col.share.setAttribute('opacity', String(st));
         col.ring.setAttribute('opacity', focus === col.band.mmi ? '1' : '0');
       }
+      const points = tops();
+      const tt =
+        trendAt === null ? 0 : ease.out(progress(clock, trendAt, 1400));
+      if (tt > 0) {
+        /* Draw the line up to the share of the path the animation has reached. */
+        const reach = tt * (points.length - 1);
+        const shown = [];
+        for (let i = 0; i < points.length; i += 1) {
+          if (i <= reach) shown.push(points[i]);
+          else {
+            const f = reach - (i - 1);
+            if (f > 0)
+              shown.push([
+                points[i - 1][0] + (points[i][0] - points[i - 1][0]) * f,
+                points[i - 1][1] + (points[i][1] - points[i - 1][1]) * f,
+              ]);
+            break;
+          }
+        }
+        trendPath.setAttribute(
+          'points',
+          shown.map((p) => p.join(',')).join(' '),
+        );
+        trendPath.setAttribute('opacity', '0.9');
+        const k = columns.findIndex((col) => col.band.mmi === dropAt);
+        const dropShown = k > 0 && reach >= k;
+        dropPath.setAttribute(
+          'points',
+          dropShown
+            ? [points[k - 1], points[k]].map((p) => p.join(',')).join(' ')
+            : '',
+        );
+        dropPath.setAttribute('opacity', dropShown ? '1' : '0');
+        if (dropShown) {
+          dropLabel.setAttribute(
+            'x',
+            String((points[k - 1][0] + points[k][0]) / 2),
+          );
+          dropLabel.setAttribute(
+            'y',
+            String(Math.min(points[k - 1][1], points[k][1]) - 14),
+          );
+          dropLabel.textContent = `DROPS AT MMI ${dropAt}`;
+        }
+        dropLabel.setAttribute('opacity', dropShown ? '1' : '0');
+      } else {
+        trendPath.setAttribute('opacity', '0');
+        dropPath.setAttribute('opacity', '0');
+        dropLabel.setAttribute('opacity', '0');
+      }
+      const vt = verdictAt === null ? 0 : progress(clock, verdictAt, 600);
+      verdict.style.opacity = String(vt);
+      verdict.style.transform = `translateY(${(1 - vt) * 8}px)`;
     },
   };
 }

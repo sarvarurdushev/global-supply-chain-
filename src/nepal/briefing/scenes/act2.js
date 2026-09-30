@@ -39,7 +39,7 @@ export const PEOPLE_MEET_SHAKING = defineScene({
       id: 'people',
       caption: 'WHERE PEOPLE LIVED · MODELLED, NOT COUNTED',
       narration:
-        'Before the shaking, the people. Each point is a block of modelled population, larger where more people lived.',
+        'Now the people. Each point is modelled population. Larger points, more people.',
       runs: [RUNS.SIX],
       minHoldMs: 400,
       actions: [
@@ -76,7 +76,7 @@ export const PEOPLE_MEET_SHAKING = defineScene({
       caption:
         '{exposure.mmi6|mega2} PEOPLE INSIDE MODELLED MMI VI OR STRONGER',
       narration:
-        'Lay the modelled shaking over them. {exposure.mmi6|millionWords} people were inside intensity six or stronger.',
+        'Lay the shaking over them. {exposure.mmi6|millionWords} people were inside strong shaking.',
       minHoldMs: 500,
       actions: [
         {
@@ -123,7 +123,7 @@ export const PEOPLE_MEET_SHAKING = defineScene({
       caption:
         'MMI VII+: {exposure.mmi7|mega2} · MMI VIII: {exposure.mmi8|kilo}',
       narration:
-        '{exposure.mmi7|millionWords} were inside intensity seven. {exposure.mmi8|thousandWords} inside eight, the strongest band.',
+        '{exposure.mmi7|millionWords} inside intensity seven. {exposure.mmi8|thousandWords} inside eight, the strongest band.',
       runs: [RUNS.FULL],
       minHoldMs: 500,
       actions: [
@@ -195,7 +195,7 @@ export const DENSITY_MEETS_SHAKING = defineScene({
       caption:
         '{exposure.highHigh.people|mega2} PEOPLE: STRONG SHAKING AND DENSE SETTLEMENT',
       narration:
-        'Where strong shaking met dense settlement: {exposure.highHigh.people|millionWords} people, {exposure.highHigh.shareOfPopulationPercent|int} percent of everyone in the analysis.',
+        'Where strong shaking met dense settlement: {exposure.highHigh.people|millionWords} people. {exposure.highHigh.shareOfPopulationPercent|int} percent of everyone here.',
       minHoldMs: 500,
       actions: [
         { at: 0, type: 'layer.filter', layer: 'population', alpha: 0.3 },
@@ -239,7 +239,7 @@ export const DENSITY_MEETS_SHAKING = defineScene({
       caption:
         'THE DENSEST SQUARE KILOMETRE: {exposure.highHigh.densestCellPeople|int} PEOPLE',
       narration:
-        'The densest single square kilometre, in the Kathmandu Valley, held about {exposure.highHigh.densestCellPeople|thousandWords} people.',
+        'The densest square kilometre, in the Kathmandu Valley, held about {exposure.highHigh.densestCellPeople|thousandWords} people.',
       runs: [RUNS.FULL],
       minHoldMs: 500,
       actions: [
@@ -281,7 +281,7 @@ export const DENSITY_MEETS_SHAKING = defineScene({
       caption:
         'HIGH DENSITY = THE TOP {exposure.quadrantParams.densityQuantile|shareToPct} OF POPULATED CELLS, NOT A BORROWED FIGURE',
       narration:
-        'Dense means at least {exposure.quadrantParams.densityCutPeoplePerCell|int} people in a cell: the cut that separates the busiest quarter of Nepal’s populated cells.',
+        'Dense means at least {exposure.quadrantParams.densityCutPeoplePerCell|int} people in a square kilometre: the busiest quarter of populated cells.',
       runs: [RUNS.FULL],
       minHoldMs: 700,
       actions: [

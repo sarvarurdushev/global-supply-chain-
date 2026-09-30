@@ -202,25 +202,103 @@ export function describe(hit, context = {}) {
         note: 'One structure read from imagery. The product records damaged structures only, so a site says nothing about its undamaged neighbours.',
         scene: 'damage-composition',
       };
-    case 'blockage':
+    case 'blockage': {
+      /*
+       * A blockage explains itself: the road the analysis matched it to (or
+       * why there is none), the nearest mapped landslide, where the scenario
+       * uses it, and what removing only its road segment does.
+       */
+      const on = item.matched === true;
+      const slide = item.nearestLandslide ?? null;
+      const w = item.whatIf ?? null;
+      const uses = [];
+      if (on) uses.push('THE OBSERVED-BLOCKAGES SCENARIO');
+      if (item.examples?.includes('cut')) uses.push('THE CUT-OFF EXAMPLE');
+      if (item.examples?.includes('detour')) uses.push('THE DETOUR EXAMPLE');
+      for (const area of item.damageAreas ?? [])
+        uses.push(`THE ROUTE FROM ${String(area).toUpperCase()}`);
+      const matchRow =
+        item.matched === undefined
+          ? 'NOT TESTED'
+          : on
+            ? `YES · ${String(item.roadClass ?? 'ROAD').toUpperCase()} · ${fmt(item.roadMetres, 'int')} M FROM ITS LINE`
+            : item.roadMetres === null || item.roadMetres === undefined
+              ? 'NO — NO MAPPED ROAD WITHIN 500 M'
+              : `NO — NEAREST MAPPED ROAD ${fmt(item.roadMetres, 'int')} M AWAY`;
+      const effect = !w
+        ? null
+        : w.peopleCut + w.peopleLonger + w.peopleSwitched === 0
+          ? 'NO CHANGE TO ANYONE’S NEAREST HOSPITAL'
+          : [
+              w.peopleCut ? `${fmt(w.peopleCut, 'int')} CUT OFF` : null,
+              w.peopleLonger ? `${fmt(w.peopleLonger, 'int')} LONGER` : null,
+              w.peopleSwitched
+                ? `${fmt(w.peopleSwitched, 'int')} TO ANOTHER HOSPITAL`
+                : null,
+            ]
+              .filter(Boolean)
+              .join(' · ');
       return {
         kind,
         title: 'BLOCKED ROAD',
         rows: [
           ['OBSERVED', item.sensedOn ? fmt(item.sensedOn, 'dateShort') : '—'],
+          ['ON A ROAD MAPPED THE DAY BEFORE', matchRow],
           [
-            'ON A ROAD MAPPED IN 2015',
-            item.matched === undefined
-              ? 'NOT TESTED'
-              : item.matched
-                ? 'YES'
-                : 'NO — NOT ON THE MAP',
+            'NEAREST MAPPED LANDSLIDE',
+            slide
+              ? slide.metres < 1000
+                ? `${fmt(slide.metres, 'int')} M`
+                : `${fmt(slide.metres / 1000, 'dec1')} KM`
+              : '—',
+          ],
+          [
+            'USED IN',
+            uses.length
+              ? uses.join(' · ')
+              : item.matched === false
+                ? 'NOTHING — THE SCENARIO CANNOT CUT A ROAD IT DOES NOT HAVE'
+                : '—',
           ],
         ],
         tag: { source: 'NGA', cls: 'OBSERVED' },
-        note: 'A marker of where a road was cut, not of how much road was lost. When it reopened is not recorded.',
+        note: on
+          ? 'A marker of where a road was cut, not of how much road was lost. When it reopened is not recorded. Nearness to a landslide is an association in space, not a cause.'
+          : item.matched === false
+            ? `No road mapped the day before lies within ${fmt(item.snapMetres ?? 25, 'int')} m of this marker, so the network the analysis routes on has nothing here to cut. The blockage is real; the map was thin.`
+            : 'A marker of where a road was cut, not of how much road was lost. When it reopened is not recorded.',
         scene: 'blockages',
+        actions: [
+          {
+            id: 'landslide',
+            label: 'SHOW THE NEAREST LANDSLIDE',
+            enabled: !!slide,
+            why: 'ONLY BLOCKED ROADS WERE MEASURED AGAINST LANDSLIDES',
+          },
+          {
+            id: 'effect',
+            label: 'TRACE NETWORK EFFECT',
+            enabled: !!w,
+            why: 'NOT ON A MAPPED ROAD — NOTHING TO REMOVE',
+            rows: effect ? [['REMOVING ONLY THIS ROAD SEGMENT', effect]] : [],
+            tag: { source: 'OSM 2015 × NGA', cls: 'SCENARIO' },
+          },
+          {
+            id: 'source',
+            label: 'SHOW SOURCE / DATE',
+            enabled: true,
+            rows: [
+              ['SOURCE', 'NGA · IMPASSABLE ROADS, MAY 2015'],
+              [
+                'OBSERVED ON',
+                item.sensedOn ? fmt(item.sensedOn, 'dateShort') : '—',
+              ],
+              ['ID IN THIS ANALYSIS', String(item.id ?? '—').toUpperCase()],
+            ],
+          },
+        ],
       };
+    }
     case 'bridge':
       return {
         kind,
@@ -281,7 +359,22 @@ export function describe(hit, context = {}) {
         note: 'Nearness to a blocked road is an association in space; neither product records a cause.',
         scene: 'landslides',
       };
-    case 'hospital':
+    case 'hospital': {
+      /*
+       * Every action reads a figure the pipeline computed for this hospital.
+       * None estimates what the hospital could do: the list has no beds,
+       * staff or services, and nothing here stands in for them.
+       */
+      const c = item.nearestByRoadPeople ?? null;
+      const areas = [
+        ...new Set([
+          ...(item.damageAreasBefore ?? []),
+          ...(item.damageAreasAfter ?? []),
+        ]),
+      ];
+      const compiled = context.codCompiled
+        ? fmt(context.codCompiled, 'dateShort')
+        : '—';
       return {
         kind,
         title: String(item.type ?? 'HEALTH FACILITY').toUpperCase(),
@@ -296,15 +389,87 @@ export function describe(hit, context = {}) {
                 ? 'YES'
                 : 'NO — OVER 1 KM FROM ANY MAPPED ROAD',
           ],
-          [
-            'LIST',
-            `GOVERNMENT, COMPILED ${context.codCompiled ? fmt(context.codCompiled, 'dateShort') : '—'}`,
-          ],
+          ['LIST', `GOVERNMENT, COMPILED ${compiled}`],
         ],
         tag: { source: 'DOHS / WHO', cls: 'OFFICIAL' },
-        note: 'No beds, staff or capacity exist in the list, and none is shown. Distances were measured from people to their nearest hospital, not per hospital.',
+        note: 'No beds, staff or capacity exist in the list, and none is shown. What follows is where the road model sends people, not who went there.',
         scene: 'facility-map',
+        actions: [
+          {
+            id: 'catchment',
+            label: 'SHOW CATCHMENT CONTEXT',
+            enabled: !!c && item.onNetwork !== false,
+            why: 'NOT ON THE MAPPED ROAD NETWORK — NO ONE IS ROUTED HERE',
+            rows: c
+              ? [
+                  [
+                    'NEAREST HOSPITAL BY ROAD FOR',
+                    `${fmt(c.before, 'int')} PEOPLE`,
+                  ],
+                ]
+              : [],
+            tag: { source: 'OSM 2015 × DOHS 2010 × WORLDPOP', cls: 'DERIVED' },
+          },
+          {
+            id: 'scenario',
+            label: 'COMPARE DAMAGE SCENARIO',
+            enabled: !!c && item.onNetwork !== false,
+            why: 'NOT ON THE MAPPED ROAD NETWORK — NO ONE IS ROUTED HERE',
+            rows: c
+              ? [
+                  [
+                    'NEAREST BY ROAD, BEFORE → WITH THE BLOCKAGES',
+                    `${fmt(c.before, 'int')} → ${fmt(c.after, 'int')} PEOPLE`,
+                  ],
+                ]
+              : [],
+            tag: { source: 'OSM 2015 × DOHS 2010 × NGA', cls: 'SCENARIO' },
+          },
+          {
+            id: 'trace',
+            label: 'TRACE FROM DAMAGE AREA',
+            enabled: areas.length > 0,
+            why: 'NO NAMED DAMAGE AREA HAS THIS AS ITS NEAREST HOSPITAL BY ROAD',
+            rows: areas.length
+              ? [
+                  [
+                    'NEAREST HOSPITAL BY ROAD FOR',
+                    areas.map((a) => String(a).toUpperCase()).join(' · '),
+                  ],
+                ]
+              : [],
+            tag: { source: 'OSM 2015 × UNOSAT × NGA', cls: 'SCENARIO' },
+          },
+          {
+            id: 'nearby',
+            label: 'SHOW NEARBY POPULATION',
+            enabled: item.nearbyPeople !== undefined,
+            why: 'THE ACCESS ANALYSIS DID NOT LOAD',
+            rows:
+              item.nearbyPeople !== undefined
+                ? [
+                    [
+                      'PEOPLE WITHIN 10 KM, STRAIGHT LINE',
+                      fmt(item.nearbyPeople, 'int'),
+                    ],
+                  ]
+                : [],
+            tag: { source: 'WORLDPOP 2015', cls: 'DERIVED' },
+          },
+          {
+            id: 'source',
+            label: 'SHOW SOURCE / DATE',
+            enabled: true,
+            rows: [
+              ['SOURCE', 'DEPARTMENT OF HEALTH SERVICES / WHO LIST'],
+              ['COMPILED', compiled],
+              ['ID IN THE LIST', String(item.id ?? '—').toUpperCase()],
+              ['FIELDS HELD', 'TYPE AND PLACE · NO CAPACITY'],
+            ],
+          },
+        ],
       };
+    }
     case 'route':
       return {
         kind,

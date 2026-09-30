@@ -51,6 +51,7 @@ import {
 } from '../../src/nepal/access/analysis.js';
 import { FacilityTier } from '../../src/nepal/access/facilities.js';
 import { haversineMetres, simplifyLine } from '../../src/nepal/access/network.js';
+import { roadLandslideAssociation } from '../../src/nepal/analysis/infrastructure.js';
 import { PROCESSED, REGISTRY, writeAnalysis } from '../lib/io.mjs';
 
 const read = async (name) => JSON.parse(await readFile(path.join(PROCESSED, name), 'utf8'));
@@ -80,6 +81,9 @@ const SIMILAR_CANDIDATES = [500, 1000, 2000];
 
 /** The blockage-to-road tolerance ceiling, the same as Stage 5 and for the same reason. */
 const SNAP_CEILING_METRES = 100;
+
+/** EXPLORE's hospital card: people within this straight-line radius, for context, not a catchment. */
+const NEARBY_PEOPLE_KM = 10;
 
 /** A district enters the pressure comparison only if this share of its people lies inside the envelope. */
 const DISTRICT_COVERAGE_FLOOR = 0.9;
@@ -461,6 +465,7 @@ export async function analyseHealthAccess() {
   };
 
   /* Every named damage area: where its route went, and whether the damage changed it. */
+  const areaTraces = new Map();
   const areaRoutes = [...areaSums.values()]
     .filter((a) => a.n >= 20)
     .map((a) => {
@@ -469,6 +474,7 @@ export async function analyseHealthAccess() {
       const hit = snapToNode(nodeIndex, lon, lat, ORIGIN_SNAP_METRES);
       if (!hit) return { area: a.name, sites: a.n, lon: round5(lon), lat: round5(lat), onNetwork: false, category: null };
       const traced = traceFrom(hit.node, hit.metres);
+      areaTraces.set(a.name, traced);
       return {
         area: a.name,
         sites: a.n,
@@ -528,6 +534,76 @@ export async function analyseHealthAccess() {
           (b.c.after.metres - b.c.before.metres) - (a.c.after.metres - a.c.before.metres) ||
           a.o.lon - b.o.lon,
       )[0]?.o ?? null;
+  /*
+   * What the briefing needs to perform the search rather than state its
+   * result: the hospitals a search would consider first (the nearest by
+   * straight line, marked with the one the road actually reaches), where the
+   * first observed blockage splits the route, and — when no route survives —
+   * the part of the network still reachable from the origin, which reaches
+   * no hospital. Display geometry; every figure is the search's own.
+   */
+  const investigationFor = (origin, traced) => {
+    const roadNearestId = traced.baseline.hospital?.id ?? null;
+    const nearby = codHospitals
+      .map((f) => ({ f, metres: haversineMetres([origin.lon, origin.lat], [f.lon, f.lat]) }))
+      .sort((a, b) => a.metres - b.metres)
+      .slice(0, 5)
+      .map(({ f, metres }) => ({
+        id: f.id,
+        type: f.type,
+        district: f.district ?? districtOf(f.lon, f.lat),
+        lon: round5(f.lon),
+        lat: round5(f.lat),
+        straightKm: Number((metres / 1000).toFixed(1)),
+        onNetwork: f.node !== null,
+        nearestByRoad: f.id === roadNearestId,
+      }));
+    const line = traced.baseline.line;
+    const block = traced.blockagesOnBaselineRoute[0] ?? null;
+    let splitIndex = null;
+    if (line && block) {
+      let best = Infinity;
+      line.forEach(([lon, lat], i) => {
+        const d = haversineMetres([lon, lat], [block.lon, block.lat]);
+        if (d < best) {
+          best = d;
+          splitIndex = i;
+        }
+      });
+    }
+    const split = splitIndex === null ? null : { index: splitIndex, beforeCut: line.slice(0, splitIndex + 1), afterCut: line.slice(splitIndex) };
+    let reachable = null;
+    if (traced.scenario.km === null && Number.isFinite(base.dist[origin.node])) {
+      /* Breadth-first over the damaged network from the origin: everything a search could still reach. */
+      const seen = new Uint8Array(nodes.length);
+      const reachedEdges = new Set();
+      const queue = [origin.node];
+      seen[origin.node] = 1;
+      while (queue.length) {
+        const n = queue.shift();
+        for (let k = csr.offsets[n]; k < csr.offsets[n + 1]; k += 1) {
+          const e = csr.edgeOf[k];
+          if (disabled[e]) continue;
+          reachedEdges.add(e);
+          const m = csr.targets[k];
+          if (!seen[m]) {
+            seen[m] = 1;
+            queue.push(m);
+          }
+        }
+      }
+      const hospitalNodes = new Set(sets.codHospital.map((source) => source.node));
+      let lengthMetres = 0;
+      for (const e of reachedEdges) lengthMetres += edges[e][2];
+      reachable = {
+        edges: reachedEdges.size,
+        lengthKm: Number((lengthMetres / 1000).toFixed(1)),
+        hospitalsReached: [...hospitalNodes].filter((n) => seen[n]).length,
+        lines: [...reachedEdges].slice(0, 1500).map((e) => simplifyLine(shapes[e], 60).map(([lon, lat]) => [round5(lon), round5(lat)])),
+      };
+    }
+    return { nearbyHospitals: nearby, split, reachableAfter: reachable };
+  };
   const exampleFrom = (origin, rule) => {
     if (!origin) return null;
     const traced = traceFrom(origin.node, origin.snapMetres);
@@ -546,6 +622,7 @@ export async function analyseHealthAccess() {
       frame,
       origin: { lon: round5(origin.lon), lat: round5(origin.lat), district: origin.district, people: Math.round(origin.people), snapMetres: Math.round(origin.snapMetres), mmi: origin.mmi },
       ...traced,
+      investigation: investigationFor(origin, traced),
     };
   };
   const exampleRoutes = {
@@ -619,10 +696,133 @@ export async function analyseHealthAccess() {
     },
   };
 
+  /* ---------------- per object: what EXPLORE's cards may say ---------------- */
+
+  /*
+   * Each hospital's nearest-by-road population: the people for whom it was the
+   * nearest hospital along mapped roads, before and with the blockages. This
+   * is where the model sends people, not who went there, and says nothing of
+   * what the hospital could do for them.
+   */
+  const catchment = sets.codHospital.map(() => ({ before: 0, after: 0 }));
+  for (const origin of origins) {
+    if (!onRoad(origin, ORIGIN_SNAP_METRES)) continue;
+    const before = accessOf(origin, search.codHospital.baseline);
+    const after = accessOf(origin, search.codHospital.scenario);
+    if (Number.isFinite(before.metres)) catchment[before.facility].before += origin.people;
+    if (Number.isFinite(after.metres)) catchment[after.facility].after += origin.people;
+  }
+  const catchmentById = new Map(sets.codHospital.map((source, i) => [source.facility.id, catchment[i]]));
+  const peopleNear = (facility) =>
+    origins.reduce(
+      (sum, o) => (haversineMetres([facility.lon, facility.lat], [o.lon, o.lat]) <= NEARBY_PEOPLE_KM * 1000 ? sum + o.people : sum),
+      0,
+    );
+  const areaLine = (leg) => (leg.line ? simplifyLine(leg.line, 60).map(([lon, lat]) => [round5(lon), round5(lat)]) : null);
+  const hospitalDetail = (f) => {
+    const c = catchmentById.get(f.id);
+    const areasTo = (which) =>
+      [...areaTraces.entries()].filter(([, traced]) => traced[which].hospital?.id === f.id).map(([name]) => name);
+    return {
+      nearbyPeople: Math.round(peopleNear(f)),
+      nearestByRoadPeople: c ? { before: Math.round(c.before), after: Math.round(c.after) } : null,
+      damageAreasBefore: areasTo('baseline'),
+      damageAreasAfter: areasTo('scenario'),
+    };
+  };
+
+  /*
+   * Each blockage on its own. The matched road segment it cuts, how far it sat
+   * from that road, the nearest mapped landslide (the Stage 5 measure, the same
+   * function on the same features), and what removing ONLY its road segment
+   * does to hospital access. Several blockages can sit on one segment, so the
+   * what-if is run once per segment and shared.
+   */
+  const slideAssociation = roadLandslideAssociation(ngaFile.data.blockedRoads.features, ngaFile.data.landslides.features);
+  const exampleIds = Object.fromEntries(
+    ['cut', 'detour'].map((key) => [key, new Set((exampleRoutes[key]?.blockagesOnBaselineRoute ?? []).map((b) => b.id))]),
+  );
+  const areaIdsOf = (id) =>
+    [...areaTraces.entries()].filter(([, traced]) => traced.blockagesOnBaselineRoute.some((b) => b.id === id)).map(([name]) => name);
+  const segmentWhatIf = new Map();
+  const whatIfFor = (e) => {
+    if (segmentWhatIf.has(e)) return segmentWhatIf.get(e);
+    const only = new Uint8Array(edges.length);
+    only[e] = 1;
+    const alone = multiSourceDijkstra(csr, sets.codHospital, { disabled: only });
+    let longer = 0;
+    let switched = 0;
+    let cut = 0;
+    const affected = new Set();
+    for (const origin of origins) {
+      if (!onRoad(origin, ORIGIN_SNAP_METRES)) continue;
+      const before = accessOf(origin, search.codHospital.baseline);
+      const after = accessOf(origin, alone);
+      if (!Number.isFinite(before.metres)) continue;
+      if (!Number.isFinite(after.metres)) cut += origin.people;
+      else if (after.metres - before.metres > SIMILAR_METRES) {
+        if (after.facility !== before.facility) switched += origin.people;
+        else longer += origin.people;
+      } else continue;
+      affected.add(origin);
+    }
+    const result = { peopleLonger: Math.round(longer), peopleSwitched: Math.round(switched), peopleCut: Math.round(cut), affected };
+    segmentWhatIf.set(e, result);
+    return result;
+  };
+  const blockageDetail = (m) => {
+    const e = matchedEdge(m);
+    const b = blockages.find((item) => item.id === m.id);
+    const roadIndex = b.kind === 'blocked-road' ? Number.parseInt(m.id.slice('road-'.length), 10) : null;
+    const slide = roadIndex !== null ? slideAssociation.perRoad[roadIndex] : null;
+    const examples = Object.entries(exampleIds)
+      .filter(([, ids]) => ids.has(m.id))
+      .map(([key]) => key);
+    return {
+      sensedOn: b.sensedOn,
+      /* To the nearest mapped road, matched or not: null beyond the widest tolerance searched. */
+      roadMetres: m.distanceMetres === null ? null : Math.round(m.distanceMetres),
+      snapMetres,
+      roadClass: e === null ? null : (classNames[edges[e][3]] ?? null),
+      segment: e === null ? null : simplifyLine(shapes[e], 20).map(([lon, lat]) => [round5(lon), round5(lat)]),
+      nearestLandslide: slide && slide.nearestLandslide !== null ? { index: slide.nearestLandslide, metres: slide.distanceMetres } : null,
+      whatIf: e === null ? null : whatIfFor(e),
+      examples,
+      damageAreas: areaIdsOf(m.id),
+    };
+  };
+
   /* ---------------- display: what the briefing draws ---------------- */
 
   const grid = populationFile.data.grid;
   const cellKey = (o) => [Math.round((o.lon - grid.originLon) / grid.stepLon), Math.round((grid.originLat - o.lat) / grid.stepLat)];
+  const changedCells = origins
+    .filter((origin) => onRoad(origin, ORIGIN_SNAP_METRES))
+    .map((origin) => ({ origin, ...categorise(origin, 'codHospital', SIMILAR_METRES) }))
+    .filter(({ category }) => category !== ChangeCategory.SIMILAR);
+  const hospitalOrder = new Map(codHospitals.map((f, i) => [f.id, i]));
+  const blocks = new Map();
+  for (const origin of origins) {
+    if (!onRoad(origin, ORIGIN_SNAP_METRES)) continue;
+    const [col, row] = cellKey(origin);
+    const key = `${Math.floor(col / 3)}:${Math.floor(row / 3)}`;
+    const block = blocks.get(key) ?? { col: Math.floor(col / 3), row: Math.floor(row / 3), before: new Map(), after: new Map() };
+    for (const [which, result] of [['before', search.codHospital.baseline], ['after', search.codHospital.scenario]]) {
+      const access = accessOf(origin, result);
+      const index = Number.isFinite(access.metres) ? hospitalOrder.get(sets.codHospital[access.facility].facility.id) : -1;
+      block[which].set(index, (block[which].get(index) ?? 0) + origin.people);
+    }
+    blocks.set(key, block);
+  }
+  const most = (counts) => [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0] - b[0])[0][0];
+  const catchmentGrid = {
+    originLon: round5(grid.originLon + grid.stepLon),
+    originLat: round5(grid.originLat - grid.stepLat),
+    stepLon: grid.stepLon * 3,
+    stepLat: grid.stepLat * 3,
+    blocks: [...blocks.values()].flatMap((block) => [block.col, block.row, most(block.before), most(block.after)]),
+  };
+
   const display = {
     cellMetres: 1000,
     noRoadCellMetres: 3000,
@@ -632,11 +832,14 @@ export async function analyseHealthAccess() {
      * categoryIndex, baselineKm, scenarioKm]. SIMILAR cells are counted in
      * the results but not listed — they are most of the map and draw nothing.
      */
-    cells: origins
-      .filter((origin) => onRoad(origin, ORIGIN_SNAP_METRES))
-      .map((origin) => ({ origin, ...categorise(origin, 'codHospital', SIMILAR_METRES) }))
-      .filter(({ category }) => category !== ChangeCategory.SIMILAR)
-      .map(({ origin, category, before, after }) => [round5(origin.lon), round5(origin.lat), Math.round(origin.people), CHANGE_ORDER.indexOf(category), km(before.metres), km(after.metres)]),
+    cells: changedCells.map(({ origin, category, before, after }) => [round5(origin.lon), round5(origin.lat), Math.round(origin.people), CHANGE_ORDER.indexOf(category), km(before.metres), km(after.metres)]),
+    /*
+     * Which hospital is nearest by road, on a 3 km grid, for EXPLORE's
+     * catchment view: flat [col, row, before, after, ...], the index into
+     * `hospitals` of the hospital serving most of the block's people (-1: no
+     * route). A picture of where the model sends people, not a service area.
+     */
+    catchmentGrid,
     /* People more than ORIGIN_SNAP from any mapped road, summed to a 3 km grid: [lon, lat, people]. */
     noRoad: [...origins
       .filter((origin) => !onRoad(origin, ORIGIN_SNAP_METRES))
@@ -650,12 +853,38 @@ export async function analyseHealthAccess() {
       }, new Map())
       .values()]
       .map((cell) => [round5(grid.originLon + cell.col * grid.stepLon), round5(grid.originLat - cell.row * grid.stepLat), Math.round(cell.people)]),
-    hospitals: codHospitals.map((f) => ({ id: f.id, type: f.type, district: f.district ?? districtOf(f.lon, f.lat), vdc: f.vdc, lon: f.lon, lat: f.lat, onNetwork: f.node !== null })),
+    hospitals: codHospitals.map((f) => ({
+      id: f.id,
+      type: f.type,
+      district: f.district ?? districtOf(f.lon, f.lat),
+      vdc: f.vdc,
+      lon: f.lon,
+      lat: f.lat,
+      onNetwork: f.node !== null,
+      ...hospitalDetail(f),
+    })),
+    /* The before and after routes from each named damage area, for EXPLORE's "trace from damage area". */
+    areaRouteLines: [...areaTraces.entries()].map(([area, traced]) => ({
+      area,
+      category: traced.category,
+      baseline: areaLine(traced.baseline),
+      scenario: areaLine(traced.scenario),
+    })),
     osmHospitals: osmHospitals.map((f) => ({ id: f.id, name: f.name, lon: f.lon, lat: f.lat })),
     blockages: matching.matches.map((m) => {
       const b = blockages.find((item) => item.id === m.id);
       const c = b.geometry.type === 'Point' ? b.geometry.coordinates : b.geometry.coordinates[Math.floor(b.geometry.coordinates.length / 2)];
-      return { id: m.id, kind: b.kind, lon: round5(c[0]), lat: round5(c[1]), matched: matchedEdge(m) !== null };
+      const detail = blockageDetail(m);
+      const { affected, ...whatIf } = detail.whatIf ?? {};
+      return {
+        id: m.id,
+        kind: b.kind,
+        lon: round5(c[0]),
+        lat: round5(c[1]),
+        matched: matchedEdge(m) !== null,
+        ...detail,
+        whatIf: detail.whatIf ? { ...whatIf, cells: changedCells.flatMap((cell, i) => (affected.has(cell.origin) ? [i] : [])) } : null,
+      };
     }),
   };
 
@@ -699,6 +928,23 @@ export async function analyseHealthAccess() {
       detail: exampleRoutes.cut ? `${exampleRoutes.cut.baseline.km} km before, none after` : 'no cell was cut',
     },
     {
+      name: 'The cut example’s reachable network after the blockages holds no hospital',
+      passed: !exampleRoutes.cut || exampleRoutes.cut.investigation.reachableAfter?.hospitalsReached === 0,
+      detail: exampleRoutes.cut?.investigation.reachableAfter
+        ? `${exampleRoutes.cut.investigation.reachableAfter.edges} edges, ${exampleRoutes.cut.investigation.reachableAfter.lengthKm} km, ${exampleRoutes.cut.investigation.reachableAfter.hospitalsReached} hospitals`
+        : 'no cut example',
+    },
+    {
+      name: 'Every road-connected person has exactly one nearest hospital before the blockages',
+      passed: Math.abs(catchment.reduce((sum, c) => sum + c.before, 0) - (h.peopleWithRoad - h.byCategory.NO_BASELINE_PATH)) <= 1,
+      detail: `${Math.round(catchment.reduce((sum, c) => sum + c.before, 0))} assigned against ${h.peopleWithRoad - h.byCategory.NO_BASELINE_PATH} with a route before`,
+    },
+    {
+      name: 'Removing one blockage’s segment never cuts off more people than removing them all',
+      passed: [...segmentWhatIf.values()].every((w) => w.peopleCut <= h.byCategory.DISCONNECTED + 1),
+      detail: `largest single-segment cut ${Math.max(0, ...[...segmentWhatIf.values()].map((w) => w.peopleCut))} against ${h.byCategory.DISCONNECTED} with every blockage`,
+    },
+    {
       name: 'Every named damage area is counted in exactly one route outcome',
       passed:
         areaRouteSummary.unchanged + areaRouteSummary.changed + areaRouteSummary.noBaselinePath + areaRouteSummary.offNetwork ===
@@ -730,7 +976,7 @@ export async function analyseHealthAccess() {
       blockageSnapMetres: snapMetres,
       districtCoverageFloor: DISTRICT_COVERAGE_FLOOR,
     },
-    methodology: buildMethodology({ matching, snapMetres, headline, front, weighting, listAgreement, bbox, exampleRoutes }),
+    methodology: buildMethodology({ matching, snapMetres, headline, front, weighting, listAgreement, bbox, exampleRoutes, segmentWhatIf }),
     results: {
       network: {
         instant: networkFile.validation?.instant ?? '2015-04-24T00:00:00Z',
@@ -816,7 +1062,7 @@ export async function analyseHealthAccess() {
   return { analysis, written };
 }
 
-function buildMethodology({ matching, snapMetres, headline, front, weighting, listAgreement, bbox, exampleRoutes }) {
+function buildMethodology({ matching, snapMetres, headline, front, weighting, listAgreement, bbox, exampleRoutes, segmentWhatIf }) {
   const coverage = `The access envelope ${bbox.join(', ')} — central Nepal from Gorkha to Dolakha — on roads mapped in OpenStreetMap by 2015-04-24.`;
   const inputs = [
     { dataset: 'osm-nepal-2015-access', role: 'every motorable road and health facility mapped by 2015-04-24' },
@@ -909,6 +1155,27 @@ function buildMethodology({ matching, snapMetres, headline, front, weighting, li
       limitations: [
         'An illustration of the method on one case, chosen by rule; not evidence of any journey that took place.',
         'The destination is the nearest hospital in the 2010 list, not necessarily the one anyone used.',
+      ],
+    }),
+    createSpatialAnalysisRecord({
+      id: 'access-per-object',
+      name: 'What EXPLORE can say about one hospital or one blockage',
+      question: 'For one hospital: for how many people was it the nearest along mapped roads, before and with the blockages, and how many lived near it? For one blockage: which road did it cut, how near was a mapped landslide, and what does removing only that road segment do?',
+      inputs,
+      spatialCoverage: coverage,
+      method:
+        'Read from the same two searches as the headline: each road-connected cell is assigned to the hospital its search reaches first, and the people summed per hospital; the assignment is also drawn on a 3 km grid by the hospital serving most of each block. People within 10 km of a hospital are summed in a straight line. Each matched road segment is removed on its own and the search re-run; the cells whose access lengthens by more than the similarity threshold, switches hospital or is cut are listed. The nearest landslide is the Stage 5 polyline-to-polygon distance, the same function on the same features.',
+      parameters: { nearbyPeopleKm: NEARBY_PEOPLE_KM, similarMetres: SIMILAR_METRES, catchmentBlockKm: 3 },
+      parameterJustification: 'Ten kilometres is context, not a service area: it is labelled as a straight-line count. The 3 km grid only draws the assignment; every figure is summed from 1 km cells.',
+      outputs: ['people nearest to each hospital by road, before and with the blockages', 'people within 10 km of each hospital', 'per matched segment: people cut off, on a longer route, or sent to another hospital, and the cells affected', 'per blockage: matched road class and distance, nearest landslide'],
+      visualisation: 'On a clicked hospital or blockage in EXPLORE: the nearest-hospital blocks, the damage-area routes, a 10 km radius, the matched segment and the cells one segment moves.',
+      validation: `Every road-connected person with a route before is assigned to exactly one hospital. ${segmentWhatIf.size} distinct segments re-run on their own; none cuts off more people than all the blockages together.`,
+      dataClass: DataClass.SCENARIO,
+      resultClass: ResultClass.SCENARIO.id,
+      limitations: [
+        'Where the road model sends people is not where anyone went, and says nothing of what a hospital could do: the list has no beds, staff or services.',
+        'A single-segment what-if leaves every other blockage open, so the segments do not add up to the all-blockages result.',
+        'A blockage that matches no mapped road changes no route; that is a limit of the April 2015 map, not evidence that the road was open.',
       ],
     }),
     createSpatialAnalysisRecord({

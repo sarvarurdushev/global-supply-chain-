@@ -64,7 +64,12 @@
   position: absolute;
   z-index: -1;
   inset: -70px -180px -46px -60px;
-  background: radial-gradient(ellipse at 0% 20%, rgba(2, 8, 10, 0.82) 0%, rgba(2, 8, 10, 0.55) 45%, rgba(2, 8, 10, 0) 75%);
+  background: radial-gradient(
+    ellipse at 0% 20%,
+    rgba(2, 8, 10, 0.82) 0%,
+    rgba(2, 8, 10, 0.55) 45%,
+    rgba(2, 8, 10, 0) 75%
+  );
   pointer-events: none;
 }
 .brf-root:not(.is-running) .brf-heading {
@@ -77,14 +82,14 @@
 }
 .brf-heading__scene {
   margin-top: 4px;
-  font-size: 15px;
+  font-size: clamp(15px, 2.1vh, 24px);
   letter-spacing: 0.16em;
   color: var(--gx-text);
 }
 .brf-heading__question {
   margin-top: 4px;
   font-family: Inter, system-ui, sans-serif;
-  font-size: 13px;
+  font-size: clamp(13px, 1.9vh, 21px);
   color: rgba(228, 245, 236, 0.72);
 }
 
@@ -108,7 +113,7 @@
   padding: 10px 18px;
   background: rgba(3, 9, 11, 0.72);
   border-left: 2px solid var(--gx-green);
-  font-size: 17px;
+  font-size: clamp(17px, 2.5vh, 30px);
   letter-spacing: 0.12em;
   line-height: 1.45;
   color: #f2fbf6;
@@ -206,10 +211,12 @@
 /* ---------------------------------------------------------------- map text */
 
 .brf-label {
-  font-size: 11px;
+  font-size: clamp(11px, 1.6vh, 18px);
   letter-spacing: 0.24em;
   color: #f2fbf6;
-  text-shadow: 0 0 6px #000, 0 0 2px #000;
+  text-shadow:
+    0 0 6px #000,
+    0 0 2px #000;
   white-space: nowrap;
 }
 .brf-label--country {
@@ -218,7 +225,7 @@
   color: rgba(242, 251, 246, 0.6);
 }
 .brf-label--city {
-  font-size: 12px;
+  font-size: clamp(12px, 1.8vh, 20px);
   letter-spacing: 0.28em;
 }
 .brf-label--district {
@@ -245,13 +252,13 @@
   border-left-color: var(--gx-amber);
 }
 .brf-callout__title {
-  font-size: 13px;
+  font-size: clamp(13px, 2vh, 22px);
   letter-spacing: 0.2em;
   color: #ffffff;
 }
 .brf-callout__line {
   margin-top: 4px;
-  font-size: 11px;
+  font-size: clamp(11px, 1.6vh, 18px);
   letter-spacing: 0.1em;
   color: rgba(228, 245, 236, 0.85);
 }
@@ -305,21 +312,21 @@
   text-shadow: 0 2px 10px rgba(0, 0, 0, 0.9);
 }
 .brf-metric__value {
-  font-size: 34px;
+  font-size: clamp(34px, 4.7vh, 54px);
   letter-spacing: 0.04em;
   color: #ffffff;
   font-variant-numeric: tabular-nums;
 }
 .brf-metric--xl .brf-metric__value {
-  font-size: 64px;
+  font-size: clamp(64px, 8.9vh, 100px);
   line-height: 1;
 }
 .brf-metric--lg .brf-metric__value {
-  font-size: 40px;
+  font-size: clamp(40px, 5.6vh, 64px);
 }
 .brf-metric__label {
   margin-top: 2px;
-  font-size: 11px;
+  font-size: clamp(11px, 1.6vh, 18px);
   letter-spacing: 0.2em;
   color: rgba(228, 245, 236, 0.85);
 }
@@ -332,7 +339,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(ellipse at center, rgba(2, 6, 8, 0.72), rgba(2, 6, 8, 0.2) 70%);
+  background: radial-gradient(
+    ellipse at center,
+    rgba(2, 6, 8, 0.72),
+    rgba(2, 6, 8, 0.2) 70%
+  );
 }
 .brf-question__text {
   max-width: 900px;
@@ -346,7 +357,7 @@
 }
 
 .brf-typed {
-  font-size: 22px;
+  font-size: clamp(22px, 3.1vh, 36px);
   letter-spacing: 0.22em;
   line-height: 1.55;
   color: #e4f5ec;
@@ -368,7 +379,7 @@
   color: var(--gx-amber);
 }
 .brf-typed--data {
-  font-size: 13px;
+  font-size: clamp(13px, 1.9vh, 21px);
   letter-spacing: 0.18em;
   line-height: 1.7;
   padding: 10px 14px;
@@ -385,12 +396,12 @@
   padding: 14px 18px 12px;
   background: rgba(3, 10, 12, 0.86);
   border-left: 3px solid var(--gx-green);
-  font-size: 12px;
+  font-size: clamp(12px, 1.8vh, 20px);
   letter-spacing: 0.16em;
   line-height: 1.75;
 }
 .brf-typed--conclusion > :first-child {
-  font-size: 19px;
+  font-size: clamp(19px, 2.8vh, 32px);
   letter-spacing: 0.14em;
   line-height: 1.35;
   color: #ffffff;
@@ -420,10 +431,27 @@
 
 /* ---------------------------------------------------------------- charts */
 
+@media (min-height: 860px) {
+  .brf-root {
+    --brf-chart-zoom: 1.2;
+  }
+}
+@media (min-height: 1000px) {
+  .brf-root {
+    --brf-chart-zoom: 1.4;
+  }
+}
+
 .brf-panel {
   pointer-events: auto;
 }
+/*
+ * Charts are drawn in pixels for a 720-line screen. On a taller screen the
+ * whole chart grows as one piece, so a room can read it from the back. The
+ * zoom sits on the chart, not on the panel the overlay moves around.
+ */
 .brf-chart {
+  zoom: var(--brf-chart-zoom, 1);
   padding: 12px 14px 12px;
   background: rgba(3, 10, 12, 0.86);
   border: 1px solid rgba(228, 245, 236, 0.2);
@@ -605,7 +633,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(ellipse at center, rgba(2, 6, 8, 0.55), rgba(2, 6, 8, 0.92) 75%);
+  background: radial-gradient(
+    ellipse at center,
+    rgba(2, 6, 8, 0.55),
+    rgba(2, 6, 8, 0.92) 75%
+  );
   pointer-events: auto;
 }
 .brf-begin[hidden] {
@@ -828,4 +860,187 @@
   .brf-inspector-hint {
     display: none;
   }
+}
+
+/* ---------------------------------------------------------- voice picker */
+
+.brf-voice {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px 10px;
+  margin-top: 14px;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+}
+.brf-voice__label {
+  color: var(--gx-green);
+}
+.brf-voice__select {
+  min-width: 0;
+  padding: 6px 8px;
+  border: 1px solid rgba(34, 217, 127, 0.4);
+  background: rgba(3, 10, 12, 0.92);
+  color: #e4f5ec;
+  font: inherit;
+  letter-spacing: 0.06em;
+}
+.brf-voice__select[hidden],
+.brf-voice__preview[hidden] {
+  display: none;
+}
+.brf-voice__note {
+  grid-column: 1 / -1;
+  color: rgba(228, 245, 236, 0.7);
+}
+.brf-voice__note:empty {
+  display: none;
+}
+.brf-settings {
+  position: absolute;
+  bottom: 96px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(520px, calc(100vw - 32px));
+  padding: 10px 14px 12px;
+  background: rgba(3, 10, 12, 0.94);
+  border: 1px solid rgba(34, 217, 127, 0.35);
+  pointer-events: auto;
+}
+.brf-settings[hidden] {
+  display: none;
+}
+
+/* ------------------------------------------------ the summary's recap */
+
+/* One finding per line, large enough to read from the back of a room. */
+.brf-typed--recap {
+  max-width: 44vw;
+  padding: 6px 12px;
+  background: rgba(3, 10, 12, 0.8);
+  border-left: 3px solid var(--gx-green);
+  font-size: clamp(14px, 2.1vh, 24px);
+  letter-spacing: 0.1em;
+  line-height: 1.3;
+  color: #ffffff;
+}
+.brf-typed--recap .brf-tag {
+  margin-top: 4px;
+  font-size: clamp(9px, 1.1vh, 12px);
+}
+/* The close: four kinds of knowledge, one per line. */
+.brf-typed--closing {
+  max-width: min(760px, 60vw);
+  padding: 16px 22px;
+  background: rgba(3, 10, 12, 0.9);
+  border-left: 3px solid var(--gx-green);
+  font-size: clamp(13px, 1.9vh, 22px);
+  letter-spacing: 0.1em;
+  line-height: 1.9;
+  color: #e4f5ec;
+}
+
+/* A chart's verdict: the finding in words, over the bars it is about. */
+.brf-chart__verdict {
+  margin: 8px 0 2px;
+  padding: 6px 10px;
+  border-left: 3px solid var(--gx-amber);
+  background: rgba(255, 176, 32, 0.12);
+  color: #ffffff;
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  line-height: 1.35;
+  opacity: 0;
+}
+.brf-chart__verdict:empty {
+  display: none;
+}
+.brf-chart__drop {
+  fill: #ff3d6e;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  font-weight: 600;
+}
+
+/* Explore inspector: the actions a card offers, and what each one shows. */
+.brf-inspector__actions {
+  display: grid;
+  gap: 4px;
+  margin-top: 10px;
+}
+.brf-inspector__action {
+  display: grid;
+  gap: 2px;
+  padding: 5px 8px;
+  border: 1px solid rgba(34, 217, 127, 0.45);
+  background: rgba(34, 217, 127, 0.06);
+  color: var(--gx-neon);
+  font: inherit;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-align: left;
+  cursor: pointer;
+}
+.brf-inspector__action:hover:not(:disabled),
+.brf-inspector__action:focus-visible {
+  background: rgba(34, 217, 127, 0.16);
+}
+.brf-inspector__action[aria-pressed='true'] {
+  background: rgba(34, 217, 127, 0.24);
+  border-color: var(--gx-neon);
+  color: #ffffff;
+}
+.brf-inspector__action:disabled {
+  border-color: rgba(228, 245, 236, 0.16);
+  background: none;
+  color: rgba(228, 245, 236, 0.4);
+  cursor: default;
+}
+.brf-inspector__why {
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  color: rgba(228, 245, 236, 0.5);
+}
+.brf-inspector__result {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(228, 245, 236, 0.14);
+}
+.brf-inspector__result[hidden] {
+  display: none;
+}
+.brf-inspector__key {
+  display: grid;
+  gap: 3px;
+  margin-top: 6px;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: rgba(228, 245, 236, 0.8);
+}
+.brf-inspector__key-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.brf-inspector__swatch {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+.brf-inspector-leader {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  overflow: visible;
+}
+.brf-inspector-leader line {
+  stroke: #5dffb0;
+  stroke-width: 1.5;
+  stroke-dasharray: 4 3;
+}
+.brf-inspector-leader circle {
+  fill: none;
+  stroke: #5dffb0;
+  stroke-width: 2;
 }

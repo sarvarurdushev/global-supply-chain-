@@ -8,11 +8,13 @@
  * showing, and `describe` writes its card from artefact values. Where the
  * analysis holds nothing for an object, the card says so and why.
  *
- * WHAT IT DRAWS. Only three things, all its own: the government hospital
- * list on the road-network scenes (no explore layer shows it, and a health
- * facility cannot be inspected if it is not on the map), a ring on the
- * picked object, and the picked line or district outline. It never touches
- * the scene's layers.
+ * WHAT IT DRAWS. Only its own things: the government hospital list on the
+ * road-network scenes (no explore layer shows it, and a health facility
+ * cannot be inspected if it is not on the map), a ring on the picked object,
+ * the picked line, district outline or matched road segment, a leader line
+ * from the card to the object, and whatever the card's one active action
+ * draws (a catchment, a route, a radius, a landslide, the cells one blockage
+ * moves). It never touches the scene's layers.
  *
  * NO FIGURE ORIGINATES HERE. Every value on a card is read from an artefact;
  * the inspector only looks it up, by id or by position against the
@@ -85,6 +87,43 @@ const ringGlyph = () =>
 
 const lineMid = (line) => line[Math.floor(line.length / 2)];
 
+const SVG_NS = 'http://www.w3.org/2000/svg';
+const COLOURS = {
+  kept: '#5dffb0',
+  lost: '#ff3d6e',
+  gained: '#ffb020',
+  route: '#5dffb0',
+  scenario: '#ffb020',
+  blockage: '#ff3d6e',
+  radius: '#7fdcff',
+  effect: '#ffb020',
+};
+
+/** What an action's colours mean, shown under its figures. */
+const ACTION_KEYS = {
+  catchment: [[COLOURS.kept, 'NEAREST HOSPITAL BY ROAD · 3 KM BLOCKS']],
+  scenario: [
+    [COLOURS.kept, 'STILL NEAREST WITH THE BLOCKAGES'],
+    [COLOURS.lost, 'NO LONGER NEAREST'],
+    [COLOURS.gained, 'NEWLY NEAREST'],
+  ],
+  trace: [
+    [COLOURS.route, 'ROUTE BEFORE'],
+    [COLOURS.scenario, 'ROUTE WITH THE BLOCKAGES · DASHED'],
+  ],
+  effect: [[COLOURS.effect, 'CELLS WHOSE ACCESS CHANGES']],
+};
+
+/** A ground circle as a closed line of [lon, lat] pairs, for a radius drawn on the terrain. */
+function circleLine(lon, lat, radiusKm, steps = 72) {
+  const dLat = radiusKm / 110.54;
+  const dLon = radiusKm / (111.32 * Math.cos((lat * Math.PI) / 180));
+  return Array.from({ length: steps + 1 }, (_, i) => {
+    const a = (i / steps) * Math.PI * 2;
+    return [lon + dLon * Math.cos(a), lat + dLat * Math.sin(a)];
+  });
+}
+
 /**
  * @param {object} options
  * @param {object} options.viewer the Cesium viewer
@@ -107,6 +146,12 @@ export function createExploreInspector({
   const billboards = scene.primitives.add(
     new Cesium.BillboardCollection({ scene }),
   );
+  /* What the card's active action draws: points, lines and labels of its own. */
+  const actionPoints = scene.primitives.add(
+    new Cesium.PointPrimitiveCollection(),
+  );
+  let actionEntities = [];
+  let actionBillboards = [];
   /* The picked line or outline, clamped to the terrain like the layer it marks. */
   let outlineEntities = [];
   const cross = crossGlyph();
@@ -118,6 +163,7 @@ export function createExploreInspector({
   let accessPromise = null;
   let destroyed = false;
   let current = null;
+  let lastScreen = { x: 0, y: 0 };
 
   const root = el('div', 'brf-inspector');
   root.hidden = true;
@@ -129,7 +175,16 @@ export function createExploreInspector({
     'CLICK ANY OBJECT ON THE MAP TO INSPECT IT',
   );
   hint.hidden = true;
-  host.append(root, hint);
+  /* The leader: a line from the card to the object it describes. */
+  const leader = document.createElementNS(SVG_NS, 'svg');
+  leader.setAttribute('class', 'brf-inspector-leader');
+  leader.setAttribute('aria-hidden', 'true');
+  const leaderLine = document.createElementNS(SVG_NS, 'line');
+  const leaderDot = document.createElementNS(SVG_NS, 'circle');
+  leaderDot.setAttribute('r', '4');
+  leader.append(leaderLine, leaderDot);
+  leader.style.display = 'none';
+  host.append(leader, root, hint);
 
   function loadAccess() {
     if (access || accessPromise || !fetchImpl) return accessPromise;
@@ -206,7 +261,20 @@ export function createExploreInspector({
     } else if (item.line) {
       addLine(item.line);
     } else if (SEA_LEVEL_KINDS.has(kind)) at = [item.lon, item.lat];
-    else at = hit.clickAt;
+    else at = kind === 'blockage' ? [item.lon, item.lat] : hit.clickAt;
+    /* A blockage shows the road segment the analysis matched it to, in red. */
+    if (kind === 'blockage' && Array.isArray(item.segment)) {
+      outlineEntities.push(
+        viewer.entities.add({
+          polyline: {
+            positions: Cesium.Cartesian3.fromDegreesArray(item.segment.flat()),
+            width: 6,
+            material: Cesium.Color.fromCssColorString(COLOURS.blockage),
+            clampToGround: true,
+          },
+        }),
+      );
+    }
     if (at) {
       ringBillboard = billboards.add({
         position: Cesium.Cartesian3.fromDegrees(at[0], at[1]),
@@ -253,20 +321,29 @@ export function createExploreInspector({
     }
 
     if (visible.has('blocked-roads') && data.nga?.blockedRoads) {
-      const matched = new Map(
-        (r?.display?.blockages ?? []).map((b) => [b.id, b.matched]),
+      const detail = new Map(
+        (r?.display?.blockages ?? []).map((b) => [b.id, b]),
       );
+      const slides = raw.infrastructure?.results?.landslides ?? [];
       out.blockage = data.nga.blockedRoads.features.map((f, i) => {
         const line =
           f.geometry.type === 'MultiLineString'
             ? f.geometry.coordinates.flat()
             : f.geometry.coordinates;
         const [lon, lat] = lineMid(line);
+        const d = r ? detail.get(`road-${i}`) : undefined;
+        const slide = d?.nearestLandslide
+          ? slides.find((item) => item.index === d.nearestLandslide.index)
+          : null;
         return {
+          ...(d ?? {}),
+          id: `road-${i}`,
           lon,
           lat,
           sensedOn: normaliseObservationDate(f.properties.sensedOn),
-          matched: r ? matched.get(`road-${i}`) : undefined,
+          matched: d ? d.matched : undefined,
+          /* The landslide's own position, from the infrastructure artefact. */
+          landslideAt: slide ? [slide.lon, slide.lat] : null,
         };
       });
     }
@@ -387,6 +464,38 @@ export function createExploreInspector({
       root.append(tag);
     }
     root.append(el('p', 'brf-inspector__note', card.note));
+    if (card.actions?.length) {
+      const bar = el('div', 'brf-inspector__actions');
+      const result = el('div', 'brf-inspector__result');
+      result.hidden = true;
+      const buttons = card.actions.map((action) => {
+        const button = el('button', 'brf-inspector__action');
+        button.type = 'button';
+        button.append(el('span', 'brf-inspector__action-label', action.label));
+        if (!action.enabled) {
+          button.disabled = true;
+          button.append(el('span', 'brf-inspector__why', action.why));
+        }
+        button.setAttribute('aria-pressed', 'false');
+        button.dataset.action = action.id;
+        button.addEventListener('click', () => {
+          const on = button.getAttribute('aria-pressed') !== 'true';
+          for (const other of buttons)
+            other.setAttribute('aria-pressed', 'false');
+          clearAction();
+          result.replaceChildren();
+          result.hidden = !on;
+          if (!on) return;
+          button.setAttribute('aria-pressed', 'true');
+          showActionResult(action, result);
+          drawAction(action.id, current);
+          place(lastScreen);
+        });
+        bar.append(button);
+        return button;
+      });
+      root.append(bar, result);
+    }
     if (card.scene && onPlayScene) {
       const play = el(
         'button',
@@ -402,8 +511,230 @@ export function createExploreInspector({
       root.append(play);
     }
     root.hidden = false;
+    lastScreen = screen;
     place(screen);
+    updateLeader();
   }
+
+  /** An action's own figures, read from the artefact by `describe`, under the buttons. */
+  function showActionResult(action, box) {
+    if (action.rows?.length) {
+      const rows = el('dl', 'brf-inspector__rows');
+      for (const [label, value] of action.rows)
+        rows.append(el('dt', null, label), el('dd', null, value));
+      box.append(rows);
+    }
+    const key = ACTION_KEYS[action.id];
+    if (key) {
+      const legend = el('div', 'brf-inspector__key');
+      for (const [colour, label] of key) {
+        const row = el('span', 'brf-inspector__key-row');
+        const swatch = el('i', 'brf-inspector__swatch');
+        swatch.style.background = colour;
+        row.append(swatch, el('span', null, label));
+        legend.append(row);
+      }
+      box.append(legend);
+    }
+    if (action.tag) {
+      const tag = el('div', tagClass(action.tag.cls));
+      tag.append(
+        el('span', 'brf-tag__source', action.tag.source),
+        el('span', 'brf-tag__class', String(action.tag.cls).replace('_', ' ')),
+      );
+      box.append(tag);
+    }
+  }
+
+  /* ------------------------------------------------------------ actions */
+
+  function clearAction() {
+    for (const entity of actionEntities) viewer.entities.remove(entity);
+    actionEntities = [];
+    for (const b of actionBillboards) billboards.remove(b);
+    actionBillboards = [];
+    actionPoints.removeAll();
+    requestRender();
+  }
+
+  const colourOf = (css, alpha = 1) =>
+    Cesium.Color.fromCssColorString(css).withAlpha(alpha);
+
+  function actionLine(points, css, { width = 4, dashed = false } = {}) {
+    if (!points || points.length < 2) return;
+    actionEntities.push(
+      viewer.entities.add({
+        polyline: {
+          positions: Cesium.Cartesian3.fromDegreesArray(points.flat()),
+          width,
+          material: dashed
+            ? new Cesium.PolylineDashMaterialProperty({
+                color: colourOf(css),
+                dashLength: 14,
+              })
+            : colourOf(css),
+          clampToGround: true,
+        },
+      }),
+    );
+  }
+
+  function actionLabel([lon, lat], text, css) {
+    actionEntities.push(
+      viewer.entities.add({
+        position: Cesium.Cartesian3.fromDegrees(lon, lat),
+        label: {
+          text,
+          font: '600 12px "JetBrains Mono", monospace',
+          fillColor: colourOf(css),
+          outlineColor: Cesium.Color.BLACK,
+          outlineWidth: 3,
+          style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+          pixelOffset: new Cesium.Cartesian2(10, -10),
+          horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
+          disableDepthTestDistance: Number.POSITIVE_INFINITY,
+        },
+      }),
+    );
+  }
+
+  function actionPoint([lon, lat], css, size = 7, alpha = 0.85) {
+    actionPoints.add({
+      position: Cesium.Cartesian3.fromDegrees(lon, lat),
+      pixelSize: size,
+      color: colourOf(css, alpha),
+      outlineColor: colourOf('#02080a', 0.8),
+      outlineWidth: 1,
+      disableDepthTestDistance: Number.POSITIVE_INFINITY,
+    });
+  }
+
+  /** The 3 km catchment blocks, as [lon, lat, before, after] rows. */
+  function catchmentBlocks() {
+    const g = results()?.display?.catchmentGrid;
+    if (!g) return [];
+    const rows = [];
+    for (let i = 0; i < g.blocks.length; i += 4) {
+      rows.push([
+        g.originLon + g.blocks[i] * g.stepLon,
+        g.originLat - g.blocks[i + 1] * g.stepLat,
+        g.blocks[i + 2],
+        g.blocks[i + 3],
+      ]);
+    }
+    return rows;
+  }
+
+  /** Draw what one action shows. Every position is the artefact's own. */
+  function drawAction(id, hit) {
+    if (!hit) return;
+    const { item } = hit;
+    const r = results();
+    if (id === 'catchment' || id === 'scenario') {
+      const index = (r?.display?.hospitals ?? []).findIndex(
+        (h) => h.id === item.id,
+      );
+      for (const [lon, lat, before, after] of catchmentBlocks()) {
+        if (id === 'catchment') {
+          if (before === index) actionPoint([lon, lat], COLOURS.kept);
+        } else if (before === index && after === index)
+          actionPoint([lon, lat], COLOURS.kept);
+        else if (before === index) actionPoint([lon, lat], COLOURS.lost, 9);
+        else if (after === index) actionPoint([lon, lat], COLOURS.gained, 9);
+      }
+    } else if (id === 'trace') {
+      const areas = new Set([
+        ...(item.damageAreasBefore ?? []),
+        ...(item.damageAreasAfter ?? []),
+      ]);
+      for (const route of r?.display?.areaRouteLines ?? []) {
+        if (!areas.has(route.area)) continue;
+        actionLine(route.baseline, COLOURS.route, { width: 5 });
+        actionLine(route.scenario, COLOURS.scenario, {
+          width: 3,
+          dashed: true,
+        });
+        const start = route.baseline?.[0] ?? route.scenario?.[0];
+        if (start) {
+          actionPoint(start, COLOURS.route, 10, 1);
+          actionLabel(start, String(route.area).toUpperCase(), COLOURS.route);
+        }
+      }
+    } else if (id === 'nearby') {
+      actionLine(circleLine(item.lon, item.lat, 10), COLOURS.radius, {
+        width: 3,
+        dashed: true,
+      });
+      actionLabel([item.lon, item.lat + 10 / 110.54], '10 KM', COLOURS.radius);
+    } else if (id === 'landslide' && item.landslideAt) {
+      actionLine([[item.lon, item.lat], item.landslideAt], COLOURS.gained, {
+        width: 3,
+        dashed: true,
+      });
+      actionBillboards.push(
+        billboards.add({
+          position: Cesium.Cartesian3.fromDegrees(...item.landslideAt),
+          image: ring,
+          color: colourOf(COLOURS.gained),
+          disableDepthTestDistance: Number.POSITIVE_INFINITY,
+        }),
+      );
+      actionLabel(item.landslideAt, 'NEAREST MAPPED LANDSLIDE', COLOURS.gained);
+    } else if (id === 'effect' && item.whatIf) {
+      const cells = r?.display?.cells ?? [];
+      for (const i of item.whatIf.cells ?? []) {
+        const cell = cells[i];
+        if (cell) actionPoint([cell[0], cell[1]], COLOURS.effect, 7);
+      }
+    }
+    requestRender();
+  }
+
+  /* ------------------------------------------------------------ leader */
+
+  function objectAt(hit) {
+    if (!hit) return null;
+    const { item, kind } = hit;
+    if (kind === 'district' || item.line) return null;
+    return {
+      lon: item.lon,
+      lat: item.lat,
+      onTerrain: !SEA_LEVEL_KINDS.has(kind),
+    };
+  }
+
+  function updateLeader() {
+    const target = !root.hidden ? objectAt(current) : null;
+    const at = target
+      ? project(target.lon, target.lat, { onTerrain: target.onTerrain })
+      : null;
+    if (!at) {
+      leader.style.display = 'none';
+      return;
+    }
+    const box = host.getBoundingClientRect();
+    const canvas = scene.canvas.getBoundingClientRect();
+    const px = canvas.left - box.left + at.x;
+    const py = canvas.top - box.top + at.y;
+    const card = root.getBoundingClientRect();
+    const left = card.left - box.left;
+    const right = card.right - box.left;
+    const x = px < left ? left : px > right ? right : left;
+    const y = Math.max(
+      card.top - box.top + 16,
+      Math.min(py, card.bottom - box.top - 16),
+    );
+    leader.style.display = '';
+    leader.setAttribute('width', String(box.width));
+    leader.setAttribute('height', String(box.height));
+    leaderLine.setAttribute('x1', String(x));
+    leaderLine.setAttribute('y1', String(y));
+    leaderLine.setAttribute('x2', String(px));
+    leaderLine.setAttribute('y2', String(py));
+    leaderDot.setAttribute('cx', String(px));
+    leaderDot.setAttribute('cy', String(py));
+  }
+  const removePostRender = scene.postRender.addEventListener(updateLeader);
 
   /** Beside the click, kept clear of the scene rail and the detail panel. */
   function place(screen) {
@@ -434,10 +765,22 @@ export function createExploreInspector({
   function clear() {
     current = null;
     root.hidden = true;
+    leader.style.display = 'none';
+    clearAction();
     highlight(null);
   }
 
   /* --------------------------------------------------------------- click */
+
+  function project(lon, lat, { onTerrain = false } = {}) {
+    const height = onTerrain
+      ? (scene.globe?.getHeight(Cesium.Cartographic.fromDegrees(lon, lat)) ?? 0)
+      : 0;
+    const at = scene.cartesianToCanvasCoordinates(
+      Cesium.Cartesian3.fromDegrees(lon, lat, height),
+    );
+    return at ? { x: at.x, y: at.y } : null;
+  }
 
   /** A ground position under the pointer, and the scale there in metres per pixel. */
   function located(cartesian) {
@@ -497,6 +840,7 @@ export function createExploreInspector({
     if (!access) await loadAccess();
     if (destroyed) return;
     const hit = pickBoth(ground, candidates(ctx));
+    clearAction();
     if (!hit) {
       current = null;
       highlight(null);
@@ -572,32 +916,36 @@ export function createExploreInspector({
     get current() {
       return current;
     },
+    /** For QA: what the active action has drawn, and whether the leader line shows. */
+    get drawn() {
+      return {
+        points: actionPoints.length,
+        lines: actionEntities.length,
+        markers: actionBillboards.length,
+        leader: leader.style.display !== 'none',
+      };
+    },
     /**
      * For QA: where a position is drawn on the canvas, or null off screen —
      * at sea level for a point kind, on the terrain for a clamped one.
      */
-    project(lon, lat, { onTerrain = false } = {}) {
-      const height = onTerrain
-        ? (scene.globe?.getHeight(Cesium.Cartographic.fromDegrees(lon, lat)) ??
-          0)
-        : 0;
-      const at = scene.cartesianToCanvasCoordinates(
-        Cesium.Cartesian3.fromDegrees(lon, lat, height),
-      );
-      return at ? { x: at.x, y: at.y } : null;
-    },
+    project,
     /** For QA: pick at a screen position as a click would. */
     clickAt: (x, y) => onClick({ position: new Cesium.Cartesian2(x, y) }),
     element: root,
     destroy() {
       destroyed = true;
+      removePostRender();
       handler.destroy();
+      clearAction();
+      scene.primitives.remove(actionPoints);
       win?.removeEventListener?.('keydown', onKey);
       win?.removeEventListener?.('resize', placeHint);
       highlight(null);
       scene.primitives.remove(billboards);
       root.remove();
       hint.remove();
+      leader.remove();
     },
   });
 }

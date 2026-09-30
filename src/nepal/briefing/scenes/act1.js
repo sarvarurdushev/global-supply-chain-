@@ -41,7 +41,7 @@ export const INCOMING = defineScene({
       caption:
         'INCIDENT DETECTED · {quake.time|dateShort} · {quake.time|utcHM}',
       narration:
-        '{quake.time|dateLong}. {quake.time|utcHM}. A major earthquake is detected in South Asia.',
+        '{quake.time|dateLong}, {quake.time|utcHM}. A major earthquake is detected in South Asia.',
       minHoldMs: 600,
       actions: [
         { at: 0, type: 'audio.cue', cue: 'tick' },
@@ -59,6 +59,15 @@ export const INCOMING = defineScene({
           ],
         },
         { at: 400, type: 'veil', opacity: 0.8, duration: 2400 },
+        /* Under the veil the globe keeps turning towards Asia. */
+        {
+          at: 0,
+          type: 'camera.fly',
+          to: { lon: 62, lat: 22 },
+          rangeKm: 19000,
+          pitch: -90,
+          duration: 4400,
+        },
         { at: 2800, type: 'audio.cue', cue: 'reveal' },
       ],
     },
@@ -118,8 +127,7 @@ export const LOCATE = defineScene({
     {
       id: 'south-asia',
       caption: 'SOUTH ASIA · THE CENTRAL HIMALAYA',
-      narration:
-        'The event is in the central Himalaya, between India and China.',
+      narration: 'The central Himalaya, between India and China.',
       runs: SIX_FULL,
       minHoldMs: 300,
       actions: [
@@ -155,8 +163,7 @@ export const LOCATE = defineScene({
     {
       id: 'border',
       caption: 'NEPAL',
-      narration:
-        'This is Nepal. Its border runs the length of the central Himalaya.',
+      narration: 'Nepal. Its border runs the length of the range.',
       minHoldMs: 500,
       actions: [
         { at: 0, type: 'layer.show', layer: 'outline', duration: 3200 },
@@ -194,7 +201,7 @@ export const LOCATE = defineScene({
       caption:
         'KATHMANDU · AND THE EPICENTRE, IN {geo.epicentreDistrict|upper}',
       narration:
-        'The capital, Kathmandu, sits in a valley here. The rupture began to the north-west, in {geo.epicentreDistrict} district.',
+        'Kathmandu, the capital, sits in this valley. The rupture began to the north-west, in {geo.epicentreDistrict}.',
       minHoldMs: 300,
       actions: [
         {
@@ -331,9 +338,19 @@ export const MAIN_SHOCK = defineScene({
       id: 'depth',
       caption: 'FOCAL DEPTH {quake.depthKm|dec1} KM · {quake.time|utcTime}',
       narration:
-        'Its focus was {quake.depthKm|dec1} kilometres deep. The energy was released close to the surface.',
+        'Only {quake.depthKm|dec1} kilometres deep. The energy was released close to the surface.',
       minHoldMs: 700,
       actions: [
+        /* Down towards the rupture while the depth is read. */
+        {
+          at: 200,
+          type: 'camera.fly',
+          to: 'epicentre',
+          rangeKm: 380,
+          pitch: -44,
+          heading: 20,
+          duration: 5000,
+        },
         {
           at: 0,
           type: 'metric.count',
@@ -422,7 +439,8 @@ export const SHAKING = defineScene({
     {
       id: 'spread',
       caption: 'THE SHAKING SPREADS EAST ALONG THE MOUNTAINS',
-      narration: 'Within seconds, the shaking spread east along the mountains.',
+      narration:
+        'Within seconds, strong shaking spread east along the mountains.',
       minHoldMs: 400,
       actions: [
         {
@@ -436,13 +454,23 @@ export const SHAKING = defineScene({
         },
         { at: 300, type: 'layer.show', layer: 'bands', duration: 5200 },
         { at: 300, type: 'audio.cue', cue: 'trace' },
+        /* The camera follows the shaking east while the outer bands finish. */
+        {
+          at: 3000,
+          type: 'camera.fly',
+          to: 'shakeCentre',
+          rangeKm: 1020,
+          pitch: -66,
+          heading: 6,
+          duration: 2700,
+        },
       ],
     },
     {
       id: 'scale',
       caption: 'MODELLED INTENSITY · VI STRONG · VII VERY STRONG · VIII SEVERE',
       narration:
-        'The intensity is modelled on the Mercalli scale. Six is strong, seven very strong, eight severe.',
+        'This is modelled intensity. Six is strong. Seven, very strong. Eight, severe.',
       runs: SIX_FULL,
       minHoldMs: 400,
       actions: [
@@ -477,7 +505,7 @@ export const SHAKING = defineScene({
       caption:
         'KATHMANDU: MMI {exposure.kathmandu.maxMmi|dec1} · {exposure.kathmandu.exposed|mega2} PEOPLE INSIDE MMI VI+',
       narration:
-        'It reached the Kathmandu Valley at intensity {exposure.kathmandu.maxMmi|dec1}. {exposure.kathmandu.exposedPercent|int} percent of the district’s {exposure.kathmandu.exposed|millionWords} modelled residents were inside intensity six or stronger.',
+        'Kathmandu: intensity {exposure.kathmandu.maxMmi|dec1}. {exposure.kathmandu.exposed|millionWords} people there were inside strong shaking.',
       minHoldMs: 800,
       actions: [
         {
@@ -581,7 +609,7 @@ export const FIRST_HOURS = defineScene({
       id: 'first-hour',
       caption: 'THE FIRST HOUR: {seq.hourly.0.count|int} MORE EARTHQUAKES',
       narration:
-        'The ground did not settle. In the first hour alone, {seq.hourly.0.count|int} more earthquakes were recorded.',
+        'The ground did not settle. {seq.hourly.0.count|int} more earthquakes in the first hour.',
       minHoldMs: 400,
       actions: [
         { at: 0, type: 'layer.show', layer: 'events', hour: 0 },
@@ -623,7 +651,7 @@ export const FIRST_HOURS = defineScene({
       caption:
         '{seq.firstDay|int} IN THE FIRST DAY · SPREADING EAST ALONG THE RUPTURE',
       narration:
-        'By the end of the first day there were {seq.firstDay|int}, and they had spread east from the epicentre, toward Kathmandu and beyond.',
+        '{seq.firstDay|int} by the end of the first day, spreading east toward Kathmandu.',
       minHoldMs: 500,
       actions: [
         {
@@ -672,7 +700,7 @@ export const FIRST_HOURS = defineScene({
     {
       id: 'first-week',
       caption: '{seq.firstWeek|int} IN THE FIRST WEEK',
-      narration: 'By the end of the first week, {seq.firstWeek|int}.',
+      narration: '{seq.firstWeek|int} by the end of the first week.',
       runs: [RUNS.FULL],
       minHoldMs: 500,
       actions: [
@@ -728,7 +756,7 @@ export const SECOND_SHOCK = defineScene({
       caption:
         '{seq.secondary.daysFromMainShock|int} DAYS LATER · MAGNITUDE {seq.secondary.magnitude|dec1}',
       narration:
-        '{seq.secondary.daysFromMainShock|int} days later, a second major earthquake: magnitude {seq.secondary.magnitude|dec1}, east of the first.',
+        'Then, a second major earthquake. {seq.secondary.daysFromMainShock|int} days later, magnitude {seq.secondary.magnitude|dec1}, east of the first.',
       minHoldMs: 500,
       actions: [
         {
@@ -797,7 +825,7 @@ export const SECOND_SHOCK = defineScene({
       caption:
         'IT RESET THE DECAY · p {omori.before.pValue|dec2} BEFORE, {omori.after.pValue|dec2} AFTER',
       narration:
-        'It reset the sequence. Before it, the aftershocks faded at the rate the Omori law describes. After it, they faded far more slowly, and the law fits them poorly.',
+        'It reset the sequence. Before it, the aftershocks faded as the Omori law predicts. After it, far more slowly.',
       runs: [RUNS.FULL],
       minHoldMs: 700,
       actions: [

@@ -723,6 +723,11 @@ const grouped = (n, digits = 0) =>
 export const FORMATS = Object.freeze({
   /** ['Gorkha', 'Dhading'] → 'GORKHA · DHADING' */
   list: (v) => v.map((item) => String(item).toUpperCase()).join(' · '),
+  /** ['Gorkha', 'Dhading', 'Rasuwa'] → 'Gorkha, Dhading and Rasuwa' — for the voice. */
+  names: (v) =>
+    v.length > 1
+      ? `${v.slice(0, -1).join(', ')} and ${v[v.length - 1]}`
+      : String(v[0] ?? ''),
   /** 0.75 → "75 %" — a share written as a percentage. */
   shareToPct: (v) => `${grouped(v * 100, 0)} %`,
   /** 2000 (metres) → "2 KM" — a unit, not a new value. */

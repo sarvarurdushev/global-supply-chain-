@@ -9,6 +9,11 @@
  * blocked road, bridge, landslide, hospital, road, route — and a chart
  * element must cross-filter the map.
  *
+ * A hospital and a blocked road then have every action on their cards pressed
+ * in turn (Stage 9.1 §9–10): each enabled one must show its figures and draw
+ * something on the map, each disabled one must say why, and the card must be
+ * joined to its object by a leader line.
+ *
  * Usage (against a production build: npm run build && npm run preview):
  *   node scripts/qa-briefing-inspector.mjs --url http://localhost:4173
  *
@@ -120,10 +125,16 @@ const CASES = [
   ['earthquake', 'earthquake', (ctx) => [[ctx.intelligence.seismic.mainShock.longitude, ctx.intelligence.seismic.mainShock.latitude]]],
   ['district', 'overlap', () => [[85.33, 27.72], [85.0, 27.9], [84.7, 28.2]]],
   ['damage', 'observed-damage', (ctx) => ctx.data.unosat.map((f) => f.geometry.coordinates)],
-  ['blockage', 'infrastructure', (ctx) => ctx.data.nga.blockedRoads.features.map((f) => { const l = f.geometry.coordinates; return l[Math.floor(l.length / 2)]; })],
+  /* A blockage the network model cut, and whose segment alone changes someone's access, first. */
+  ['blockage', 'infrastructure', (ctx, access) => {
+    const effect = new Set(access.results.display.blockages.filter((b) => b.whatIf && b.whatIf.cells.length > 0).map((b) => b.id));
+    const rows = ctx.data.nga.blockedRoads.features.map((f, i) => { const l = f.geometry.coordinates; return { at: l[Math.floor(l.length / 2)], rank: effect.has(`road-${i}`) ? 0 : 1 }; });
+    return rows.sort((a, b) => a.rank - b.rank).map((r) => r.at);
+  }],
   ['bridge', 'infrastructure', (ctx) => { const b = ctx.intelligence.raw.infrastructure.results.bridges; return [b[1], ...b].map((x) => [x.lon, x.lat]); }],
   ['landslide', 'infrastructure', (ctx) => ctx.intelligence.raw.infrastructure.results.landslides.map((l) => [l.lon, l.lat])],
-  ['hospital', 'network', (ctx, access) => access.results.display.hospitals.filter((x) => x.district !== 'Kathmandu' && x.district !== 'Lalitpur' && x.district !== 'Bhaktapur').map((h) => [h.lon, h.lat])],
+  /* A hospital some named damage area is routed to, so every action on its card can be tried. */
+  ['hospital', 'network', (ctx, access) => access.results.display.hospitals.filter((x) => x.district !== 'Kathmandu' && x.district !== 'Lalitpur' && x.district !== 'Bhaktapur').sort((a, b) => (b.damageAreasBefore?.length ?? 0) - (a.damageAreasBefore?.length ?? 0)).map((h) => [h.lon, h.lat])],
   ['road', 'network', (ctx, access) => {
     const points = [...access.results.display.hospitals, ...access.results.display.blockages];
     const far = ([lon, lat]) => points.every((h) => Math.hypot((h.lon - lon) * 98, (h.lat - lat) * 111) > 5);
@@ -141,8 +152,32 @@ for (const [kind, scene, locate] of CASES) {
   }
   const t0 = Date.now();
   const r = await clickTarget(kind, locate);
+  if ((kind === 'hospital' || kind === 'blockage') && r.picked === kind) r.actions = await pressActions(kind);
   report.push({ kind, scene, ...r, ms: Date.now() - t0 });
   console.log(`\n=== ${kind} (${scene}) → picked ${r.picked}${r.error ? ` ERROR ${r.error}` : ''}\n${r.text ?? ''}`);
+  for (const a of r.actions ?? []) console.log(`  [${a.enabled ? 'on ' : 'off'}] ${a.label}${a.why ? ` — ${a.why}` : ''} → ${JSON.stringify(a.drawn)} ${a.result.replace(/\s+/g, ' ').slice(0, 160)}`);
+}
+
+/** Press every action on the open card in turn; what each shows and draws. */
+async function pressActions(kind) {
+  const ids = await page.evaluate(() => [...document.querySelectorAll('.brf-inspector__action')].map((b) => b.dataset.action));
+  const out = [];
+  for (const id of ids) {
+    const row = await page.evaluate(async (id) => {
+      const c = window.__godsEyeView.nepalCase;
+      const button = document.querySelector(`.brf-inspector__action[data-action="${id}"]`);
+      const label = button.querySelector('.brf-inspector__action-label')?.textContent ?? '';
+      const why = button.querySelector('.brf-inspector__why')?.textContent ?? '';
+      if (button.disabled) return { id, label, enabled: false, why, drawn: c.inspector.drawn, result: '' };
+      button.click();
+      await new Promise((r) => setTimeout(r, 1500));
+      const result = document.querySelector('.brf-inspector__result');
+      return { id, label, enabled: true, why, pressed: button.getAttribute('aria-pressed'), drawn: c.inspector.drawn, result: result?.hidden ? '' : (result?.innerText ?? '') };
+    }, id);
+    if (row.enabled) await page.screenshot({ path: `${OUT}/${kind}-${id}.jpg`, type: 'jpeg', quality: 70 });
+    out.push(row);
+  }
+  return out;
 }
 
 /* A chart element: the damage-composition segment in observed-damage. */
@@ -168,4 +203,16 @@ await browser.close();
 const missed = report.filter((r) => (r.kind === 'chart' ? !r.label || r.filter?.damageClass == null : r.picked !== r.kind || r.hidden));
 for (const r of missed) console.log(`FAIL  ${r.kind}: picked ${r.picked ?? 'nothing'}${r.error ? ` (${r.error})` : ''}`);
 console.log(`${report.length - missed.length}/${report.length} kinds answered`);
-process.exit(missed.length ? 1 : 0);
+/* Every enabled action shows something and draws something (the source row only shows); every disabled one says why; the leader is up. */
+const actionFails = [];
+for (const r of report.filter((x) => x.actions)) {
+  for (const a of r.actions) {
+    const draws = a.drawn.points + a.drawn.lines + a.drawn.markers > 0;
+    if (a.enabled && (!a.result || (a.id !== 'source' && !draws) || !a.drawn.leader)) actionFails.push(`${r.kind}/${a.id}: ${JSON.stringify(a.drawn)} "${a.result.slice(0, 60)}"`);
+    if (!a.enabled && !a.why) actionFails.push(`${r.kind}/${a.id}: disabled without a reason`);
+  }
+  if (!r.actions.some((a) => a.enabled && a.id !== 'source')) actionFails.push(`${r.kind}: no action beyond the source could be tried`);
+}
+for (const f of actionFails) console.log(`FAIL  action ${f}`);
+console.log(`${report.filter((x) => x.actions).flatMap((x) => x.actions).length} card actions pressed, ${actionFails.length} failed`);
+process.exit(missed.length || actionFails.length ? 1 : 0);

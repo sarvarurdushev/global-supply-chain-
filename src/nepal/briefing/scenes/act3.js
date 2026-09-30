@@ -66,7 +66,7 @@ export const COMPOSITION = defineScene({
       caption:
         '{damage.destroyed|int} OF {damage.total|int} MAPPED SITES: DESTROYED',
       narration:
-        'Of the {damage.total|int} damaged sites mapped from satellite imagery, {damage.destroyed|int} were classed as destroyed.',
+        'The first damage assessment mapped {damage.total|int} sites. {damage.destroyed|int} were classed as destroyed.',
       minHoldMs: 500,
       actions: [
         {
@@ -190,7 +190,7 @@ export const COMPOSITION = defineScene({
       caption:
         'DESTROYED {damage.shareDestroyed|pct1} · SEVERE {damage.shareSevere|pct1} · MODERATE {damage.shareModerate|pct1} · POSSIBLE {damage.sharePossible|pct1}',
       narration:
-        'Together: {damage.shareDestroyed|dec1} percent destroyed, {damage.shareSevere|dec1} percent severe.',
+        '{damage.shareDestroyed|dec1} percent destroyed. {damage.shareSevere|dec1} percent severe.',
       minHoldMs: 900,
       actions: [
         { at: 0, type: 'chart.update', id: 'composition', op: 'revealAll' },
@@ -242,8 +242,7 @@ export const MODEL_VS_OBSERVATION = defineScene({
     {
       id: 'question',
       caption: 'DID STRONGER SHAKING MEAN MORE SEVERE DAMAGE?',
-      narration:
-        'Did stronger modelled shaking mean more severe observed damage?',
+      narration: 'Did stronger shaking mean worse damage?',
       minHoldMs: 300,
       actions: [
         {
@@ -267,7 +266,7 @@ export const MODEL_VS_OBSERVATION = defineScene({
       id: 'overlay',
       caption: 'THREE MODELLED BANDS · AND THE DAMAGE OBSERVED INSIDE EACH',
       narration:
-        'Here are the three strongest modelled intensity bands, and the damage satellites observed inside them.',
+        'The three strongest modelled bands, and the damage observed inside each.',
       runs: SIX_FULL,
       minHoldMs: 300,
       actions: [
@@ -296,7 +295,7 @@ export const MODEL_VS_OBSERVATION = defineScene({
       caption:
         'DESTROYED SHARE · MMI {damage.byIntensity.0.mmi} {damage.byIntensity.0.destroyedShare|pct1} · {damage.byIntensity.1.mmi} {damage.byIntensity.1.destroyedShare|pct1} · {damage.byIntensity.2.mmi} {damage.byIntensity.2.destroyedShare|pct1}',
       narration:
-        'Look at the destroyed share. At intensity eight it is {damage.byIntensity.2.destroyedShare|dec1} percent. At seven, {damage.byIntensity.0.destroyedShare|dec1}.',
+        'Watch the destroyed share. At intensity eight, {damage.byIntensity.2.destroyedShare|dec1} percent. At seven, {damage.byIntensity.0.destroyedShare|dec1}.',
       runs: SIX_FULL,
       minHoldMs: 400,
       actions: [
@@ -324,7 +323,7 @@ export const MODEL_VS_OBSERVATION = defineScene({
       caption:
         'DETECTABLE · BUT SMALL · CRAMÉR’S V = {damage.independence.cramersV|dec3}',
       narration:
-        'The association is real: with this many observations, chance alone cannot produce it. But it is weak. Cramér’s V is {damage.independence.cramersV|dec2}.',
+        'The link is real. With this many sites, chance cannot explain it. But it is weak: Cramér’s V, {damage.independence.cramersV|dec2}.',
       minHoldMs: 700,
       actions: [
         {
@@ -358,12 +357,20 @@ export const MODEL_VS_OBSERVATION = defineScene({
           key: 'cramersV',
           format: 'dec3',
           label: 'CRAMÉR’S V · A SMALL EFFECT',
-          screen: { x: 0.62, y: 0.42 },
+          screen: { x: 0.62, y: 0.46 },
           size: 'xl',
           duration: 1600,
           tag: STAT,
         },
         { at: 3600, type: 'audio.cue', cue: 'reveal' },
+        /* The chart says it too, over the bars the statistic is about. */
+        {
+          at: 4000,
+          type: 'chart.update',
+          id: 'intensity',
+          op: 'verdict',
+          text: 'STATISTICALLY DETECTABLE · BUT A WEAK ASSOCIATION',
+        },
       ],
     },
     {
@@ -371,7 +378,7 @@ export const MODEL_VS_OBSERVATION = defineScene({
       caption:
         'NOT MONOTONIC · WHERE SATELLITES LOOKED MATTERS AS MUCH AS THE SHAKING',
       narration:
-        'But it is not monotonic. At seven and a half the destroyed share falls, and inside a single analysis area it falls as intensity rises. Where satellites looked shapes this pattern as much as the shaking does.',
+        'And it is not a straight line. At seven and a half, the destroyed share drops. Where the satellites looked shapes this as much as the shaking.',
       /* The three-minute run keeps the finding (real but weak) and leaves the nuance to the longer runs. */
       runs: SIX_FULL,
       minHoldMs: 1200,
@@ -404,6 +411,21 @@ export const MODEL_VS_OBSERVATION = defineScene({
         },
         { at: 11200, type: 'layer.filter', layer: 'bands', highlight: null },
         { at: 0, type: 'chart.update', id: 'intensity', op: 'focus', mmi: 7.5 },
+        /* The line through the destroyed shares, with the drop into 7.5 in red. */
+        {
+          at: 600,
+          type: 'chart.update',
+          id: 'intensity',
+          op: 'trend',
+          mmi: 7.5,
+        },
+        {
+          at: 2400,
+          type: 'chart.update',
+          id: 'intensity',
+          op: 'verdict',
+          text: 'NOT A STRAIGHT LINE · WHERE SATELLITES LOOKED MATTERS',
+        },
         { at: 0, type: 'audio.cue', cue: 'hit' },
         { at: 0, type: 'annotation.remove', id: 'chi' },
         {
@@ -478,7 +500,7 @@ export const CONCENTRATION = defineScene({
       caption:
         'EVERY MAPPED SITE FITS IN {damage.grid1km.occupiedCells|int} SQUARE KILOMETRES',
       narration:
-        'Put the {damage.total|int} mapped sites on a one-kilometre grid. Every one of them falls in just {damage.grid1km.occupiedCells|int} squares.',
+        'On a one-kilometre grid, every mapped site falls in just {damage.grid1km.occupiedCells|int} squares.',
       minHoldMs: 500,
       actions: [
         { at: 0, type: 'layer.show', layer: 'damage', duration: 900 },
@@ -520,8 +542,7 @@ export const CONCENTRATION = defineScene({
       id: 'half',
       caption:
         'HALF OF ALL MAPPED SITES LIE IN {damage.gridHalf.units|int} OF THOSE SQUARES',
-      narration:
-        'And half of all the sites lie in only {damage.gridHalf.units|int} of those squares.',
+      narration: 'Half of them lie in only {damage.gridHalf.units|int}.',
       minHoldMs: 600,
       actions: [
         {
@@ -575,8 +596,8 @@ export const CONCENTRATION = defineScene({
       id: 'caveat',
       caption: 'CONCENTRATED WHERE ANALYSTS LOOKED · NOT A MAP OF ALL DAMAGE',
       narration:
-        'This is where damage was mapped, which is also where analysts looked. It is not a map of all the damage there was.',
-      runs: [RUNS.FULL],
+        'That is where damage was mapped, and where analysts looked. It is not a map of all the damage.',
+      runs: SIX_FULL,
       minHoldMs: 700,
       actions: [
         { at: 0, type: 'annotation.remove', id: 'busiest' },
@@ -637,7 +658,7 @@ export const COVERAGE_GAP = defineScene({
       caption:
         '{coverage.unrecorded.people|mega2} PEOPLE LIVED IN THE MORE POPULATED SQUARES WITH NO DAMAGE RECORD',
       narration:
-        'Inside the districts where damage was mapped, {coverage.unrecorded.people|millionWords} people lived in the more populated half of the squares, and in squares with no damage record at all.',
+        'Now the gap. {coverage.unrecorded.people|millionWords} people lived in the more populated squares of these districts, with no damage record at all.',
       minHoldMs: 500,
       actions: [
         {
@@ -707,7 +728,7 @@ export const COVERAGE_GAP = defineScene({
       caption:
         'NO RECORD IS NOT NO DAMAGE · THE PRODUCT LISTS ONLY WHAT IT FOUND',
       narration:
-        'A missing record is not missing damage. The satellite product lists only damaged buildings, and publishes no map of where it looked.',
+        'No record is not no damage. The product lists only what it found, and publishes no map of where it looked.',
       minHoldMs: 700,
       actions: [
         { at: 0, type: 'annotation.remove', id: 'unrecorded-count' },

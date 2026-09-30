@@ -102,7 +102,9 @@ function describeAction(action, fill) {
     case 'route.trace':
       return [
         'MAP',
-        `${at} trace route ${action.id} from ${placeText(action.line)}${action.dashed ? ' (dashed)' : ''}`,
+        action.line?.between
+          ? `${at} draw ${action.id}, a straight line from ${placeText(action.line.between[0])} to ${placeText(action.line.between[1])}${action.dashed ? ' (dashed)' : ''}`
+          : `${at} trace route ${action.id} from ${placeText(action.line)}${action.dashed ? ' (dashed)' : ''}`,
       ];
     case 'metric.count':
       return [

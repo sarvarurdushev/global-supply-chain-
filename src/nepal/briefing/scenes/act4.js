@@ -56,8 +56,7 @@ export const MAIN_NETWORK = defineScene({
       id: 'main-roads',
       caption:
         'MAIN ROADS AS MAPPED ON {infra.baseline.instant|dateShort} · {infra.baseline.ways|int} SEGMENTS',
-      narration:
-        'Start with the main roads, as the map held them the day before the earthquake.',
+      narration: 'The main roads, as mapped the day before.',
       runs: [RUNS.FULL],
       minHoldMs: 400,
       actions: [
@@ -102,7 +101,7 @@ export const MAIN_NETWORK = defineScene({
       caption:
         '{access.matching.blockages|int} BLOCKAGES OBSERVED · {access.matching.stage5MajorNetworkMatched|int} ON A MAIN ROAD',
       narration:
-        'Of the {access.matching.blockages|int} road blockages observed in the following days, only {access.matching.stage5MajorNetworkMatched|int} sit on a main road. Most were on minor roads and tracks.',
+        'In the days that followed, {access.matching.blockages|int} road blockages were observed. Only {access.matching.stage5MajorNetworkMatched|int} sit on a main road. Most were on minor roads and tracks.',
       minHoldMs: 500,
       actions: [
         { at: 0, type: 'annotation.remove', id: 'main-card' },
@@ -144,7 +143,7 @@ export const MAIN_NETWORK = defineScene({
       caption:
         'THE MAIN NETWORK SPLITS: {infra.baseline.components|int} PIECES BECOME {infra.damaged.components|int}',
       narration:
-        'Take them out, and the main network breaks from {infra.baseline.components|int} separate pieces into {infra.damaged.components|int}.',
+        'Take them out, and the main network splits. {infra.baseline.components|int} pieces become {infra.damaged.components|int}.',
       minHoldMs: 600,
       actions: [
         { at: 0, type: 'annotation.remove', id: 'on-main' },
@@ -221,7 +220,7 @@ export const DISTRICT_ROUTES = defineScene({
       caption:
         'A MAIN-ROAD ROUTE FROM KATHMANDU TO {infra.routes.pairs|int} DISTRICTS, TESTED',
       narration:
-        'Now test a main-road route from Kathmandu to each of {infra.routes.pairs|int} districts, before and after the blockages.',
+        'Test a main-road route from Kathmandu to each of {infra.routes.pairs|int} districts.',
       runs: SIX_FULL,
       minHoldMs: 400,
       actions: [
@@ -272,7 +271,7 @@ export const DISTRICT_ROUTES = defineScene({
       caption:
         '{infra.routes.outcomes.UNCHANGED|int} UNCHANGED · {infra.routes.outcomes.DETOUR|int} DETOUR · {infra.routes.outcomes.NOT_ROUTABLE_BASELINE|int} WITH NO MAIN-ROAD ROUTE EVEN BEFORE',
       narration:
-        '{infra.routes.outcomes.UNCHANGED|int} routes were unchanged. {infra.routes.outcomes.DETOUR|int} needed a detour. And {infra.routes.outcomes.NOT_ROUTABLE_BASELINE|int} districts had no main-road route from Kathmandu even before the earthquake.',
+        '{infra.routes.outcomes.UNCHANGED|int} unchanged. {infra.routes.outcomes.DETOUR|int} detour. {infra.routes.outcomes.NOT_ROUTABLE_BASELINE|int} had no main-road route even before.',
       minHoldMs: 600,
       actions: [
         {

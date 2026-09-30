@@ -112,10 +112,12 @@ export function createBriefingStage({
     if (!ref) return null;
     if (typeof ref === 'object' && ref.fact) {
       const found = factAt(ref);
-      /* An analysis may store a position as [lon, lat]. */
+      /* An analysis may store a position as [lon, lat] or spell the keys out. */
       const at = Array.isArray(found)
         ? { lon: found[0], lat: found[1] }
-        : found;
+        : Number.isFinite(found?.longitude)
+          ? { lon: found.longitude, lat: found.latitude }
+          : found;
       if (!Number.isFinite(at.lon))
         throw new Error(
           `Fact ${ref.fact}.${(ref.path ?? []).join('.')} is not a place.`,
@@ -321,15 +323,16 @@ export function createBriefingStage({
         durationMs: duration,
         instant,
       }),
-    districts: ({ instant, duration = 3000 }) =>
+    /* `strong`: the districts are the subject, not the backdrop. */
+    districts: ({ instant, duration = 3000, strong = false }) =>
       overlay.outline({
         id: 'districts',
         rings: geometry.districts.flatMap((d) => d.rings),
         durationMs: duration,
         instant,
-        colour: 'rgba(160,230,200,0.55)',
-        width: 0.8,
-        glow: 0,
+        colour: strong ? 'rgba(190,248,220,0.9)' : 'rgba(160,230,200,0.55)',
+        width: strong ? 1.3 : 0.8,
+        glow: strong ? 4 : 0,
         z: 18,
       }),
     'district-focus': ({
@@ -512,6 +515,50 @@ export function createBriefingStage({
         maxRadiusM: radiusKm * 1000,
         durationMs: duration,
         instant,
+      }),
+    /* The hospitals a search considers first, appearing one by one: grey when no mapped road reaches them. */
+    'hospital-candidates': ({ instant, duration = 2400, fact, path = [] }) =>
+      overlay.marks({
+        id: 'hospital-candidates',
+        rows: factAt({ fact, path }).map((h) => ({
+          ...h,
+          colour: h.onNetwork
+            ? ACCESS_COLOURS.hospital
+            : ACCESS_COLOURS.offNetwork,
+          size: 9,
+        })),
+        shape: 'cross',
+        sizePx: 9,
+        halo: true,
+        revealMs: 400,
+        staggerMs: duration,
+        instant,
+        z: 47,
+      }),
+    /* What a search can still reach after the cut, spreading out from the origin. */
+    reachable: ({
+      instant,
+      duration = 3600,
+      fact,
+      path = [],
+      from,
+      radiusKm = 40,
+    }) =>
+      overlay.network({
+        id: 'reachable',
+        groups: [
+          {
+            lines: factAt({ fact, path }).map((line) => line.flat()),
+            colour: '#ffb020',
+            width: 2.4,
+            alpha: 0.95,
+          },
+        ],
+        centre: place(from),
+        maxRadiusM: radiusKm * 1000,
+        durationMs: duration,
+        instant,
+        z: 40,
       }),
     hospitals: ({ instant, duration = 1800 }) =>
       overlay.marks({
@@ -819,9 +866,13 @@ export function createBriefingStage({
       }
       case 'trace': {
         /* A route from the analysis arrives as [[lon, lat], …]; the overlay draws flat pairs. */
-        const line = action.line?.fact
-          ? factAt(action.line).flat()
-          : action.line;
+        let line = action.line;
+        if (action.line?.fact) line = factAt(action.line).flat();
+        else if (action.line?.between) {
+          /* A straight line between two places: distance as the crow flies. */
+          const [a, b] = action.line.between.map((ref) => place(ref));
+          line = [a.lon, a.lat, b.lon, b.lat];
+        }
         return overlay.trace({
           id,
           line,
@@ -1025,6 +1076,9 @@ export function createBriefingStage({
     else if (op === 'shares') chart.showShares({ instant });
     else if (op === 'focus') chart.focus(action.mmi ?? action.index ?? null);
     else if (op === 'foot') chart.setFoot(text(action.text));
+    else if (op === 'trend') chart.trend(action.mmi ?? null, { instant });
+    else if (op === 'verdict')
+      chart.verdict(action.text ? text(action.text) : null, { instant });
     else throw new Error(`Unknown chart op "${op}".`);
   }
 

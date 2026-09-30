@@ -65,7 +65,21 @@ export function createBriefing({
   host.append(root);
 
   const clock = createClock();
-  const narrator = createNarrator();
+  /*
+   * `?narration=simulated` is for QA recordings only: speech is replaced by
+   * the briefing clock, so a browser with no voices still runs at voiced pace.
+   */
+  const simulated = (() => {
+    try {
+      return (
+        new URLSearchParams(win?.location?.search ?? '').get('narration') ===
+        'simulated'
+      );
+    } catch {
+      return false;
+    }
+  })();
+  const narrator = createNarrator({ clock, simulate: simulated });
   const sound = createSoundBed();
   let overlay = null;
   let captions = null;
@@ -162,6 +176,75 @@ export function createBriefing({
     narrator.setVolume(Number(volume.value) / 100);
   });
   const replay = button('↺', 'Replay this beat (R)', () => director?.replay());
+
+  /*
+   * The voice picker: every English voice the browser offers, best first,
+   * with a preview sentence. Used on the BEGIN screen and in the settings
+   * pop-over, so a presenter can choose before starting or mid-run.
+   */
+  function voicePicker() {
+    const wrap = el('div', 'brf-voice');
+    const select = el('select', 'brf-voice__select', null, {
+      'aria-label': 'Narration voice',
+    });
+    const preview = button(
+      '▶ PREVIEW',
+      'Hear this voice',
+      () => narrator.preview(select.value),
+      'brf-voice__preview',
+    );
+    const note = el('div', 'brf-voice__note');
+    const TIERS = {
+      NATURAL: ' · natural',
+      BASIC: ' · basic',
+      NOVELTY: ' · novelty',
+    };
+    function fill() {
+      const list = narrator.voices;
+      select.replaceChildren(
+        ...list.map((voice) => {
+          const option = el(
+            'option',
+            null,
+            `${voice.label}${TIERS[voice.tier] ?? ''}`,
+          );
+          option.value = voice.id;
+          return option;
+        }),
+      );
+      select.value = narrator.voiceId ?? '';
+      const none = list.length === 0;
+      select.hidden = none;
+      preview.hidden = none || narrator.simulated;
+      note.textContent = none
+        ? 'NO SPEECH VOICE IN THIS BROWSER · CAPTIONS CARRY THE BRIEFING'
+        : narrator.simulated
+          ? 'QA · SIMULATED NARRATION'
+          : '';
+    }
+    select.addEventListener('change', () => {
+      narrator.setVoice(select.value);
+      narrator.preview(select.value);
+    });
+    narrator.onChange(fill);
+    fill();
+    wrap.append(el('div', 'brf-voice__label', 'VOICE'), select, preview, note);
+    return wrap;
+  }
+  const settings = el('div', 'brf-settings', null, {
+    role: 'dialog',
+    'aria-label': 'Narration settings',
+  });
+  settings.hidden = true;
+  settings.append(voicePicker());
+  const settingsButton = button(
+    '⚙',
+    'Voice settings',
+    () => {
+      settings.hidden = !settings.hidden;
+    },
+    'brf-btn--icon',
+  );
   const explore = button(
     'EXPLORE',
     'Leave the briefing for explore mode (E)',
@@ -178,6 +261,7 @@ export function createBriefing({
     speed,
     el('span', 'brf-sep'),
     voice,
+    settingsButton,
     cc,
     volume,
     replay,
@@ -214,6 +298,7 @@ export function createBriefing({
   beginCard.append(
     go,
     runRow,
+    voicePicker(),
     el(
       'div',
       'brf-begin__note',
@@ -222,7 +307,7 @@ export function createBriefing({
   );
   begin.append(beginCard);
 
-  root.append(veilNode, heading, provenance, controls, bar, begin);
+  root.append(veilNode, heading, provenance, settings, controls, bar, begin);
 
   /* ---------------------------------------------------------- state view */
   function render() {

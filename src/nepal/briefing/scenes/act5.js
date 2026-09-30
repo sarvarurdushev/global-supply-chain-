@@ -83,7 +83,7 @@ export const BASELINE_ACCESS = defineScene({
       caption:
         'ROADS MAPPED BY {access.network.instant|dateShort} · {access.network.lengthKm|int} KM',
       narration:
-        'This is every road OpenStreetMap held on the day before the earthquake: {access.network.lengthKm|int} kilometres.',
+        'Every road on the map the day before: {access.network.lengthKm|int} kilometres.',
       minHoldMs: 400,
       actions: [
         {
@@ -125,7 +125,7 @@ export const BASELINE_ACCESS = defineScene({
       caption:
         '{access.lists.codHospitals|int} HOSPITALS · GOVERNMENT LIST COMPILED {access.lists.codCompiled|dateShort}',
       narration:
-        'The hospitals come from the government list compiled in {access.lists.codCompiled|dateLong}: the latest official list openly available.',
+        'The hospitals, from the government list of {access.lists.codCompiled|dateLong}.',
       minHoldMs: 400,
       actions: [
         { at: 0, type: 'layer.show', layer: 'hospitals', duration: 2400 },
@@ -178,7 +178,7 @@ export const BASELINE_ACCESS = defineScene({
       caption:
         '{access.hospital.peopleNoMappedRoadNearby|mega2} PEOPLE MORE THAN {access.params.originSnapMetres|kmFromMetres} FROM ANY MAPPED ROAD',
       narration:
-        'Before any damage, {access.hospital.peopleNoMappedRoadNearbyShare|int} percent of the people here lived more than {access.params.originSnapMetres|kmWordsFromMetres} from any mapped road.',
+        'Before any damage, {access.hospital.peopleNoMappedRoadNearbyShare|int} percent of people here lived more than {access.params.originSnapMetres|kmWordsFromMetres} from a mapped road.',
       minHoldMs: 500,
       actions: [
         { at: 0, type: 'layer.show', layer: 'no-road', duration: 2800 },
@@ -240,8 +240,8 @@ export const BASELINE_ACCESS = defineScene({
       caption:
         'MEDIAN TO THE NEAREST HOSPITAL: {access.hospital.medianBaselineKm|dec1} KM OF ROAD · NOT TRAVEL TIME',
       narration:
-        'For people near a road, the median distance to the nearest hospital was {access.hospital.medianBaselineKm|dec1} kilometres. Distance along the road, not travel time.',
-      runs: [RUNS.FULL],
+        'For people near a road, the median distance to a hospital: {access.hospital.medianBaselineKm|dec1} kilometres. Road distance, not travel time.',
+      runs: SIX_FULL,
       minHoldMs: 600,
       actions: [
         { at: 0, type: 'annotation.remove', id: 'gorkha-road' },
@@ -311,7 +311,7 @@ export const SCENARIO_ACCESS = defineScene({
       caption:
         '{access.matching.blockages|int} BLOCKAGES OBSERVED · {access.matching.matched|int} SIT ON A MAPPED ROAD',
       narration:
-        'Then the damage. Of {access.matching.blockages|int} road blockages observed from the air, {access.matching.matched|int} sit on a road the map contained.',
+        'Now apply the damage. Of {access.matching.blockages|int} observed blockages, {access.matching.matched|int} sit on a mapped road.',
       runs: SIX_FULL,
       minHoldMs: 400,
       actions: [
@@ -357,7 +357,7 @@ export const SCENARIO_ACCESS = defineScene({
       caption:
         '{access.hospital.byCategory.DISCONNECTED|int} PEOPLE LOST EVERY MAPPED ROAD ROUTE TO A HOSPITAL',
       narration:
-        'Take those roads out and search again. {access.hospital.byCategory.DISCONNECTED|thousandWords} people lose every mapped road route to a hospital.',
+        'Search again. {access.hospital.byCategory.DISCONNECTED|thousandWords} people lose every mapped road to a hospital.',
       minHoldMs: 500,
       actions: [
         { at: 0, type: 'annotation.remove', id: 'match-card' },
@@ -440,7 +440,7 @@ export const SCENARIO_ACCESS = defineScene({
       caption:
         '{access.detours.people|int} MORE FACE A LONGER ROUTE · MEDIAN +{access.detours.medianExtraKm|dec1} KM',
       narration:
-        'Another {access.detours.people|thousandWords} face a longer route: typically about {access.detours.medianExtraKm|dec1} kilometres more.',
+        'Another {access.detours.people|thousandWords} face a longer route: about {access.detours.medianExtraKm|dec1} kilometres more.',
       runs: SIX_FULL,
       minHoldMs: 400,
       actions: [
@@ -483,7 +483,7 @@ export const SCENARIO_ACCESS = defineScene({
       caption:
         'FOR {access.hospital.byCategoryShareOfRoadConnected.SIMILAR|pct1} OF PEOPLE NEAR A ROAD, NOTHING CHANGED',
       narration:
-        'But for {access.hospital.byCategoryShareOfRoadConnected.SIMILAR|int} percent of people near a road, the nearest hospital was as far away as before.',
+        'For {access.hospital.byCategoryShareOfRoadConnected.SIMILAR|int} percent of people near a road, nothing changed.',
       minHoldMs: 400,
       actions: [
         { at: 0, type: 'annotation.remove', id: 'longer-count' },
@@ -512,7 +512,7 @@ export const SCENARIO_ACCESS = defineScene({
       caption:
         'MANBU: {access.manbu.sites|int} DAMAGE SITES · NO MAPPED ROAD TO A HOSPITAL, EVEN BEFORE',
       narration:
-        'The larger gap was the map itself. Around Manbu, with {access.manbu.sites|int} damaged sites, no mapped road reached a hospital even before the earthquake. From the {access.areaSummary.areas|int} named damage areas, {access.areaSummary.changed|int} routes changed.',
+        'The bigger gap was the map. Around Manbu, {access.manbu.sites|int} damaged sites, and no mapped road to a hospital, even before. From the {access.areaSummary.areas|int} named damage areas, {access.areaSummary.changed|int} routes changed.',
       minHoldMs: 900,
       actions: [
         { at: 0, type: 'annotation.remove', id: 'same-share' },
@@ -592,12 +592,19 @@ export const RESCUE_ROUTE = defineScene({
   question: 'What did the damage do to one place’s road to a hospital?',
   explore: 14,
   runs: SIX_FULL,
-  keep: ['outline', 'mask', 'roads', 'hospitals', 'blockages'],
+  keep: ['outline', 'mask', 'roads', 'blockages'],
+  /*
+   * The search, performed rather than reported: one place, the hospitals a
+   * search would consider, the one the roads actually reach, the route, the
+   * observed cut, the search again over what still connects, the result —
+   * then a place where the search finds a way round. Every position, line
+   * and figure is the pipeline's (access.cut / access.detour).
+   */
   setup: [
     ...base,
     { type: 'layer.show', layer: 'roads', centre: 'kathmandu' },
     { type: 'layer.filter', layer: 'roads', dim: 0.7 },
-    { type: 'layer.show', layer: 'hospitals' },
+    { type: 'layer.hide', layer: 'hospitals' },
     { type: 'layer.show', layer: 'blockages' },
     { type: 'layer.filter', layer: 'blockages', alpha: 0.5 },
     {
@@ -610,12 +617,12 @@ export const RESCUE_ROUTE = defineScene({
   ],
   beats: [
     {
-      id: 'place',
+      id: 'need',
       caption:
-        'ONE SQUARE KILOMETRE IN {access.cut.origin.district|upper} · {access.cut.origin.people|int} PEOPLE',
+        'ONE SQUARE KILOMETRE IN {access.cut.origin.district|upper} · {access.cut.origin.people|int} PEOPLE · MMI {access.cut.origin.mmi|dec1}',
       narration:
-        'Take one place that lost its route: a square kilometre in {access.cut.origin.district}, home to {access.cut.origin.people|int} people.',
-      minHoldMs: 400,
+        'Take one place. A square kilometre in {access.cut.origin.district}: {access.cut.origin.people|int} people, in strong shaking.',
+      minHoldMs: 300,
       actions: [
         {
           at: 0,
@@ -624,11 +631,11 @@ export const RESCUE_ROUTE = defineScene({
           rangeKm: 70,
           pitch: -56,
           heading: 10,
-          duration: 4200,
+          duration: 4000,
         },
         { at: 0, type: 'audio.cue', cue: 'lock' },
         {
-          at: 1600,
+          at: 1400,
           type: 'annotation.draw',
           kind: 'bracket',
           id: 'origin-bracket',
@@ -636,7 +643,7 @@ export const RESCUE_ROUTE = defineScene({
           size: 40,
         },
         {
-          at: 1700,
+          at: 1500,
           type: 'annotation.draw',
           kind: 'pulse',
           id: 'origin-pulse',
@@ -645,7 +652,7 @@ export const RESCUE_ROUTE = defineScene({
           maxPx: 34,
         },
         {
-          at: 2300,
+          at: 2100,
           type: 'annotation.draw',
           kind: 'label',
           id: 'origin-label',
@@ -658,34 +665,120 @@ export const RESCUE_ROUTE = defineScene({
       ],
     },
     {
-      id: 'before',
+      id: 'facilities',
       caption:
-        'BEFORE: {access.cut.baseline.km|dec1} KM BY ROAD TO A HOSPITAL IN {access.cut.baseline.hospital.district|upper}',
+        'THE NEAREST HOSPITALS AS THE CROW FLIES · NO MAPPED ROAD REACHES THEM',
       narration:
-        'Before the earthquake, its nearest hospital by road was {access.cut.baseline.km|dec1} kilometres away, in {access.cut.baseline.hospital.district}.',
-      minHoldMs: 400,
+        'The nearest hospitals as the crow flies are in {access.cut.investigation.nearbyHospitals.0.district} and {access.cut.investigation.nearbyHospitals.1.district}. No mapped road reaches either.',
+      minHoldMs: 300,
       actions: [
+        { at: 0, type: 'annotation.remove', id: 'origin-label' },
         {
           at: 0,
           type: 'camera.fly',
           to: { fact: 'access.cut', path: ['frame'] },
-          spanFactor: 1.5,
-          pitch: -60,
+          spanFactor: 2.3,
+          pitch: -62,
           heading: 0,
-          duration: 4800,
+          duration: 3400,
         },
         {
-          at: 300,
+          at: 500,
+          type: 'layer.show',
+          layer: 'hospital-candidates',
+          fact: 'access.cut',
+          path: ['investigation', 'nearbyHospitals'],
+          duration: 2200,
+        },
+        { at: 500, type: 'audio.cue', cue: 'reveal' },
+        {
+          at: 2000,
           type: 'route.trace',
-          id: 'cut-before',
-          line: { fact: 'access.cut', path: ['baseline', 'line'] },
-          colour: '#3cf2a0',
-          width: 3.5,
-          duration: 4600,
+          id: 'crow-0',
+          line: {
+            between: [
+              { fact: 'access.cut', path: ['origin'] },
+              {
+                fact: 'access.cut',
+                path: ['investigation', 'nearbyHospitals', 0],
+              },
+            ],
+          },
+          colour: '#9aa5a1',
+          width: 1.6,
+          dashed: true,
+          duration: 1000,
         },
-        { at: 300, type: 'audio.cue', cue: 'trace' },
         {
-          at: 4600,
+          at: 2400,
+          type: 'route.trace',
+          id: 'crow-1',
+          line: {
+            between: [
+              { fact: 'access.cut', path: ['origin'] },
+              {
+                fact: 'access.cut',
+                path: ['investigation', 'nearbyHospitals', 1],
+              },
+            ],
+          },
+          colour: '#9aa5a1',
+          width: 1.6,
+          dashed: true,
+          duration: 1000,
+        },
+        {
+          at: 3200,
+          type: 'annotation.draw',
+          kind: 'label',
+          id: 'near-0',
+          anchor: {
+            fact: 'access.cut',
+            path: ['investigation', 'nearbyHospitals', 0],
+          },
+          text: '{access.cut.investigation.nearbyHospitals.0.straightKm|dec1} KM · NO MAPPED ROAD',
+          size: 'city',
+          dx: 16,
+          dy: 18,
+        },
+        {
+          at: 3600,
+          type: 'annotation.draw',
+          kind: 'label',
+          id: 'near-1',
+          anchor: {
+            fact: 'access.cut',
+            path: ['investigation', 'nearbyHospitals', 1],
+          },
+          text: '{access.cut.investigation.nearbyHospitals.1.straightKm|dec1} KM · NO MAPPED ROAD',
+          size: 'city',
+          dx: 16,
+          dy: -18,
+        },
+      ],
+    },
+    {
+      id: 'nearest',
+      caption:
+        'THE NEAREST HOSPITAL THE ROADS REACH: {access.cut.baseline.hospital.district|upper}',
+      narration:
+        'The nearest one the roads reach is in {access.cut.baseline.hospital.district}.',
+      minHoldMs: 300,
+      actions: [
+        { at: 0, type: 'annotation.remove', id: 'crow-0' },
+        { at: 0, type: 'annotation.remove', id: 'crow-1' },
+        {
+          at: 200,
+          type: 'annotation.draw',
+          kind: 'pulse',
+          id: 'nearest-pulse',
+          anchor: { fact: 'access.cut', path: ['baseline', 'hospital'] },
+          colour: '#3cf2a0',
+          maxPx: 60,
+          count: 2,
+        },
+        {
+          at: 700,
           type: 'annotation.draw',
           kind: 'callout',
           id: 'cut-hospital',
@@ -693,21 +786,52 @@ export const RESCUE_ROUTE = defineScene({
           title: '{access.cut.baseline.hospital.type|upper}',
           lines: [
             '{access.cut.baseline.hospital.district|upper}',
-            '{access.cut.baseline.km|dec1} KM OF MAPPED ROAD',
+            'NEAREST BY MAPPED ROAD',
           ],
           tag: COD,
-          dx: 150,
+          dx: -210,
           dy: -90,
+        },
+      ],
+    },
+    {
+      id: 'before',
+      caption:
+        'BEFORE THE EARTHQUAKE: {access.cut.baseline.km|dec1} KM BY ROAD',
+      narration:
+        'Before the earthquake: {access.cut.baseline.km|dec1} kilometres by road.',
+      minHoldMs: 300,
+      actions: [
+        {
+          at: 100,
+          type: 'route.trace',
+          id: 'cut-before',
+          line: { fact: 'access.cut', path: ['baseline', 'line'] },
+          colour: '#3cf2a0',
+          width: 3.5,
+          duration: 3600,
+        },
+        { at: 100, type: 'audio.cue', cue: 'trace' },
+        {
+          at: 3000,
+          type: 'annotation.draw',
+          kind: 'label',
+          id: 'before-km',
+          anchor: { fact: 'access.cut', path: ['baseline', 'hospital'] },
+          text: '{access.cut.baseline.km|dec1} KM',
+          size: 'city',
+          dx: -30,
+          dy: 26,
         },
       ],
     },
     {
       id: 'cut',
       caption:
-        '{access.cut.blockagesOnBaselineRoute.0.sensedOn|dateShort}: THIS ROUTE OBSERVED CUT',
+        '{access.cut.blockagesOnBaselineRoute.0.sensedOn|dateShort}: THE ROUTE IS OBSERVED CUT',
       narration:
         'On {access.cut.blockagesOnBaselineRoute.0.sensedOn|dateLong}, the route was observed cut.',
-      minHoldMs: 500,
+      minHoldMs: 400,
       actions: [
         {
           at: 0,
@@ -716,11 +840,10 @@ export const RESCUE_ROUTE = defineScene({
           rangeKm: 45,
           pitch: -55,
           heading: 14,
-          duration: 3200,
+          duration: 3000,
         },
-        { at: 0, type: 'annotation.remove', id: 'origin-label' },
         {
-          at: 1200,
+          at: 1000,
           type: 'annotation.draw',
           kind: 'pulse',
           id: 'cut-pulse',
@@ -729,109 +852,145 @@ export const RESCUE_ROUTE = defineScene({
           maxPx: 70,
           count: 3,
         },
-        { at: 1200, type: 'audio.cue', cue: 'hit' },
+        { at: 1000, type: 'audio.cue', cue: 'hit' },
         {
-          at: 1600,
+          at: 1500,
+          type: 'route.trace',
+          id: 'cut-break',
+          line: {
+            fact: 'access.cut',
+            path: ['investigation', 'split', 'afterCut'],
+          },
+          colour: '#ff3d6e',
+          width: 4,
+          dashed: true,
+          duration: 2200,
+        },
+        {
+          at: 1700,
           type: 'annotation.draw',
           kind: 'callout',
           id: 'cut-callout',
           anchor: { fact: 'access.cut', path: ['blockagesOnBaselineRoute', 0] },
-          title: '{access.cut.blockagesOnBaselineRoute.0.kind|upper}',
+          title: 'OBSERVED BLOCKED',
           lines: [
-            'OBSERVED {access.cut.blockagesOnBaselineRoute.0.sensedOn|dateShort}',
-            'NGA DAMAGE ASSESSMENT',
+            '{access.cut.blockagesOnBaselineRoute.0.sensedOn|dateShort} · NGA',
+            'ON THE ONLY MAPPED ROUTE',
           ],
           tag: { source: 'NGA', cls: 'OBSERVED' },
-          dx: -230,
-          dy: -80,
-        },
-        { at: 2400, type: 'annotation.remove', id: 'cut-before' },
-        {
-          at: 2400,
-          type: 'route.trace',
-          id: 'cut-dead',
-          line: { fact: 'access.cut', path: ['baseline', 'line'] },
-          colour: '#ff3d6e',
-          width: 2.5,
-          dashed: true,
-          duration: 700,
+          dx: 150,
+          dy: -90,
+          tone: 'alert',
         },
       ],
     },
     {
-      id: 'no-route',
-      caption: 'AFTER: NO ROAD ROUTE TO ANY HOSPITAL IN THE MAPPED NETWORK',
+      id: 'search',
+      caption:
+        'SEARCH WHAT STILL CONNECTS: {access.cut.investigation.reachableAfter.lengthKm|dec1} KM OF ROAD · NO HOSPITAL',
       narration:
-        'With it gone, the mapped network offers no road route to any hospital. Tracks nobody had mapped may have existed; air access is not modelled.',
-      minHoldMs: 600,
+        'Search again, over what still connects. {access.cut.investigation.reachableAfter.lengthKm|dec1} kilometres of road, and no hospital on any of it.',
+      minHoldMs: 400,
       actions: [
+        { at: 0, type: 'annotation.remove', id: 'cut-callout' },
         {
           at: 0,
           type: 'camera.fly',
           to: { fact: 'access.cut', path: ['frame'] },
           spanFactor: 1.7,
-          pitch: -62,
+          pitch: -60,
           heading: 0,
-          duration: 3600,
-        },
-        { at: 0, type: 'annotation.remove', id: 'cut-callout' },
-        {
-          at: 400,
-          type: 'annotation.draw',
-          kind: 'typed',
-          id: 'no-route-card',
-          duration: 1400,
-          screen: { x: 0.6, y: 0.16 },
-          className: 'brf-typed brf-typed--alert',
-          lines: [
-            'NO ROUTE IN THE MAPPED NETWORK',
-            'SCENARIO · EVERY OBSERVED BLOCKAGE APPLIED',
-            'UNMAPPED TRACKS AND AIR ACCESS: NOT MODELLED',
-          ],
-        },
-        { at: 400, type: 'audio.cue', cue: 'reveal' },
-        /* The map is all the analysis has: it dims, and the place pulses on its own. */
-        {
-          at: 3000,
-          type: 'layer.filter',
-          layer: 'roads',
-          dim: 0.35,
-          duration: 1400,
+          duration: 3200,
         },
         {
-          at: 4200,
+          at: 500,
           type: 'annotation.draw',
           kind: 'pulse',
-          id: 'origin-pulse',
+          id: 'search-pulse',
           anchor: { fact: 'access.cut', path: ['origin'] },
-          colour: '#ff3d6e',
-          maxPx: 44,
-          count: 2,
+          colour: '#ffb020',
+          maxPx: 90,
+          count: 3,
         },
         {
-          at: 5600,
+          at: 700,
           type: 'layer.show',
-          layer: 'access-cells',
-          id: 'cells-cut',
-          categories: [3],
-          duration: 1400,
+          layer: 'reachable',
+          fact: 'access.cut',
+          path: ['investigation', 'reachableAfter', 'lines'],
+          from: { fact: 'access.cut', path: ['origin'] },
+          radiusKm: 30,
+          duration: 3600,
         },
+        { at: 700, type: 'audio.cue', cue: 'trace' },
+        {
+          at: 4300,
+          type: 'annotation.draw',
+          kind: 'label',
+          id: 'search-label',
+          anchor: { fact: 'access.cut', path: ['origin'] },
+          text: '{access.cut.investigation.reachableAfter.lengthKm|dec1} KM STILL CONNECTED · NO HOSPITAL',
+          size: 'city',
+          dx: 30,
+          dy: 30,
+        },
+      ],
+    },
+    {
+      id: 'result',
+      caption: 'RESULT: DISCONNECTED FROM EVERY MAPPED HOSPITAL',
+      narration:
+        'Result: disconnected. Unmapped tracks may exist, and air access is not modelled.',
+      minHoldMs: 700,
+      actions: [
+        {
+          at: 0,
+          type: 'layer.filter',
+          layer: 'reachable',
+          dim: 0.6,
+          duration: 1000,
+        },
+        {
+          at: 300,
+          type: 'annotation.draw',
+          kind: 'typed',
+          id: 'result-card',
+          duration: 1600,
+          screen: { x: 0.58, y: 0.14 },
+          className: 'brf-typed brf-typed--conclusion',
+          lines: [
+            'DISCONNECTED',
+            'NO MAPPED ROAD ROUTE TO ANY HOSPITAL',
+            'UNMAPPED TRACKS MAY EXIST · AIR ACCESS NOT MODELLED',
+          ],
+          tag: SCENARIO,
+        },
+        { at: 300, type: 'audio.cue', cue: 'hit' },
       ],
     },
     {
       id: 'detour',
       caption:
-        'A TYPICAL DETOUR IN {access.detour.origin.district|upper}: {access.detour.baseline.km|dec1} KM BECOMES {access.detour.scenario.km|dec1} KM',
+        'ELSEWHERE, A WAY ROUND: {access.detour.baseline.km|dec1} KM BECOMES {access.detour.scenario.km|dec1} KM',
       narration:
-        'Elsewhere the road bends around the damage. In {access.detour.origin.district}, a typical detour: {access.detour.baseline.km|dec1} kilometres became {access.detour.scenario.km|dec1}.',
-      minHoldMs: 600,
+        'Elsewhere, the search finds a way round. In {access.detour.origin.district}, {access.detour.baseline.km|dec1} kilometres becomes {access.detour.scenario.km|dec1}.',
+      minHoldMs: 700,
       actions: [
-        { at: 0, type: 'annotation.remove', id: 'no-route-card' },
+        { at: 0, type: 'annotation.remove', id: 'result-card' },
+        { at: 0, type: 'annotation.remove', id: 'search-label' },
+        { at: 0, type: 'annotation.remove', id: 'search-pulse' },
+        { at: 0, type: 'annotation.remove', id: 'near-0' },
+        { at: 0, type: 'annotation.remove', id: 'near-1' },
+        { at: 0, type: 'annotation.remove', id: 'cut-hospital' },
+        { at: 0, type: 'annotation.remove', id: 'before-km' },
         { at: 0, type: 'annotation.remove', id: 'origin-bracket' },
         { at: 0, type: 'annotation.remove', id: 'origin-pulse' },
-        { at: 0, type: 'annotation.remove', id: 'cut-hospital' },
-        { at: 0, type: 'annotation.remove', id: 'cut-dead' },
+        { at: 0, type: 'annotation.remove', id: 'nearest-pulse' },
         { at: 0, type: 'annotation.remove', id: 'cut-pulse' },
+        { at: 0, type: 'layer.hide', layer: 'hospital-candidates' },
+        { at: 0, type: 'layer.hide', layer: 'reachable' },
+        { at: 600, type: 'annotation.remove', id: 'cut-before' },
+        { at: 600, type: 'annotation.remove', id: 'cut-break' },
         {
           at: 0,
           type: 'camera.fly',
@@ -839,27 +998,19 @@ export const RESCUE_ROUTE = defineScene({
           spanFactor: 1.9,
           pitch: -60,
           heading: 0,
-          duration: 4400,
+          duration: 3400,
         },
         {
-          at: 3400,
-          type: 'annotation.draw',
-          kind: 'bracket',
-          id: 'detour-bracket',
-          anchor: { fact: 'access.detour', path: ['origin'] },
-          size: 36,
-        },
-        {
-          at: 3600,
+          at: 1600,
           type: 'route.trace',
           id: 'detour-before',
           line: { fact: 'access.detour', path: ['baseline', 'line'] },
           colour: '#3cf2a0',
           width: 3.5,
-          duration: 2200,
+          duration: 1800,
         },
         {
-          at: 5400,
+          at: 3400,
           type: 'annotation.draw',
           kind: 'pulse',
           id: 'detour-cut',
@@ -868,33 +1019,42 @@ export const RESCUE_ROUTE = defineScene({
             path: ['blockagesOnBaselineRoute', 0],
           },
           colour: '#ff3d6e',
-          maxPx: 50,
+          maxPx: 56,
           count: 2,
         },
         {
-          at: 6000,
+          at: 3600,
+          type: 'route.trace',
+          id: 'detour-break',
+          line: {
+            fact: 'access.detour',
+            path: ['investigation', 'split', 'afterCut'],
+          },
+          colour: '#ff3d6e',
+          width: 4,
+          dashed: true,
+          duration: 1200,
+        },
+        {
+          at: 4600,
           type: 'route.trace',
           id: 'detour-after',
           line: { fact: 'access.detour', path: ['scenario', 'line'] },
           colour: '#ffb020',
           width: 3.5,
-          duration: 3000,
+          duration: 2400,
         },
-        { at: 6000, type: 'audio.cue', cue: 'trace' },
+        { at: 4600, type: 'audio.cue', cue: 'trace' },
         {
-          at: 8200,
+          at: 6800,
           type: 'annotation.draw',
-          kind: 'callout',
-          id: 'detour-callout',
+          kind: 'label',
+          id: 'detour-label',
           anchor: { fact: 'access.detour', path: ['origin'] },
-          title: '+{access.detour.extraKm|dec1} KM',
-          lines: [
-            'SAME HOSPITAL, LONGER ROAD',
-            'MEDIAN DETOUR +{access.detours.medianExtraKm|dec1} KM',
-          ],
-          tag: SCENARIO,
-          dx: -240,
-          dy: -70,
+          text: '+{access.detour.extraKm|dec1} KM · A DETOUR',
+          size: 'city',
+          dx: 30,
+          dy: -26,
         },
       ],
     },
@@ -903,7 +1063,9 @@ export const RESCUE_ROUTE = defineScene({
       caption:
         'DISTANCE ALONG MAPPED ROADS · NOT TRAVEL TIME · NOT HOSPITAL CAPACITY',
       narration:
-        'These are distances along mapped roads, with every observed blockage applied at once. They are not travel times, and they say nothing about what a hospital could do.',
+        'Across the whole area, the same search, place by place. Distances along mapped roads, not travel times, and nothing about what a hospital could do.',
+      /* The shorter runs gave the national totals in scene 30. */
+      runs: [RUNS.FULL],
       minHoldMs: 900,
       actions: [
         {
@@ -915,10 +1077,10 @@ export const RESCUE_ROUTE = defineScene({
           heading: 0,
           duration: 4200,
         },
-        { at: 0, type: 'annotation.remove', id: 'detour-callout' },
-        { at: 0, type: 'annotation.remove', id: 'detour-bracket' },
+        { at: 0, type: 'annotation.remove', id: 'detour-label' },
         { at: 0, type: 'annotation.remove', id: 'detour-cut' },
         { at: 1800, type: 'annotation.remove', id: 'detour-before' },
+        { at: 1800, type: 'annotation.remove', id: 'detour-break' },
         { at: 1800, type: 'annotation.remove', id: 'detour-after' },
         {
           at: 600,
