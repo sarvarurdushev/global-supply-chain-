@@ -373,8 +373,20 @@ for (let i = 0; i < PRESSES; i += 1) {
   /* Every few presses: let the beat settle, then look for anything drawn that this scene did not draw. */
   if (i % 4 === 3) {
     await sleep(2500);
-    const orphans = await page.evaluate(() => {
+    const orphans = await page.evaluate(async () => {
       const b = window.__godsEyeView.nepalCase.briefing;
+      /*
+       * Settle on the briefing clock, not the wall: under software rendering
+       * 2.5 s of wall time can be less than the old scene's 0.35 s fade.
+       */
+      const c0 = b.clock.now();
+      const t0 = performance.now();
+      while (
+        b.clock.now() - c0 < 1500 &&
+        b.director.state.status === 'playing' &&
+        performance.now() - t0 < 60000
+      )
+        await new Promise((r) => setTimeout(r, 250));
       const e = b.director.state.entry;
       const ids = new Set(e.scene.keep ?? []);
       const add = (a) => {
@@ -403,9 +415,19 @@ for (let i = 0; i < PRESSES; i += 1) {
         .forEach((beat) => beat.actions.forEach(add));
       /* A layer that draws a companion with it. */
       if (ids.has('no-road')) ids.add('envelope');
+      const foreign = [...b.overlay.items.entries()].filter(
+        ([id]) => !ids.has(id),
+      );
       return {
         key: e.key,
-        orphans: [...b.overlay.items.keys()].filter((id) => !ids.has(id)),
+        /* Still on the map and staying: that is a leftover. */
+        orphans: foreign
+          .filter(([, item]) => item.removingAt === undefined)
+          .map(([id]) => id),
+        /* Already fading out: on its way, reported for the record. */
+        leaving: foreign
+          .filter(([, item]) => item.removingAt !== undefined)
+          .map(([id]) => id),
       };
     });
     orphanReports.push(orphans);
