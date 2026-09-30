@@ -13,9 +13,9 @@ caption’s reading time sets the pace instead (3.2 words a second).
 
 | Run | Scenes | Beats | Voiced | Silent | Longest beat | Longest still stretch |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| 3 MIN EXECUTIVE | 11 | 26 | 02:44.6 | 02:30.7 | 13.1 s | 5.7 s |
-| 6 MIN BRIEFING | 18 | 58 | 06:01.7 | 05:32.8 | 14.1 s | 5.7 s |
-| FULL ANALYSIS | 40 | 108 | 12:07.0 | 11:11.5 | 14.1 s | 5.7 s |
+| 3 MIN EXECUTIVE | 11 | 26 | 02:44.6 | 02:37.4 | 13.1 s | 3.8 s |
+| 6 MIN BRIEFING | 18 | 58 | 06:01.7 | 05:39.6 | 14.1 s | 3.8 s |
+| FULL ANALYSIS | 40 | 108 | 12:07.0 | 11:18.2 | 14.1 s | 3.8 s |
 
 ## 3 MIN EXECUTIVE — running order
 
@@ -1549,20 +1549,21 @@ caption’s reading time sets the pace instead (3.2 words a second).
 
 - **NARRATION** 86 thousand people lost every mapped road to a hospital. Ramechhap and Sindhuli are where to look first.
 - **CAPTION** 85,783 LOST EVERY MAPPED ROAD TO A HOSPITAL · LOOK FIRST: RAMECHHAP · SINDHULI
+- **CAMERA** +1.8 s fly to district:sindhuli · 360 km · pitch -64° · heading 4° · 4.2 s
 - **MAP** +0.0 s hide blockages; +0.0 s filter roads → dim 0.55; +0.3 s show cells-cut (categories 3); +1.8 s show district-focus
 - **ANNOTATION** +0.6 s typed — 85,783 LOST ROAD ACCESS · LOOK FIRST: RAMECHHAP · SINDHULI
 - **EVIDENCE** access.hospital — OSM 2015 × DOHS 2010 × NGA · SCENARIO · record `access-hospital-distance`; access.stableTop — THIS ANALYSIS · DERIVED · record `access-pressure-pareto`
 - **CLASS** DERIVED · SCENARIO
-- **LONGEST STILL** 2.6 s
+- **LONGEST STILL** 0.1 s
 
 #### 11:56.5 — close · 10.5 s · 3 / 6 / FULL
 
 - **NARRATION** What we know. What we infer. What we simulate. And what we still don’t know: travel times, hospital capacity, and where nothing was found.
 - **CAPTION** KNOWN · INFERRED · SIMULATED · AND STILL UNKNOWN
-- **CAMERA** +0.0 s fly to nepal · 1100 km · pitch -78° · heading 0° · 3.8 s
+- **CAMERA** +0.0 s fly to nepal · 1100 km · pitch -78° · heading 0° · 3.8 s; +4.0 s fly to nepal · 1020 km · pitch -76° · heading 5° · 5.0 s
 - **MAP** +0.0 s hide district-focus; +0.0 s hide cells-cut; +0.0 s hide roads; +0.4 s veil 0.45
 - **ANNOTATION** +0.0 s remove recap-1; +0.0 s remove recap-2; +0.0 s remove recap-3; +0.0 s remove recap-4; +0.0 s remove recap-5; +0.0 s remove recap-6; +0.0 s remove sum-epi; +0.7 s typed — WHAT WE KNOW · THE EARTHQUAKE · THE DAMAGE MAPPED · THE BLOCKAGES / WHAT WE INFER · WHO WAS EXPOSED · WHERE DAMAGE CONCENTRATED / WHAT WE SIMULATE · HOSPITAL ACCESS WITH EVERY BLOCKAGE APPLIED / WHAT WE STILL DON’T KNOW · TRAVEL TIME · HOSPITAL CAPACITY · WHERE NOTHING WAS FOUND
 - **SOUND** +0.8 s lock
 - **CLASS** none (no figure)
-- **LONGEST STILL** 5.7 s
+- **LONGEST STILL** 0.6 s
 

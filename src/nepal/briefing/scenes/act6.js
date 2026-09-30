@@ -366,6 +366,16 @@ export const SUMMARY = defineScene({
           colour: '#ffb020',
           duration: 1600,
         },
+        /* Towards the two districts while the voice names them; it held still for 6 s. */
+        {
+          at: 1800,
+          type: 'camera.fly',
+          to: 'district:sindhuli',
+          rangeKm: 360,
+          pitch: -64,
+          heading: 4,
+          duration: 4200,
+        },
         recap(
           6,
           '{access.hospital.byCategory.DISCONNECTED|int} LOST ROAD ACCESS · LOOK FIRST: {access.stableTop|list}',
@@ -397,6 +407,16 @@ export const SUMMARY = defineScene({
           pitch: -78,
           heading: 0,
           duration: 3800,
+        },
+        /* A slow drift under the last sentence, so the closing card does not sit on a frozen map. */
+        {
+          at: 4000,
+          type: 'camera.fly',
+          to: 'nepal',
+          rangeKm: 1020,
+          pitch: -76,
+          heading: 5,
+          duration: 5000,
         },
         { at: 400, type: 'veil', opacity: 0.45, duration: 2400 },
         {
