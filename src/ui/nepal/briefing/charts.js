@@ -308,3 +308,151 @@ export function createLegendChart({ clock, title, tag, rows }) {
     },
   };
 }
+
+/**
+ * Horizontal bars that grow one after another: a distribution read off an
+ * artefact list (magnitude bands, damage by area). Each bar's label and
+ * figure are handed in already formatted; the bar length is the only thing
+ * computed here, as a share of the largest value.
+ */
+export function createBarsChart({
+  clock,
+  title,
+  tag,
+  rows,
+  colour = '#3cf2a0',
+  widthPx = 300,
+  staggerMs = 260,
+}) {
+  const node = div('brf-chart brf-chart--bars');
+  const head = div('brf-chart__head', null, node);
+  div('brf-chart__title', title, head);
+  if (tag) head.append(tag);
+  const max = Math.max(...rows.map((row) => row.value), 1);
+  const items = rows.map((row) => {
+    const line = div('brf-bars__row', null, node);
+    div('brf-bars__label', row.label, line);
+    const track = div('brf-bars__track', null, line);
+    track.style.width = `${widthPx}px`;
+    const bar = div('brf-bars__bar', null, track);
+    bar.style.background = row.colour ?? colour;
+    const figure = div('brf-bars__value', '', line);
+    line.style.opacity = '0';
+    return { row, line, bar, figure, at: null };
+  });
+  let focus = null;
+  return {
+    node,
+    revealAll({ instant = false } = {}) {
+      items.forEach((item, k) => {
+        item.at = instant ? clock.now() - 5000 : clock.now() + k * staggerMs;
+      });
+    },
+    focus(index) {
+      focus = index ?? null;
+    },
+    update() {
+      items.forEach((item, k) => {
+        const t =
+          item.at === null ? 0 : ease.out(progress(clock, item.at, 900));
+        const dim = focus !== null && focus !== k;
+        item.line.style.opacity = String(Math.min(1, t * 3) * (dim ? 0.35 : 1));
+        item.bar.style.width = `${(item.row.value / max) * 100 * t}%`;
+        item.figure.textContent = t >= 1 ? item.row.display : '';
+      });
+    },
+  };
+}
+
+/**
+ * Where each district ranks under each weighting: one row per district, a
+ * dot per scheme, a line from best to worst rank. The spread IS the result —
+ * a district whose dots scatter is one whose place depends on the weights.
+ */
+export function createRankChart({
+  clock,
+  title,
+  tag,
+  rows,
+  maxRank,
+  widthPx = 260,
+  schemeColours,
+}) {
+  const node = div('brf-chart brf-chart--ranks');
+  const head = div('brf-chart__head', null, node);
+  div('brf-chart__title', title, head);
+  if (tag) head.append(tag);
+  const rowPx = 18;
+  const height = rows.length * rowPx + 22;
+  const plot = svg(
+    'svg',
+    {
+      width: widthPx + 130,
+      height,
+      viewBox: `0 0 ${widthPx + 130} ${height}`,
+      class: 'brf-chart__svg',
+    },
+    node,
+  );
+  const x = (rank) => 120 + ((rank - 1) / Math.max(1, maxRank - 1)) * widthPx;
+  const axis = svg(
+    'text',
+    { x: 120, y: height - 4, class: 'brf-chart__axis brf-chart__axis--muted' },
+    plot,
+  );
+  axis.textContent = 'RANK 1';
+  const axisEnd = svg(
+    'text',
+    {
+      x: 120 + widthPx,
+      y: height - 4,
+      'text-anchor': 'end',
+      class: 'brf-chart__axis brf-chart__axis--muted',
+    },
+    plot,
+  );
+  axisEnd.textContent = `${maxRank}`;
+  const items = rows.map((row, k) => {
+    const y = 12 + k * rowPx;
+    const label = svg(
+      'text',
+      { x: 0, y: y + 4, class: 'brf-chart__axis' },
+      plot,
+    );
+    label.textContent = `${row.pareto ? '◆ ' : ''}${row.label}`;
+    const span = svg(
+      'line',
+      {
+        x1: x(row.best),
+        x2: x(row.best),
+        y1: y,
+        y2: y,
+        stroke: 'rgba(228,245,236,0.45)',
+        'stroke-width': 2,
+      },
+      plot,
+    );
+    const dots = row.ranks.map((rank, s) =>
+      svg('circle', { cx: x(rank), cy: y, r: 0, fill: schemeColours[s] }, plot),
+    );
+    return { row, label, span, dots, y };
+  });
+  let at = null;
+  return {
+    node,
+    revealAll({ instant = false } = {}) {
+      at = instant ? clock.now() - 5000 : clock.now();
+    },
+    update() {
+      items.forEach((item, k) => {
+        const t = at === null ? 0 : ease.out(progress(clock, at + k * 90, 700));
+        item.label.setAttribute('opacity', String(t));
+        item.span.setAttribute(
+          'x2',
+          String(x(item.row.best) + (x(item.row.worst) - x(item.row.best)) * t),
+        );
+        item.dots.forEach((dot) => dot.setAttribute('r', String(4 * t)));
+      });
+    },
+  };
+}

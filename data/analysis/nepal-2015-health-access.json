@@ -1,7 +1,7 @@
 {
  "schemaVersion": 1,
  "stage": 9,
- "generatedAt": "2026-09-30T01:47:16.391Z",
+ "generatedAt": "2026-09-30T02:12:06.961Z",
  "dataClass": "SCENARIO",
  "criticalCaveat": "Distances along roads mapped in OpenStreetMap on 2015-04-24 — not travel times, not journeys, not hospital capacity. The damaged network applies every blockage observed between 26 April and early May as if all were present at once. Hospitals are those in the 2010 government list unless stated.",
  "sources": [
@@ -3526,6 +3526,388 @@
     "osmHospitals": 8,
     "codClinical": 883
    }
+  },
+  "airfields": {
+   "instant": "2015-04-24T00:00:00Z",
+   "aerodromeCount": 17,
+   "helipadCount": 45,
+   "aerodromes": [
+    {
+     "id": "node/1936298906",
+     "name": "Khanidanda Airport",
+     "lon": 86.77226,
+     "lat": 27.18034
+    },
+    {
+     "id": "node/2319501384",
+     "name": "Jiri Airport",
+     "lon": 86.23066,
+     "lat": 27.62585
+    },
+    {
+     "id": "node/303021935",
+     "name": "Tenzing-Hillary Airport",
+     "lon": 86.73198,
+     "lat": 27.68721
+    },
+    {
+     "id": "way/118505122",
+     "name": "त्रिभुवन अन्तर्राष्ट्रिय विमानस्थल",
+     "lon": 85.35925,
+     "lat": 27.69374
+    },
+    {
+     "id": "way/126708147",
+     "name": "Pokhara Airport",
+     "lon": 83.98116,
+     "lat": 28.2006
+    },
+    {
+     "id": "way/218939781",
+     "name": "Meghauli Airport",
+     "lon": 84.22913,
+     "lat": 27.57744
+    },
+    {
+     "id": "way/229167625",
+     "name": "Ramechhap Airport",
+     "lon": 86.05972,
+     "lat": 27.39294
+    },
+    {
+     "id": "way/235113119",
+     "name": "Simara airport",
+     "lon": 84.98005,
+     "lat": 27.16004
+    },
+    {
+     "id": "way/235805953",
+     "name": "Bharatpur Airport",
+     "lon": 84.42867,
+     "lat": 27.67691
+    },
+    {
+     "id": "way/275166951",
+     "name": "Manang Airport at Humde",
+     "lon": 84.08803,
+     "lat": 28.64112
+    },
+    {
+     "id": "way/291730712",
+     "name": "Gorkha Airport",
+     "lon": 84.46621,
+     "lat": 28.03842
+    },
+    {
+     "id": "way/312895324",
+     "name": "Syangboche Airfield",
+     "lon": 86.71236,
+     "lat": 27.81137
+    },
+    {
+     "id": "way/312966049",
+     "name": "Phaplu Airport",
+     "lon": 86.58518,
+     "lat": 27.51802
+    },
+    {
+     "id": "way/314619565",
+     "name": "Rumjatar Airport",
+     "lon": 86.55104,
+     "lat": 27.30256
+    },
+    {
+     "id": "way/314876719",
+     "name": "Lamidanda Airport",
+     "lon": 86.67246,
+     "lat": 27.25265
+    },
+    {
+     "id": "way/327552972",
+     "name": "Nepal airport",
+     "lon": 84.31097,
+     "lat": 27.63775
+    },
+    {
+     "id": "way/339901309",
+     "name": null,
+     "lon": 83.88799,
+     "lat": 27.41731
+    }
+   ],
+   "helipads": [
+    {
+     "id": "node/1046599248",
+     "name": null,
+     "lon": 84.3675,
+     "lat": 28.48824
+    },
+    {
+     "id": "node/1966017952",
+     "name": null,
+     "lon": 85.29064,
+     "lat": 27.74374
+    },
+    {
+     "id": "node/1979213340",
+     "name": null,
+     "lon": 84.43672,
+     "lat": 27.71031
+    },
+    {
+     "id": "node/2255935724",
+     "name": null,
+     "lon": 84.43193,
+     "lat": 27.99378
+    },
+    {
+     "id": "node/2263128846",
+     "name": null,
+     "lon": 83.96384,
+     "lat": 28.01254
+    },
+    {
+     "id": "node/2272931262",
+     "name": null,
+     "lon": 84.48634,
+     "lat": 27.63687
+    },
+    {
+     "id": "node/2297964899",
+     "name": null,
+     "lon": 83.97651,
+     "lat": 28.19745
+    },
+    {
+     "id": "node/2315887958",
+     "name": "Namche Bazar Helipad",
+     "lon": 86.70628,
+     "lat": 27.80352
+    },
+    {
+     "id": "node/2315910483",
+     "name": null,
+     "lon": 84.88079,
+     "lat": 27.01596
+    },
+    {
+     "id": "node/2316139307",
+     "name": null,
+     "lon": 84.85273,
+     "lat": 27.02464
+    },
+    {
+     "id": "node/2416912063",
+     "name": null,
+     "lon": 85.04081,
+     "lat": 27.45971
+    },
+    {
+     "id": "node/2419986776",
+     "name": null,
+     "lon": 85.13496,
+     "lat": 27.53982
+    },
+    {
+     "id": "node/2425657468",
+     "name": null,
+     "lon": 84.89401,
+     "lat": 27.46895
+    },
+    {
+     "id": "node/2437098282",
+     "name": null,
+     "lon": 85.59296,
+     "lat": 27.06301
+    },
+    {
+     "id": "node/2560776061",
+     "name": null,
+     "lon": 85.56807,
+     "lat": 28.21152
+    },
+    {
+     "id": "node/3188798590",
+     "name": null,
+     "lon": 86.58428,
+     "lat": 27.51715
+    },
+    {
+     "id": "node/3204216965",
+     "name": null,
+     "lon": 85.13554,
+     "lat": 27.64669
+    },
+    {
+     "id": "node/3234842092",
+     "name": null,
+     "lon": 86.11041,
+     "lat": 27.48276
+    },
+    {
+     "id": "node/3234842390",
+     "name": null,
+     "lon": 86.10728,
+     "lat": 27.48683
+    },
+    {
+     "id": "node/3238640703",
+     "name": null,
+     "lon": 86.06077,
+     "lat": 27.38129
+    },
+    {
+     "id": "node/3448171227",
+     "name": null,
+     "lon": 84.72783,
+     "lat": 27.57507
+    },
+    {
+     "id": "way/155195639",
+     "name": null,
+     "lon": 86.73054,
+     "lat": 27.68767
+    },
+    {
+     "id": "way/184884802",
+     "name": null,
+     "lon": 85.32175,
+     "lat": 27.71651
+    },
+    {
+     "id": "way/184884803",
+     "name": null,
+     "lon": 85.32195,
+     "lat": 27.71695
+    },
+    {
+     "id": "way/185408109",
+     "name": null,
+     "lon": 85.36226,
+     "lat": 27.69766
+    },
+    {
+     "id": "way/188452510",
+     "name": null,
+     "lon": 84.41176,
+     "lat": 27.72651
+    },
+    {
+     "id": "way/189326442",
+     "name": null,
+     "lon": 85.32973,
+     "lat": 27.72654
+    },
+    {
+     "id": "way/222136598",
+     "name": null,
+     "lon": 85.29818,
+     "lat": 27.68446
+    },
+    {
+     "id": "way/228710145",
+     "name": "Proposed Helipad",
+     "lon": 85.63166,
+     "lat": 27.6531
+    },
+    {
+     "id": "way/228710272",
+     "name": "Existing Helipad 15m dia",
+     "lon": 85.63164,
+     "lat": 27.65554
+    },
+    {
+     "id": "way/229364026",
+     "name": null,
+     "lon": 85.25213,
+     "lat": 27.68944
+    },
+    {
+     "id": "way/249485807",
+     "name": null,
+     "lon": 85.50304,
+     "lat": 28.21554
+    },
+    {
+     "id": "way/265006463",
+     "name": null,
+     "lon": 85.29459,
+     "lat": 28.11147
+    },
+    {
+     "id": "way/277795957",
+     "name": null,
+     "lon": 85.46044,
+     "lat": 28.20053
+    },
+    {
+     "id": "way/278988770",
+     "name": null,
+     "lon": 85.34207,
+     "lat": 27.78824
+    },
+    {
+     "id": "way/291296342",
+     "name": null,
+     "lon": 84.62805,
+     "lat": 28.00451
+    },
+    {
+     "id": "way/298464454",
+     "name": null,
+     "lon": 85.13319,
+     "lat": 27.88704
+    },
+    {
+     "id": "way/299232293",
+     "name": null,
+     "lon": 84.56486,
+     "lat": 27.68483
+    },
+    {
+     "id": "way/299287081",
+     "name": null,
+     "lon": 86.71141,
+     "lat": 27.73572
+    },
+    {
+     "id": "way/300465732",
+     "name": null,
+     "lon": 86.17014,
+     "lat": 27.55024
+    },
+    {
+     "id": "way/303116446",
+     "name": null,
+     "lon": 84.62241,
+     "lat": 27.99939
+    },
+    {
+     "id": "way/312966029",
+     "name": null,
+     "lon": 86.5875,
+     "lat": 27.50485
+    },
+    {
+     "id": "way/314363677",
+     "name": null,
+     "lon": 85.13805,
+     "lat": 27.65067
+    },
+    {
+     "id": "way/314363678",
+     "name": null,
+     "lon": 85.13554,
+     "lat": 27.64668
+    },
+    {
+     "id": "way/326872248",
+     "name": null,
+     "lon": 85.28893,
+     "lat": 27.67115
+    }
+   ],
+   "note": "Mapped landing places as at 2015-04-24. Not a record of use; no flights, aircraft or capacities are inferred."
   },
   "display": {
    "cellMetres": 1000,

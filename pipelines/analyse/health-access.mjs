@@ -744,6 +744,27 @@ export async function analyseHealthAccess() {
       exampleRoutes,
       bridgeWhatIf,
       listAgreement,
+      /*
+       * Airfields and helipads as OpenStreetMap held them the day before —
+       * places an aircraft could land, not a record that any did. No flight,
+       * helicopter or capacity is inferred from them.
+       */
+      airfields: (() => {
+        const pick = (kind) =>
+          osmFacilitiesFile.data.facilities
+            .filter((f) => f.kind === kind && inBox(f.lon, f.lat))
+            .map((f) => ({ id: f.id, name: f.name ?? null, lon: round5(f.lon), lat: round5(f.lat) }));
+        const aerodromes = pick('aerodrome');
+        const helipads = pick('helipad');
+        return {
+          instant: networkFile.validation?.instant ?? null,
+          aerodromeCount: aerodromes.length,
+          helipadCount: helipads.length,
+          aerodromes,
+          helipads,
+          note: 'Mapped landing places as at 2015-04-24. Not a record of use; no flights, aircraft or capacities are inferred.',
+        };
+      })(),
       display,
       dataGaps: [
         { gap: 'Road speeds and surface condition for April 2015', consequence: 'Distances only; no travel time, isochrone or response time.', couldBeFilledBy: 'A contemporaneous Department of Roads inventory; not found in open form.' },

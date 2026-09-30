@@ -21,6 +21,8 @@ import {
   createCompositionChart,
   createIntensityChart,
   createLegendChart,
+  createBarsChart,
+  createRankChart,
 } from './charts.js';
 
 const FLIGHT_HOLD = 'nepal-briefing-flight';
@@ -325,10 +327,17 @@ export function createBriefingStage({
     'district-focus': ({
       instant,
       duration = 1200,
-      keys = [],
+      keys: listed = [],
+      keysFrom = null,
       colour = '#e8f5ef',
-    }) =>
-      overlay.outline({
+    }) => {
+      /* `keysFrom`: district names from an artefact (the Pareto set), matched by key. */
+      const keys = keysFrom
+        ? factAt(keysFrom).map((name) =>
+            String(name).toLowerCase().replace(/\s+/g, ''),
+          )
+        : listed;
+      return overlay.outline({
         id: 'district-focus',
         rings: geometry.districts
           .filter((d) => keys.includes(d.key))
@@ -339,7 +348,8 @@ export function createBriefingStage({
         width: 1.8,
         glow: 6,
         z: 21,
-      }),
+      });
+    },
     bands: ({ instant, duration = 4500, minMmi = 4.5 }) =>
       overlay.bands({
         id: 'bands',
@@ -407,6 +417,36 @@ export function createBriefingStage({
         staggerMs: duration,
         instant,
         z: 31,
+      }),
+
+    /*
+     * Any list in an artefact whose items carry lon/lat — landslides, lost
+     * bridges, airfields — drawn as marks. The positions are the artefact's.
+     */
+    'fact-marks': ({
+      instant,
+      duration = 1600,
+      id,
+      fact,
+      path = [],
+      shape = 'dot',
+      colour = '#e8f5ef',
+      size = 4,
+      halo = false,
+    }) =>
+      overlay.marks({
+        id,
+        rows: factAt({ fact, path }).filter(
+          (item) => Number.isFinite(item.lon) && Number.isFinite(item.lat),
+        ),
+        shape,
+        sizePx: size,
+        colour,
+        halo,
+        revealMs: 500,
+        staggerMs: duration,
+        instant,
+        z: 45,
       }),
 
     /* ---- Act IV: Stage 5 district routes from Kathmandu, coloured by outcome ---- */
@@ -614,9 +654,12 @@ export function createBriefingStage({
           instant,
         ),
       );
+      /* `throughDate`: every site imaged on or before the k-th image date, so damage arrives as it was read. */
       item.state.filter = action.sensorDates
         ? (row) => action.sensorDates.includes(geometry.damage.dates[row[3]])
-        : null;
+        : action.throughDate !== undefined && action.throughDate !== null
+          ? (row) => row[3] <= action.throughDate
+          : null;
     }
     if (action.layer === 'bands')
       item.state.highlight = action.highlight ?? null;
@@ -850,6 +893,67 @@ export function createBriefingStage({
                   },
                 ],
           ),
+      });
+    } else if (action.chart === 'bars') {
+      /* `rowsFrom`: a list in an artefact, a field for the label and one for the value. */
+      const { rowsFrom } = action;
+      const fact = book.get(rowsFrom.fact);
+      chart = createBarsChart({
+        clock,
+        title: text(action.title),
+        tag: overlay.evidenceTag(action.tag ?? tagFor(fact)),
+        colour: action.colour,
+        /* A {name: count} map reads as rows of {key, value}. */
+        rows: [factAt(rowsFrom)]
+          .map((found) =>
+            Array.isArray(found)
+              ? found
+              : Object.entries(found).map(([key, value]) => ({ key, value })),
+          )[0]
+          .filter(
+            (item) => !(rowsFrom.exclude ?? []).includes(item[rowsFrom.label]),
+          )
+          .slice(0, rowsFrom.limit ?? Infinity)
+          .map((item) => ({
+            /* `labels` renames an artefact's keys for the screen; the values stay the artefact's. */
+            label: String(
+              rowsFrom.labels?.[item[rowsFrom.label]] ??
+                (rowsFrom.label ? item[rowsFrom.label] : item),
+            ).toUpperCase(),
+            /* `value` may be a dotted path: 'value.median' in a map of summaries. */
+            value: String(rowsFrom.value)
+              .split('.')
+              .reduce((v, k) => v?.[k], item),
+            display: formatValue(
+              String(rowsFrom.value)
+                .split('.')
+                .reduce((v, k) => v?.[k], item),
+              rowsFrom.format ?? 'int',
+            ),
+          })),
+      });
+    } else if (action.chart === 'ranks') {
+      /* The pressure comparison: each district's rank under every weighting. */
+      const pressure = book.value('access.pressure');
+      const schemes = pressure.weighting.rankings.map((r) => r.scheme);
+      const pareto = new Set(pressure.paretoFront);
+      const rows = pressure.weighting.perItem
+        .map((item) => ({
+          label: item.id.toUpperCase(),
+          ranks: schemes.map((s) => item.ranks[s]),
+          best: item.bestRank,
+          worst: item.worstRank,
+          pareto: pareto.has(item.id),
+        }))
+        .sort((a, b) => a.best - b.best || a.worst - b.worst)
+        .slice(0, action.limit ?? Infinity);
+      chart = createRankChart({
+        clock,
+        title: text(action.title),
+        tag: overlay.evidenceTag(tagFor(book.get('access.pressure'))),
+        rows,
+        maxRank: pressure.weighting.perItem.length,
+        schemeColours: ['#e8f5ef', '#ff8c42', '#7fdcff', '#f4d35e'],
       });
     } else if (action.chart === 'legend') {
       /* A key authored with the scene; every label is a template filled from facts. */

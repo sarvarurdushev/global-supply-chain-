@@ -28,7 +28,8 @@ export const PEOPLE_MEET_SHAKING = defineScene({
   question: 'How many people were inside the strong shaking?',
   explore: 5,
   runs: ALL,
-  keep: ['outline', 'mask'],
+  /* In the full run, scene 09 has already drawn the population: keep it rather than draw it again. */
+  keep: ['outline', 'mask', 'population'],
   setup: [
     ...base,
     { type: 'camera.fly', to: 'nepal', rangeKm: 1000, pitch: -80, heading: 0 },
@@ -39,7 +40,7 @@ export const PEOPLE_MEET_SHAKING = defineScene({
       caption: 'WHERE PEOPLE LIVED · MODELLED, NOT COUNTED',
       narration:
         'Before the shaking, the people. Each point is a block of modelled population, larger where more people lived.',
-      runs: SIX_FULL,
+      runs: [RUNS.SIX],
       minHoldMs: 400,
       actions: [
         { at: 0, type: 'layer.show', layer: 'population', duration: 3600 },

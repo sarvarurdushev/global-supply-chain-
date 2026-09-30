@@ -10,6 +10,7 @@ import { ACT3 } from './act3.js';
 import { ACT4 } from './act4.js';
 import { ACT5 } from './act5.js';
 import { ACT6 } from './act6.js';
+import { FULL_ONLY } from './full.js';
 
 export const ACT_TITLES = Object.freeze({
   I: 'ACT I · INCIDENT DETECTION',
@@ -21,7 +22,7 @@ export const ACT_TITLES = Object.freeze({
 });
 
 export const BRIEFING_SCENES = Object.freeze(
-  [...ACT1, ...ACT2, ...ACT3, ...ACT4, ...ACT5, ...ACT6].sort(
+  [...ACT1, ...ACT2, ...ACT3, ...ACT4, ...ACT5, ...ACT6, ...FULL_ONLY].sort(
     (a, b) => a.number - b.number,
   ),
 );

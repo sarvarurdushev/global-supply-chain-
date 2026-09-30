@@ -673,3 +673,32 @@
 .ndi:has(.brf-begin:not([hidden])) .ndi__controls {
   visibility: hidden;
 }
+
+/* ---------------------------------------------------------------- bars */
+
+.brf-bars__row {
+  display: grid;
+  grid-template-columns: 92px auto 72px;
+  gap: 10px;
+  align-items: center;
+  margin-top: 5px;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+}
+.brf-bars__label {
+  color: rgba(228, 245, 236, 0.85);
+  white-space: nowrap;
+}
+.brf-bars__track {
+  height: 10px;
+  background: rgba(228, 245, 236, 0.06);
+}
+.brf-bars__bar {
+  height: 100%;
+  width: 0;
+  border-radius: 0 2px 2px 0;
+}
+.brf-bars__value {
+  color: #ffffff;
+  font-variant-numeric: tabular-nums;
+}

@@ -401,6 +401,108 @@ export const FACTS = Object.freeze({
     cls: 'DATA GAP',
   }),
 
+  /* FULL-run scenes: the sequence's distributions, the damage record's shape, a second product, the infrastructure layers. */
+  'seq.depthBands': f('seismic', ['results', 'depth', 'bands'], {
+    ...USGS,
+    record: 'seismic-depth-distribution',
+  }),
+  'seq.gr': f('seismic', ['results', 'gutenbergRichter'], {
+    source: 'USGS · GUTENBERG–RICHTER FIT',
+    cls: 'MODEL_FIT',
+    record: 'seismic-magnitude-distribution',
+  }),
+  'seq.completeness': f('seismic', ['results', 'completeness'], {
+    source: 'USGS',
+    cls: 'STATISTIC',
+    record: 'seismic-magnitude-distribution',
+  }),
+  'exposure.total': f(
+    'exposure',
+    ['results', 'intensity', 'totalPopulationConsidered'],
+    {
+      source: 'WORLDPOP 2015',
+      cls: 'DERIVED',
+      record: 'exposure-population-by-intensity',
+    },
+  ),
+  'damage.byArea': f('damage', ['results', 'unosat', 'byAnalysisArea'], {
+    ...UNOSAT,
+    record: 'damage-unosat-counts',
+  }),
+  'damage.byDate': f('damage', ['results', 'unosat', 'bySensorDate'], {
+    ...UNOSAT,
+    record: 'damage-unosat-counts',
+  }),
+  'damage.lags': f('damage', ['results', 'observationTimeline', 'lags'], {
+    source: 'UNOSAT × NGA × COPERNICUS',
+    cls: 'STATISTIC',
+    record: 'damage-observation-timeline',
+  }),
+  'damage.event': f('damage', ['results', 'observationTimeline', 'event'], {
+    ...USGS,
+  }),
+  'copernicus.totals': f('damage', ['results', 'copernicus', 'totals'], {
+    source: 'COPERNICUS EMSR125',
+    cls: 'OBSERVED',
+    record: 'damage-copernicus-grading',
+  }),
+  'copernicus.kathmandu': f(
+    'damage',
+    ['results', 'copernicus', 'grades', { find: { aoi: 'KATHMANDU' } }],
+    {
+      source: 'COPERNICUS EMSR125',
+      cls: 'OBSERVED',
+      record: 'damage-copernicus-grading',
+    },
+  ),
+  'copernicus.bharatpur': f(
+    'damage',
+    ['results', 'copernicus', 'grades', { find: { aoi: 'BHARATPUR' } }],
+    {
+      source: 'COPERNICUS EMSR125',
+      cls: 'OBSERVED',
+      record: 'damage-copernicus-grading',
+    },
+  ),
+  'infra.geometry': f(
+    'infrastructure',
+    ['results', 'geometry', 'blockedRoads'],
+    { source: 'NGA', cls: 'OBSERVED', record: 'infrastructure-geometry-check' },
+  ),
+  'infra.association': f(
+    'infrastructure',
+    ['results', 'landslideRoadAssociation', 'headline'],
+    {
+      source: 'NGA',
+      cls: 'DERIVED',
+      record: 'infrastructure-road-landslide-association',
+    },
+  ),
+  'infra.landslides': f('infrastructure', ['results', 'landslides'], {
+    source: 'NGA',
+    cls: 'OBSERVED',
+    record: 'infrastructure-geometry-check',
+  }),
+  'infra.bridges': f('infrastructure', ['results', 'bridges'], {
+    source: 'NGA',
+    cls: 'OBSERVED',
+    record: 'infrastructure-network-disruption',
+  }),
+  'dp.gorkha': f(
+    'damagePopulation',
+    ['results', 'byDistrict', { find: { district: 'Gorkha' } }],
+    {
+      source: 'UNOSAT × WORLDPOP',
+      cls: 'DERIVED',
+      record: 'damage-population-quadrants',
+    },
+  ),
+  'access.airfields': f('access', ['results', 'airfields'], {
+    source: 'OPENSTREETMAP · 24 APR 2015',
+    cls: 'OBSERVED',
+    record: 'access-hospital-distance',
+  }),
+
   'access.display': f('access', ['results', 'display'], {
     source: 'OSM 2015 × DOHS 2010 × NGA',
     cls: 'SCENARIO',
@@ -487,6 +589,16 @@ export const FACTS = Object.freeze({
       record: 'access-hospital-distance',
     },
   ),
+  'access.pressure': f('access', ['results', 'pressure'], {
+    source: 'THIS ANALYSIS',
+    cls: 'DERIVED',
+    record: 'access-pressure-pareto',
+  }),
+  'access.bridges': f('access', ['results', 'bridgeWhatIf'], {
+    source: 'OSM 2015 × DOHS 2010 × NGA',
+    cls: 'SCENARIO',
+    record: 'access-hospital-distance',
+  }),
   'access.pareto': f('access', ['results', 'pressure', 'paretoFront'], {
     source: 'THIS ANALYSIS',
     cls: 'DERIVED',
