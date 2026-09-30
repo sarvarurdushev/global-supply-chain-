@@ -15,7 +15,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | 3 MIN EXECUTIVE | 11 | 26 | 02:44.6 | 02:30.7 | 13.1 s | 5.7 s |
 | 6 MIN BRIEFING | 18 | 58 | 06:00.9 | 05:31.2 | 14.1 s | 5.7 s |
-| FULL ANALYSIS | 40 | 108 | 12:06.6 | 11:05.0 | 14.1 s | 5.7 s |
+| FULL ANALYSIS | 40 | 108 | 12:06.6 | 11:07.5 | 14.1 s | 5.7 s |
 
 ## 3 MIN EXECUTIVE — running order
 
@@ -1194,12 +1194,13 @@ caption’s reading time sets the pace instead (3.2 words a second).
 
 - **NARRATION** 7 districts are beaten on all three by no other. No weighting needed.
 - **CAPTION** THE PARETO SET: CHITAWAN · DHADING · GORKHA · KATHMANDU · NUWAKOT · SINDHULI · SINDHUPALCHOK
+- **CAMERA** +0.3 s fly to accessCentre · 500 km · pitch -62° · heading 6° · 4.6 s
 - **MAP** +0.0 s show district-focus
-- **ANNOTATION** +0.9 s typed — PARETO SET · NO WEIGHTS / CHITAWAN · DHADING · GORKHA · KATHMANDU · NUWAKOT · SINDHULI · SINDHUPALCHOK / NOT A PRIORITY LIST
+- **ANNOTATION** +0.9 s typed — PARETO SET · NO WEIGHTS / 7 DISTRICTS, OUTLINED / NOT A PRIORITY LIST
 - **SOUND** +0.0 s reveal
 - **EVIDENCE** access.pareto — THIS ANALYSIS · DERIVED · record `access-pressure-pareto`
 - **CLASS** DERIVED
-- **LONGEST STILL** 2.8 s
+- **LONGEST STILL** 0.3 s
 
 #### 08:48.0 — weights · 7.1 s · FULL
 

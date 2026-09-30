@@ -1696,16 +1696,26 @@ export const PRESSURE = defineScene({
           duration: 2400,
         },
         { at: 0, type: 'audio.cue', cue: 'reveal' },
+        /* The caption names them; the card says what the set is, and stays inside the frame. */
         data(
           'pareto-card',
           [
             'PARETO SET · NO WEIGHTS',
-            '{access.pareto|list}',
+            '{access.pareto.length|int} DISTRICTS, OUTLINED',
             'NOT A PRIORITY LIST',
           ],
           DERIVED,
           900,
         ),
+        {
+          at: 300,
+          type: 'camera.fly',
+          to: 'accessCentre',
+          rangeKm: 500,
+          pitch: -62,
+          heading: 6,
+          duration: 4600,
+        },
       ],
     },
     {

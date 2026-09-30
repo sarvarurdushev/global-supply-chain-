@@ -382,6 +382,11 @@
   font-size: clamp(13px, 1.9vh, 21px);
   letter-spacing: 0.18em;
   line-height: 1.7;
+  /*
+   * Placed by transform, a card never meets the screen edge and would run
+   * off it; a width cap makes a long line wrap inside the frame instead.
+   */
+  max-width: min(620px, 35vw);
   padding: 10px 14px;
   background: rgba(3, 10, 12, 0.78);
   border-left: 2px solid var(--gx-cyan);
