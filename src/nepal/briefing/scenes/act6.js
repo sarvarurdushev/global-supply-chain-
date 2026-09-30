@@ -121,7 +121,8 @@ export const UNKNOWNS = defineScene({
           rangeKm: 420,
           pitch: -64,
           heading: -6,
-          duration: 5600,
+          /* Still moving through 'only where it was found'; it landed 5 s early. */
+          duration: 8400,
         },
         {
           at: 700,

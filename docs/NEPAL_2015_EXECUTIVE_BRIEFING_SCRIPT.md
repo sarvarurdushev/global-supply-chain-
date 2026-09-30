@@ -15,7 +15,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | 3 MIN EXECUTIVE | 11 | 26 | 02:44.6 | 02:30.7 | 13.1 s | 5.7 s |
 | 6 MIN BRIEFING | 18 | 58 | 06:01.7 | 05:32.8 | 14.1 s | 5.7 s |
-| FULL ANALYSIS | 40 | 108 | 12:07.0 | 11:08.7 | 14.1 s | 5.7 s |
+| FULL ANALYSIS | 40 | 108 | 12:07.0 | 11:11.5 | 14.1 s | 5.7 s |
 
 ## 3 MIN EXECUTIVE — running order
 
@@ -1478,11 +1478,11 @@ caption’s reading time sets the pace instead (3.2 words a second).
 
 - **NARRATION** No travel times. Nothing about what a hospital could do. And no record of where damage was absent, only where it was found.
 - **CAPTION** NO TRAVEL TIMES · NO HOSPITAL CAPACITY · NO RECORD OF WHERE NOTHING WAS FOUND
-- **CAMERA** +0.2 s fly to damageCentre · 420 km · pitch -64° · heading -6° · 5.6 s
+- **CAMERA** +0.2 s fly to damageCentre · 420 km · pitch -64° · heading -6° · 8.4 s
 - **MAP** +0.0 s hide blockages; +0.0 s show damage
 - **ANNOTATION** +0.0 s remove gaps-card; +0.7 s typed — WHAT WOULD FILL THEM
 - **CLASS** none (no figure)
-- **LONGEST STILL** 3.4 s
+- **LONGEST STILL** 0.6 s
 
 ### 40 · Executive summary — Act VI
 
