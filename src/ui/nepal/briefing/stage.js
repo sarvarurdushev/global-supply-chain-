@@ -449,11 +449,19 @@ export function createBriefingStage({
       colour = '#e8f5ef',
       size = 4,
       halo = false,
+      /* `where`: only the rows whose fields equal these values, e.g. {onNetwork: false}. */
+      where = null,
     }) =>
       overlay.marks({
         id,
         rows: factAt({ fact, path }).filter(
-          (item) => Number.isFinite(item.lon) && Number.isFinite(item.lat),
+          (item) =>
+            Number.isFinite(item.lon) &&
+            Number.isFinite(item.lat) &&
+            (!where ||
+              Object.entries(where).every(
+                ([key, value]) => item[key] === value,
+              )),
         ),
         shape,
         sizePx: size,

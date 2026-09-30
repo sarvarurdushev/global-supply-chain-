@@ -1483,6 +1483,8 @@ export const FACILITY_DATA = defineScene({
           },
         },
         { at: 1300, type: 'chart.update', id: 'tier-bars', op: 'revealAll' },
+        /* The listed hospitals arrive across the map while the list is named. */
+        { at: 1800, type: 'layer.show', layer: 'hospitals', duration: 3600 },
         {
           at: 300,
           type: 'camera.fly',
@@ -1503,7 +1505,13 @@ export const FACILITY_DATA = defineScene({
       minHoldMs: 700,
       actions: [
         { at: 0, type: 'annotation.remove', id: 'cod-card' },
-        { at: 0, type: 'layer.show', layer: 'hospitals', duration: 2400 },
+        {
+          at: 0,
+          type: 'layer.show',
+          layer: 'hospitals',
+          duration: 2400,
+          ifAbsent: true,
+        },
         {
           at: 300,
           type: 'camera.fly',
@@ -1594,6 +1602,22 @@ export const FACILITY_MAP = defineScene({
           layer: 'roads',
           dim: 0.5,
           duration: 1000,
+        },
+        /* Which nine: the reachable crosses recede, the unreachable ones are framed. */
+        { at: 300, type: 'layer.filter', layer: 'hospitals', alpha: 0.4 },
+        {
+          at: 400,
+          type: 'layer.show',
+          layer: 'fact-marks',
+          id: 'off-net-marks',
+          fact: 'access.display',
+          path: ['hospitals'],
+          where: { onNetwork: false },
+          shape: 'diamond',
+          colour: '#ffb020',
+          size: 9,
+          halo: true,
+          duration: 1800,
         },
         {
           at: 200,

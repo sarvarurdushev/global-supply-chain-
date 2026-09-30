@@ -1008,6 +1008,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **NARRATION** The latest official list of health facilities openly available dates from 21 September 2010. It is used, and labelled, as exactly that.
 - **CAPTION** THE GOVERNMENT LIST, COMPILED 21 SEP 2010 · THE LATEST OPENLY AVAILABLE
 - **CAMERA** +0.3 s fly to accessCentre · 540 km · pitch -66° · heading 6° · 5.4 s
+- **MAP** +1.8 s show hospitals
 - **ANNOTATION** +0.3 s typed — HEALTH FACILITIES · DOHS / WHO / COMPILED BY 21 SEP 2010 / HDX DATES IT LATER; ITS OWN FILE SAYS OTHERWISE
 - **CHART** +1.2 s enter bars “FACILITIES IN THE ANALYSIS AREA, BY TIER”; +1.3 s tier-bars: revealAll
 - **SOUND** +0.0 s reveal
@@ -1048,9 +1049,10 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **NARRATION** They are drawn grey. The routing cannot reach them. That says as much about the map as about the hospitals.
 - **CAPTION** GREY CROSSES: HOSPITALS THE ROUTING CANNOT REACH
 - **CAMERA** +0.2 s fly to district:gorkha · 300 km · pitch -58° · heading -10° · 4.8 s
-- **MAP** +0.0 s filter roads → dim 0.5
+- **MAP** +0.0 s filter roads → dim 0.5; +0.3 s filter hospitals → alpha 0.4; +0.4 s show off-net-marks
 - **ANNOTATION** +0.0 s remove off-net
-- **CLASS** none (no figure)
+- **EVIDENCE** access.display — OSM 2015 × DOHS 2010 × NGA · SCENARIO · record `access-hospital-distance`
+- **CLASS** SCENARIO
 - **LONGEST STILL** 3.0 s
 
 ### 29 · Baseline access — Act V
