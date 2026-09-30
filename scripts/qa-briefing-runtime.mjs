@@ -61,10 +61,13 @@ const browser = await puppeteer.launch({
     '--enable-unsafe-swiftshader',
     '--use-gl=angle',
     '--use-angle=swiftshader',
+    /* The overlay's 2D canvas on the CPU: through software WebGL it costs seconds a frame. */
+    '--disable-accelerated-2d-canvas',
   ],
 });
 const page = await browser.newPage();
-await page.setViewport({ width: 1280, height: 720 });
+/* Timing does not depend on the window size; a smaller one draws faster. */
+await page.setViewport({ width: 960, height: 540 });
 const errors = [];
 page.on('pageerror', (e) =>
   errors.push(`pageerror: ${String(e).slice(0, 300)}`),
@@ -124,14 +127,26 @@ for (let slice = 0; slice < 400 && !result; slice += 1) {
         r.last = s.sceneId;
       }
       if (s.status === 'finished')
-        return { totalMs: b.clock.now() - r.startedAt, scenes: r.scenes };
+        return {
+          done: true,
+          totalMs: b.clock.now() - r.startedAt,
+          scenes: r.scenes,
+        };
       b.clock.advance(STEP_MS);
       await tick();
       await frame();
       await tick();
     }
-    return null;
+    return {
+      done: false,
+      atMs: b.clock.now() - r.startedAt,
+      scene: d.state.sceneId,
+    };
   }, STEP_MS);
+  if (!result.done) {
+    console.log(`  … ${(result.atMs / 1000).toFixed(1)} s  ${result.scene}`);
+    result = null;
+  }
 }
 await browser.close();
 
