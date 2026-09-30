@@ -1133,6 +1133,40 @@ export function createBriefingOverlay({
     });
   }
 
+  /*
+   * THE BOTTOM BAND BELONGS TO THE CAPTION AND THE CONTROLS. A chart is placed
+   * by its top edge, and grows as it builds (bars, a verdict banner, a larger
+   * type size on tall screens), so on a 1280x720 screen the damage and
+   * intensity charts ran down behind the caption and the control bar. Where a
+   * chart would overlap either, it is lifted until it clears them, never above
+   * the scene title.
+   */
+  const BAND_GAP = 10;
+  const TITLE_CLEAR = 0.19;
+  function liftedTop(wrap, top, left, info) {
+    const box = wrap.getBoundingClientRect();
+    if (!box.height) return top;
+    const origin = dom.getBoundingClientRect();
+    const blockers = [
+      document.querySelector('.brf-caption.is-visible .brf-caption__text'),
+      document.querySelector('.brf-controls'),
+    ]
+      .filter((node) => node && node.offsetParent !== null)
+      .map((node) => node.getBoundingClientRect())
+      .filter(
+        (rect) =>
+          rect.height &&
+          rect.left - origin.left < left + box.width &&
+          rect.right - origin.left > left,
+      );
+    if (!blockers.length) return top;
+    const limit =
+      Math.min(...blockers.map((rect) => rect.top - origin.top)) - BAND_GAP;
+    const bottom = top + box.height;
+    if (bottom <= limit) return top;
+    return Math.max(TITLE_CLEAR * info.height, limit - box.height);
+  }
+
   /** A screen-anchored DOM panel (a chart), sliding in. */
   function panel({
     id,
@@ -1153,8 +1187,10 @@ export function createBriefingOverlay({
       node,
       place(project, now, info) {
         const t = ease.out(progress(clock, t0, durationMs));
+        const left = Math.round(screen.x * info.width);
+        const top = liftedTop(wrap, screen.y * info.height, left, info);
         wrap.style.opacity = String(t * info.fadeOut);
-        wrap.style.transform = `translate(${Math.round(screen.x * info.width)}px, ${Math.round(screen.y * info.height + (1 - t) * 16)}px)`;
+        wrap.style.transform = `translate(${left}px, ${Math.round(top + (1 - t) * 16)}px)`;
         onPlace?.(project, now, info);
       },
       dispose() {
