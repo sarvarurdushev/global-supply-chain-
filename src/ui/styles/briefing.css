@@ -803,7 +803,8 @@
 }
 .brf-inspector__rows {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  /* Labels keep a fair share; a long value wraps instead of squeezing its label to a word a line. */
+  grid-template-columns: minmax(96px, 42%) minmax(0, 1fr);
   gap: 5px 12px;
   margin: 0;
   font-size: 10px;
