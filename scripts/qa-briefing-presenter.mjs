@@ -378,7 +378,13 @@ for (let i = 0; i < PRESSES; i += 1) {
       const e = b.director.state.entry;
       const ids = new Set(e.scene.keep ?? []);
       const add = (a) => {
-        if (a.type === 'layer.show') ids.add(a.id ?? a.layer);
+        if (a.type === 'layer.show')
+          ids.add(
+            a.id ??
+              (a.layer === 'population' && a.highHighOnly
+                ? 'population-hot'
+                : a.layer),
+          );
         else if (
           [
             'annotation.draw',
