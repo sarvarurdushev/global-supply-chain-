@@ -83,13 +83,22 @@ export const UNKNOWNS = defineScene({
           linesFrom: { fact: 'access.gaps', field: 'gap' },
           tag: { source: 'STAGES 5 AND 9', cls: 'DATA GAP' },
         },
+        /* Each gap lights what it is about as its line types: roads, hospitals, blockages. */
         {
-          at: 5200,
+          at: 1600,
           type: 'layer.show',
           layer: 'roads',
           majorOnly: true,
           centre: 'kathmandu',
           duration: 2400,
+        },
+        { at: 2600, type: 'layer.show', layer: 'hospitals', duration: 1600 },
+        {
+          at: 4400,
+          type: 'layer.show',
+          layer: 'blockages',
+          plain: true,
+          duration: 1600,
         },
       ],
     },
@@ -103,6 +112,7 @@ export const UNKNOWNS = defineScene({
       minHoldMs: 900,
       actions: [
         { at: 0, type: 'annotation.remove', id: 'gaps-card' },
+        { at: 0, type: 'layer.hide', layer: 'blockages' },
         { at: 0, type: 'layer.show', layer: 'damage', duration: 1400 },
         {
           at: 200,

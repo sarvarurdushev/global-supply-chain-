@@ -15,7 +15,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | 3 MIN EXECUTIVE | 11 | 26 | 02:44.6 | 02:30.7 | 13.1 s | 5.7 s |
 | 6 MIN BRIEFING | 18 | 58 | 06:01.7 | 05:32.8 | 14.1 s | 5.7 s |
-| FULL ANALYSIS | 40 | 108 | 12:07.4 | 11:09.1 | 14.1 s | 5.7 s |
+| FULL ANALYSIS | 40 | 108 | 12:07.0 | 11:08.7 | 14.1 s | 5.7 s |
 
 ## 3 MIN EXECUTIVE — running order
 
@@ -1463,23 +1463,23 @@ caption’s reading time sets the pace instead (3.2 words a second).
 
 - **SETUP** (landed instantly on entry, so a skip arrives in the right state): +0.0 s veil 0.16; +0.0 s show outline; +0.0 s show mask; +0.0 s fly to accessCentre · 900 km · pitch -76° · heading 0° · 3.0 s
 
-#### 11:10.4 — gaps · 8.5 s · FULL
+#### 11:10.4 — gaps · 8.1 s · FULL
 
 - **NARRATION** What this analysis cannot answer, and what would answer it.
 - **CAPTION** WHAT THE DATA CANNOT TELL US
 - **CAMERA** +0.2 s fly to accessCentre · 820 km · pitch -70° · heading 8° · 7.0 s
-- **MAP** +0.0 s veil 0.42; +5.2 s show roads
+- **MAP** +0.0 s veil 0.42; +1.6 s show roads; +2.6 s show hospitals; +4.4 s show blockages
 - **ANNOTATION** +0.5 s typed — DATA GAPS · STATED, NOT HIDDEN
 - **SOUND** +0.0 s reveal
 - **CLASS** none (no figure)
 - **LONGEST STILL** 0.0 s
 
-#### 11:18.9 — unmeasured · 10.1 s · FULL
+#### 11:18.5 — unmeasured · 10.1 s · FULL
 
 - **NARRATION** No travel times. Nothing about what a hospital could do. And no record of where damage was absent, only where it was found.
 - **CAPTION** NO TRAVEL TIMES · NO HOSPITAL CAPACITY · NO RECORD OF WHERE NOTHING WAS FOUND
 - **CAMERA** +0.2 s fly to damageCentre · 420 km · pitch -64° · heading -6° · 5.6 s
-- **MAP** +0.0 s show damage
+- **MAP** +0.0 s hide blockages; +0.0 s show damage
 - **ANNOTATION** +0.0 s remove gaps-card; +0.7 s typed — WHAT WOULD FILL THEM
 - **CLASS** none (no figure)
 - **LONGEST STILL** 3.4 s
@@ -1490,7 +1490,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 
 - **SETUP** (landed instantly on entry, so a skip arrives in the right state): +0.0 s veil 0.16; +0.0 s show outline; +0.0 s show mask; +0.0 s fly to nepal · 1100 km · pitch -80° · heading 0° · 3.0 s
 
-#### 11:29.0 — epicentre · 3.9 s · 3 / 6 / FULL
+#### 11:28.6 — epicentre · 3.9 s · 3 / 6 / FULL
 
 - **NARRATION** In short. A shallow magnitude 7.8 earthquake in Gorkha.
 - **CAPTION** M7.8 · GORKHA · 25 APR 2015
@@ -1501,7 +1501,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **CLASS** DERIVED · OBSERVED
 - **LONGEST STILL** 0.8 s
 
-#### 11:32.9 — shaking · 3.1 s · 3 / 6 / FULL
+#### 11:32.5 — shaking · 3.1 s · 3 / 6 / FULL
 
 - **NARRATION** 13.8 million people inside strong shaking.
 - **CAPTION** 13.84 M PEOPLE INSIDE MODELLED STRONG SHAKING
@@ -1512,7 +1512,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **CLASS** DERIVED
 - **LONGEST STILL** 0.0 s
 
-#### 11:36.0 — damage · 4.7 s · 3 / 6 / FULL
+#### 11:35.6 — damage · 4.7 s · 3 / 6 / FULL
 
 - **NARRATION** 4,583 damaged sites mapped. Half of them in 37 square kilometres.
 - **CAPTION** 4,583 DAMAGED SITES MAPPED · HALF IN 37 KM²
@@ -1523,7 +1523,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **CLASS** OBSERVED · STATISTIC
 - **LONGEST STILL** 1.6 s
 
-#### 11:40.7 — gap · 5.1 s · 3 / 6 / FULL
+#### 11:40.3 — gap · 5.1 s · 3 / 6 / FULL
 
 - **NARRATION** 4.9 million lived where no damage was recorded. A gap, not an absence.
 - **CAPTION** 4.94 M PEOPLE WHERE NO DAMAGE WAS RECORDED · A GAP, NOT AN ABSENCE
@@ -1534,7 +1534,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **CLASS** DATA GAP
 - **LONGEST STILL** 1.8 s
 
-#### 11:45.8 — network · 4.7 s · 3 / 6 / FULL
+#### 11:45.4 — network · 4.7 s · 3 / 6 / FULL
 
 - **NARRATION** Roads were cut in 179 places, and 5 bridges were out.
 - **CAPTION** 179 ROADS CUT · 5 BRIDGES OUT · 51 LANDSLIDES
@@ -1545,7 +1545,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **CLASS** OBSERVED
 - **LONGEST STILL** 1.4 s
 
-#### 11:50.5 — access · 6.4 s · 3 / 6 / FULL
+#### 11:50.1 — access · 6.4 s · 3 / 6 / FULL
 
 - **NARRATION** 86 thousand people lost every mapped road to a hospital. Ramechhap and Sindhuli are where to look first.
 - **CAPTION** 85,783 LOST EVERY MAPPED ROAD TO A HOSPITAL · LOOK FIRST: RAMECHHAP · SINDHULI
@@ -1555,7 +1555,7 @@ caption’s reading time sets the pace instead (3.2 words a second).
 - **CLASS** DERIVED · SCENARIO
 - **LONGEST STILL** 2.6 s
 
-#### 11:56.9 — close · 10.5 s · 3 / 6 / FULL
+#### 11:56.5 — close · 10.5 s · 3 / 6 / FULL
 
 - **NARRATION** What we know. What we infer. What we simulate. And what we still don’t know: travel times, hospital capacity, and where nothing was found.
 - **CAPTION** KNOWN · INFERRED · SIMULATED · AND STILL UNKNOWN
