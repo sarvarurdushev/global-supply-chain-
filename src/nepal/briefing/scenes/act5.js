@@ -505,6 +505,16 @@ export const SCENARIO_ACCESS = defineScene({
           tag: SCENARIO,
         },
         { at: 2200, type: 'audio.cue', cue: 'hit' },
+        /* Out to the whole study area: most of it did not change. */
+        {
+          at: 400,
+          type: 'camera.fly',
+          to: 'accessCentre',
+          rangeKm: 520,
+          pitch: -64,
+          heading: 4,
+          duration: 4200,
+        },
       ],
     },
     {
@@ -567,6 +577,16 @@ export const SCENARIO_ACCESS = defineScene({
             '{access.areaSummary.noBaselinePath|int} NO ROAD ROUTE, EVEN BEFORE · {access.areaSummary.offNetwork|int} OFF THE MAP',
           ],
           tag: SCENARIO,
+        },
+        /* Back out to all the named areas as the voice counts them. */
+        {
+          at: 7400,
+          type: 'camera.fly',
+          to: 'damageCentre',
+          rangeKm: 280,
+          pitch: -58,
+          heading: 4,
+          duration: 4200,
         },
         /* As the line lands on the damage areas, the diamonds answer it. */
         {
