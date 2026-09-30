@@ -1957,7 +1957,8 @@ export const LANDING_PLACES = defineScene({
           key: 'aerodromeCount',
           format: 'int',
           label: 'AIRFIELDS ON THE MAP',
-          screen: { x: 0.62, y: 0.2 },
+          /* Far enough left that its source tag clears the helipad count's. */
+          screen: { x: 0.54, y: 0.2 },
           size: 'lg',
           duration: 1400,
           tag: OSM,
