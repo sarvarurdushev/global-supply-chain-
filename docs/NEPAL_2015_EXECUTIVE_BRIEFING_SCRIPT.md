@@ -14,8 +14,8 @@ caption’s reading time sets the pace instead (3.2 words a second).
 | Run | Scenes | Beats | Voiced | Silent | Longest beat | Longest still stretch |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | 3 MIN EXECUTIVE | 11 | 26 | 02:44.6 | 02:37.4 | 13.1 s | 3.8 s |
-| 6 MIN BRIEFING | 18 | 58 | 06:01.7 | 05:39.6 | 14.1 s | 3.8 s |
-| FULL ANALYSIS | 40 | 108 | 12:07.1 | 11:21.8 | 14.1 s | 3.8 s |
+| 6 MIN BRIEFING | 18 | 58 | 06:01.7 | 05:43.2 | 14.1 s | 3.8 s |
+| FULL ANALYSIS | 40 | 108 | 12:07.1 | 11:25.5 | 14.1 s | 3.8 s |
 
 ## 3 MIN EXECUTIVE — running order
 
@@ -1280,29 +1280,31 @@ caption’s reading time sets the pace instead (3.2 words a second).
 
 - **NARRATION** Search again, over what still connects. 61.9 kilometres of road, and no hospital on any of it.
 - **CAPTION** SEARCH WHAT STILL CONNECTS: 61.9 KM OF ROAD · NO HOSPITAL
-- **CAMERA** +0.0 s fly to access.cut.frame · 1.7× its extent · pitch -60° · heading 0° · 3.2 s
+- **CAMERA** +0.0 s fly to access.cut.frame · 1.7× its extent · pitch -60° · heading 0° · 3.2 s; +3.4 s fly to access.cut.origin · 60 km · pitch -58° · heading 8° · 3.3 s
 - **MAP** +0.7 s show reachable
 - **ANNOTATION** +0.0 s remove cut-callout; +0.5 s pulse @ access.cut.origin; +4.3 s label @ access.cut.origin — 61.9 KM STILL CONNECTED · NO HOSPITAL
 - **SOUND** +0.7 s trace
 - **EVIDENCE** access.cut — OSM 2015 × DOHS 2010 × NGA · SCENARIO · record `access-example-route`
 - **CLASS** SCENARIO
-- **LONGEST STILL** 1.6 s
+- **LONGEST STILL** 0.1 s
 
 #### 09:27.9 — result · 5.5 s · 6 / FULL
 
 - **NARRATION** Result: disconnected. Unmapped tracks may exist, and air access is not modelled.
 - **CAPTION** RESULT: DISCONNECTED FROM EVERY MAPPED HOSPITAL
+- **CAMERA** +0.2 s fly to access.cut.origin · 42 km · pitch -55° · heading 16° · 4.4 s
 - **MAP** +0.0 s filter reachable → dim 0.6
 - **ANNOTATION** +0.3 s typed — DISCONNECTED / NO MAPPED ROAD ROUTE TO ANY HOSPITAL / UNMAPPED TRACKS MAY EXIST · AIR ACCESS NOT MODELLED
 - **SOUND** +0.3 s hit
-- **CLASS** none (no figure)
-- **LONGEST STILL** 2.9 s
+- **EVIDENCE** access.cut — OSM 2015 × DOHS 2010 × NGA · SCENARIO · record `access-example-route`
+- **CLASS** SCENARIO
+- **LONGEST STILL** 0.2 s
 
 #### 09:33.4 — detour · 8.4 s · 6 / FULL
 
 - **NARRATION** Elsewhere, the search finds a way round. In Okhaldhunga, 8.8 kilometres becomes 14.0.
 - **CAPTION** ELSEWHERE, A WAY ROUND: 8.8 KM BECOMES 14.0 KM
-- **CAMERA** +0.0 s fly to access.detour.frame · 1.9× its extent · pitch -60° · heading 0° · 3.4 s
+- **CAMERA** +0.0 s fly to access.detour.frame · 1.9× its extent · pitch -60° · heading 0° · 3.4 s; +5.4 s fly to access.detour.frame · 1.6× its extent · pitch -58° · heading 10° · 2.3 s
 - **MAP** +0.0 s hide hospital-candidates; +0.0 s hide reachable; +1.6 s trace route detour-before from access.detour.baseline.line; +3.6 s trace route detour-break from access.detour.investigation.split.afterCut (dashed); +4.6 s trace route detour-after from access.detour.scenario.line
 - **ANNOTATION** +0.0 s remove result-card; +0.0 s remove search-label; +0.0 s remove search-pulse; +0.0 s remove near-0; +0.0 s remove near-1; +0.0 s remove cut-hospital; +0.0 s remove before-km; +0.0 s remove origin-bracket; +0.0 s remove origin-pulse; +0.0 s remove nearest-pulse; +0.0 s remove cut-pulse; +0.6 s remove cut-before; +0.6 s remove cut-break; +3.4 s pulse @ access.detour.blockagesOnBaselineRoute.0; +6.8 s label @ access.detour.origin — +5.2 KM · A DETOUR
 - **SOUND** +4.6 s trace
@@ -1314,12 +1316,12 @@ caption’s reading time sets the pace instead (3.2 words a second).
 
 - **NARRATION** Across the whole area, the same search, place by place. Distances along mapped roads, not travel times, and nothing about what a hospital could do.
 - **CAPTION** DISTANCE ALONG MAPPED ROADS · NOT TRAVEL TIME · NOT HOSPITAL CAPACITY
-- **CAMERA** +0.0 s fly to accessCentre · 520 km · pitch -66° · heading 0° · 4.2 s
+- **CAMERA** +0.0 s fly to accessCentre · 520 km · pitch -66° · heading 0° · 4.2 s; +4.4 s fly to accessCentre · 470 km · pitch -62° · heading 8° · 5.2 s
 - **MAP** +2.4 s filter roads → dim 0.6; +2.6 s show cells-cut (categories 3); +4.8 s show cells-longer (categories 1, 2); +7.2 s filter roads → dim 1; +9.4 s show no-road
 - **ANNOTATION** +0.0 s remove detour-label; +0.0 s remove detour-cut; +1.8 s remove detour-before; +1.8 s remove detour-break; +1.8 s remove detour-after; +0.6 s typed — NO ROUTE AFTER: 85,783 PEOPLE / LONGER: 42,181 · MEDIAN +3.7 KM / NO CHANGE: 92.6 % OF PEOPLE NEAR A ROAD / NO MAPPED ROAD NEARBY: 1.84 M
 - **EVIDENCE** access.detours — OSM 2015 × DOHS 2010 × NGA · SCENARIO · record `access-hospital-distance`; access.hospital — OSM 2015 × DOHS 2010 × NGA · SCENARIO · record `access-hospital-distance`
 - **CLASS** SCENARIO
-- **LONGEST STILL** 1.2 s
+- **LONGEST STILL** 0.2 s
 
 ### 33 · Bridge failure what-if — Act V
 

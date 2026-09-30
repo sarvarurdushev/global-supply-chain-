@@ -958,6 +958,16 @@ export const RESCUE_ROUTE = defineScene({
           duration: 3600,
         },
         { at: 700, type: 'audio.cue', cue: 'trace' },
+        /* Watching it: after the network spread, 10 s passed with nothing moving. Close in on the place it strands. */
+        {
+          at: 3400,
+          type: 'camera.fly',
+          to: { fact: 'access.cut', path: ['origin'] },
+          rangeKm: 60,
+          pitch: -58,
+          heading: 8,
+          duration: 3300,
+        },
         {
           at: 4300,
           type: 'annotation.draw',
@@ -984,6 +994,15 @@ export const RESCUE_ROUTE = defineScene({
           layer: 'reachable',
           dim: 0.6,
           duration: 1000,
+        },
+        {
+          at: 200,
+          type: 'camera.fly',
+          to: { fact: 'access.cut', path: ['origin'] },
+          rangeKm: 42,
+          pitch: -55,
+          heading: 16,
+          duration: 4400,
         },
         {
           at: 300,
@@ -1091,6 +1110,16 @@ export const RESCUE_ROUTE = defineScene({
           dx: 30,
           dy: -26,
         },
+        /* A slow turn over the finished detour, so the last line does not sit on a frozen map. */
+        {
+          at: 5400,
+          type: 'camera.fly',
+          to: { fact: 'access.detour', path: ['frame'] },
+          spanFactor: 1.6,
+          pitch: -58,
+          heading: 10,
+          duration: 2300,
+        },
       ],
     },
     {
@@ -1111,6 +1140,16 @@ export const RESCUE_ROUTE = defineScene({
           pitch: -66,
           heading: 0,
           duration: 4200,
+        },
+        /* Then a slow pass over the whole area while the caveats are read. */
+        {
+          at: 4400,
+          type: 'camera.fly',
+          to: 'accessCentre',
+          rangeKm: 470,
+          pitch: -62,
+          heading: 8,
+          duration: 5200,
         },
         { at: 0, type: 'annotation.remove', id: 'detour-label' },
         { at: 0, type: 'annotation.remove', id: 'detour-cut' },
