@@ -1006,6 +1006,14 @@ export function createBriefingStage({
           .filter(
             (item) => !(rowsFrom.exclude ?? []).includes(item[rowsFrom.label]),
           )
+          /* `orderBy: 'label'` reads dates in time order; otherwise the artefact's order. */
+          .sort((a, b) =>
+            rowsFrom.orderBy === 'label'
+              ? String(a[rowsFrom.label]).localeCompare(
+                  String(b[rowsFrom.label]),
+                )
+              : 0,
+          )
           .slice(0, rowsFrom.limit ?? Infinity)
           .map((item) => ({
             /* `labels` renames an artefact's keys for the screen; the values stay the artefact's. */

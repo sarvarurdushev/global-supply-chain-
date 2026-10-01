@@ -388,6 +388,10 @@ export function createLegendChart({ clock, title, tag, rows }) {
   const head = div('brf-chart__head', null, node);
   div('brf-chart__title', title, head);
   if (tag) head.append(tag);
+  node.style.setProperty(
+    '--brf-legend-chars',
+    String(Math.max(...rows.map((row) => String(row.label).length), 1)),
+  );
   const items = rows.map((row) => {
     const line = div('brf-legend__row', null, node);
     const kind = row.glyph
@@ -446,6 +450,11 @@ export function createBarsChart({
   if (tag) head.append(tag);
   const verdict = verdictLine(clock, node, null);
   const max = Math.max(...rows.map((row) => row.value), 1);
+  /* Every row is its own grid: the label column is sized once, from the longest label. */
+  node.style.setProperty(
+    '--brf-bars-chars',
+    String(Math.max(...rows.map((row) => String(row.label).length), 1)),
+  );
   const items = rows.map((row) => {
     const line = div('brf-bars__row', null, node);
     div('brf-bars__label', row.label, line);

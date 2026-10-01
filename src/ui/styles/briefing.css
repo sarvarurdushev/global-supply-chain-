@@ -66,8 +66,8 @@
   inset: -70px -180px -46px -60px;
   background: radial-gradient(
     ellipse at 0% 20%,
-    rgba(2, 8, 10, 0.82) 0%,
-    rgba(2, 8, 10, 0.55) 45%,
+    rgba(2, 8, 10, 0.9) 0%,
+    rgba(2, 8, 10, 0.62) 45%,
     rgba(2, 8, 10, 0) 75%
   );
   pointer-events: none;
@@ -111,7 +111,7 @@
 .brf-caption__text {
   display: inline-block;
   padding: 10px 18px;
-  background: rgba(3, 9, 11, 0.72);
+  background: rgba(3, 9, 11, 0.86);
   border-left: 2px solid var(--gx-green);
   font-size: clamp(17px, 2.5vh, 30px);
   letter-spacing: 0.12em;
@@ -132,15 +132,23 @@
   align-items: center;
   gap: 6px;
   padding: 6px 8px;
-  background: rgba(3, 9, 11, 0.78);
+  background: rgba(3, 9, 11, 0.9);
   border: 1px solid rgba(34, 217, 127, 0.28);
   pointer-events: auto;
-  opacity: 0.72;
-  transition: opacity 0.2s ease;
+  /*
+   * The buttons recede while presenting; the bar's background does not, or
+   * bright map marks (population dots, hospitals) show through behind them.
+   * Each child multiplies this into its own opacity (toggles, disabled).
+   */
+  --brf-dim: 0.72;
 }
 .brf-controls:hover,
 .brf-controls:focus-within {
-  opacity: 1;
+  --brf-dim: 1;
+}
+.brf-controls > * {
+  opacity: var(--brf-dim);
+  transition: opacity 0.2s ease;
 }
 .brf-root:not(.is-running) .brf-controls,
 .brf-root:not(.is-running) .brf-progress,
@@ -162,7 +170,7 @@
   color: var(--gx-neon);
 }
 .brf-btn:disabled {
-  opacity: 0.35;
+  opacity: calc(0.35 * var(--brf-dim, 1));
   cursor: default;
 }
 .brf-btn--primary {
@@ -171,10 +179,10 @@
   min-width: 96px;
 }
 .brf-btn--toggle {
-  opacity: 0.55;
+  opacity: calc(0.55 * var(--brf-dim, 1));
 }
 .brf-btn--toggle.is-on {
-  opacity: 1;
+  opacity: var(--brf-dim, 1);
   border-color: var(--gx-green-dim);
 }
 .brf-volume {
@@ -575,7 +583,10 @@
 }
 .brf-legend__row {
   display: grid;
-  grid-template-columns: 12px 116px 1fr;
+  /* As the bars: the label column fits the longest label, never under 116px. */
+  grid-template-columns:
+    12px max(116px, calc(var(--brf-legend-chars, 8) * (1ch + 0.12em)))
+    1fr;
   gap: 10px;
   align-items: center;
   margin-top: 5px;
@@ -716,7 +727,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .brf-caption,
-  .brf-controls {
+  .brf-controls > * {
     transition: none;
   }
 }
@@ -742,7 +753,10 @@
 
 .brf-bars__row {
   display: grid;
-  grid-template-columns: 92px auto 72px;
+  /* A monospace character is 1ch plus the letter-spacing; never under 92px. */
+  grid-template-columns:
+    max(92px, calc(var(--brf-bars-chars, 8) * (1ch + 0.12em)))
+    auto 72px;
   gap: 10px;
   align-items: center;
   margin-top: 5px;

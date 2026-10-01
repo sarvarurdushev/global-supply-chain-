@@ -1225,6 +1225,23 @@ export function createBriefingOverlay({
     };
     let x = Math.min(Math.max(left, EDGE), info.width - w - EDGE);
     let y = Math.max(top, EDGE);
+    /*
+     * Nor on a chart or a key. A place under a chart put its callout over the
+     * chart's title and verdict (scene 18's Manbu and Sundar Bazar): the box
+     * goes beside the panel, on the side it was meant for if there is room.
+     */
+    for (const node of dom.querySelectorAll('.brf-panel')) {
+      const p = rel(node);
+      if (!p || Number(node.style.opacity || 1) < 0.05) continue;
+      if (x >= p.r || x + w <= p.l || y >= p.b || y + h <= p.t) continue;
+      const right = p.r + EDGE;
+      const leftOf = p.l - w - EDGE;
+      const fitsRight = right + w <= info.width - EDGE;
+      const fitsLeft = leftOf >= EDGE;
+      const wantsRight = x + w / 2 >= (p.l + p.r) / 2;
+      if (fitsRight && (wantsRight || !fitsLeft)) x = right;
+      else if (fitsLeft) x = leftOf;
+    }
     const heading = rel(document.querySelector('.brf-heading'));
     if (heading && x < heading.r && x + w > heading.l && y < heading.b)
       y = heading.b + EDGE;
