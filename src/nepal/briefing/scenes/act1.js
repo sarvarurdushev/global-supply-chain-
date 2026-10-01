@@ -12,10 +12,8 @@ const ALL = [RUNS.THREE, RUNS.SIX, RUNS.FULL];
 const SIX_FULL = [RUNS.SIX, RUNS.FULL];
 
 const USGS = { source: 'USGS', cls: 'OBSERVED' };
-const SHAKEMAP = {
-  source: 'USGS SHAKEMAP · MODELLED INTENSITY',
-  cls: 'OBSERVED',
-};
+/* ShakeMap intensity is a model run on the recordings, so it wears MODELLED, as the legend does. */
+const SHAKEMAP = { source: 'USGS SHAKEMAP', cls: 'MODELLED' };
 
 export const INCOMING = defineScene({
   id: 'incoming',
