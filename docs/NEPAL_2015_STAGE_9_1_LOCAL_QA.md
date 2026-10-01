@@ -46,8 +46,8 @@ Press **6 MIN BRIEFING** and start a stopwatch. Don't touch anything. Landmarks:
 | 3:05  | Road blockages and the network in pieces                                                                          |
 | 3:34  | Hospital access before, then (4:01) with the blockages                                                            |
 | 4:37  | **Rescue route**: the need, the hospitals, a straight-line guess, the road route, the cut, the search, the result |
-| 5:23  | **Executive summary**: six recap lines, then _what we know / infer / simulate / still don't know_                 |
-| ≈6:03 | The run ends on the four-part card                                                                                |
+| 5:24  | **Executive summary**: six recap lines, then _what we know / infer / simulate / still don't know_                 |
+| ≈6:04 | The run ends on the four-part card                                                                                |
 
 These are scene starts measured by `scripts/qa-briefing-runtime.mjs` (the director played hands off in a
 browser, with the QA stand-in voice at 2.5 words a second). A real voice speaks at its own pace, so
@@ -73,7 +73,7 @@ picture.
 
 ## 4. Health access and the rescue route (1 minute)
 
-Jump there with NEXT, or let the 6-minute run reach 4:30. Watch in order:
+Jump there with NEXT, or let the 6-minute run reach 4:37. Watch in order:
 
 1. the green road route draws from the need to the nearest hospital by road;
 2. a red break appears at the observed blockage;
@@ -85,7 +85,7 @@ each step reads before the next one starts.
 
 ## 5. Executive summary (40 seconds)
 
-From 5:17: six short recap lines appear one after another as the camera moves Gorkha → shaking →
+From 5:24: six short recap lines appear one after another as the camera moves Gorkha → shaking →
 damage → Sindhupalchok → network → hospital access, then the closing four-part card. Check that every
 recap line is readable from the back of the room, and that nothing is still on screen from the scene
 before.
