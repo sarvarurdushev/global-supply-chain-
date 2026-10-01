@@ -485,7 +485,12 @@ export const EVIDENCE_ARRIVES = defineScene({
           id: 'date-bars',
           title: 'MAPPED SITES BY IMAGE DATE',
           screen: { x: 0.03, y: 0.6 },
-          rowsFrom: { fact: 'damage.byDate', label: 'key', value: 'value' },
+          rowsFrom: {
+            fact: 'damage.byDate',
+            label: 'key',
+            value: 'value',
+            orderBy: 'label',
+          },
         },
         { at: 700, type: 'chart.update', id: 'date-bars', op: 'revealAll' },
         {
@@ -635,8 +640,9 @@ export const DESTROYED_AREAS = defineScene({
           title: 'MANBU AREA',
           lines: ['{damage.areaManbu|int} MAPPED SITES', 'ALL FOUR CLASSES'],
           tag: UNOSAT,
+          /* Level with the place: up-right, it covered the 2,084 figure's source tag. */
           dx: 150,
-          dy: -80,
+          dy: 20,
         },
         {
           at: 1200,
@@ -1481,6 +1487,7 @@ export const FACILITY_DATA = defineScene({
             path: ['codClinicalByTier'],
             label: 'key',
             value: 'value',
+            labels: { HEALTH_POST: 'HEALTH POST' },
           },
         },
         { at: 1300, type: 'chart.update', id: 'tier-bars', op: 'revealAll' },
@@ -1591,9 +1598,9 @@ export const FACILITY_MAP = defineScene({
     },
     {
       id: 'grey',
-      caption: 'GREY CROSSES: HOSPITALS THE ROUTING CANNOT REACH',
+      caption: 'FRAMED IN AMBER: HOSPITALS THE ROUTING CANNOT REACH',
       narration:
-        'They are drawn grey. The routing cannot reach them. That says as much about the map as about the hospitals.',
+        'They are framed in amber. The routing cannot reach them. That says as much about the map as about the hospitals.',
       minHoldMs: 700,
       actions: [
         { at: 0, type: 'annotation.remove', id: 'off-net' },

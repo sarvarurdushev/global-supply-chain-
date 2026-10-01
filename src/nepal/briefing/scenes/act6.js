@@ -77,7 +77,7 @@ export const UNKNOWNS = defineScene({
           kind: 'typed',
           id: 'gaps-card',
           duration: 4200,
-          screen: { x: 0.08, y: 0.16 },
+          screen: { x: 0.08, y: 0.2 },
           className: 'brf-typed brf-typed--data',
           lines: ['DATA GAPS · STATED, NOT HIDDEN'],
           linesFrom: { fact: 'access.gaps', field: 'gap' },
@@ -130,7 +130,7 @@ export const UNKNOWNS = defineScene({
           kind: 'typed',
           id: 'infra-gaps',
           duration: 3600,
-          screen: { x: 0.08, y: 0.16 },
+          screen: { x: 0.08, y: 0.2 },
           className: 'brf-typed brf-typed--data',
           lines: ['WHAT WOULD FILL THEM'],
           linesFrom: {

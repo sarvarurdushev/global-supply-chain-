@@ -391,14 +391,18 @@ export const MODEL_VS_OBSERVATION = defineScene({
       minHoldMs: 1200,
       actions: [
         { at: 0, type: 'layer.filter', layer: 'bands', highlight: 7.5 },
+        /*
+         * Manbu and Sundar Bazar lie west of the damage centre, under the chart
+         * on the left: framed on Tanahu, both sit right of it with their callouts.
+         */
         {
-          at: 5200,
+          at: 600,
           type: 'camera.fly',
-          to: 'area:Manbu Area',
-          rangeKm: 150,
-          pitch: -58,
-          heading: -10,
-          duration: 3400,
+          to: 'district:tanahu',
+          rangeKm: 380,
+          pitch: -60,
+          heading: 0,
+          duration: 4600,
         },
         {
           at: 8800,
@@ -410,10 +414,10 @@ export const MODEL_VS_OBSERVATION = defineScene({
         {
           at: 9000,
           type: 'camera.fly',
-          to: 'damageCentre',
-          rangeKm: 320,
+          to: 'district:tanahu',
+          rangeKm: 340,
           pitch: -60,
-          heading: 0,
+          heading: 4,
           duration: 3600,
         },
         { at: 11200, type: 'layer.filter', layer: 'bands', highlight: null },
@@ -449,8 +453,8 @@ export const MODEL_VS_OBSERVATION = defineScene({
             'MMI {damage.manbu.bands.1.mmi|dec1}: {damage.manbu.bands.1.destroyedSharePercent|pct1} DESTROYED',
           ],
           tag: STAT,
-          dx: -250,
-          dy: -70,
+          dx: 150,
+          dy: -110,
           tone: 'caveat',
         },
         {
@@ -465,8 +469,9 @@ export const MODEL_VS_OBSERVATION = defineScene({
             'MMI {damage.sundarBazar.bands.1.mmi|dec1}: {damage.sundarBazar.bands.1.destroyedSharePercent|pct1} DESTROYED',
           ],
           tag: STAT,
-          dx: 150,
-          dy: 90,
+          /* Below and right of the place, clear of the Kathmandu label and its damage. */
+          dx: 90,
+          dy: 160,
           tone: 'caveat',
         },
         {
