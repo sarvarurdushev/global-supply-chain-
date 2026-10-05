@@ -145,7 +145,7 @@ analysis artefact.
 
 - **Plain:** How strong a link is, from 0 (none) to 1 (total). About 0.1–0.2 is weak.
 - **Technical:** V = √(χ² / (n·(k − 1))), k = min(rows, columns). Reported with χ², degrees of freedom and p in the provenance panel.
-- **First explained:** 3 MIN EXECUTIVE: 18 Model versus observation · statistic; 6 MIN BRIEFING: 18 Model versus observation · statistic; FULL ANALYSIS: 18 Model versus observation · statistic
+- **First explained:** glossary only (no beat shows it)
 
 ### GINI — Gini concentration coefficient
 
@@ -157,7 +157,7 @@ analysis artefact.
 
 - **Plain:** How likely a pattern this strong would be if there were no real link. Tiny means “not chance” — not “strong”.
 - **Technical:** Probability of a test statistic at least as extreme under the null hypothesis.
-- **First explained:** 3 MIN EXECUTIVE: 18 Model versus observation · statistic; 6 MIN BRIEFING: 18 Model versus observation · statistic; FULL ANALYSIS: 18 Model versus observation · statistic
+- **First explained:** glossary only (no beat shows it)
 
 ### R² — Coefficient of determination
 

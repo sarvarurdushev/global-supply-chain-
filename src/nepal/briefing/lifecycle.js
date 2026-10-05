@@ -118,8 +118,13 @@ export function lifecycle(plan) {
     if (gone) live.delete(gone);
     const obj = objectOf(action);
     if (!obj?.id) return;
+    /* The question card removes itself after its hold: it never outlives its beat. */
     const policy =
-      action.until === 'beat' ? 'CLEAR' : live.has(obj.id) ? 'REPLACE' : 'FADE';
+      action.until === 'beat' || action.type === 'question.show'
+        ? 'CLEAR'
+        : live.has(obj.id)
+          ? 'REPLACE'
+          : 'FADE';
     live.set(obj.id, { ...obj, policy, from });
   }
 }

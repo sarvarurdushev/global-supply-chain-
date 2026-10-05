@@ -122,10 +122,13 @@ export const COMPOSITION = defineScene({
     },
     {
       id: 'severe',
-      caption: '{damage.severe|int} SEVERE',
-      narration: '{damage.severe|int} severe.',
+      caption:
+        '{damage.severe|int} SEVERE · {damage.moderate|int} MODERATE · {damage.possible|int} POSSIBLE',
+      narration:
+        '{damage.severe|int} severe. {damage.moderate|int} moderate. {damage.possible|int} possible.',
       runs: SIX_FULL,
       minHoldMs: 300,
+      /* Each class lights as it is named (times from the rendered voice). */
       actions: [
         {
           at: 0,
@@ -144,19 +147,8 @@ export const COMPOSITION = defineScene({
           duration: 700,
         },
         { at: 0, type: 'annotation.remove', id: 'manbu' },
-      ],
-    },
-    {
-      id: 'moderate-possible',
-      caption:
-        '{damage.moderate|int} MODERATE · {damage.possible|int} POSSIBLE',
-      narration:
-        '{damage.moderate|int} moderate. {damage.possible|int} possible.',
-      runs: SIX_FULL,
-      minHoldMs: 300,
-      actions: [
         {
-          at: 0,
+          at: 2400,
           type: 'chart.update',
           id: 'composition',
           op: 'reveal',
@@ -164,7 +156,7 @@ export const COMPOSITION = defineScene({
           duration: 1100,
         },
         {
-          at: 0,
+          at: 2400,
           type: 'layer.filter',
           layer: 'damage',
           classes: [2],
@@ -172,7 +164,7 @@ export const COMPOSITION = defineScene({
           duration: 600,
         },
         {
-          at: 1500,
+          at: 4300,
           type: 'chart.update',
           id: 'composition',
           op: 'reveal',
@@ -180,7 +172,7 @@ export const COMPOSITION = defineScene({
           duration: 900,
         },
         {
-          at: 1500,
+          at: 4300,
           type: 'layer.filter',
           layer: 'damage',
           classes: [3],
@@ -263,7 +255,7 @@ export const MODEL_VS_OBSERVATION = defineScene({
           at: 0,
           type: 'question.show',
           text: 'DID STRONGER SHAKING MEAN MORE SEVERE DAMAGE?',
-          duration: 2600,
+          duration: 2200,
           holdMs: 900,
         },
         { at: 0, type: 'audio.cue', cue: 'tick' },
@@ -272,7 +264,7 @@ export const MODEL_VS_OBSERVATION = defineScene({
           type: 'layer.show',
           layer: 'bands',
           minMmi: 7,
-          duration: 3800,
+          duration: 3000,
         },
       ],
     },
@@ -359,8 +351,8 @@ export const MODEL_VS_OBSERVATION = defineScene({
           lines: [
             'INDEPENDENCE TEST · χ²',
             'χ² = {damage.independence.statistic|dec1} · DF {damage.independence.df|int}',
-            'P = {damage.independence.p|sci}',
-            'ASSOCIATION DETECTABLE',
+            'P = {damage.independence.p|sci} · FAR TOO SMALL TO BE CHANCE',
+            'SO THE LINK IS REAL · NOT THAT IT IS STRONG',
           ],
         },
         {
@@ -370,15 +362,18 @@ export const MODEL_VS_OBSERVATION = defineScene({
           fact: 'damage.independence',
           key: 'cramersV',
           format: 'dec3',
-          label: 'CRAMÉR’S V · A SMALL EFFECT',
+          label: 'CRAMÉR’S V · 0 = NO LINK, 1 = TOTAL · THIS IS SMALL',
           screen: { x: 0.62, y: 0.46 },
           size: 'xl',
           duration: 1600,
           tag: STAT,
         },
-        /* First what "chance cannot explain it" means, then how strong the link is. */
-        { at: 300, type: 'term.show', term: 'pValue', holdMs: 3600 },
-        { at: 4000, type: 'term.show', term: 'cramersV' },
+        /*
+         * No term chip here: the chart, the test card and the counter fill the
+         * frame. The two terms are explained where they are read instead — the
+         * card says what the p-value means, the counter's label what V's scale
+         * is — and in full in the technical layer and the glossary.
+         */
         { at: 3600, type: 'audio.cue', cue: 'reveal' },
         /* The chart says it too, over the bars the statistic is about. */
         {
@@ -424,6 +419,13 @@ export const MODEL_VS_OBSERVATION = defineScene({
           mmi: 7.5,
         },
         { at: 0, type: 'annotation.remove', id: 'chi' },
+        {
+          at: 2400,
+          type: 'chart.update',
+          id: 'intensity',
+          op: 'verdict',
+          text: 'NOT A STRAIGHT LINE · THE SHARE DROPS AT MMI {damage.byIntensity.1.mmi}',
+        },
         /* The verdict and the caption carry the figure now; the callouts need the space. */
         { at: 0, type: 'annotation.remove', id: 'cramer' },
         {
@@ -476,7 +478,7 @@ export const MODEL_VS_OBSERVATION = defineScene({
           type: 'chart.update',
           id: 'intensity',
           op: 'verdict',
-          text: 'NOT A STRAIGHT LINE · WHERE SATELLITES LOOKED MATTERS',
+          text: 'WHERE SATELLITES LOOKED MATTERS AS MUCH AS THE SHAKING',
         },
         {
           at: 600,
@@ -835,6 +837,8 @@ export const COVERAGE_GAP = defineScene({
         'NO RECORD IS NOT NO DAMAGE · THE PRODUCT LISTS ONLY WHAT IT FOUND',
       narration:
         'No record is not no damage. The product lists only what it found, not where it looked.',
+      /* The sentence turns on one word; said a little slower. */
+      prosody: { 0: { emphasis: ['is not'], rate: 0.95 } },
       minHoldMs: 700,
       actions: [
         { at: 0, type: 'annotation.remove', id: 'unrecorded-count' },

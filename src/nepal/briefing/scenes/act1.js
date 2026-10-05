@@ -93,7 +93,7 @@ export const INCOMING = defineScene({
           to: 'epicentre',
           rangeKm: 7500,
           pitch: -90,
-          duration: 3600,
+          duration: 3000,
         },
         {
           at: 2600,
@@ -255,12 +255,12 @@ export const LOCATE = defineScene({
         },
         { at: 2000, type: 'term.show', term: 'USGS' },
         {
-          at: 3700,
+          at: 3400,
           type: 'camera.fly',
           to: 'epicentre',
           rangeKm: 900,
           pitch: -68,
-          duration: 3200,
+          duration: 2800,
         },
       ],
     },
@@ -308,6 +308,8 @@ export const MAIN_SHOCK = defineScene({
       id: 'magnitude',
       caption: 'MAGNITUDE {quake.magnitude|dec1}',
       narration: 'Magnitude {quake.magnitude|dec1}.',
+      /* The figure lands before the next line. */
+      prosody: { 0: { pauseAfter: 400 } },
       minHoldMs: 600,
       actions: [
         {
@@ -468,7 +470,7 @@ export const SHAKING = defineScene({
           heading: 0,
           duration: 3200,
         },
-        { at: 300, type: 'layer.show', layer: 'bands', duration: 5200 },
+        { at: 300, type: 'layer.show', layer: 'bands', duration: 4400 },
         { at: 300, type: 'audio.cue', cue: 'trace' },
         { at: 1200, type: 'term.show', term: 'ShakeMap' },
         /* The camera follows the shaking east while the outer bands finish. */
@@ -514,7 +516,7 @@ export const SHAKING = defineScene({
           rangeKm: 980,
           pitch: -64,
           heading: 2,
-          duration: 8000,
+          duration: 7000,
         },
         /* The distinction, on screen while it is said: one number, against a map of numbers. */
         {
@@ -548,9 +550,9 @@ export const SHAKING = defineScene({
           op: 'focus',
           index: 0,
         },
-        { at: 9900, type: 'layer.filter', layer: 'bands', highlight: null },
+        { at: 9100, type: 'layer.filter', layer: 'bands', highlight: null },
         {
-          at: 9900,
+          at: 9100,
           type: 'chart.update',
           id: 'mmi-legend',
           op: 'focus',
@@ -937,6 +939,8 @@ export const SECOND_SHOCK = defineScene({
       caption: 'NOT ONE EVENT · A SEQUENCE, AND IT WAS NOT OVER',
       narration:
         'So this was not one event. It was a sequence, and it was not over.',
+      /* A beat between the two halves; the stress on what is still to come. */
+      prosody: { 0: { pauseAfter: 300 }, 1: { emphasis: ['not over'] } },
       minHoldMs: 600,
       actions: [
         { at: 0, type: 'annotation.remove', id: 'second-where' },

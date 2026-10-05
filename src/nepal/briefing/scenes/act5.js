@@ -220,7 +220,7 @@ export const BASELINE_ACCESS = defineScene({
           rangeKm: 280,
           pitch: -60,
           heading: -8,
-          duration: 4200,
+          duration: 3200,
         },
         {
           at: 4400,
@@ -1003,6 +1003,8 @@ export const RESCUE_ROUTE = defineScene({
       caption: 'RESULT: DISCONNECTED FROM EVERY MAPPED HOSPITAL',
       narration:
         'Result: one blockage cut this place off from every mapped hospital. Unmapped tracks may exist; air access is not modelled.',
+      /* The cause carries the stress; the caveat is set apart. */
+      prosody: { 0: { emphasis: ['one blockage'] }, 1: { pauseBefore: 250 } },
       minHoldMs: 700,
       actions: [
         {

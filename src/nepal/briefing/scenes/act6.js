@@ -389,6 +389,8 @@ export const SUMMARY = defineScene({
       caption: 'KNOWN · INFERRED · SIMULATED · AND STILL UNKNOWN',
       narration:
         'What we know. What we infer. What we simulate. And what we still don’t know: travel times, hospital capacity, and where nothing was found.',
+      /* The unknowns, set apart and unhurried. */
+      prosody: { 3: { pauseBefore: 400, rate: 0.95 } },
       minHoldMs: 900,
       actions: [
         ...[1, 2, 3, 4, 5, 6].map((n) => ({
@@ -417,7 +419,7 @@ export const SUMMARY = defineScene({
           rangeKm: 1020,
           pitch: -76,
           heading: 5,
-          duration: 5000,
+          duration: 4200,
         },
         { at: 400, type: 'veil', opacity: 0.45, duration: 2400 },
         {
