@@ -839,13 +839,15 @@ export const SECOND_SHOCK = defineScene({
   music: 'mainshock',
   keep: ['outline', 'mask', 'epi-pulse', 'ktm', 'events', 'timecard'],
   /*
-   * No seek here: the jump from the first day to the seventeenth happens in
-   * the beat, on screen, with the clock running. (In 9.1 the setup jumped
-   * the timeline to day 7 invisibly, and "17 days later" was only a phrase.)
+   * The setup only puts the timeline at day 1; the jump to the seventeenth
+   * happens in the beat, on screen, with the clock running. (In 9.1 the
+   * setup jumped to day 7 invisibly, and "17 days later" was only a phrase.)
    */
   setup: [
     ...sequenceBase,
     { type: 'layer.show', layer: 'events', hour: 24 },
+    /* From scene 07's whole year (FULL), back to day 1 at the cut; the six-minute run is already there. */
+    { type: 'timeline.seek', layer: 'events', toHour: 24 },
     TIME_CARD,
     {
       type: 'camera.fly',

@@ -18,8 +18,17 @@
  *    the new beat, and no object from another scene may be left drawn.
  * 3. PAUSE — mid-sentence: silence and a frozen clock; PLAY says the
  *    interrupted sentence again from its start.
- * 4. VOICE OFF — nothing is spoken and the captions carry the run.
+ * 4. VOICE MUTED — every line is silent, the run keeps its voiced pace,
+ *    and the captions carry it.
  * 5. CAPTIONS OFF, VOICE ON — no caption, and the voice goes on.
+ *
+ * Sections 1–5 run against the SYSTEM tier: the neural clip manifest is
+ * withheld, exactly as when the clips are missing. Section 6 (Stage 9.2)
+ * lets it load and checks the NEURAL tier and the score: the neural voice
+ * is the default and says so, NEXT stops a clip at once, PAUSE silences
+ * everything, a clip that fails falls back to the system voice for that
+ * sentence only, the music follows the act and the main shock's cue plays,
+ * and the music ducks under the voice.
  *
  * Usage (production build: npm run build && npm run preview):
  *   node scripts/qa-briefing-presenter.mjs --url http://localhost:4173 [--presses 30] [--seed 7]
@@ -30,6 +39,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import puppeteer from 'puppeteer';
+import { fillTemplate } from '../src/nepal/briefing/facts.js';
+import { BRIEFING_SCENES } from '../src/nepal/briefing/scenes/index.js';
+import { clipKey, sentencePlan } from '../src/nepal/briefing/speech.js';
+import { loadBriefingBook } from './generate-briefing-script.mjs';
 
 const args = process.argv.slice(2);
 const getOpt = (flag, fallback) => {
@@ -119,6 +132,7 @@ function installSpeechEngine() {
       t: performance.now(),
       text: u.text,
       voice: u.voice?.name ?? null,
+      volume: u.volume,
     });
     u.onstart?.({ utterance: u });
     tick();
@@ -218,6 +232,18 @@ const browser = await puppeteer.launch({
 const page = await browser.newPage();
 await page.setViewport({ width: 1280, height: 720 });
 await page.evaluateOnNewDocument(installSpeechEngine);
+/* Sections 1–5: the system tier. Section 6 lifts this, and withholds one clip on purpose. */
+let withholdManifest = true;
+let withheldClip = null;
+await page.setRequestInterception(true);
+page.on('request', (request) => {
+  const url = request.url();
+  if (withholdManifest && url.endsWith('/audio/narration/manifest.json'))
+    return request.respond({ status: 404, body: 'withheld for the system-tier checks' });
+  if (withheldClip && url.endsWith(`/${withheldClip}.mp3`))
+    return request.respond({ status: 404, body: 'withheld to test the fallback' });
+  return request.continue();
+});
 const errors = [];
 page.on('console', (m) => {
   if (m.type() === 'error') errors.push(m.text().slice(0, 300));
@@ -493,7 +519,7 @@ check(
   pauseResult?.again,
 );
 
-/* ------------------------------------------------------------ 4. voice off */
+/* ------------------------------------------------------------ 4. voice muted */
 
 /*
  * A fresh page for the audio modes: after the chaos section, software WebGL
@@ -512,6 +538,7 @@ const voiceOff = await page.evaluate(async () => {
   const sp = window.__speech;
   const b = window.__godsEyeView.nepalCase.briefing;
   const n0 = sp.log.started.length;
+  const status = b.narrator.status.label;
   const i0 = b.director.state.index;
   const captions = [];
   const t0 = performance.now();
@@ -523,8 +550,11 @@ const voiceOff = await page.evaluate(async () => {
     );
   }
   /* A caption may be blank for the instant between two beats; what matters is that each beat's caption appeared. */
+  const lines = sp.log.started.slice(n0);
   return {
-    spoken: sp.log.started.length - n0,
+    status,
+    lines: lines.length,
+    audible: lines.filter((l) => l.volume > 0).length,
     moved: b.director.state.index - i0,
     captions: [...new Set(captions.filter(Boolean))],
   };
@@ -535,8 +565,9 @@ await page.screenshot({
   quality: 70,
 });
 check(
-  'VOICE OFF: nothing is spoken, the run goes on, the captions carry it',
-  voiceOff.spoken === 0 &&
+  'VOICE MUTED: every line is silent, the run keeps going at its pace, the captions carry it',
+  /MUTED/.test(voiceOff.status) &&
+    voiceOff.audible === 0 &&
     voiceOff.moved >= 2 &&
     voiceOff.captions.filter(Boolean).length >= 2,
   voiceOff,
@@ -583,6 +614,110 @@ check(
   ccOff,
 );
 await clickControl('CC');
+
+/* ------------------------------------------------------------ 6. neural voice and score */
+
+withholdManifest = false;
+/* The main shock's line ("Magnitude 7.8.") will fail to load: its fallback is checked. */
+{
+  const book = loadBriefingBook();
+  const beat = BRIEFING_SCENES.find((scene) => scene.id === 'main-shock').beats.find((b) => b.id === 'magnitude');
+  const [sentence] = sentencePlan(fillTemplate(beat.narration, book), beat.prosody);
+  withheldClip = clipKey('af_heart', sentence);
+}
+await openApp();
+const neural = await page.evaluate(() => {
+  const n = window.__godsEyeView.nepalCase.briefing.narrator;
+  return { id: n.voiceId, status: n.status, options: n.voices.slice(0, 3).map((v) => v.tier) };
+});
+check(
+  'with the clips present, the neural voice is the default and says so',
+  /^neural:/.test(neural.id) && neural.status.label === 'VOICE · HIGH-QUALITY LOCAL MODEL' && neural.options[0] === 'NEURAL',
+  neural,
+);
+await startRun('6 MIN BRIEFING');
+await sleep(4000);
+const playing = await page.evaluate(async () => {
+  const b = window.__godsEyeView.nepalCase.briefing;
+  const sp = window.__speech;
+  const t0 = performance.now();
+  let speaking = null;
+  while (!speaking && performance.now() - t0 < 30000) {
+    await new Promise((r) => setTimeout(r, 200));
+    speaking = b.narrator.speaking;
+  }
+  return {
+    tier: speaking?.tier ?? null,
+    clip: b.narrator.clip,
+    duck: b.audio.duckLevel,
+    score: b.score.state,
+    systemLines: sp.log.started.length,
+  };
+});
+check(
+  'the run speaks with the neural clips, through the mixer, and the music ducks under it',
+  playing.tier === 'neural' && playing.clip && !playing.clip.paused && playing.duck < 0.6 && playing.score === 'incident',
+  playing,
+);
+const nextStops = await page.evaluate(async () => {
+  const b = window.__godsEyeView.nepalCase.briefing;
+  const before = b.director.state.entry.key;
+  [...document.querySelectorAll('.brf-root button')].find((x) => x.textContent.trim().startsWith('NEXT')).click();
+  await new Promise((r) => setTimeout(r, 120));
+  const log = b.narrator.log;
+  const cancel = log.findLastIndex((e) => e.type === 'cancel');
+  return { before, after: b.director.state.entry.key, cancelled: cancel >= 0, clipPausedOrNew: b.narrator.clip?.paused || log.slice(cancel).some((e) => e.type === 'start') };
+});
+check('NEXT stops the clip being played within 120 ms', nextStops.cancelled && nextStops.clipPausedOrNew, nextStops);
+const paused = await page.evaluate(async () => {
+  const b = window.__godsEyeView.nepalCase.briefing;
+  [...document.querySelectorAll('.brf-root button')].find((x) => /PAUSE/.test(x.textContent)).click();
+  await new Promise((r) => setTimeout(r, 600));
+  const state = { context: b.audio.context?.state, clipPaused: b.narrator.clip?.paused ?? true, speaking: b.narrator.speaking };
+  [...document.querySelectorAll('.brf-root button')].find((x) => /PLAY/.test(x.textContent)).click();
+  await new Promise((r) => setTimeout(r, 600));
+  state.resumed = b.audio.context?.state;
+  return state;
+});
+check(
+  'PAUSE silences voice and music (the mixer stops); PLAY brings them back',
+  paused.context === 'suspended' && paused.clipPaused && paused.speaking === null && paused.resumed === 'running',
+  paused,
+);
+const shock = await page.evaluate(async () => {
+  const b = window.__godsEyeView.nepalCase.briefing;
+  b.director.goToScene('main-shock');
+  const t0 = performance.now();
+  while (!b.score.log.some((e) => e.cue === 'impact') && performance.now() - t0 < 30000)
+    await new Promise((r) => setTimeout(r, 250));
+  return { state: b.score.state, cues: b.score.log.filter((e) => e.type === 'cue').map((e) => e.cue) };
+});
+check('the score follows the act, and the main shock carries its cue', shock.state === 'mainshock' && shock.cues.includes('impact'), shock);
+const fallback = await page.evaluate(async () => {
+  const b = window.__godsEyeView.nepalCase.briefing;
+  const t0 = performance.now();
+  /* The beat plays on: wait for its fallback or its end. */
+  while (b.narrator.status.fallbacks === 0 && b.director.state.entry.key === 'main-shock:magnitude' && performance.now() - t0 < 30000)
+    await new Promise((r) => setTimeout(r, 250));
+  return { status: b.narrator.status, systemLines: window.__speech.log.started.map((l) => l.text).slice(-3) };
+});
+check(
+  'a clip that fails to load is said by the system voice, and the status counts it',
+  fallback.status.fallbacks >= 1 && /fell back/.test(fallback.status.detail) && fallback.systemLines.some((t) => /Magnitude/.test(t)),
+  fallback,
+);
+const mutes = await page.evaluate(async () => {
+  const b = window.__godsEyeView.nepalCase.briefing;
+  const click = (label) => [...document.querySelectorAll('.brf-controls button')].find((x) => x.textContent.trim() === label).click();
+  click('VOICE');
+  click('MUSIC');
+  await new Promise((r) => setTimeout(r, 300));
+  const muted = { voice: b.audio.isMuted('voice'), music: b.audio.isMuted('music'), label: b.narrator.status.label, playing: b.director.state.status };
+  click('VOICE');
+  click('MUSIC');
+  return muted;
+});
+check('VOICE and MUSIC mute in place; the run keeps playing', mutes.voice && mutes.music && /MUTED/.test(mutes.label) && mutes.playing === 'playing', mutes);
 
 /* The software renderer's shader-compile failure is reported, not counted as an application error. */
 const RENDERER_LIMIT =

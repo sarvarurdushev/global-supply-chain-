@@ -619,6 +619,16 @@ export function createNarrator({
         tier: queue.tier,
       };
     },
+    /** For QA: the neural clip element's state (null before any clip has played). */
+    get clip() {
+      return player
+        ? {
+            paused: player.paused,
+            src: String(player.src ?? ''),
+            time: player.currentTime,
+          }
+        : null;
+    },
     /** For tests: start, end, fallback events, in order. */
     get log() {
       return log.slice();

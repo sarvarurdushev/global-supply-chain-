@@ -352,7 +352,7 @@ for both narration and animations. Without a voice the caption’s reading time 
 - **NARRATION** Each bar counts magnitudes from its lower edge up to, but not including, the next. Most fall between magnitude 4.0 and 5.0: 270 of them.
 - **CAPTION** 4.0 ≤ M < 5.0: 270 EARTHQUAKES · LOWER EDGE IN, UPPER EDGE OUT
 - **MAP** +0.3 s filter events; +6.4 s filter events
-- **ANNOTATION** +0.0 s remove seq-total; +3.6 s typed — BAR M4-5 / 4.0 ≤ M < 5.0 / 270 EARTHQUAKES
+- **ANNOTATION** +0.0 s remove seq-total; +3.6 s typed — 4.0 ≤ M < 5.0 / 270 EARTHQUAKES / M4.0 COUNTS · M5.0 GOES TO THE NEXT BAR
 - **CHART** +3.6 s mag-bars: focus 1
 - **EVIDENCE** seq.bands — USGS · OBSERVED · record `seismic-magnitude-distribution`
 - **CLASS** OBSERVED
@@ -410,7 +410,7 @@ for both narration and animations. Without a voice the caption’s reading time 
 
 *Was it over?* — in 6 MIN BRIEFING · FULL ANALYSIS
 
-- **SETUP** (landed instantly on entry, so a skip arrives in the right state): +0.0 s veil 0.12; +0.0 s show outline; +0.0 s show mask; +0.0 s pulse @ epicentre; +0.0 s label @ kathmandu — KATHMANDU; +0.0 s show events; +0.0 s clock card timecard — reads the events timeline, 20-day ruler; +0.0 s fly to shakeCentre · 600 km · pitch -66° · heading 10° · 3.0 s
+- **SETUP** (landed instantly on entry, so a skip arrives in the right state): +0.0 s veil 0.12; +0.0 s show outline; +0.0 s show mask; +0.0 s pulse @ epicentre; +0.0 s label @ kathmandu — KATHMANDU; +0.0 s show events; +0.0 s timeline.seek; +0.0 s clock card timecard — reads the events timeline, 20-day ruler; +0.0 s fly to shakeCentre · 600 km · pitch -66° · heading 10° · 3.0 s
 
 #### 02:28.3 — second · 9.6 s · 6 / FULL
 

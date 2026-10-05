@@ -175,10 +175,15 @@ export const SEQUENCE = defineScene({
   runs: FULL,
   music: 'mainshock',
   keep: ['outline', 'mask', 'events', 'epi-pulse', 'ktm'],
+  /*
+   * The chart counts the whole year's catalogue, so the map shows the whole
+   * year too (the timeline runs past the last event). Scene 08 rewinds to
+   * day 1 on entry and plays the seventeen days forward.
+   */
   setup: [
     ...frame(0.6),
     { type: 'layer.show', layer: 'events', hour: 168 },
-    { type: 'timeline.seek', layer: 'events', toHour: 168 },
+    { type: 'timeline.seek', layer: 'events', toHour: 9000 },
     {
       type: 'camera.fly',
       to: 'shakeCentre',
@@ -271,9 +276,9 @@ export const SEQUENCE = defineScene({
           screen: { x: 0.62, y: 0.16 },
           className: 'brf-typed brf-typed--data',
           lines: [
-            'BAR {seq.bands.1.label|upper}',
             '{seq.bands.1.min|dec1} ≤ M < {seq.bands.1.max|dec1}',
             '{seq.bands.1.count|int} EARTHQUAKES',
+            'M{seq.bands.1.min|dec1} COUNTS · M{seq.bands.1.max|dec1} GOES TO THE NEXT BAR',
           ],
           tag: USGS,
         },
@@ -679,15 +684,15 @@ export const EVIDENCE_ARRIVES = defineScene({
           days: [
             [0, 0],
             [
-              2600,
+              1500,
               { fact: 'damage.lags', path: ['eventToAcquisition', 'median'] },
             ],
             [
-              4200,
+              3600,
               { fact: 'damage.lags', path: ['eventToAcquisition', 'median'] },
             ],
             [
-              6600,
+              6000,
               { fact: 'damage.lags', path: ['eventToAcquisition', 'max'] },
             ],
           ],
