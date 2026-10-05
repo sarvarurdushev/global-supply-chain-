@@ -33,34 +33,34 @@ the rendered voice and stills of each beat.
 ## The six-minute run, watched as a normal viewer
 
 The reviewer's notes, beat by beat, on what an executive who knows nothing about seismology
-would take away. They use the rendered voice's timing (the 6 MIN run is 6:15 with the
-default neural voice; times from the generated script).
+would take away. They use the rendered voice's timing (the 6 MIN run is 6:08 with the
+default neural voice in the generated script, 6:09.2 measured in the browser).
 
-- **00:00–00:38 — the event.** Clear. The date and time, then Nepal, Kathmandu, the
+- **00:00–00:37 — the event.** Clear. The date and time, then Nepal, Kathmandu, the
   epicentre. "Magnitude 7.8" now comes with a one-line meaning on screen.
-- **00:38–01:03 — shaking.** In 9.1 a viewer could leave thinking the colours were the
+- **00:37–01:00 — shaking.** In 9.1 a viewer could leave thinking the colours were the
   magnitude. Now the voice says what they are and are not, and the card puts the two side by
   side. Six and eight light up as they are named.
-- **01:03–01:29 — the sequence.** The clock card makes time visible: +MIN, +H, then days.
+- **01:00–01:26 — the sequence.** The clock card makes time visible: +MIN, +H, then days.
   "Seventeen days later" is something the viewer watches pass, and the M7.3 arrives as the
   date is said. "It was a sequence, and it was not over" lands as the point.
-- **01:29–01:49 — people.** Modelled, not counted — said and shown. "Dense" is defined the
+- **01:26–01:46 — people.** Modelled, not counted — said and shown. "Dense" is defined the
   first time it matters.
-- **01:49–03:17 — damage.** The hardest stretch. The composition reads easily; the
+- **01:46–03:13 — damage.** The hardest stretch. The composition reads easily; the
   concentration now ends on "piled up, not spread out" and its caveat. The model-versus-
-  observation statistic is the most technical moment of the run: the p-value chip and then
-  the Cramér's V chip carry the two words a viewer would not know, and the meaning beat
-  says the takeaway without statistics.
-- **03:17–03:25 — so far.** The one recap. It is short and it asks the next question,
+  observation statistic is the most technical moment of the run: the card says what the
+  p-value means ("far too small to be chance · so the link is real, not that it is
+  strong") and the counter what Cramér's V measures ("0 = no link, 1 = total · this is
+  small"), and the meaning beat says the takeaway without statistics.
+- **03:13–03:21 — so far.** The one recap. It is short and it asks the next question,
   which turns the story from damage to access.
-- **03:25–05:34 — roads and hospitals.** Each step says what it measured and what it is
+- **03:21–05:28 — roads and hospitals.** Each step says what it measured and what it is
   not (distance, not time; a scenario, not a record). The single-place route is the most
   memorable minute of the briefing.
-- **05:34–06:15 — summary.** Unchanged in structure; the close is the score's last cue.
+- **05:28–06:08 — summary.** Unchanged in structure; the close is the score's last cue.
 
-Weak points that remain: the 6 MIN run is about 15 seconds over six minutes; the damage
-stretch is dense; and on a machine without the neural clips the system voice's timing is
-an estimate.
+Weak points that remain: the damage stretch is dense (four analyses in 87 seconds), and
+on a machine without the neural clips the system voice's timing is an estimate.
 
 ## Three levels
 

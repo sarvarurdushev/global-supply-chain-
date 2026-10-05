@@ -938,6 +938,8 @@
 }
 .brf-settings {
   position: absolute;
+  /* Above the caption while open: its last row sits where the caption is. */
+  z-index: 6;
   bottom: 96px;
   left: 50%;
   transform: translateX(-50%);
@@ -994,12 +996,6 @@
 }
 .brf-chart__verdict:empty {
   display: none;
-}
-.brf-chart__drop {
-  fill: #ff3d6e;
-  font-size: 12px;
-  letter-spacing: 0.12em;
-  font-weight: 600;
 }
 
 /* Explore inspector: the actions a card offers, and what each one shows. */

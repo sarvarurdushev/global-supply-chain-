@@ -252,6 +252,8 @@ export function createIntensityChart({
   /*
    * The trend: a line through each band's destroyed share, drawn left to
    * right; the step into `dropAt` is red, because that step is the finding.
+   * The verdict above the bars says it in words: a label inside the plot sat
+   * on the destroyed-share figures.
    */
   const trendPath = svg(
     'polyline',
@@ -267,11 +269,6 @@ export function createIntensityChart({
   const dropPath = svg(
     'polyline',
     { fill: 'none', stroke: '#ff3d6e', 'stroke-width': 3.5, opacity: 0 },
-    plot,
-  );
-  const dropLabel = svg(
-    'text',
-    { 'text-anchor': 'middle', class: 'brf-chart__drop', opacity: 0 },
     plot,
   );
   let trendAt = null;
@@ -356,22 +353,9 @@ export function createIntensityChart({
             : '',
         );
         dropPath.setAttribute('opacity', dropShown ? '1' : '0');
-        if (dropShown) {
-          dropLabel.setAttribute(
-            'x',
-            String((points[k - 1][0] + points[k][0]) / 2),
-          );
-          dropLabel.setAttribute(
-            'y',
-            String(Math.min(points[k - 1][1], points[k][1]) - 14),
-          );
-          dropLabel.textContent = `DROPS AT MMI ${dropAt}`;
-        }
-        dropLabel.setAttribute('opacity', dropShown ? '1' : '0');
       } else {
         trendPath.setAttribute('opacity', '0');
         dropPath.setAttribute('opacity', '0');
-        dropLabel.setAttribute('opacity', '0');
       }
       verdict.update();
     },

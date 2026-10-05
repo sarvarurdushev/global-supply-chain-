@@ -145,7 +145,10 @@ Figures below are quoted from the artefacts through the fact book; none was reca
 
 - **Looking at:** the three strongest modelled bands, the damage inside each, and a chart of
   the destroyed share per band.
-- **How:** a χ² test of independence and Cramér's V (chips *p-VALUE* then *CRAMÉR'S V*).
+- **How:** a χ² test of independence and Cramér's V, each defined where it appears: the
+  test card reads "P = … · FAR TOO SMALL TO BE CHANCE · SO THE LINK IS REAL · NOT THAT IT IS
+  STRONG", the counter "CRAMÉR'S V · 0 = NO LINK, 1 = TOTAL · THIS IS SMALL" (a chip here
+  covered the lifted chart; the glossary carries both terms).
 - **Found:** the link is real (chance cannot explain it) but weak (V 0.17), and not a
   straight line: at 7.5 the destroyed share drops, inside single areas too.
 - **Means:** "So shaking alone does not decide the damage. Where the satellites looked

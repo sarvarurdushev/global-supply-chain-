@@ -775,7 +775,7 @@ export const FIRST_HOURS = defineScene({
           tag: USGS,
         },
         {
-          at: 3800,
+          at: 3200,
           type: 'annotation.draw',
           kind: 'callout',
           id: 'extent',

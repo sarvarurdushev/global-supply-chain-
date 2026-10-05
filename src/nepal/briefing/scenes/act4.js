@@ -260,7 +260,7 @@ export const DISTRICT_ROUTES = defineScene({
           rangeKm: 520,
           pitch: -64,
           heading: 6,
-          duration: 5000,
+          duration: 4000,
         },
         {
           at: 900,

@@ -817,7 +817,7 @@ export const RESCUE_ROUTE = defineScene({
           spanFactor: 2.3,
           pitch: -62,
           heading: 0,
-          duration: 4200,
+          duration: 3200,
         },
         {
           at: 200,

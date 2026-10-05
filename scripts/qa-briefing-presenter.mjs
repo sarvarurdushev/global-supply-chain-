@@ -42,6 +42,7 @@ import puppeteer from 'puppeteer';
 import { fillTemplate } from '../src/nepal/briefing/facts.js';
 import { BRIEFING_SCENES } from '../src/nepal/briefing/scenes/index.js';
 import { clipKey, sentencePlan } from '../src/nepal/briefing/speech.js';
+import { spokenText } from '../src/nepal/briefing/pronunciation.js';
 import { loadBriefingBook } from './generate-briefing-script.mjs';
 
 const args = process.argv.slice(2);
@@ -384,8 +385,12 @@ for (let i = 0; i < PRESSES; i += 1) {
       status: d.state.status,
     };
   }, action);
+  /* A voice says the spoken form ("6 11 UTC" for "06:11 UTC"); either form belongs to the beat. */
+  const spoken = spokenText(r.narration);
   const belongs = (text) =>
-    !text || r.narration.includes(text.replace(/\s+/g, ' '));
+    !text ||
+    r.narration.includes(text.replace(/\s+/g, ' ')) ||
+    spoken.includes(text.replace(/\s+/g, ' '));
   r.oldStopped =
     r.at120 === null || r.at120 !== r.before.speaking || belongs(r.at120);
   r.onlyNewBeat = !r.stillSame || r.startedAfter.every(belongs);
@@ -433,6 +438,7 @@ for (let i = 0; i < PRESSES; i += 1) {
         )
           ids.add(a.id);
         else if (a.type === 'question.show') ids.add('question');
+        else if (a.type === 'time.card') ids.add(a.id ?? 'timecard');
         else if (a.type === 'title.type') ids.add(a.id ?? 'title');
       };
       (e.scene.setup ?? []).forEach(add);
@@ -625,6 +631,8 @@ withholdManifest = false;
   const [sentence] = sentencePlan(fillTemplate(beat.narration, book), beat.prosody);
   withheldClip = clipKey('af_heart', sentence);
 }
+/* Section 1 chose a system voice and the narrator rightly remembers it: forget it, as a new presenter would arrive. */
+await page.evaluate(() => localStorage.removeItem('nepal-briefing-voice'));
 await openApp();
 const neural = await page.evaluate(() => {
   const n = window.__godsEyeView.nepalCase.briefing.narrator;

@@ -967,12 +967,38 @@ export function createBriefingOverlay({
         }
       },
       place(_project, _now, { fadeOut }) {
+        const others = majors.some((m) => m.shown) ? obstacles() : [];
         for (const m of majors) {
           m.node.style.opacity = m.shown
             ? String((m.old ? 0.55 : 1) * fadeOut)
             : '0';
-          /* Above-left of the shock: above-right is where a magnitude counter or callout sits. */
-          m.node.style.transform = `translate(${Math.round(m.x - 12 - m.node.offsetWidth)}px, ${Math.round(m.y - 10 - m.node.offsetHeight)}px)`;
+          /*
+           * Above-left of the shock first: above-right is where a magnitude
+           * counter or callout sits. If a place name or a card is already
+           * there, the next free corner; the label stays where it is until
+           * that corner is taken, so it never hops during a flight.
+           */
+          const w = m.node.offsetWidth;
+          const h = m.node.offsetHeight;
+          const spots = [
+            [m.x - 12 - w, m.y - 10 - h],
+            [m.x - 12 - w, m.y + 10],
+            [m.x + 12, m.y + 10],
+            [m.x + 12, m.y - 10 - h],
+          ];
+          const free = (k) =>
+            !others.some(
+              (r) =>
+                r.node !== m.node &&
+                spots[k][0] < r.right &&
+                spots[k][0] + w > r.left &&
+                spots[k][1] < r.bottom &&
+                spots[k][1] + h > r.top,
+            );
+          if (m.shown && !free(m.spot ?? 0))
+            m.spot = [0, 1, 2, 3].find(free) ?? m.spot ?? 0;
+          const [left, top] = spots[m.spot ?? 0];
+          m.node.style.transform = `translate(${Math.round(left)}px, ${Math.round(top)}px)`;
         }
       },
       dispose() {
@@ -1200,6 +1226,27 @@ export function createBriefingOverlay({
    * Text components (DOM, geo-anchored)
    * ---------------------------------------------------------------------
    */
+
+  /** The boxes of the labels, callouts and counters on screen, in overlay coordinates. */
+  function obstacles() {
+    const base = dom.getBoundingClientRect();
+    const out = [];
+    for (const node of dom.querySelectorAll(
+      '.brf-label, .brf-callout, .brf-metric',
+    )) {
+      if (node.style.opacity !== '' && Number(node.style.opacity) < 0.05)
+        continue;
+      const r = node.getBoundingClientRect();
+      out.push({
+        node,
+        left: r.left - base.left,
+        right: r.right - base.left,
+        top: r.top - base.top,
+        bottom: r.bottom - base.top,
+      });
+    }
+    return out;
+  }
 
   function el(tag, className, text) {
     const node = document.createElement(tag);

@@ -21,6 +21,7 @@ and re-shot; **FAIL** — open.
 | 08 · second | "On 12 May, 17 days after the first" | Clock at DAY 17 · 12 MAY 2015 | FIXED — the clock reached 12 May 0.6 s after the date was said; the seek now lands on the word (3.0 s) |
 | 08 · second | "a second major earthquake" / "magnitude 7.3" | The ring at the epicentre of the M7.3, the aftershock cue; then the counter | PASS |
 | 08 · second | (labels) | M7.3 · 12 MAY readable | FIXED — labels for M6.6 and M7.8 overlapped near the epicentre, and the M7.3 label sat under the counter. Only M7+ are labelled now, above-left of the dot |
+| 08 · decay | (labels, final watch) | M7.3 · 12 MAY and KATHMANDU both readable | FIXED — in the final 40-scene watch the M7.3 label sat on the KATHMANDU place name (the city lies 75 km west of the shock, its name set to the right). An event label now takes the first corner — above-left, below-left, below-right, above-right — that no place name, callout or counter occupies, and keeps it until that corner is taken, so it never hops during a flight. Re-shot: below-left, clear |
 | 07 · catalogue → depth (F) | "Each bar counts magnitudes from its lower edge…" | Bars labelled by their edges; the rule card | PASS |
 | 07 · threshold (F) | "Why so few below magnitude 4.0?" | First bar in focus; verdict INCOMPLETE BELOW M4.0 | FIXED — the verdict appeared 4 s after the question; now at 0.6 s |
 | 07 · law (F) | "Two were very large" | The two largest pulsing — and the map showing the year the chart counts | FIXED — the map showed only the first week while the chart counted the year, and the M7.3 pulsed before the timeline reached it; the map now shows the whole year in 07, and 08 rewinds to day 1 at its cut |
@@ -29,6 +30,7 @@ and re-shot; **FAIL** — open.
 | 16 · half | "Half of them lie in only 37" | Busiest squares lit; counter 37 | PASS |
 | 18 · statistic | "chance cannot explain it … it is weak" | Test card, then V counter | FIXED — the term chip overlapped the lifted chart; the definitions now live on the card and the counter's label |
 | 18 · reversal | "At seven and a half, the destroyed share drops" | Trend line with the drop in red; verdict | FIXED — the verdict still read "detectable but weak" during the reversal; it now says the share drops at 7.5 |
+| 18 · reversal → hypotheses | (chart, final watch) | The destroyed shares readable | FIXED — in the final 40-scene watch the red "DROPS AT MMI 7.5" label inside the plot sat on the 38.7 % figure. The verdict above the bars already says it, so the plot keeps only the red step; re-shot |
 | 20 · no-denominator | "No record is not no damage." | The bracketed empty square; WHAT THIS MEANS kicker | PASS |
 | 25 · blocked | "184 road blockages were observed" | Markers on the map; counter | PASS (0.4–1.0 s after the word; within tolerance) |
 | 30 · the-map | "So the bigger gap was the map itself" | No-route places dominant, the network receding (focus) | PASS |
@@ -66,8 +68,8 @@ before it is said, or within 1.5 s after. The FULL run: 117 figures, 0 late.
 | damage-composition:destroyed | `{damage.total|int}` | 4.0 s | already on screen | PASS |
 | damage-composition:destroyed | `{damage.destroyed|int}` | 5.2 s | already on screen | PASS |
 | damage-composition:severe | `{damage.severe|int}` | 0.0 s | already on screen | PASS |
-| damage-composition:moderate-possible | `{damage.moderate|int}` | 0.0 s | already on screen | PASS |
-| damage-composition:moderate-possible | `{damage.possible|int}` | 2.0 s | already on screen | PASS |
+| damage-composition:severe | `{damage.moderate|int}` | 2.5 s | already on screen | PASS |
+| damage-composition:severe | `{damage.possible|int}` | 4.5 s | already on screen | PASS |
 | damage-concentration:grid | `{damage.grid1km.occupiedCells|int}` | 4.1 s | 1.6 s | PASS |
 | damage-concentration:half | `{damage.gridHalf.units|int}` | 2.0 s | 0.3 s | PASS |
 | model-vs-observation:shares | `{damage.byIntensity.2.destroyedShare|dec1}` | 3.0 s | already on screen | PASS |
