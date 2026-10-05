@@ -26,7 +26,7 @@
  */
 
 import { neuralText, spokenText } from './pronunciation.js';
-import { RENDER_VERSION } from './voices.js';
+import { NARRATION_VOICES, RENDER_VERSION } from './voices.js';
 
 /** Split narration into sentences. "7.8" and "4,583" have no space after the point, so they stay whole. */
 export function splitSentences(text) {
@@ -147,6 +147,12 @@ export function neuralInput(sentence) {
   return neuralText(spokenText(sentence.text), sentence.emphasis);
 }
 
+/** A voice's render speed, as part of its clip key only when it is not 1 (so other voices' keys stay as they were). */
+function paceOf(voiceId) {
+  const pace = NARRATION_VOICES.find((v) => v.id === voiceId)?.pace ?? 1;
+  return pace === 1 ? [] : [`pace ${pace}`];
+}
+
 /**
  * The clip a voice was rendered to for this sentence, in this delivery.
  * Any change to the words, the pronunciation, the delivery or the renderer
@@ -161,6 +167,7 @@ export function clipKey(voiceId, sentence) {
     sentence.rate,
     sentence.energy,
     sentence.emphasis.join('|'),
+    ...paceOf(voiceId),
   ].join('§');
   return `${voiceId}-${fnv1a(signature)}${fnv1a(`${signature}#`).slice(0, 4)}`;
 }

@@ -70,11 +70,18 @@ with `scripts/narration/render.py`:
 Voices offered (all stock voices shipped with the model; none is a clone of a real
 person):
 
-| Id | Label in the picker | Accent | Model-card grade |
-| --- | --- | --- | --- |
-| `af_heart` | Neural narrator · calm, female (default) | US | A |
-| `bf_emma` | Neural narrator · measured, female | UK | B− |
-| `am_michael` | Neural narrator · steady, male | US | C+ |
+| Id | Label in the picker | Accent | Model-card grade | Render speed |
+| --- | --- | --- | --- | --- |
+| `af_heart` | Neural narrator · calm, female (default) | US | A | 1.00 |
+| `bf_emma` | Neural narrator · measured, female | UK | B− | 1.00 |
+| `am_michael` | Neural narrator · steady, male | US | C+ | 1.15 |
+
+At the model's own speed `am_michael` speaks 9.2 % slower than `af_heart` over the
+6 MIN script (335.4 s of speech against 307.0 s; `bf_emma` 306.8 s), which would make the
+6 MIN run 6:25 with that voice. Kokoro's speed does not shorten a clip in proportion (the
+trim and the rendered pauses stay fixed): speed 1.09 gave 317.4 s, still 6:12.8. It is
+rendered at speed 1.15 (`pace` in `src/nepal/briefing/voices.js`, part of its clip keys):
+305.1 s of speech, a 6 MIN run of 6:06.6, so every voice keeps the runs to their length.
 
 ## 4. Fallback chain (and what the presenter is told)
 

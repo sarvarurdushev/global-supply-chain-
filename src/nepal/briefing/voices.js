@@ -3,7 +3,11 @@
  * (Apache-2.0 code and weights; see docs/NEPAL_2015_AUDIO_RESEARCH.md).
  * Chosen by the model card's own quality grades, not by name or likeness:
  * none imitates a real person. `grade` is the model card's overall grade
- * (af_heart is graded only on target quality).
+ * (af_heart is graded only on target quality). `pace` is the model's speed
+ * for that voice: am_michael speaks about 9 % slower than the other two, so it
+ * is rendered faster and every voice keeps the runs to their length. (Speed
+ * does not shorten a clip in proportion: its trim and pauses stay fixed.
+ * 1.09 gave only 5.7 % shorter speech.)
  */
 export const NARRATION_VOICES = Object.freeze([
   Object.freeze({
@@ -27,6 +31,7 @@ export const NARRATION_VOICES = Object.freeze([
     accent: 'en-US',
     british: false,
     grade: 'C+',
+    pace: 1.15,
   }),
 ]);
 

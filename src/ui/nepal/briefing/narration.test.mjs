@@ -171,6 +171,17 @@ function neuralManifest(lines, voice = 'af_heart', ms = 1500) {
     clips,
   };
 }
+test('a voice rendered at its own pace has its own clips; the other voices keep theirs', async () => {
+  const { NARRATION_VOICES } = await import('../../../nepal/briefing/voices.js');
+  const [sentence] = sentencePlan('Magnitude 7.8.');
+  const paced = NARRATION_VOICES.find((v) => (v.pace ?? 1) !== 1);
+  assert.ok(paced, 'one shipped voice is rendered at its own pace');
+  const key = (id) => clipKey(id, sentence).slice(id.length);
+  /* Same words and delivery: the two unpaced voices differ only by name, the paced one by its pace too. */
+  assert.equal(key('af_heart'), key('bf_emma'));
+  assert.notEqual(key(paced.id), key('af_heart'));
+});
+
 class FakeAudio {
   static played = [];
   constructor() {
