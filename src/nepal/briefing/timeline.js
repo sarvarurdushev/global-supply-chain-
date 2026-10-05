@@ -11,6 +11,14 @@
  */
 
 import { findForbiddenPhrasing } from '../analysis/terminology.js';
+import {
+  WORDS_PER_SECOND as SPEECH_WPS,
+  estimateSentenceMs,
+  lintProsody,
+  sentencePlan,
+  splitSentences,
+} from './speech.js';
+import { GLOSSARY } from './glossary.js';
 
 export const RUNS = Object.freeze({
   THREE: 'three',
@@ -48,7 +56,23 @@ export const ACTION_TYPES = Object.freeze([
   'question.show',
   'title.type',
   'audio.cue',
+  /* Stage 9.2: the subject dominates, a term is explained, time is on screen. */
+  'focus',
+  'term.show',
+  'time.card',
 ]);
+
+/**
+ * What a beat is for in the argument, when it is not a plain result. The
+ * caption wears it as a kicker, so the pattern is visible: a result, then
+ * WHAT THIS MEANS, then WHAT IT CANNOT TELL US, then the NEXT QUESTION.
+ */
+export const BEAT_KINDS = Object.freeze({
+  meaning: 'WHAT THIS MEANS',
+  limit: 'WHAT IT CANNOT TELL US',
+  next: 'NEXT QUESTION',
+  sofar: 'SO FAR',
+});
 
 /**
  * How long an action takes when it does not say, in milliseconds of
@@ -66,10 +90,12 @@ const DEFAULT_DURATION = Object.freeze({
   'timeline.seek': 4000,
   'question.show': 2800,
   'title.type': 1400,
+  focus: 700,
+  'time.card': 500,
 });
 
 /** Speaking pace for estimates: 150 words a minute, a briefing register. */
-export const WORDS_PER_SECOND = 2.5;
+export const WORDS_PER_SECOND = SPEECH_WPS;
 /** Reading pace for captions when no voice is available. */
 export const READING_WORDS_PER_SECOND = 3.2;
 export const DEFAULT_MIN_HOLD_MS = 1200;
@@ -124,6 +150,29 @@ export function narrationMs(text) {
   return words ? Math.round((words / WORDS_PER_SECOND) * 1000) : 0;
 }
 
+/*
+ * MEASURED NARRATION. Once the neural voice's clips are known, a beat lasts
+ * exactly as long as its clips; `setNarrationMeasure` installs that lookup
+ * (the browser after loading the clip manifest, the script generator after
+ * reading it). It returns the beat's narration in ms, or null when any
+ * sentence has no clip — then the estimate below stands.
+ */
+let measure = null;
+export function setNarrationMeasure(fn) {
+  measure = typeof fn === 'function' ? fn : null;
+}
+
+/** A beat's narration length: measured from its clips when known, else estimated in its delivery. */
+export function narrationMsFor(beat) {
+  if (!beat?.narration) return 0;
+  const measured = measure?.(beat);
+  if (Number.isFinite(measured)) return measured;
+  return sentencePlan(beat.narration, beat.prosody).reduce(
+    (sum, sentence) => sum + estimateSentenceMs(sentence),
+    0,
+  );
+}
+
 /** Milliseconds a caption needs to be read when there is no voice. */
 export function readingMs(text) {
   const words = wordCount(text);
@@ -171,7 +220,7 @@ export function beatLengthMs(beat, { voiced = true } = {}) {
     ...beat.actions.map((action) => (action.at ?? 0) + actionDuration(action)),
   );
   const spoken = voiced
-    ? (beat.narrationAt ?? 0) + narrationMs(beat.narration)
+    ? (beat.narrationAt ?? 0) + narrationMsFor(beat)
     : readingMs(beat.caption ?? beat.narration);
   return (
     Math.max(actionsEnd, spoken) +
@@ -189,6 +238,17 @@ export function beatLengthMs(beat, { voiced = true } = {}) {
  */
 export function planRun(scenes, run = RUNS.FULL) {
   const plan = [];
+  /* A term is explained the first time THIS run reaches it, whichever run that is. */
+  const explained = new Set();
+  const firstTermsOf = (beat) => {
+    const fresh = [];
+    for (const action of beat.actions)
+      if (action.type === 'term.show' && !explained.has(action.term)) {
+        explained.add(action.term);
+        fresh.push(action.term);
+      }
+    return Object.freeze(fresh);
+  };
   scenes
     .filter((scene) => scene.runs.includes(run))
     .forEach((scene, sceneOrder) => {
@@ -206,6 +266,8 @@ export function planRun(scenes, run = RUNS.FULL) {
             priorBeats: Object.freeze(scene.beats.slice(0, beatIndex)),
             /* The last beat this run plays in the scene: see `sceneEndHoldMs`. */
             endsScene: beat === last,
+            /* Terms this beat explains because the run has not met them yet. */
+            firstTerms: firstTermsOf(beat),
           }),
         );
       });
@@ -304,7 +366,22 @@ export function lintTimeline(scenes) {
       for (const action of beat.actions) {
         if (!ACTION_TYPES.includes(action.type))
           problems.push(`${where}: unknown action "${action.type}"`);
+        if (action.type === 'term.show' && !GLOSSARY[action.term])
+          problems.push(
+            `${where}: term "${action.term}" is not in the glossary`,
+          );
+        if (action.until && action.until !== 'beat')
+          problems.push(`${where}: until "${action.until}" (only "beat")`);
       }
+      if (beat.kind && !BEAT_KINDS[beat.kind])
+        problems.push(`${where}: unknown beat kind "${beat.kind}"`);
+      problems.push(
+        ...lintProsody(
+          beat.prosody,
+          splitSentences(beat.narration ?? '').length,
+          where,
+        ),
+      );
       const times = visible
         .map((action) => action.at ?? 0)
         .sort((a, b) => a - b);

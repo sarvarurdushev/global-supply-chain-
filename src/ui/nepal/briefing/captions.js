@@ -8,15 +8,24 @@
  */
 
 import { progress } from '../../../nepal/briefing/clock.js';
+import { BEAT_KINDS } from '../../../nepal/briefing/timeline.js';
 
+/*
+ * THE ARGUMENT IS VISIBLE. A beat that interprets rather than reports wears
+ * a kicker above its line — WHAT THIS MEANS, WHAT IT CANNOT TELL US, NEXT
+ * QUESTION, SO FAR — so the viewer can tell a result from what to make of
+ * it, and every analysis visibly ends in its meaning.
+ */
 export function createCaptions({ container, clock }) {
   const node = document.createElement('div');
   node.className = 'brf-caption';
   node.setAttribute('role', 'status');
   node.setAttribute('aria-live', 'polite');
+  const kicker = document.createElement('div');
+  kicker.className = 'brf-caption__kicker';
   const inner = document.createElement('div');
   inner.className = 'brf-caption__text';
-  node.append(inner);
+  node.append(kicker, inner);
   container.append(node);
 
   let words = [];
@@ -41,11 +50,17 @@ export function createCaptions({ container, clock }) {
      * `instant`: the whole line at once. A beat jumped to while paused is
      * shown whole, and a paused clock would otherwise hold it at one word.
      */
-    show(text, { instant = false } = {}) {
+    show(text, { instant = false, kind = null } = {}) {
       words = text ? String(text).split(/\s+/).filter(Boolean) : [];
       shownAt = instant ? -Infinity : clock.now();
-      /* Screen readers get the whole line at once. */
-      node.setAttribute('aria-label', text ?? '');
+      const label = text && kind ? (BEAT_KINDS[kind] ?? '') : '';
+      kicker.textContent = label;
+      node.setAttribute('data-kind', label ? kind : '');
+      /* Screen readers get the whole line at once, kicker first. */
+      node.setAttribute(
+        'aria-label',
+        label ? `${label}: ${text}` : (text ?? ''),
+      );
     },
     setEnabled(on) {
       enabled = Boolean(on);

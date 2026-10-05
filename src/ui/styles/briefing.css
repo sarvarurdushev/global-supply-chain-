@@ -1082,3 +1082,305 @@
   stroke: #5dffb0;
   stroke-width: 2;
 }
+
+/* ------------------------------------------------ Stage 9.2: audio controls */
+
+/* Voice volume, music on/off and volume, captions — on the BEGIN card and in ⚙. */
+.brf-mixer {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px 10px;
+  margin-top: 12px;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+}
+.brf-mixer__label {
+  color: var(--gx-green);
+  text-align: left;
+}
+.brf-mixer .brf-volume {
+  width: 100%;
+}
+.brf-mixer .brf-btn {
+  min-width: 52px;
+}
+.brf-begin__audio {
+  margin: 26px auto 0;
+  max-width: 560px;
+  padding: 12px 16px 14px;
+  border: 1px solid rgba(34, 217, 127, 0.22);
+  background: rgba(3, 10, 12, 0.6);
+  text-align: left;
+}
+.brf-begin__audio .brf-voice {
+  margin-top: 0;
+}
+/* The tier in words; a fallback reads amber, never quietly. */
+.brf-voice__note[data-tier='system'],
+.brf-voice__note[data-tier='none'] {
+  color: #ffc56b;
+}
+.brf-voice__note[data-tier='neural'] {
+  color: var(--gx-neon);
+}
+.brf-voice-badge {
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  color: #ffc56b;
+  white-space: nowrap;
+  padding: 0 4px;
+}
+.brf-voice-badge:empty {
+  display: none;
+}
+.brf-voice-badge[data-tier='simulated'] {
+  color: rgba(228, 245, 236, 0.6);
+}
+.brf-btn--icon {
+  min-width: 30px;
+  padding: 6px 8px;
+}
+
+/* ------------------------------------------------ the term, first time met */
+
+/* Under the scene's question: the term, its expansion, and what it means. */
+.brf-term {
+  margin-top: 10px;
+  max-width: 520px;
+  padding: 6px 10px;
+  border-left: 2px solid #8fd8ff;
+  background: rgba(3, 10, 14, 0.82);
+  opacity: 0;
+  transform: translateY(-4px);
+  transition:
+    opacity 0.4s ease,
+    transform 0.4s ease;
+}
+.brf-term.is-visible {
+  opacity: 1;
+  transform: none;
+}
+.brf-term__name {
+  font-size: clamp(12px, 1.6vh, 17px);
+  letter-spacing: 0.16em;
+  color: #8fd8ff;
+}
+.brf-term__expansion {
+  font-size: clamp(11px, 1.4vh, 15px);
+  letter-spacing: 0.08em;
+  color: rgba(228, 245, 236, 0.75);
+}
+.brf-term__plain {
+  display: block;
+  margin-top: 3px;
+  font-family: Inter, system-ui, sans-serif;
+  font-size: clamp(13px, 1.75vh, 19px);
+  line-height: 1.35;
+  color: #eef8f2;
+}
+
+/* ------------------------------------------------ the caption's kicker */
+
+.brf-caption__kicker {
+  margin-bottom: 4px;
+  font-size: clamp(11px, 1.5vh, 16px);
+  letter-spacing: 0.28em;
+  color: var(--gx-neon);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9);
+}
+.brf-caption__kicker:empty {
+  display: none;
+}
+.brf-caption[data-kind='limit'] .brf-caption__kicker {
+  color: #ffc56b;
+}
+.brf-caption[data-kind='limit'] .brf-caption__text {
+  border-left-color: #ffc56b;
+}
+.brf-caption[data-kind='next'] .brf-caption__kicker,
+.brf-caption[data-kind='sofar'] .brf-caption__kicker {
+  color: #8fd8ff;
+}
+.brf-caption[data-kind='next'] .brf-caption__text,
+.brf-caption[data-kind='sofar'] .brf-caption__text {
+  border-left-color: #8fd8ff;
+}
+
+/* ------------------------------------------------ glossary */
+
+.brf-glossary {
+  position: absolute;
+  right: 24px;
+  top: 64px;
+  bottom: 96px;
+  width: min(460px, calc(100vw - 48px));
+  overflow-y: auto;
+  padding: 12px 16px;
+  background: rgba(3, 10, 12, 0.95);
+  border: 1px solid rgba(143, 216, 255, 0.4);
+  pointer-events: auto;
+  z-index: 4;
+}
+.brf-glossary[hidden] {
+  display: none;
+}
+.brf-glossary__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.brf-glossary__title {
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  color: #8fd8ff;
+}
+.brf-glossary__close {
+  border: none;
+  background: transparent;
+  color: var(--gx-text);
+  font-size: 18px;
+  cursor: pointer;
+}
+.brf-glossary__list {
+  margin: 8px 0 0;
+}
+.brf-glossary__term {
+  margin-top: 10px;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  color: var(--gx-neon);
+}
+.brf-glossary__expansion {
+  color: rgba(228, 245, 236, 0.7);
+  letter-spacing: 0.06em;
+}
+.brf-glossary__plain,
+.brf-glossary__detail {
+  margin: 3px 0 0;
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #e4f5ec;
+}
+.brf-glossary__detail {
+  font-size: 12px;
+  color: rgba(228, 245, 236, 0.62);
+  border-left: 2px solid rgba(143, 216, 255, 0.35);
+  padding-left: 8px;
+}
+/* SIMPLE shows the plain meaning; the technical layer adds the precise one. */
+.brf-root:not(.is-technical) .brf-glossary__detail {
+  display: none;
+}
+
+/* ------------------------------------------------ technical layer */
+
+.brf-provenance {
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+}
+.brf-provenance__title + .brf-provenance__row,
+.brf-provenance__method + .brf-provenance__title,
+.brf-provenance__term + .brf-provenance__title {
+  margin-top: 10px;
+}
+.brf-provenance__method {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #e4f5ec;
+  margin-bottom: 4px;
+}
+.brf-provenance__term {
+  padding: 5px 0;
+  border-top: 1px solid rgba(228, 245, 236, 0.08);
+  font-size: 11px;
+}
+.brf-provenance__term-name {
+  display: block;
+  color: #8fd8ff;
+  letter-spacing: 0.12em;
+}
+.brf-provenance__term-detail {
+  display: block;
+  margin-top: 2px;
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 12px;
+  line-height: 1.4;
+  color: rgba(228, 245, 236, 0.8);
+}
+
+/* ------------------------------------------------ the clock on screen */
+
+/* DAY N, the date, and a ruler of the days so far: time is something you can see pass. */
+.brf-timecard {
+  width: clamp(260px, 26vw, 380px);
+  padding: 8px 12px 10px;
+  background: rgba(3, 10, 12, 0.86);
+  border: 1px solid rgba(34, 217, 127, 0.35);
+}
+.brf-timecard__day {
+  font-size: clamp(18px, 2.8vh, 32px);
+  letter-spacing: 0.14em;
+  color: #ffffff;
+  font-variant-numeric: tabular-nums;
+}
+.brf-timecard__date {
+  margin-top: 2px;
+  font-size: clamp(11px, 1.5vh, 15px);
+  letter-spacing: 0.14em;
+  color: rgba(228, 245, 236, 0.75);
+  font-variant-numeric: tabular-nums;
+}
+.brf-timecard__ruler {
+  position: relative;
+  margin-top: 10px;
+  height: 6px;
+  background: rgba(228, 245, 236, 0.12);
+}
+.brf-timecard__fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background: var(--gx-green);
+}
+.brf-timecard__cursor {
+  position: absolute;
+  top: -4px;
+  width: 2px;
+  height: 14px;
+  margin-left: -1px;
+  background: #ffffff;
+}
+.brf-timecard__tick {
+  position: absolute;
+  top: -3px;
+  width: 8px;
+  height: 12px;
+  margin-left: -4px;
+  border: 1px solid rgba(255, 197, 107, 0.6);
+  background: rgba(3, 10, 12, 0.9);
+}
+.brf-timecard__tick.is-reached {
+  background: #ffc56b;
+  border-color: #ffc56b;
+}
+.brf-timecard__ends {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  color: rgba(228, 245, 236, 0.5);
+}
+/* A major shock's label: magnitude and date, beside its ring. */
+.brf-label--event {
+  font-size: clamp(12px, 1.7vh, 18px);
+  letter-spacing: 0.12em;
+  color: #ffffff;
+  background: rgba(3, 10, 12, 0.78);
+  padding: 2px 6px;
+  border-left: 2px solid #ffffff;
+}

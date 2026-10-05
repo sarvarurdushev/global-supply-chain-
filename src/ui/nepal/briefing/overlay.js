@@ -23,6 +23,26 @@
  * point, because a band layer is thousands of vertices: the view-projection
  * matrix is read once per frame and applied by hand, and points on the far
  * side of the globe are culled with a horizon test.
+ *
+ * ON THE GROUND, IN STEP WITH THE GLOBE. Two things made marks drift while
+ * the camera moved, and both are handled here (Stage 9.2):
+ *
+ *   HEIGHT. The globe drapes its imagery over a terrain mesh: Kathmandu's
+ *   surface is about 1.26 km up, the epicentre's 2.24 km. A mark projected
+ *   at sea level sits below that surface, so on a pitched camera it was
+ *   drawn off its place by 10–30 px, by an amount that changed as the
+ *   camera zoomed or tilted. Every geographic vertex now takes the terrain
+ *   height under it, sampled from the terrain provider's tiles once and
+ *   cached (`createHeightSampler`); until the heights arrive it is drawn at
+ *   sea level as before.
+ *
+ *   FRAME. The overlay used to move the camera and draw in its own animation
+ *   frame, after Cesium had already rendered that frame with the previous
+ *   camera, so during a flight the marks led the globe by one frame. The
+ *   flight now steps in the scene's preRender and the overlay draws in its
+ *   postRender, with the camera the globe was just drawn with. A plain
+ *   animation-frame loop still draws when Cesium is not rendering (QA
+ *   recording drives the clock and the globe itself).
  */
 
 import * as Cesium from 'cesium';
@@ -48,6 +68,90 @@ export function toEcef(flatLonLat, height = 0) {
     out[i * 3 + 2] = scratch.z;
   }
   return out;
+}
+
+/**
+ * Terrain heights for geographic marks, sampled from the terrain provider's
+ * tiles — not from what happens to be rendered — at one moderate level, and
+ * cached per point. One request serves every layer that shares a place.
+ *
+ * Level 9 tiles are about 0.35° across: sampled there, a point's height is
+ * within a couple of hundred metres in steep valleys, which is 2–3 px on the
+ * closest briefing camera (~35 km), against 10–30 px at sea level.
+ */
+export function createHeightSampler({ viewer, level = 9, batchMs = 40 }) {
+  const provider = viewer?.terrainProvider;
+  const flat =
+    !provider ||
+    provider instanceof Cesium.EllipsoidTerrainProvider ||
+    typeof Cesium.sampleTerrain !== 'function';
+  const cache = new Map();
+  /** Queued fills: [{ flat, target }], served in one batch. */
+  let queue = [];
+  let timer = null;
+  const key = (lon, lat) => `${lon.toFixed(4)},${lat.toFixed(4)}`;
+  const exaggeration = () => viewer.scene?.verticalExaggeration ?? 1;
+
+  function write(flatLonLat, target) {
+    const n = flatLonLat.length / 2;
+    const scratch = new Cesium.Cartesian3();
+    const k = exaggeration();
+    for (let i = 0; i < n; i += 1) {
+      const h = cache.get(key(flatLonLat[i * 2], flatLonLat[i * 2 + 1]));
+      if (h === undefined) continue;
+      Cesium.Cartesian3.fromDegrees(
+        flatLonLat[i * 2],
+        flatLonLat[i * 2 + 1],
+        h * k,
+        WGS84,
+        scratch,
+      );
+      target[i * 3] = scratch.x;
+      target[i * 3 + 1] = scratch.y;
+      target[i * 3 + 2] = scratch.z;
+    }
+  }
+
+  async function flush() {
+    timer = null;
+    const batch = queue;
+    queue = [];
+    const wanted = new Map();
+    for (const { flat: f } of batch)
+      for (let i = 0; i < f.length; i += 2) {
+        const id = key(f[i], f[i + 1]);
+        if (!cache.has(id) && !wanted.has(id))
+          wanted.set(id, Cesium.Cartographic.fromDegrees(f[i], f[i + 1]));
+      }
+    if (wanted.size) {
+      try {
+        const ids = [...wanted.keys()];
+        const sampled = await Cesium.sampleTerrain(provider, level, [
+          ...wanted.values(),
+        ]);
+        sampled.forEach((carto, i) => {
+          if (Number.isFinite(carto.height)) cache.set(ids[i], carto.height);
+        });
+      } catch {
+        /* No tiles, no heights: the marks stay at sea level, as before. */
+      }
+    }
+    for (const { flat: f, target } of batch) write(f, target);
+  }
+
+  return {
+    get enabled() {
+      return !flat;
+    },
+    /** Raise `target` (ECEF triples for `flatLonLat`) onto the terrain when its heights arrive. */
+    fill(flatLonLat, target) {
+      if (flat || flatLonLat.length === 0) return;
+      queue.push({ flat: flatLonLat, target });
+      if (!timer) timer = setTimeout(flush, batchMs);
+    },
+    /** For QA: the cached height at a place, or undefined. */
+    heightAt: (lon, lat) => cache.get(key(lon, lat)),
+  };
 }
 
 /**
@@ -128,6 +232,21 @@ export function geoCircle(lon, lat, radiusM, segments = 96) {
   return out;
 }
 
+const MONTHS = Object.freeze([
+  'JAN',
+  'FEB',
+  'MAR',
+  'APR',
+  'MAY',
+  'JUN',
+  'JUL',
+  'AUG',
+  'SEP',
+  'OCT',
+  'NOV',
+  'DEC',
+]);
+
 const hexToRgba = (hex, alpha) => {
   const h = hex.replace('#', '');
   const v =
@@ -176,6 +295,20 @@ export function createBriefingOverlay({
   let onFrame = null;
   /** False when a recorder steps the clock itself, frame by frame. */
   let drivesClock = true;
+  /** When the globe last rendered (real ms): the overlay then draws with it. */
+  let lastSceneRender = -Infinity;
+  const heights = createHeightSampler({ viewer });
+
+  /**
+   * A geographic position list as ECEF, on the terrain once its heights
+   * arrive. The array is filled in place, so a layer built now is raised
+   * without being rebuilt.
+   */
+  function ground(flatLonLat) {
+    const ecef = toEcef(flatLonLat);
+    heights.fill(flatLonLat, ecef);
+    return ecef;
+  }
 
   function resize() {
     const dpr = Math.min(2, globalThis.devicePixelRatio || 1);
@@ -193,17 +326,15 @@ export function createBriefingOverlay({
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
 
-  function draw(realNow) {
-    if (destroyed) return;
-    /*
-     * Real time drives briefing time. The cap only guards against a huge jump
-     * after a backgrounded tab; it is a full second so that a slow machine
-     * drawing four frames a second still runs the briefing in real time.
-     */
-    if (drivesClock && lastReal !== null)
-      clock.advance(Math.min(1000, realNow - lastReal));
-    lastReal = realNow;
-    onFrame?.();
+  /** Focus: how much of an item shows while another is the subject (1 = all of it). */
+  function focusNow(item) {
+    const f = item.focus;
+    if (!f) return 1;
+    return f.from + (f.to - f.from) * ease.inOut(progress(clock, f.at, f.ms));
+  }
+
+  /** Draw every item with the camera the globe has (or is about to be) drawn with. */
+  function render() {
     resize();
     ctx.clearRect(0, 0, width, height);
     const project = makeProjector(viewer, width, height);
@@ -219,20 +350,83 @@ export function createBriefingOverlay({
         items.delete(item.id);
         continue;
       }
+      const shown = fadeOut * focusNow(item);
       ctx.save();
-      ctx.globalAlpha = fadeOut;
-      item.draw?.(ctx, project, now, { width, height, fadeOut });
+      ctx.globalAlpha = shown;
+      item.draw?.(ctx, project, now, { width, height, fadeOut: shown });
       ctx.restore();
-      item.place?.(project, now, { width, height, fadeOut });
+      item.place?.(project, now, { width, height, fadeOut: shown });
+    }
+  }
+
+  /*
+   * In step with the globe: the camera moves before the scene renders and
+   * the overlay draws after it, inside the same frame.
+   */
+  const removePreUpdate = (
+    viewer.scene?.preUpdate ?? viewer.scene?.preRender
+  )?.addEventListener?.(() => {
+    if (!destroyed) onFrame?.();
+  });
+  const removePostRender = viewer.scene?.postRender?.addEventListener?.(() => {
+    if (destroyed) return;
+    lastSceneRender = performance.now();
+    render();
+  });
+
+  function draw(realNow) {
+    if (destroyed) return;
+    /*
+     * Real time drives briefing time. The cap only guards against a huge jump
+     * after a backgrounded tab; it is a full second so that a slow machine
+     * drawing four frames a second still runs the briefing in real time.
+     */
+    if (drivesClock && lastReal !== null)
+      clock.advance(Math.min(1000, realNow - lastReal));
+    lastReal = realNow;
+    /*
+     * When the globe is not rendering (QA steps it by hand, or a renderer
+     * stalls), this frame is the overlay's own: step the flight and draw.
+     */
+    if (realNow - lastSceneRender > 120) {
+      onFrame?.();
+      render();
     }
     frame = requestAnimationFrame(draw);
   }
 
-  function add(item) {
+  function add(item, kind = 'annotation') {
     const existing = items.get(item.id);
     existing?.dispose?.();
+    item.kind = item.kind ?? kind;
     items.set(item.id, item);
     return item;
+  }
+
+  /**
+   * FOCUS. While one dataset is the subject, the others recede but stay as
+   * context: every map layer not in `on` fades to `dim`; annotations and
+   * panels are left alone (they belong to the beat). `on: null` restores
+   * everything. Items drawn later are not dimmed: what arrives is the focus.
+   */
+  function setFocus({
+    on = null,
+    dim = 0.22,
+    durationMs = 700,
+    instant = false,
+  } = {}) {
+    const keep = on ? new Set(on) : null;
+    for (const item of items.values()) {
+      if (item.kind !== 'layer') continue;
+      const target = !keep || keep.has(item.id) ? 1 : dim;
+      const from = instant ? target : focusNow(item);
+      item.focus = {
+        from,
+        to: target,
+        at: clock.now(),
+        ms: instant ? 0 : durationMs,
+      };
+    }
   }
 
   function remove(id, { instant = false } = {}) {
@@ -272,11 +466,12 @@ export function createBriefingOverlay({
     fill = null,
     fillAlpha = 0.12,
   }) {
-    const ecef = rings.map((ring) => toEcef(ring));
+    const ecef = rings.map((ring) => ground(ring));
     const t0 = startAt(instant, durationMs);
     return add({
       id,
       z,
+      kind: 'layer',
       draw(c, project) {
         const t = ease.inOut(progress(clock, t0, durationMs));
         if (fill && t >= 1) {
@@ -307,11 +502,12 @@ export function createBriefingOverlay({
     instant = false,
     z = 5,
   }) {
-    const ecef = rings.map((ring) => toEcef(ring));
+    const ecef = rings.map((ring) => ground(ring));
     const t0 = startAt(instant, durationMs);
     return add({
       id,
       z,
+      kind: 'layer',
       draw(c, project, _now, { width: W, height: H }) {
         const a = alpha * ease.out(progress(clock, t0, durationMs));
         c.beginPath();
@@ -344,13 +540,14 @@ export function createBriefingOverlay({
   }) {
     const prepared = levels.map((level) => ({
       ...level,
-      ecef: level.rings.map((ring) => toEcef(ring)),
+      ecef: level.rings.map((ring) => ground(ring)),
     }));
     const t0 = startAt(instant, durationMs);
     const state = { highlight, dimOthers: 0 };
     const item = add({
       id,
       z,
+      kind: 'layer',
       state,
       draw(c, project) {
         const t = ease.out(progress(clock, t0, durationMs));
@@ -406,7 +603,7 @@ export function createBriefingOverlay({
     revealMs = 1200,
     filter = null,
   }) {
-    const ecef = toEcef(rows.flatMap((row) => [row[lonIndex], row[latIndex]]));
+    const ecef = ground(rows.flatMap((row) => [row[lonIndex], row[latIndex]]));
     const categories = rows.map((row) => row[categoryIndex]);
     const alpha = colours.map(() => ({
       from: 0,
@@ -422,6 +619,7 @@ export function createBriefingOverlay({
     return add({
       id,
       z,
+      kind: 'layer',
       state,
       setAlpha(k, to, ms = 700, instantly = false) {
         const current = alphaNow(k);
@@ -471,7 +669,7 @@ export function createBriefingOverlay({
   }) {
     const prepared = groups.map((group) => ({
       ...group,
-      ecef: group.lines.map((line) => toEcef(line)),
+      ecef: group.lines.map((line) => ground(line)),
       /* [west, south, east, north] per line, in degrees, for view culling. */
       boxes: group.lines.map((line) => {
         let w = Infinity;
@@ -496,6 +694,7 @@ export function createBriefingOverlay({
     return add({
       id,
       z,
+      kind: 'layer',
       state,
       setDim(to, ms = 800, instantly = false) {
         state.dimFrom = instantly ? to : dimNow();
@@ -567,12 +766,13 @@ export function createBriefingOverlay({
     staggerMs = 0,
     halo = false,
   }) {
-    const ecef = toEcef(rows.flatMap((row) => [row.lon, row.lat]));
+    const ecef = ground(rows.flatMap((row) => [row.lon, row.lat]));
     const t0 = startAt(instant, revealMs + staggerMs);
     const state = { alpha: 1, highlight: null };
     return add({
       id,
       z,
+      kind: 'layer',
       state,
       draw(c, project) {
         const elapsed = clock.now() - t0;
@@ -645,8 +845,17 @@ export function createBriefingOverlay({
 
   /**
    * Seismic events that appear as a timeline reaches them. `hourOf(row)` is
-   * the event's time; the item's `hour` is where the timeline stands. An
-   * event pulses once as it arrives.
+   * the event's time; the item's `hour` is where the timeline stands.
+   *
+   * TIME HAS A HIERARCHY (Stage 9.2). Hundreds of identical dots said nothing
+   * about when. Each event is drawn in one of four states, relative to where
+   * the timeline stands and where the current move through time began:
+   *
+   *   OLD     before this move began: small, dim, desaturated — context.
+   *   RECENT  inside this move: full colour.
+   *   NEW     the last eighth of the move: larger, with an expanding ring.
+   *   MAJOR   magnitude 6.5 or more, once reached: a white ring and a label,
+   *           "M7.3 · 12 MAY", that stays while the layer is shown.
    */
   function events({
     id,
@@ -655,12 +864,15 @@ export function createBriefingOverlay({
     z = 35,
     hour = 0,
     instant = false,
+    originMs = null,
+    majorMagnitude = 6.5,
   }) {
-    const ecef = toEcef(rows.flatMap((row) => [row[0], row[1]]));
+    const ecef = ground(rows.flatMap((row) => [row[0], row[1]]));
     const state = {
       hour,
       from: hour,
       to: hour,
+      windowStart: hour,
       at: clock.now(),
       ms: 0,
       highlight: null,
@@ -668,11 +880,36 @@ export function createBriefingOverlay({
     const hourNow = () =>
       state.from +
       (state.to - state.from) * progress(clock, state.at, state.ms);
+    const majors = rows
+      .map((row, i) => ({ row, i }))
+      .filter(({ row }) => row[2] >= majorMagnitude)
+      .map(({ row, i }) => {
+        const when =
+          originMs !== null ? new Date(originMs + row[4] * 3_600_000) : null;
+        const date = when
+          ? `${String(when.getUTCDate()).padStart(2, '0')} ${MONTHS[when.getUTCMonth()]}`
+          : '';
+        const node = el(
+          'div',
+          'brf-label brf-label--event',
+          `M${row[2].toFixed(1)}${date ? ` · ${date}` : ''}`,
+        );
+        node.style.opacity = '0';
+        dom.append(node);
+        return { row, i, node, x: 0, y: 0, shown: false };
+      });
     return add({
       id,
       z,
+      kind: 'layer',
       state,
+      /**
+       * Move the timeline. Whatever had appeared before this move becomes
+       * OLD; what appears during it is RECENT. On a cold rebuild the beats
+       * are replayed instantly in order, so the window is the same.
+       */
       seek(toHour, ms, instantly = false) {
+        state.windowStart = state.to;
         state.from = instantly ? toHour : hourNow();
         state.to = toHour;
         state.at = clock.now();
@@ -681,30 +918,124 @@ export function createBriefingOverlay({
       hourNow,
       draw(c, project) {
         const h = hourNow();
+        const span = Math.max(0.5, (state.to - state.windowStart) / 8);
         for (let i = 0; i < rows.length; i += 1) {
           const [, , mag, , hours] = rows[i];
           if (hours > h) continue;
           const p = project(ecef, i);
           if (!p.visible) continue;
-          const r = 1.5 + Math.max(0, mag - 3) * 1.6;
+          const base = 1.5 + Math.max(0, mag - 3) * 1.6;
+          const old = hours < state.windowStart - 1e-6;
           const age = h - hours;
-          const fresh = Math.max(0, 1 - age / 6);
+          const fresh = old ? 0 : Math.max(0, 1 - age / span);
           const isHighlight = state.highlight && state.highlight(rows[i]);
+          const major = mag >= majorMagnitude;
+          const r = old && !major ? base * 0.8 : base * (1 + 0.4 * fresh);
           c.beginPath();
           c.arc(p.x, p.y, r, 0, Math.PI * 2);
-          c.fillStyle = hexToRgba(
-            isHighlight ? '#ff5a5f' : colour,
-            0.35 + 0.55 * fresh,
-          );
+          c.fillStyle = isHighlight
+            ? hexToRgba('#ff5a5f', 0.9)
+            : old
+              ? hexToRgba('#c9a27a', major ? 0.55 : 0.2)
+              : hexToRgba(colour, 0.7 + 0.3 * fresh);
           c.fill();
           if (fresh > 0) {
             c.beginPath();
-            c.arc(p.x, p.y, r + 10 * (1 - fresh), 0, Math.PI * 2);
-            c.strokeStyle = hexToRgba(colour, fresh * 0.8);
-            c.lineWidth = 1.2;
+            c.arc(p.x, p.y, r + 14 * (1 - fresh), 0, Math.PI * 2);
+            c.strokeStyle = hexToRgba(colour, fresh * 0.85);
+            c.lineWidth = 1.4;
+            c.stroke();
+          }
+          if (major) {
+            c.beginPath();
+            c.arc(p.x, p.y, r + 2.5, 0, Math.PI * 2);
+            c.strokeStyle = `rgba(245,250,248,${old ? 0.5 : 0.9})`;
+            c.lineWidth = 1.4;
             c.stroke();
           }
         }
+        for (const m of majors) {
+          const p = project(ecef, m.i);
+          m.shown = p.visible && m.row[4] <= h;
+          m.x = p.x;
+          m.y = p.y;
+          m.old = m.row[4] < state.windowStart - 1e-6;
+        }
+      },
+      place(_project, _now, { fadeOut }) {
+        for (const m of majors) {
+          m.node.style.opacity = m.shown
+            ? String((m.old ? 0.55 : 1) * fadeOut)
+            : '0';
+          m.node.style.transform = `translate(${Math.round(m.x + 12)}px, ${Math.round(m.y - 10 - m.node.offsetHeight)}px)`;
+        }
+      },
+      dispose() {
+        for (const m of majors) m.node.remove();
+      },
+    });
+  }
+
+  /**
+   * THE CLOCK ON SCREEN. Where a scene moves through time, a card says where
+   * the timeline stands — DAY 17 · 12 MAY 2015 — and a ruler shows how far
+   * along the sequence that is, with the main shock and the second major
+   * shock marked. It reads the hour from `hourOf()` every frame, so it moves
+   * exactly as the events do, and stops when the briefing pauses.
+   */
+  function timeCard({
+    id,
+    hourOf,
+    originMs,
+    spanDays = 20,
+    ticks = [],
+    screen = { x: 0.64, y: 0.075 },
+    instant = false,
+    durationMs = 500,
+    z = 88,
+  }) {
+    const node = el('div', 'brf-timecard');
+    const day = el('div', 'brf-timecard__day');
+    const date = el('div', 'brf-timecard__date');
+    const ruler = el('div', 'brf-timecard__ruler');
+    const fill = el('div', 'brf-timecard__fill');
+    const cursor = el('div', 'brf-timecard__cursor');
+    ruler.append(fill, cursor);
+    const tickNodes = ticks.map((tick) => {
+      const n = el('div', `brf-timecard__tick ${tick.className ?? ''}`.trim());
+      n.title = tick.label ?? '';
+      n.style.left = `${Math.min(100, (tick.day / spanDays) * 100)}%`;
+      ruler.append(n);
+      return { tick, n };
+    });
+    const ends = el('div', 'brf-timecard__ends');
+    ends.append(el('span', null, 'DAY 0'), el('span', null, `DAY ${spanDays}`));
+    node.append(day, date, ruler, ends);
+    dom.append(node);
+    const t0 = startAt(instant, durationMs);
+    return add({
+      id,
+      z,
+      kind: 'ui',
+      place(_project, _now, { width: W, height: H, fadeOut }) {
+        const h = Math.max(0, hourOf());
+        const d = Math.floor(h / 24);
+        day.textContent =
+          h < 48 ? `DAY ${d} · +${Math.floor(h)} H` : `DAY ${d}`;
+        const when = new Date(originMs + h * 3_600_000);
+        date.textContent = `${String(when.getUTCDate()).padStart(2, '0')} ${MONTHS[when.getUTCMonth()]} ${when.getUTCFullYear()} · ${String(when.getUTCHours()).padStart(2, '0')}:${String(when.getUTCMinutes()).padStart(2, '0')} UTC`;
+        const share = Math.min(1, h / 24 / spanDays);
+        fill.style.width = `${share * 100}%`;
+        cursor.style.left = `${share * 100}%`;
+        for (const { tick, n } of tickNodes)
+          n.classList.toggle('is-reached', h / 24 >= tick.day);
+        node.style.opacity = String(
+          ease.out(progress(clock, t0, durationMs)) * fadeOut,
+        );
+        node.style.transform = `translate(${Math.round(screen.x * W)}px, ${Math.round(screen.y * H)}px)`;
+      },
+      dispose() {
+        node.remove();
       },
     });
   }
@@ -721,7 +1052,7 @@ export function createBriefingOverlay({
     z = 40,
     core = 5,
   }) {
-    const ecef = toEcef([lon, lat]);
+    const ecef = ground([lon, lat]);
     const t0 = clock.now();
     return add({
       id,
@@ -758,7 +1089,7 @@ export function createBriefingOverlay({
     instant = false,
     z = 45,
   }) {
-    const ecef = toEcef([lon, lat]);
+    const ecef = ground([lon, lat]);
     const t0 = startAt(instant, durationMs);
     return add({
       id,
@@ -801,7 +1132,7 @@ export function createBriefingOverlay({
     z = 38,
     dashed = false,
   }) {
-    const ecef = toEcef(line);
+    const ecef = ground(line);
     const t0 = startAt(instant, durationMs);
     return add({
       id,
@@ -843,6 +1174,7 @@ export function createBriefingOverlay({
     return add({
       id,
       z,
+      kind: 'layer',
       draw(c, project) {
         c.beginPath();
         for (const line of lines) tracePath(c, project, line, 1);
@@ -900,7 +1232,7 @@ export function createBriefingOverlay({
     tone = 'default',
     anchorDot = true,
   }) {
-    const ecef = toEcef([lon, lat]);
+    const ecef = ground([lon, lat]);
     const box = el('div', `brf-callout brf-callout--${tone}`);
     if (title) box.append(el('div', 'brf-callout__title', title));
     const lineNodes = lines.map((text) => el('div', 'brf-callout__line', text));
@@ -992,7 +1324,7 @@ export function createBriefingOverlay({
     dx = 10,
     dy = -10,
   }) {
-    const ecef = toEcef([lon, lat]);
+    const ecef = ground([lon, lat]);
     const node = el('div', `brf-label brf-label--${size}`, text);
     dom.append(node);
     const t0 = startAt(instant, durationMs);
@@ -1044,7 +1376,7 @@ export function createBriefingOverlay({
     dy = -30,
     from = 0,
   }) {
-    const ecef = lon !== null ? toEcef([lon, lat]) : null;
+    const ecef = lon !== null ? ground([lon, lat]) : null;
     const node = el('div', `brf-metric brf-metric--${size}`);
     const number = el('div', 'brf-metric__value');
     const text = el('div', 'brf-metric__label', caption);
@@ -1091,6 +1423,7 @@ export function createBriefingOverlay({
     return add({
       id,
       z,
+      kind: 'ui',
       place(_project, _now, { fadeOut }) {
         const t = progress(clock, t0, durationMs * 0.5);
         inner.textContent = text.slice(0, Math.ceil(text.length * t));
@@ -1127,6 +1460,7 @@ export function createBriefingOverlay({
     return add({
       id,
       z,
+      kind: 'ui',
       place(_project, _now, { width: W, height: H, fadeOut }) {
         const t = progress(clock, t0, durationMs);
         let budget = Math.ceil(total * t);
@@ -1267,6 +1601,7 @@ export function createBriefingOverlay({
     return add({
       id,
       z,
+      kind: 'ui',
       node,
       place(project, now, info) {
         const t = ease.out(progress(clock, t0, durationMs));
@@ -1308,6 +1643,13 @@ export function createBriefingOverlay({
     typed,
     panel,
     evidenceTag,
+    setFocus,
+    timeCard,
+    /** For QA: the terrain height the overlay draws a place at. */
+    heightAt: (lon, lat) => heights.heightAt(lon, lat),
+    get terrainHeights() {
+      return heights.enabled;
+    },
     /** Called every animation frame before drawing; the stage hooks in here. */
     setOnFrame(fn) {
       onFrame = fn;
@@ -1324,6 +1666,8 @@ export function createBriefingOverlay({
     destroy() {
       destroyed = true;
       if (frame) cancelAnimationFrame(frame);
+      removePreUpdate?.();
+      removePostRender?.();
       for (const item of items.values()) item.dispose?.();
       items.clear();
       root.remove();

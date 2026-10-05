@@ -17,6 +17,8 @@ import { fillTemplate, formatValue } from '../../../nepal/briefing/facts.js';
 import { progress } from '../../../nepal/briefing/clock.js';
 import { interpolateView } from '../../../nepal/briefing/flight.js';
 import { DAMAGE_COLOURS, MMI_COLOURS } from '../../../nepal/story/mapModel.js';
+import { GLOSSARY } from '../../../nepal/briefing/glossary.js';
+import { musicStateFor } from '../../../nepal/briefing/music.js';
 import {
   createCompositionChart,
   createIntensityChart,
@@ -75,8 +77,11 @@ export const ACCESS_CATEGORY_COLOURS = Object.freeze([
  * @param {object} input.book fact book (facts.js)
  * @param {object} input.geometry the briefing geometry artefact
  * @param {object} input.narrator from `createNarrator`
- * @param {object} input.sound from `createSoundBed`
+ * @param {object} input.sound from `createSoundBed` (short effects)
  * @param {object} input.captions from `createCaptions`
+ * @param {object} [input.music] from `createScore`: the act's state and the six musical cues
+ * @param {object} [input.audio] the mixer (`createAudioEngine`): pause and resume fade it
+ * @param {(term:object|null, opts?:object)=>void} [input.onTerm] shows a term's plain meaning
  */
 export function createBriefingStage({
   viewer,
@@ -91,8 +96,21 @@ export function createBriefingStage({
   releaseRender = () => {},
   requestRender = () => {},
   veil = null,
+  music = null,
+  audio = null,
+  onTerm = () => {},
 }) {
   const charts = new Map();
+  /** Annotations drawn with `until: 'beat'`: gone when the next beat starts. */
+  const beatOnly = new Set();
+  /** The main shock's origin time, for the clock on screen and event labels. */
+  const originMs = (() => {
+    try {
+      return Date.parse(book.value('quake.time'));
+    } catch {
+      return null;
+    }
+  })();
   /** The flight in progress; it advances with the briefing clock. */
   let flight = null;
   const pendingRemovals = new Set();
@@ -278,15 +296,12 @@ export function createBriefingStage({
     stepFlight();
   }
 
-  /** Ends the flight in progress: landed plays the lock cue; either way it resolves. */
+  /** Ends the flight in progress, landed or where it is; either way it resolves. */
   function finishFlight(landed) {
     const current = flight;
     if (!current) return;
     flight = null;
-    if (landed) {
-      applyView(current.to);
-      sound.cue('lock');
-    }
+    if (landed) applyView(current.to);
     releaseRender(FLIGHT_HOLD);
     requestRender();
     current.resolve();
@@ -394,6 +409,7 @@ export function createBriefingStage({
         rows: geometry.seismicEvents.rows,
         hour,
         instant,
+        originMs,
       }),
 
     /* ---- Act II–III: people, and where damage piled up ---- */
@@ -1189,12 +1205,52 @@ export function createBriefingStage({
         : action.toHour;
       item?.seek(toHour, action.duration ?? 4000, instant);
     },
+    /* Six moments are the score's; every other cue is a short sound effect. */
     'audio.cue': (action, instant) => {
-      if (!instant) sound.cue(action.cue);
+      if (instant) return;
+      if (music?.isCue?.(action.cue)) music.cue(action.cue);
+      else sound.cue(action.cue);
     },
     'route.trace': (action, instant) =>
       drawAnnotation({ ...action, kind: 'trace' }, instant),
+    /* The subject dominates: every other map layer recedes, but stays as context. */
+    focus: (action, instant) =>
+      overlay.setFocus({
+        on: action.on ?? null,
+        dim: action.dim ?? 0.22,
+        durationMs: action.duration ?? 700,
+        instant,
+      }),
+    /* A term explained the first time this run meets it; later uses pass silently. */
+    'term.show': (action, instant, entry) => {
+      if (instant || !entry?.firstTerms?.includes(action.term)) return;
+      const term = GLOSSARY[action.term];
+      if (!term) return;
+      onTerm(term, { holdMs: action.holdMs ?? 6500 });
+    },
+    /* The clock on screen, reading the events layer's timeline. */
+    'time.card': (action, instant) =>
+      overlay.timeCard({
+        id: action.id ?? 'timecard',
+        hourOf: () => overlay.get(action.layer ?? 'events')?.hourNow?.() ?? 0,
+        originMs,
+        spanDays: action.spanDays ?? 20,
+        ticks: (action.ticks ?? []).map((tick) => ({
+          ...tick,
+          day: tick.day?.fact ? factAt(tick.day) : tick.day,
+        })),
+        screen: action.screen ?? undefined,
+        instant,
+      }),
   };
+
+  /** Remember what was drawn for this beat alone. */
+  function track(action) {
+    if (action.until !== 'beat') return;
+    const id =
+      action.id ?? (action.type === 'layer.show' ? action.layer : null);
+    if (id) beatOnly.add(id);
+  }
 
   return {
     place,
@@ -1203,7 +1259,13 @@ export function createBriefingStage({
     },
     async enterScene(scene, { instant }) {
       pendingRemovals.clear();
+      beatOnly.clear();
+      onTerm(null);
       overlay.clear({ instant, keep: scene.keep ?? [] });
+      /* What the last scene was looking at is no longer the subject. */
+      overlay.setFocus?.({ on: null, instant: true });
+      /* The score follows the act; inside an act, NEXT and BACK leave it playing. */
+      music?.setState?.(musicStateFor(scene));
       for (const id of [...charts.keys()])
         if (!(scene.keep ?? []).includes(id)) charts.delete(id);
       captions.show(null);
@@ -1223,12 +1285,25 @@ export function createBriefingStage({
           continue;
         await handlers[action.type]?.(action, true);
       }
+      /* A scene that is about one dataset says so; the kept context recedes. */
+      if (scene.focus)
+        overlay.setFocus?.({
+          on: scene.focus,
+          dim: scene.focusDim ?? 0.22,
+          instant: true,
+        });
     },
-    run(action, { instant }) {
+    /** A new beat: the previous beat's beat-only annotations leave. */
+    beginBeat() {
+      for (const id of beatOnly) overlay.remove(id);
+      beatOnly.clear();
+    },
+    run(action, { instant, entry } = {}) {
       const handler = handlers[action.type];
       if (!handler)
         throw new Error(`The stage has no handler for "${action.type}".`);
-      const result = handler(action, instant);
+      track(action);
+      const result = handler(action, instant, entry);
       if (instant) return undefined;
       /* An action that animates resolves when its animation has run. */
       const ms = action.type === 'camera.fly' ? 0 : (action.duration ?? 0);
@@ -1237,6 +1312,10 @@ export function createBriefingStage({
     caption: (value, options) =>
       captions.show(value ? text(value) : null, options),
     speak: (line, options) => narrator.speak(text(line), options),
+    /** Fetch the next beat's voice while this one plays. */
+    prefetch: (beat) =>
+      beat?.narration &&
+      narrator.prefetch?.(text(beat.narration), beat.prosody),
     cancel() {
       /* A skipped flight resolves where it is; the next beat sets its own view. */
       finishFlight(false);
@@ -1244,13 +1323,13 @@ export function createBriefingStage({
     },
     pause() {
       narrator.pause();
-      sound.suspend();
+      void audio?.pause?.();
       /* The clock has stopped, so the flight has too; no need to keep rendering. */
       if (flight) releaseRender(FLIGHT_HOLD);
     },
     resume() {
       narrator.resume();
-      sound.resume();
+      void audio?.resume?.();
       if (flight) holdRender(FLIGHT_HOLD);
     },
     /** The view the briefing last set, for QA and for handing back to explore. */

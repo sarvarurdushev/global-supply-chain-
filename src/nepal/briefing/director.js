@@ -25,10 +25,21 @@
 
 import {
   entryLengthMs,
-  narrationMs,
+  narrationMsFor,
   readingMs,
   sceneEndHoldMs,
 } from './timeline.js';
+
+/**
+ * Actions not rebuilt when a beat is entered cold: they belong to the moment
+ * they were played. A term explained, a beat-only annotation (`until:
+ * 'beat'`), a sound — re-running them on a skip would flash them back.
+ */
+const transient = (action) =>
+  action.persist === false ||
+  action.type === 'audio.cue' ||
+  action.type === 'term.show' ||
+  action.until === 'beat';
 
 export const STATUS = Object.freeze({
   IDLE: 'idle',
@@ -122,7 +133,7 @@ export function createDirector({ plan, stage, clock, onChange = () => {} }) {
       );
       for (const beat of entry.priorBeats.slice(stagedThrough + 1)) {
         for (const action of beat.actions) {
-          if (action.persist === false || action.type === 'audio.cue') continue;
+          if (transient(action)) continue;
           if (action.type === 'camera.fly') continue;
           if (action.type === 'annotation.draw' && removedNext.has(action.id))
             continue;
@@ -143,7 +154,7 @@ export function createDirector({ plan, stage, clock, onChange = () => {} }) {
     if (gen !== generation) return;
     for (const beat of entry.priorBeats) {
       for (const action of beat.actions) {
-        if (action.persist === false || action.type === 'audio.cue') continue;
+        if (transient(action)) continue;
         await stage.run(action, { instant: true, entry });
         if (gen !== generation) return;
       }
@@ -177,7 +188,11 @@ export function createDirector({ plan, stage, clock, onChange = () => {} }) {
     const { beat } = entry;
     beatStartedAt = clock.now();
     partial = true;
-    stage.caption(beat.caption ?? null);
+    /* What the last beat drew for itself alone goes as this one starts. */
+    stage.beginBeat?.(entry);
+    stage.caption(beat.caption ?? null, { kind: beat.kind ?? null });
+    /* The next beat's voice is fetched while this one plays. */
+    stage.prefetch?.(plan[target + 1]?.beat ?? null);
 
     /* Every action runs at its offset on the briefing clock. */
     const actionDone = beat.actions.map(
@@ -202,10 +217,13 @@ export function createDirector({ plan, stage, clock, onChange = () => {} }) {
       clock.after(beat.narrationAt ?? 0, () => {
         if (gen !== generation) return resolve();
         if (beat.narration && stage.hasVoice) {
-          utterance = stage.speak(beat.narration, { rate: clock.speed });
+          utterance = stage.speak(beat.narration, {
+            rate: clock.speed,
+            prosody: beat.prosody ?? null,
+          });
           Promise.resolve(utterance?.done).then(resolve, resolve);
           /* A voice that never reports its end must not hang the briefing. */
-          clock.after(narrationMs(beat.narration) * 1.8 + 3000, resolve);
+          clock.after(narrationMsFor(beat) * 1.8 + 3000, resolve);
         } else {
           clock.after(readingMs(beat.caption ?? beat.narration), resolve);
         }
@@ -260,9 +278,14 @@ export function createDirector({ plan, stage, clock, onChange = () => {} }) {
     if (gen !== generation) return;
     const entry = plan[bounded];
     partial = true;
-    stage.caption(entry.beat.caption ?? null, { instant: true });
+    stage.beginBeat?.(entry);
+    stage.caption(entry.beat.caption ?? null, {
+      instant: true,
+      kind: entry.beat.kind ?? null,
+    });
     for (const action of entry.beat.actions) {
       if (action.persist === false || action.type === 'audio.cue') continue;
+      if (action.type === 'term.show') continue;
       await stage.run(action, { instant: true, entry });
       if (gen !== generation) return;
     }

@@ -1,16 +1,17 @@
 /**
- * Sound design, synthesised.
+ * Sound design, synthesised: short accents on the mixer's SFX bus.
  *
  * Every cue is generated with the Web Audio API — oscillators, filtered noise
  * and envelopes — so there is no audio file to license, attribute or fetch,
  * and nothing borrowed from a film. The palette is deliberately restrained: a
- * briefing room, not a trailer. Nothing plays until the presenter presses
- * BEGIN BRIEFING, because browsers only allow audio after a user gesture and
- * because sound that starts on its own is an ambush.
+ * briefing room, not a trailer. Accents are brief; the bed under the story is
+ * the score (score.js), and the dramatic moments belong to it, not here.
+ * Nothing plays until the presenter presses BEGIN BRIEFING, because browsers
+ * only allow audio after a user gesture and sound that starts on its own is
+ * an ambush.
  */
 
 export const CUES = Object.freeze([
-  'ambience',
   'lock',
   'pulse',
   'reveal',
@@ -19,41 +20,28 @@ export const CUES = Object.freeze([
   'tick',
 ]);
 
-export function createSoundBed({
-  AudioContextImpl = globalThis.AudioContext ?? globalThis.webkitAudioContext,
-} = {}) {
-  let ctx = null;
-  let master = null;
-  let ambience = null;
-  let muted = false;
-  let volume = 0.5;
-
-  function ensure() {
-    if (ctx || !AudioContextImpl) return ctx;
-    ctx = new AudioContextImpl();
-    master = ctx.createGain();
-    master.gain.value = muted ? 0 : volume;
-    master.connect(ctx.destination);
-    return ctx;
-  }
+export function createSoundBed({ engine }) {
+  const ctx = () => engine.context;
+  const out = () => engine.bus('sfx');
 
   function envelope(
     node,
     { attack = 0.01, hold = 0.05, release = 0.3, peak = 0.3 } = {},
   ) {
-    const g = ctx.createGain();
-    const t = ctx.currentTime;
+    const c = ctx();
+    const g = c.createGain();
+    const t = c.currentTime;
     g.gain.setValueAtTime(0.0001, t);
     g.gain.exponentialRampToValueAtTime(peak, t + attack);
     g.gain.setValueAtTime(peak, t + attack + hold);
     g.gain.exponentialRampToValueAtTime(0.0001, t + attack + hold + release);
     node.connect(g);
-    g.connect(master);
+    g.connect(out());
     return t + attack + hold + release + 0.05;
   }
 
   function tone(freq, type = 'sine', opts = {}) {
-    const osc = ctx.createOscillator();
+    const osc = ctx().createOscillator();
     osc.type = type;
     osc.frequency.value = freq;
     const end = envelope(osc, opts);
@@ -66,16 +54,17 @@ export function createSoundBed({
     seconds,
     { filter = 800, q = 0.7, type = 'bandpass', ...opts } = {},
   ) {
-    const buffer = ctx.createBuffer(
+    const c = ctx();
+    const buffer = c.createBuffer(
       1,
-      Math.ceil(ctx.sampleRate * seconds),
-      ctx.sampleRate,
+      Math.ceil(c.sampleRate * seconds),
+      c.sampleRate,
     );
     const data = buffer.getChannelData(0);
     for (let i = 0; i < data.length; i += 1) data[i] = Math.random() * 2 - 1;
-    const src = ctx.createBufferSource();
+    const src = c.createBufferSource();
     src.buffer = buffer;
-    const f = ctx.createBiquadFilter();
+    const f = c.createBiquadFilter();
     f.type = type;
     f.frequency.value = filter;
     f.Q.value = q;
@@ -88,46 +77,48 @@ export function createSoundBed({
 
   const play = {
     lock() {
-      tone(880, 'sine', { peak: 0.08, hold: 0.02, release: 0.08 });
+      tone(880, 'sine', { peak: 0.05, hold: 0.02, release: 0.08 });
       setTimeout(
         () =>
-          ctx && tone(1320, 'sine', { peak: 0.06, hold: 0.02, release: 0.12 }),
+          ctx() &&
+          tone(1320, 'sine', { peak: 0.04, hold: 0.02, release: 0.12 }),
         70,
       );
     },
     pulse() {
       const osc = tone(62, 'sine', {
-        peak: 0.45,
+        peak: 0.4,
         attack: 0.005,
         hold: 0.08,
         release: 0.9,
       });
-      osc.frequency.exponentialRampToValueAtTime(38, ctx.currentTime + 0.9);
-      noise(0.5, { filter: 180, type: 'lowpass', peak: 0.12, release: 0.4 });
+      osc.frequency.exponentialRampToValueAtTime(38, ctx().currentTime + 0.9);
+      noise(0.5, { filter: 180, type: 'lowpass', peak: 0.1, release: 0.4 });
     },
     reveal() {
       const osc = tone(520, 'triangle', {
-        peak: 0.07,
+        peak: 0.05,
         attack: 0.02,
         hold: 0.06,
         release: 0.35,
       });
-      osc.frequency.linearRampToValueAtTime(700, ctx.currentTime + 0.3);
+      osc.frequency.linearRampToValueAtTime(700, ctx().currentTime + 0.3);
     },
     trace() {
       const { f } = noise(1.6, {
         filter: 400,
         q: 4,
-        peak: 0.05,
+        peak: 0.04,
         attack: 0.2,
         hold: 0.9,
         release: 0.5,
       });
-      f.frequency.exponentialRampToValueAtTime(2400, ctx.currentTime + 1.5);
+      f.frequency.exponentialRampToValueAtTime(2400, ctx().currentTime + 1.5);
     },
+    /* A soft low knock: a figure landing. The big impacts are the score's. */
     hit() {
-      tone(48, 'sine', { peak: 0.5, attack: 0.004, hold: 0.1, release: 1.6 });
-      noise(1.2, { filter: 120, type: 'lowpass', peak: 0.18, release: 1.1 });
+      tone(55, 'sine', { peak: 0.28, attack: 0.004, hold: 0.06, release: 0.8 });
+      noise(0.6, { filter: 140, type: 'lowpass', peak: 0.08, release: 0.5 });
     },
     tick() {
       noise(0.03, {
@@ -139,64 +130,19 @@ export function createSoundBed({
         release: 0.02,
       });
     },
-    ambience() {
-      if (ambience) return;
-      const osc = ctx.createOscillator();
-      osc.type = 'sawtooth';
-      osc.frequency.value = 55;
-      const osc2 = ctx.createOscillator();
-      osc2.type = 'sine';
-      osc2.frequency.value = 82.4;
-      const filter = ctx.createBiquadFilter();
-      filter.type = 'lowpass';
-      filter.frequency.value = 180;
-      const g = ctx.createGain();
-      g.gain.value = 0;
-      g.gain.linearRampToValueAtTime(0.035, ctx.currentTime + 4);
-      osc.connect(filter);
-      osc2.connect(filter);
-      filter.connect(g);
-      g.connect(master);
-      osc.start();
-      osc2.start();
-      ambience = { osc, osc2, g };
-    },
   };
 
   return {
-    /** Must be called from a user gesture (BEGIN BRIEFING). */
-    unlock() {
-      ensure();
-      return ctx?.resume?.();
-    },
-    get ready() {
-      return Boolean(ctx && ctx.state === 'running');
-    },
     cue(name) {
-      if (!ctx || ctx.state !== 'running' || muted) return;
+      if (!engine.ready || engine.isMuted('sfx')) return;
       play[name]?.();
     },
-    setMuted(value) {
-      muted = Boolean(value);
-      if (master) master.gain.value = muted ? 0 : volume;
-    },
-    get muted() {
-      return muted;
-    },
+    /** For callers that predate the mixer: the SFX bus level. */
     setVolume(value) {
-      volume = Math.max(0, Math.min(1, value));
-      if (master && !muted) master.gain.value = volume;
+      engine.setLevel('sfx', value * 0.9);
     },
-    get volume() {
-      return volume;
-    },
-    suspend: () => ctx?.suspend?.(),
-    resume: () => ctx?.resume?.(),
-    destroy() {
-      ambience?.osc.stop();
-      ambience?.osc2.stop();
-      ctx?.close?.();
-      ctx = null;
+    setMuted(value) {
+      engine.setMuted('sfx', value);
     },
   };
 }

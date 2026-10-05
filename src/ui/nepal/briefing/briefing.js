@@ -1,6 +1,12 @@
 /**
- * The executive briefing, assembled: director, stage, overlay, voice, sound,
- * captions, controls, and the BEGIN BRIEFING screen.
+ * The executive briefing, assembled: director, stage, overlay, voice, score,
+ * sound, captions, controls, and the BEGIN BRIEFING screen.
+ *
+ * AUDIO is one mixer (audio.js) with three buses: the VOICE (neural clips or
+ * the system voice, narration.js), the MUSIC (the generated score, score.js)
+ * and the SFX (short accents, sound.js). Nothing sounds until BEGIN, the
+ * music ducks under the voice, and the presenter sets each before starting:
+ * voice and preview, voice volume, music on/off and volume, captions.
  *
  * The briefing OWNS THE MAP while it runs. The explore experience underneath
  * is suspended — its layers cleared, its camera left alone — so two systems
@@ -15,7 +21,12 @@ import {
   STATUS,
   createDirector,
 } from '../../../nepal/briefing/director.js';
-import { RUNS, RUN_LABELS, planRun } from '../../../nepal/briefing/timeline.js';
+import {
+  RUNS,
+  RUN_LABELS,
+  planRun,
+  setNarrationMeasure,
+} from '../../../nepal/briefing/timeline.js';
 import { createFactBook, fillTemplate } from '../../../nepal/briefing/facts.js';
 import {
   BRIEFING_SCENES,
@@ -24,7 +35,10 @@ import {
 import { createBriefingOverlay } from './overlay.js';
 import { createBriefingStage } from './stage.js';
 import { createCaptions } from './captions.js';
+import { GLOSSARY, GLOSSARY_ORDER } from '../../../nepal/briefing/glossary.js';
+import { createAudioEngine } from './audio.js';
 import { createNarrator } from './narration.js';
+import { createScore } from './score.js';
 import { createSoundBed } from './sound.js';
 
 const GEOMETRY_URL = '/data/analysis/nepal-2015-briefing-geometry.json';
@@ -79,8 +93,22 @@ export function createBriefing({
       return false;
     }
   })();
-  const narrator = createNarrator({ clock, simulate: simulated });
-  const sound = createSoundBed();
+  const engine = createAudioEngine();
+  const narrator = createNarrator({ clock, simulate: simulated, engine });
+  const sound = createSoundBed({ engine });
+  const score = createScore({ engine });
+  let musicOn = true;
+  /*
+   * With the neural clips loaded, a beat lasts exactly as long as its clips
+   * say — the director's timing, the progress bar and the run estimate all
+   * read the real voice. Without them, the estimate in the line's delivery.
+   */
+  setNarrationMeasure((beat) =>
+    book
+      ? narrator.measureMs(fillTemplate(beat.narration, book), beat.prosody)
+      : null,
+  );
+  void narrator.load().then(() => render());
   let overlay = null;
   let captions = null;
   let stage = null;
@@ -91,7 +119,8 @@ export function createBriefing({
   let book = null;
   let run = RUNS.SIX;
   let active = false;
-  let provenanceOpen = false;
+  /** The technical layer: method, definitions and sources beside the beat. */
+  let technicalOn = false;
   /** The scope vignette state before the run, restored on leave. */
   let scopeBefore = null;
 
@@ -145,13 +174,20 @@ export function createBriefing({
     const i = SPEEDS.indexOf(director.state.speed);
     director.setSpeed(SPEEDS[(i + 1) % SPEEDS.length]);
   });
+  /* VOICE and MUSIC mute in place: the run keeps its pace, the captions carry the words. */
   const voice = button(
     'VOICE',
-    'Narration on or off',
+    'Mute or unmute the narration',
     () => {
-      narrator.setEnabled(!narrator.enabled);
+      narrator.setMuted(!narrator.muted);
       render();
     },
+    'brf-btn--toggle',
+  );
+  const music = button(
+    'MUSIC',
+    'Music on or off',
+    () => setMusic(!musicOn),
     'brf-btn--toggle',
   );
   const cc = button(
@@ -163,24 +199,35 @@ export function createBriefing({
     },
     'brf-btn--toggle',
   );
-  const volume = el('input', 'brf-volume', null, {
-    type: 'range',
-    min: '0',
-    max: '100',
-    value: '50',
-    title: 'Volume',
-    'aria-label': 'Volume',
-  });
-  volume.addEventListener('input', () => {
-    sound.setVolume(Number(volume.value) / 100);
-    narrator.setVolume(Number(volume.value) / 100);
-  });
+  const technical = button(
+    'TECH',
+    'Technical layer: method, definitions and sources for this beat (I)',
+    () => setTechnical(!technicalOn),
+    'brf-btn--toggle',
+  );
+  const glossaryButton = button(
+    '?',
+    'Glossary: every term the briefing uses, in plain words (G)',
+    () => setGlossary(glossaryPanel.hidden),
+    'brf-btn--icon',
+  );
   const replay = button('↺', 'Replay this beat (R)', () => director?.replay());
+  /* A fallback is never hidden: when the neural voice is not speaking, the bar says so. */
+  const voiceBadge = el('div', 'brf-voice-badge');
+
+  function setMusic(on) {
+    musicOn = Boolean(on);
+    engine.setMuted('music', !musicOn);
+    render();
+  }
+
+  /** Controls that exist twice (BEGIN card and settings pop-over) re-read state here. */
+  const syncers = [];
 
   /*
-   * The voice picker: every English voice the browser offers, best first,
-   * with a preview sentence. Used on the BEGIN screen and in the settings
-   * pop-over, so a presenter can choose before starting or mid-run.
+   * The voice picker: the neural voices first, then every English system
+   * voice best first, with a preview. Used on the BEGIN screen and in the
+   * settings pop-over, so a presenter can choose before starting or mid-run.
    */
   function voicePicker() {
     const wrap = el('div', 'brf-voice');
@@ -190,25 +237,27 @@ export function createBriefing({
     const preview = button(
       '▶ PREVIEW',
       'Hear this voice',
-      () => narrator.preview(select.value),
+      () => {
+        /* PREVIEW is a gesture: the mixer may start here. */
+        void engine.unlock();
+        narrator.preview(select.value);
+      },
       'brf-voice__preview',
     );
     const note = el('div', 'brf-voice__note');
     const TIERS = {
-      NATURAL: ' · natural',
-      BASIC: ' · basic',
+      NEURAL: ' · neural',
+      NATURAL: ' · system, natural',
+      SYSTEM: ' · system',
+      BASIC: ' · system, basic',
       NOVELTY: ' · novelty',
     };
     function fill() {
       const list = narrator.voices;
       select.replaceChildren(
-        ...list.map((voice) => {
-          const option = el(
-            'option',
-            null,
-            `${voice.label}${TIERS[voice.tier] ?? ''}`,
-          );
-          option.value = voice.id;
+        ...list.map((v) => {
+          const option = el('option', null, `${v.label}${TIERS[v.tier] ?? ''}`);
+          option.value = v.id;
           return option;
         }),
       );
@@ -216,30 +265,98 @@ export function createBriefing({
       const none = list.length === 0;
       select.hidden = none;
       preview.hidden = none || narrator.simulated;
-      note.textContent = none
-        ? 'NO SPEECH VOICE IN THIS BROWSER · CAPTIONS CARRY THE BRIEFING'
-        : narrator.simulated
-          ? 'QA · SIMULATED NARRATION'
-          : '';
+      const status = narrator.status;
+      note.textContent = `${status.label}${status.detail ? ` — ${status.detail}` : ''}`;
+      note.setAttribute('data-tier', status.tier);
     }
     select.addEventListener('change', () => {
       narrator.setVoice(select.value);
+      void engine.unlock();
       narrator.preview(select.value);
+      render();
     });
     narrator.onChange(fill);
     fill();
     wrap.append(el('div', 'brf-voice__label', 'VOICE'), select, preview, note);
     return wrap;
   }
+
+  /** Voice volume, music on/off and volume, captions: before BEGIN and during the run. */
+  function mixer() {
+    const wrap = el('div', 'brf-mixer');
+    const slider = (label, value, onInput) => {
+      const input = el('input', 'brf-volume', null, {
+        type: 'range',
+        min: '0',
+        max: '100',
+        value: String(Math.round(value * 100)),
+        'aria-label': label,
+        title: label,
+      });
+      input.addEventListener('input', () => onInput(Number(input.value) / 100));
+      return input;
+    };
+    const voiceVolume = slider('Voice volume', narrator.volume, (v) =>
+      narrator.setVolume(v),
+    );
+    const musicToggle = button(
+      'ON',
+      'Music on or off',
+      () => setMusic(!musicOn),
+      'brf-btn--toggle',
+    );
+    const musicVolume = slider(
+      'Music volume',
+      engine.level('music') / 0.6,
+      (v) => engine.setLevel('music', v * 0.6),
+    );
+    const captionToggle = button(
+      'ON',
+      'Captions on or off',
+      () => {
+        captionsWanted = !captionsWanted;
+        captions?.setEnabled(captionsWanted);
+        render();
+      },
+      'brf-btn--toggle',
+    );
+    syncers.push(() => {
+      musicToggle.textContent = musicOn ? 'ON' : 'OFF';
+      musicToggle.classList.toggle('is-on', musicOn);
+      musicVolume.disabled = !musicOn;
+      const cOn = captions?.enabled ?? captionsWanted;
+      captionToggle.textContent = cOn ? 'ON' : 'OFF';
+      captionToggle.classList.toggle('is-on', cOn);
+      voiceVolume.value = String(Math.round(narrator.volume * 100));
+      musicVolume.value = String(
+        Math.round((engine.level('music') / 0.6) * 100),
+      );
+    });
+    wrap.append(
+      el('div', 'brf-mixer__label', 'VOICE VOLUME'),
+      voiceVolume,
+      el('span'),
+      el('div', 'brf-mixer__label', 'MUSIC'),
+      musicVolume,
+      musicToggle,
+      el('div', 'brf-mixer__label', 'CAPTIONS'),
+      el('span'),
+      captionToggle,
+    );
+    return wrap;
+  }
+  /* Captions chosen on the BEGIN screen, before the captions exist. */
+  let captionsWanted = true;
+
   const settings = el('div', 'brf-settings', null, {
     role: 'dialog',
-    'aria-label': 'Narration settings',
+    'aria-label': 'Audio and narration settings',
   });
   settings.hidden = true;
-  settings.append(voicePicker());
+  settings.append(voicePicker(), mixer());
   const settingsButton = button(
     '⚙',
-    'Voice settings',
+    'Voice, music and caption settings',
     () => {
       settings.hidden = !settings.hidden;
     },
@@ -261,17 +378,91 @@ export function createBriefing({
     speed,
     el('span', 'brf-sep'),
     voice,
-    settingsButton,
+    music,
     cc,
-    volume,
+    settingsButton,
+    el('span', 'brf-sep'),
+    technical,
+    glossaryButton,
     replay,
     el('span', 'brf-sep'),
+    voiceBadge,
     position,
     explore,
   );
 
   const provenance = el('div', 'brf-provenance');
   provenance.hidden = true;
+
+  /* ---------------------------------------------------------- glossary */
+  /*
+   * Every term the briefing uses, in plain words (Level 1). The technical
+   * layer adds each term's precise definition (Level 2) beneath it.
+   */
+  const glossaryPanel = el('div', 'brf-glossary', null, {
+    role: 'dialog',
+    'aria-label': 'Glossary',
+  });
+  glossaryPanel.hidden = true;
+  {
+    const head = el('div', 'brf-glossary__head');
+    head.append(
+      el('div', 'brf-glossary__title', 'GLOSSARY · WHAT THE TERMS MEAN'),
+      button(
+        '×',
+        'Close the glossary',
+        () => setGlossary(false),
+        'brf-glossary__close',
+      ),
+    );
+    const list = el('dl', 'brf-glossary__list');
+    for (const key of GLOSSARY_ORDER) {
+      const term = GLOSSARY[key];
+      const dt = el('dt', 'brf-glossary__term', term.term);
+      if (term.expansion)
+        dt.append(
+          el('span', 'brf-glossary__expansion', ` · ${term.expansion}`),
+        );
+      const dd = el('dd', 'brf-glossary__plain', term.plain);
+      const detail = el('dd', 'brf-glossary__detail', term.detail);
+      list.append(dt, dd, detail);
+    }
+    glossaryPanel.append(head, list);
+  }
+  function setGlossary(on) {
+    glossaryPanel.hidden = !on;
+    render();
+  }
+
+  /* ---------------------------------------------------------- term chip */
+  /*
+   * The first time a run meets a term, its plain meaning appears under the
+   * scene's question for a few seconds, then leaves. Later uses pass silently.
+   */
+  const headingTerm = el('div', 'brf-term', null, { 'aria-live': 'polite' });
+  heading.append(headingTerm);
+  let termToken = 0;
+  function showTerm(term, { holdMs = 6500 } = {}) {
+    termToken += 1;
+    const mine = termToken;
+    if (!term) {
+      headingTerm.classList.remove('is-visible');
+      return;
+    }
+    headingTerm.replaceChildren(
+      el('span', 'brf-term__name', term.term),
+      el(
+        'span',
+        'brf-term__expansion',
+        term.expansion ? ` · ${term.expansion}` : '',
+      ),
+      el('span', 'brf-term__plain', term.plain),
+    );
+    headingTerm.classList.add('is-visible');
+    clock.after(holdMs, () => {
+      if (mine === termToken) headingTerm.classList.remove('is-visible');
+    });
+  }
 
   const begin = el('div', 'brf-begin');
   const beginCard = el('div', 'brf-begin__card');
@@ -295,19 +486,30 @@ export function createBriefing({
     button(RUN_LABELS.full, 'Full analysis', () => start(RUNS.FULL)),
     button('EXPLORE', 'Explore the case yourself', () => leave()),
   );
+  const audioCard = el('div', 'brf-begin__audio');
+  audioCard.append(voicePicker(), mixer());
   beginCard.append(
     go,
     runRow,
-    voicePicker(),
+    audioCard,
     el(
       'div',
       'brf-begin__note',
-      'Narration and sound start when you begin. ← → beats · Space pause · E explore · I sources · R replay',
+      'Sound starts when you begin. ← → beats · Space pause · E explore · I technical · G glossary · R replay',
     ),
   );
   begin.append(beginCard);
 
-  root.append(veilNode, heading, provenance, settings, controls, bar, begin);
+  root.append(
+    veilNode,
+    heading,
+    provenance,
+    glossaryPanel,
+    settings,
+    controls,
+    bar,
+    begin,
+  );
 
   /* ---------------------------------------------------------- state view */
   function render() {
@@ -316,13 +518,17 @@ export function createBriefing({
     playPause.textContent =
       s?.status === STATUS.PLAYING ? '❚❚ PAUSE' : '▶ PLAY';
     speed.textContent = `${s?.speed ?? 1}×`;
-    voice.classList.toggle('is-on', narrator.enabled && narrator.available);
-    voice.title = narrator.available
-      ? `Narration: ${narrator.voiceName}`
-      : narrator.voiceCount
-        ? 'Narration on or off'
-        : 'No speech voice in this browser — captions carry the briefing';
-    cc.classList.toggle('is-on', captions?.enabled ?? true);
+    const status = narrator.status;
+    voice.classList.toggle('is-on', narrator.available && !narrator.muted);
+    voice.title = `${status.label}${status.detail ? ` — ${status.detail}` : ''}. Click to mute or unmute.`;
+    voiceBadge.textContent = status.tier === 'neural' ? '' : status.label;
+    voiceBadge.title = status.detail || status.label;
+    voiceBadge.setAttribute('data-tier', status.tier);
+    music.classList.toggle('is-on', musicOn);
+    cc.classList.toggle('is-on', captions?.enabled ?? captionsWanted);
+    technical.classList.toggle('is-on', technicalOn);
+    glossaryButton.classList.toggle('is-on', !glossaryPanel.hidden);
+    for (const sync of syncers) sync();
     back.disabled = !s || s.index <= 0;
     next.disabled = !s || s.index >= s.total - 1;
     const entry = s?.entry;
@@ -335,7 +541,7 @@ export function createBriefing({
     }
     root.setAttribute('data-beat', entry?.key ?? '');
     root.setAttribute('data-status', s?.status ?? 'idle');
-    if (provenanceOpen) renderProvenance();
+    if (technicalOn) renderProvenance();
   }
 
   function progressTick() {
@@ -349,11 +555,48 @@ export function createBriefing({
     requestAnimationFrame(progressTick);
   }
 
-  /** The facts behind the current beat, with source, class and record. */
+  function setTechnical(on) {
+    technicalOn = Boolean(on);
+    provenance.hidden = !technicalOn;
+    root.classList.toggle('is-technical', technicalOn);
+    render();
+  }
+
+  /**
+   * The technical layer for the current beat: how it was calculated (Level 2
+   * method notes), what its terms mean precisely, and where every figure
+   * comes from — source, result class, artefact path and record.
+   */
   function renderProvenance() {
     const entry = director?.state.entry;
     provenance.replaceChildren();
     if (!entry || !book) return;
+    const method = entry.beat.technical ?? entry.scene.technical ?? null;
+    if (method) {
+      provenance.append(
+        el('div', 'brf-provenance__title', 'METHOD · HOW THIS WAS CALCULATED'),
+        el('div', 'brf-provenance__method', fillTemplate(method, book)),
+      );
+    }
+    const terms = new Set(entry.scene.terms ?? []);
+    for (const beat of entry.scene.beats)
+      for (const action of beat.actions)
+        if (action.type === 'term.show') terms.add(action.term);
+    const known = [...terms].filter((key) => GLOSSARY[key]);
+    if (known.length) {
+      provenance.append(
+        el('div', 'brf-provenance__title', 'TERMS · PRECISE DEFINITIONS'),
+      );
+      for (const key of known) {
+        const term = GLOSSARY[key];
+        const row = el('div', 'brf-provenance__term');
+        row.append(
+          el('span', 'brf-provenance__term-name', term.term),
+          el('span', 'brf-provenance__term-detail', term.detail),
+        );
+        provenance.append(row);
+      }
+    }
     const ids = new Set();
     for (const action of entry.beat.actions)
       if (action.fact) ids.add(action.fact);
@@ -372,7 +615,11 @@ export function createBriefing({
       }
     }
     provenance.append(
-      el('div', 'brf-provenance__title', 'WHERE THESE FIGURES COME FROM'),
+      el(
+        'div',
+        'brf-provenance__title',
+        'SOURCES · WHERE THESE FIGURES COME FROM',
+      ),
     );
     if (!ids.size)
       provenance.append(
@@ -434,6 +681,7 @@ export function createBriefing({
       });
       root.insertBefore(overlay.root, veilNode.nextSibling);
       captions = createCaptions({ container: root, clock });
+      captions.setEnabled(captionsWanted);
       stage = createBriefingStage({
         viewer,
         overlay,
@@ -442,6 +690,9 @@ export function createBriefing({
         geometry,
         narrator,
         sound,
+        music: score,
+        audio: engine,
+        onTerm: showTerm,
         captions,
         holdRender,
         releaseRender,
@@ -463,11 +714,9 @@ export function createBriefing({
     else if (key === 'Escape' || key === 'e' || key === 'E') leave();
     else if (key === 'p' || key === 'P') director?.play();
     else if (key === 'r' || key === 'R') director?.replay();
-    else if (key === 'i' || key === 'I') {
-      provenanceOpen = !provenanceOpen;
-      provenance.hidden = !provenanceOpen;
-      render();
-    } else handled = false;
+    else if (key === 'i' || key === 'I') setTechnical(!technicalOn);
+    else if (key === 'g' || key === 'G') setGlossary(glossaryPanel.hidden);
+    else handled = false;
     if (handled) event.preventDefault?.();
   }
 
@@ -480,8 +729,8 @@ export function createBriefing({
     root.hidden = false;
     begin.hidden = true;
     root.classList.add('is-running');
-    /* A user gesture: the one moment audio may be unlocked. */
-    void sound.unlock();
+    /* A user gesture: the one moment audio may be unlocked. The score starts once it is. */
+    void engine.unlock().then(() => score.start());
     active = true;
     suspendMap(true);
     if (scope && scopeBefore === null) {
@@ -496,7 +745,6 @@ export function createBriefing({
       clock,
       onChange: () => render(),
     });
-    sound.cue('ambience');
     director.play();
     if (sceneId) director.goToScene(sceneId);
     render();
@@ -515,7 +763,9 @@ export function createBriefing({
     captions?.show(null);
     veil.set(0, 0);
     narrator.cancel();
-    sound.suspend();
+    showTerm(null);
+    score.stop();
+    void engine.pause();
     suspendMap(false);
     if (scope && scopeBefore !== null) {
       scope.setEnabled(scopeBefore);
@@ -547,6 +797,13 @@ export function createBriefing({
     get narrator() {
       return narrator;
     },
+    /** For QA: the mixer (duck level, mutes) and the score (state, cues). */
+    get audio() {
+      return engine;
+    },
+    get score() {
+      return score;
+    },
     /** The opening screen: identity and the four ways in. */
     showBegin() {
       root.hidden = false;
@@ -563,7 +820,9 @@ export function createBriefing({
       overlay?.destroy();
       captions?.destroy();
       narrator.destroy();
-      sound.destroy();
+      score.stop();
+      engine.destroy();
+      setNarrationMeasure(null);
       root.remove();
     },
   });
