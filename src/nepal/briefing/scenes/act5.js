@@ -65,6 +65,8 @@ export const BASELINE_ACCESS = defineScene({
   act: 'V',
   title: 'Baseline access',
   question: 'How far was the nearest hospital by road, before the earthquake?',
+  technical:
+    'One multi-source Dijkstra search over every mapped road of {access.network.instant|dateShort} ({access.network.lengthKm|int} km), outward from every listed hospital at once, by length. A populated 1 km cell joins the network at its nearest road node if it lies within {access.params.originSnapMetres|kmFromMetres}; a hospital within {access.params.facilitySnapMetres|kmFromMetres}. No road speeds exist for the date, so this is distance, not travel time.',
   explore: 13,
   runs: SIX_FULL,
   setup: [
@@ -86,6 +88,7 @@ export const BASELINE_ACCESS = defineScene({
         'Every road on the map the day before: {access.network.lengthKm|int} kilometres.',
       minHoldMs: 400,
       actions: [
+        { at: 1200, type: 'term.show', term: 'OSM' },
         {
           at: 0,
           type: 'layer.show',
@@ -102,7 +105,7 @@ export const BASELINE_ACCESS = defineScene({
           rangeKm: 520,
           pitch: -66,
           heading: 6,
-          duration: 6200,
+          duration: 4600,
         },
         {
           at: 1800,
@@ -128,6 +131,7 @@ export const BASELINE_ACCESS = defineScene({
         'The hospitals, from the government list of {access.lists.codCompiled|dateLong}.',
       minHoldMs: 400,
       actions: [
+        { at: 900, type: 'term.show', term: 'DOHS' },
         { at: 0, type: 'layer.show', layer: 'hospitals', duration: 2400 },
         {
           at: 0,
@@ -268,6 +272,7 @@ export const BASELINE_ACCESS = defineScene({
           duration: 1500,
           tag: DERIVED,
         },
+        { at: 300, type: 'term.show', term: 'shortestPath', holdMs: 8000 },
         {
           at: 2400,
           type: 'annotation.draw',
@@ -289,6 +294,8 @@ export const SCENARIO_ACCESS = defineScene({
   act: 'V',
   title: 'Damage-scenario access',
   question: 'How did the observed road damage change the way to a hospital?',
+  technical:
+    'The same search after removing every road edge within {access.params.blockageSnapMetres|int} m of an observed NGA blockage. A cell is LONGER when its route grows by more than {access.params.similarMetres|kmFromMetres}, DISCONNECTED when no listed hospital stays reachable. SCENARIO: all observed blockages at once, not a record of any day.',
   explore: 13,
   runs: ALL,
   keep: ['outline', 'mask', 'roads', 'hospitals'],
@@ -315,8 +322,9 @@ export const SCENARIO_ACCESS = defineScene({
       runs: SIX_FULL,
       minHoldMs: 400,
       actions: [
+        { at: 1200, type: 'term.show', term: 'SCENARIO' },
         { at: 0, type: 'layer.show', layer: 'blockages', duration: 2600 },
-        { at: 0, type: 'audio.cue', cue: 'hit' },
+        { at: 0, type: 'audio.cue', cue: 'tick' },
         {
           at: 200,
           type: 'camera.fly',
@@ -417,7 +425,7 @@ export const SCENARIO_ACCESS = defineScene({
           spanFactor: 2.6,
           pitch: -60,
           heading: 0,
-          duration: 3800,
+          duration: 2800,
         },
         {
           at: 3000,
@@ -444,6 +452,7 @@ export const SCENARIO_ACCESS = defineScene({
       runs: SIX_FULL,
       minHoldMs: 400,
       actions: [
+        { at: 600, type: 'term.show', term: 'median' },
         {
           at: 0,
           type: 'layer.show',
@@ -504,7 +513,7 @@ export const SCENARIO_ACCESS = defineScene({
           duration: 1600,
           tag: SCENARIO,
         },
-        { at: 2200, type: 'audio.cue', cue: 'hit' },
+        { at: 2200, type: 'audio.cue', cue: 'tick' },
         /* Out to the whole study area: most of it did not change. */
         {
           at: 400,
@@ -519,13 +528,20 @@ export const SCENARIO_ACCESS = defineScene({
     },
     {
       id: 'the-map',
+      kind: 'meaning',
       caption:
-        'MANBU: {access.manbu.sites|int} DAMAGE SITES · NO MAPPED ROAD TO A HOSPITAL, EVEN BEFORE',
+        'THE BIGGER GAP WAS THE MAP · MANBU: {access.manbu.sites|int} SITES, NO MAPPED ROAD TO A HOSPITAL',
       narration:
-        'The bigger gap was the map. Around Manbu, {access.manbu.sites|int} damaged sites, and no mapped road to a hospital, even before. From the {access.areaSummary.areas|int} named damage areas, {access.areaSummary.changed|int} routes changed.',
+        'So the bigger gap was the map itself. Around Manbu, {access.manbu.sites|int} damaged sites had no mapped road to a hospital, even before the earthquake.',
       minHoldMs: 900,
       actions: [
         { at: 0, type: 'annotation.remove', id: 'same-share' },
+        /* The places with no route at all are the subject; the network recedes to context. */
+        {
+          at: 400,
+          type: 'focus',
+          on: ['cells-never', 'area-routes', 'outline'],
+        },
         {
           at: 0,
           type: 'layer.show',
@@ -578,19 +594,19 @@ export const SCENARIO_ACCESS = defineScene({
           ],
           tag: SCENARIO,
         },
-        /* Back out to all the named areas as the voice counts them. */
+        /* Back out to all the named areas while their summary card is read. */
         {
-          at: 7400,
+          at: 6200,
           type: 'camera.fly',
           to: 'damageCentre',
           rangeKm: 280,
           pitch: -58,
           heading: 4,
-          duration: 4200,
+          duration: 3000,
         },
-        /* As the line lands on the damage areas, the diamonds answer it. */
+        /* As the camera lands on the damage areas, the diamonds answer it. */
         {
-          at: 8200,
+          at: 6800,
           type: 'annotation.draw',
           kind: 'pulse',
           id: 'areas-pulse',
@@ -610,6 +626,7 @@ export const RESCUE_ROUTE = defineScene({
   act: 'V',
   title: 'A route, before and after',
   question: 'What did the damage do to one place’s road to a hospital?',
+  technical: 'How this place was chosen: {access.cut.selectionRule}',
   explore: 14,
   runs: SIX_FULL,
   keep: ['outline', 'mask', 'roads', 'blockages'],
@@ -887,7 +904,7 @@ export const RESCUE_ROUTE = defineScene({
           maxPx: 70,
           count: 3,
         },
-        { at: 1000, type: 'audio.cue', cue: 'hit' },
+        { at: 1000, type: 'audio.cue', cue: 'tick' },
         {
           at: 1500,
           type: 'route.trace',
@@ -985,7 +1002,7 @@ export const RESCUE_ROUTE = defineScene({
       id: 'result',
       caption: 'RESULT: DISCONNECTED FROM EVERY MAPPED HOSPITAL',
       narration:
-        'Result: disconnected. Unmapped tracks may exist, and air access is not modelled.',
+        'Result: one blockage cut this place off from every mapped hospital. Unmapped tracks may exist; air access is not modelled.',
       minHoldMs: 700,
       actions: [
         {
@@ -1019,11 +1036,14 @@ export const RESCUE_ROUTE = defineScene({
           ],
           tag: SCENARIO,
         },
-        { at: 300, type: 'audio.cue', cue: 'hit' },
+        /* The rescue disconnect: one of the score's six moments. */
+        { at: 300, type: 'audio.cue', cue: 'disconnect' },
       ],
     },
     {
       id: 'detour',
+      /* The way-round case is the full run's: the six-minute run has seen a detour in scene 26. */
+      runs: [RUNS.FULL],
       caption:
         'ELSEWHERE, A WAY ROUND: {access.detour.baseline.km|dec1} KM BECOMES {access.detour.scenario.km|dec1} KM',
       narration:
@@ -1124,6 +1144,7 @@ export const RESCUE_ROUTE = defineScene({
     },
     {
       id: 'meaning',
+      kind: 'limit',
       caption:
         'DISTANCE ALONG MAPPED ROADS · NOT TRAVEL TIME · NOT HOSPITAL CAPACITY',
       narration:

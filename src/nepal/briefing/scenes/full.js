@@ -75,6 +75,7 @@ export const ADMIN_GEOGRAPHY = defineScene({
         'At the time, Nepal had {geo.districtCount|int} districts. Most figures here are counted by district.',
       minHoldMs: 400,
       actions: [
+        { at: 800, type: 'term.show', term: 'OCHA' },
         {
           at: 0,
           type: 'layer.show',
@@ -172,6 +173,7 @@ export const SEQUENCE = defineScene({
   question: 'How big, and how deep, were the earthquakes that followed?',
   explore: 3,
   runs: FULL,
+  music: 'mainshock',
   keep: ['outline', 'mask', 'events', 'epi-pulse', 'ktm'],
   setup: [
     ...frame(0.6),
@@ -185,14 +187,22 @@ export const SEQUENCE = defineScene({
       heading: 0,
     },
   ],
+  /*
+   * The magnitude chart, explained (Stage 9.2, Part 8). What M is, where the
+   * catalogue comes from, what each bar counts — its lower edge included,
+   * its upper edge not — and why the first bar is a floor rather than a
+   * count. Then the pattern, then what it means.
+   */
+  technical:
+    'Catalogue: {seq.catalogue}. Bands count M in [min, max): 4.0 ≤ M < 5.0 includes 4.0 and excludes 5.0. Completeness magnitude Mc = {seq.completeness.mc|dec1} by {seq.completeness.method}; {seq.completeness.caveat} At M{seq.threshold.magnitude|dec1} the count per 0.1 bin jumps from {seq.threshold.countBelow|int} to {seq.threshold.countAtThreshold|int} ({seq.threshold.ratio|dec1}×): a reporting threshold. Gutenberg–Richter fit above Mc: b = {seq.gr.bValue|dec3}, R² = {seq.gr.rSquared|dec3}, from {seq.gr.eventsUsed|int} events.',
   beats: [
     {
-      id: 'sizes',
+      id: 'catalogue',
       caption:
-        '{seq.total|int} EARTHQUAKES · {seq.bands.1.count|int} IN BAND {seq.bands.1.label|upper}',
+        '{seq.total|int} EARTHQUAKES · USGS CATALOGUE · THE MAIN SHOCK INCLUDED',
       narration:
-        '{seq.total|int} earthquakes in all. Most were moderate: {seq.bands.1.count|int} in the {seq.bands.1.label} band.',
-      minHoldMs: 500,
+        'How big were the earthquakes that followed? The USGS catalogue for the following year lists {seq.total|int} near the rupture, the main shock included.',
+      minHoldMs: 400,
       actions: [
         {
           at: 300,
@@ -204,9 +214,10 @@ export const SEQUENCE = defineScene({
           screen: { x: 0.64, y: 0.18 },
           size: 'xl',
           duration: 1800,
+          tag: USGS,
         },
-        { at: 0, type: 'layer.filter', layer: 'events', minMagnitude: 5 },
         { at: 0, type: 'audio.cue', cue: 'reveal' },
+        { at: 1200, type: 'term.show', term: 'OBSERVED' },
         {
           at: 200,
           type: 'camera.fly',
@@ -214,37 +225,120 @@ export const SEQUENCE = defineScene({
           rangeKm: 560,
           pitch: -64,
           heading: 8,
-          duration: 5200,
+          duration: 6200,
         },
         {
-          at: 400,
+          at: 2600,
           type: 'chart.enter',
           chart: 'bars',
           id: 'mag-bars',
-          title: 'EARTHQUAKES BY MAGNITUDE',
+          title: 'EARTHQUAKES BY MAGNITUDE (M) · USGS',
           screen: { x: 0.03, y: 0.58 },
-          rowsFrom: { fact: 'seq.bands', label: 'label', value: 'count' },
+          rowsFrom: {
+            fact: 'seq.bands',
+            label: 'label',
+            value: 'count',
+            edges: { symbol: 'M' },
+          },
         },
-        { at: 500, type: 'chart.update', id: 'mag-bars', op: 'revealAll' },
+        { at: 2700, type: 'chart.update', id: 'mag-bars', op: 'revealAll' },
+      ],
+    },
+    {
+      id: 'bins',
+      caption:
+        '{seq.bands.1.min|dec1} ≤ M < {seq.bands.1.max|dec1}: {seq.bands.1.count|int} EARTHQUAKES · LOWER EDGE IN, UPPER EDGE OUT',
+      narration:
+        'Each bar counts magnitudes from its lower edge up to, but not including, the next. Most fall between magnitude {seq.bands.1.min|dec1} and {seq.bands.1.max|dec1}: {seq.bands.1.count|int} of them.',
+      minHoldMs: 500,
+      actions: [
+        { at: 0, type: 'annotation.remove', id: 'seq-total' },
+        { at: 300, type: 'layer.filter', layer: 'events', minMagnitude: 4 },
         {
-          at: 3000,
+          at: 3600,
           type: 'chart.update',
           id: 'mag-bars',
           op: 'focus',
           index: 1,
+        },
+        {
+          at: 3600,
+          type: 'annotation.draw',
+          kind: 'typed',
+          id: 'bin-rule',
+          until: 'beat',
+          duration: 1200,
+          screen: { x: 0.62, y: 0.16 },
+          className: 'brf-typed brf-typed--data',
+          lines: [
+            'BAR {seq.bands.1.label|upper}',
+            '{seq.bands.1.min|dec1} ≤ M < {seq.bands.1.max|dec1}',
+            '{seq.bands.1.count|int} EARTHQUAKES',
+          ],
+          tag: USGS,
+        },
+        { at: 6400, type: 'layer.filter', layer: 'events', minMagnitude: null },
+      ],
+    },
+    {
+      id: 'threshold',
+      kind: 'limit',
+      caption:
+        'BELOW M{seq.completeness.mc|dec1}, MANY SMALL EARTHQUAKES WENT UNLISTED · THE FIRST BAR IS A FLOOR',
+      narration:
+        'Why so few below magnitude {seq.completeness.mc|dec1}? Not because small earthquakes were rare. Below that size, many were never listed: at magnitude {seq.threshold.magnitude|dec1}, the count jumps {seq.threshold.ratio|dec1} times. So the first bar is a floor, not a count.',
+      minHoldMs: 600,
+      actions: [
+        {
+          at: 0,
+          type: 'chart.update',
+          id: 'mag-bars',
+          op: 'focus',
+          index: 0,
+        },
+        { at: 1600, type: 'term.show', term: 'completeness' },
+        {
+          at: 600,
+          type: 'chart.update',
+          id: 'mag-bars',
+          op: 'verdict',
+          text: 'INCOMPLETE BELOW M{seq.completeness.mc|dec1}',
+        },
+        {
+          at: 4200,
+          type: 'annotation.draw',
+          kind: 'typed',
+          id: 'threshold-card',
+          until: 'beat',
+          duration: 1200,
+          screen: { x: 0.62, y: 0.16 },
+          className: 'brf-typed brf-typed--data',
+          lines: [
+            'REPORTING THRESHOLD · M{seq.threshold.magnitude|dec1}',
+            'COUNT PER 0.1 STEP: {seq.threshold.countBelow|int} → {seq.threshold.countAtThreshold|int}',
+            'A JUMP OF {seq.threshold.ratio|dec1}×',
+          ],
+          tag: { source: 'USGS', cls: 'STATISTIC' },
+        },
+        {
+          at: 600,
+          type: 'camera.fly',
+          to: 'shakeCentre',
+          rangeKm: 600,
+          pitch: -62,
+          heading: 2,
+          duration: 9000,
         },
       ],
     },
     {
       id: 'law',
       caption:
-        'MANY SMALL, FEW LARGE · b = {seq.gr.bValue|dec2} · COMPLETE ABOVE M{seq.completeness.mc|dec1}',
+        'ABOVE IT: MANY SMALL, FEW LARGE · b = {seq.gr.bValue|dec2} · FIT R² {seq.gr.rSquared|dec2}',
       narration:
-        'Many small, few large: the usual pattern. The fitted b-value is {seq.gr.bValue|dec2}. The catalogue is complete above magnitude {seq.completeness.mc|dec1}.',
+        'Above that size, the usual pattern: many small, few large. The fitted b-value, {seq.gr.bValue|dec2}, says how fast they get rarer. Two were very large: the main shock, and the second major shock.',
       minHoldMs: 600,
       actions: [
-        { at: 0, type: 'annotation.remove', id: 'seq-total' },
-        { at: 0, type: 'layer.filter', layer: 'events', minMagnitude: null },
         {
           at: 0,
           type: 'chart.update',
@@ -252,24 +346,34 @@ export const SEQUENCE = defineScene({
           op: 'focus',
           index: null,
         },
-        { at: 1500, type: 'layer.filter', layer: 'events', minMagnitude: 6 },
         {
-          at: 1500,
-          type: 'chart.update',
-          id: 'mag-bars',
-          op: 'focus',
-          index: 4,
-        },
-        { at: 1500, type: 'audio.cue', cue: 'hit' },
-        {
-          at: 1700,
+          at: 0,
           type: 'chart.update',
           id: 'mag-bars',
           op: 'verdict',
           text: 'MANY SMALL · FEW LARGE',
         },
+        { at: 2600, type: 'term.show', term: 'bValue' },
+        data(
+          'gr-card',
+          [
+            'GUTENBERG–RICHTER · MODEL FIT',
+            'b = {seq.gr.bValue|dec2} · R² {seq.gr.rSquared|dec2}',
+            'FROM {seq.gr.eventsUsed|int} EVENTS ABOVE M{seq.completeness.mc|dec1}',
+          ],
+          FIT,
+          2600,
+        ),
+        { at: 6400, type: 'layer.filter', layer: 'events', minMagnitude: 7 },
         {
-          at: 1700,
+          at: 6400,
+          type: 'chart.update',
+          id: 'mag-bars',
+          op: 'focus',
+          index: 4,
+        },
+        {
+          at: 6400,
           type: 'annotation.draw',
           kind: 'pulse',
           id: 'largest-0',
@@ -279,7 +383,7 @@ export const SEQUENCE = defineScene({
           count: 3,
         },
         {
-          at: 1900,
+          at: 7600,
           type: 'annotation.draw',
           kind: 'pulse',
           id: 'largest-1',
@@ -288,21 +392,11 @@ export const SEQUENCE = defineScene({
           maxPx: 80,
           count: 3,
         },
-        data(
-          'gr-card',
-          [
-            'GUTENBERG–RICHTER · MODEL FIT',
-            'b = {seq.gr.bValue|dec2} · R² {seq.gr.rSquared|dec2}',
-            'FROM {seq.gr.eventsUsed|int} EVENTS ABOVE M{seq.completeness.mc|dec1}',
-          ],
-          FIT,
-          3000,
-        ),
         {
-          at: 3200,
+          at: 6200,
           type: 'camera.fly',
           to: 'epicentre',
-          rangeKm: 460,
+          rangeKm: 520,
           pitch: -60,
           heading: -6,
           duration: 4000,
@@ -312,25 +406,39 @@ export const SEQUENCE = defineScene({
     {
       id: 'depth',
       caption:
-        'SHALLOW: {seq.depthBands.1.count|int} OF THEM IN THE {seq.depthBands.1.label|upper} BAND',
+        'SHALLOW: {seq.depthBands.1.count|int} BETWEEN {seq.depthBands.1.min|int} AND {seq.depthBands.1.max|int} KM DEEP',
       narration:
-        'And shallow: {seq.depthBands.1.count|int} in the {seq.depthBands.1.label} band.',
+        'And shallow: {seq.depthBands.1.count|int} of them between {seq.depthBands.1.min|int} and {seq.depthBands.1.max|int} kilometres down.',
       minHoldMs: 600,
       actions: [
         { at: 0, type: 'chart.exit', id: 'mag-bars' },
         { at: 0, type: 'annotation.remove', id: 'gr-card' },
+        { at: 0, type: 'annotation.remove', id: 'largest-0' },
+        { at: 0, type: 'annotation.remove', id: 'largest-1' },
         { at: 0, type: 'layer.filter', layer: 'events', minMagnitude: null },
         {
           at: 200,
           type: 'chart.enter',
           chart: 'bars',
           id: 'depth-bars',
-          title: 'EARTHQUAKES BY FOCAL DEPTH',
+          title: 'EARTHQUAKES BY FOCAL DEPTH · USGS',
           colour: '#7fdcff',
           screen: { x: 0.03, y: 0.58 },
-          rowsFrom: { fact: 'seq.depthBands', label: 'label', value: 'count' },
+          rowsFrom: {
+            fact: 'seq.depthBands',
+            label: 'label',
+            value: 'count',
+            edges: { symbol: 'DEPTH', unit: 'KM', digits: 0 },
+          },
         },
         { at: 300, type: 'chart.update', id: 'depth-bars', op: 'revealAll' },
+        {
+          at: 1800,
+          type: 'chart.update',
+          id: 'depth-bars',
+          op: 'focus',
+          index: 1,
+        },
         {
           at: 300,
           type: 'camera.fly',
@@ -339,6 +447,40 @@ export const SEQUENCE = defineScene({
           pitch: -58,
           heading: 14,
           duration: 5000,
+        },
+      ],
+    },
+    {
+      id: 'meaning',
+      kind: 'meaning',
+      caption:
+        'THE GROUND KEPT MOVING FOR MONTHS · HUNDREDS OF MODERATE, SHALLOW SHOCKS',
+      narration:
+        'So the ground kept moving for months: hundreds of moderate, shallow shocks under the same mountains.',
+      minHoldMs: 600,
+      actions: [
+        {
+          at: 0,
+          type: 'chart.update',
+          id: 'depth-bars',
+          op: 'focus',
+          index: null,
+        },
+        {
+          at: 0,
+          type: 'chart.update',
+          id: 'depth-bars',
+          op: 'verdict',
+          text: 'MOSTLY SHALLOW',
+        },
+        {
+          at: 200,
+          type: 'camera.fly',
+          to: 'shakeCentre',
+          rangeKm: 680,
+          pitch: -66,
+          heading: 4,
+          duration: 4400,
         },
       ],
     },
@@ -368,6 +510,7 @@ export const POPULATION = defineScene({
         'Now the people. About {exposure.total|millionWords}, modelled, not counted. Larger points, more people.',
       minHoldMs: 500,
       actions: [
+        { at: 800, type: 'term.show', term: 'WorldPop' },
         {
           at: 900,
           type: 'metric.count',
@@ -510,13 +653,59 @@ export const EVIDENCE_ARRIVES = defineScene({
     },
     {
       id: 'lag',
+      kind: 'meaning',
       caption:
-        'MEDIAN {damage.lags.eventToAcquisition.median|int} DAYS FROM EARTHQUAKE TO IMAGE',
+        'MEDIAN {damage.lags.eventToAcquisition.median|int} DAYS FROM EARTHQUAKE TO IMAGE · THE MAP SHOWS WHEN SOMEONE LOOKED',
       narration:
-        'The median wait: {damage.lags.eventToAcquisition.median|int} days from earthquake to image. A damage map is also a map of when someone could look.',
+        'The median wait: {damage.lags.eventToAcquisition.median|int} days from earthquake to image. So a damage map is also a map of when someone could look.',
       minHoldMs: 700,
+      /*
+       * The weak point of 9.1: a card that held still for five seconds. Now
+       * the wait is something to watch: a clock runs from the earthquake to
+       * the median image day as the figure is said, then on to the last.
+       */
       actions: [
         { at: 0, type: 'annotation.remove', id: 'first-last' },
+        {
+          at: 0,
+          type: 'time.card',
+          id: 'lag-clock',
+          until: 'beat',
+          spanDays: {
+            fact: 'damage.lags',
+            path: ['eventToAcquisition', 'max'],
+          },
+          screen: { x: 0.62, y: 0.05 },
+          days: [
+            [0, 0],
+            [
+              2600,
+              { fact: 'damage.lags', path: ['eventToAcquisition', 'median'] },
+            ],
+            [
+              4200,
+              { fact: 'damage.lags', path: ['eventToAcquisition', 'median'] },
+            ],
+            [
+              6600,
+              { fact: 'damage.lags', path: ['eventToAcquisition', 'max'] },
+            ],
+          ],
+          ticks: [
+            {
+              day: { fact: 'damage.lags', path: ['eventToAcquisition', 'min'] },
+              label: 'FIRST IMAGE',
+            },
+            {
+              day: {
+                fact: 'damage.lags',
+                path: ['eventToAcquisition', 'median'],
+              },
+              label: 'MEDIAN IMAGE',
+              className: 'is-major',
+            },
+          ],
+        },
         {
           at: 0,
           type: 'camera.fly',
@@ -534,7 +723,8 @@ export const EVIDENCE_ARRIVES = defineScene({
             'DAMAGE HAPPENED BEFORE THE IMAGE, NOT ON ITS DATE',
           ],
           { source: 'UNOSAT × NGA', cls: 'STATISTIC' },
-          500,
+          2600,
+          { x: 0.62, y: 0.3 },
         ),
       ],
     },
@@ -579,7 +769,7 @@ export const DESTROYED_AREAS = defineScene({
           dim: 0.08,
           duration: 900,
         },
-        { at: 0, type: 'audio.cue', cue: 'hit' },
+        { at: 0, type: 'audio.cue', cue: 'tick' },
         {
           at: 400,
           type: 'chart.enter',
@@ -748,11 +938,13 @@ export const SEVERE_MODERATE = defineScene({
     },
     {
       id: 'confidence',
+      kind: 'limit',
       caption: 'NONE OF IT FIELD-VALIDATED AT PUBLICATION',
       narration:
         'All of it read from imagery. None of it checked on the ground at publication.',
       minHoldMs: 700,
       actions: [
+        { at: 0, type: 'term.show', term: 'UNOSAT' },
         { at: 0, type: 'annotation.remove', id: 'severe-total' },
         { at: 0, type: 'annotation.remove', id: 'moderate-total' },
         {
@@ -916,6 +1108,7 @@ export const SECOND_SYSTEM = defineScene({
         'A second system, Copernicus, graded every structure in its areas, including the undamaged. {copernicus.totals.total|int} in all.',
       minHoldMs: 500,
       actions: [
+        { at: 800, type: 'term.show', term: 'Copernicus' },
         {
           at: 3600,
           type: 'metric.count',
@@ -1039,6 +1232,7 @@ export const MAP_WAS_THIN = defineScene({
         'The main roads, as the map held them the day before the earthquake.',
       minHoldMs: 400,
       actions: [
+        { at: 800, type: 'term.show', term: 'OSM' },
         {
           at: 0,
           type: 'layer.show',
@@ -1063,6 +1257,7 @@ export const MAP_WAS_THIN = defineScene({
     },
     {
       id: 'growth',
+      kind: 'meaning',
       caption:
         'TODAY THE SAME MAP HOLDS {infra.baseline.mappingGrowthSince2015|dec1} TIMES AS MANY MAIN-ROAD SEGMENTS',
       narration:
@@ -1076,7 +1271,7 @@ export const MAP_WAS_THIN = defineScene({
           dim: 0.5,
           duration: 1400,
         },
-        { at: 0, type: 'audio.cue', cue: 'hit' },
+        { at: 0, type: 'audio.cue', cue: 'tick' },
         {
           at: 400,
           type: 'metric.count',
@@ -1153,7 +1348,7 @@ export const BLOCKAGES = defineScene({
           plain: true,
           duration: 2600,
         },
-        { at: 0, type: 'audio.cue', cue: 'hit' },
+        { at: 0, type: 'audio.cue', cue: 'tick' },
         {
           at: 300,
           type: 'camera.fly',
@@ -1177,6 +1372,7 @@ export const BLOCKAGES = defineScene({
     },
     {
       id: 'meaning',
+      kind: 'meaning',
       caption: 'A MARKER SAYS WHERE A ROAD WAS CUT, NOT HOW MUCH ROAD WAS LOST',
       narration:
         'Each one says where a road was cut. Not how much road was lost.',
@@ -1267,12 +1463,14 @@ export const LANDSLIDES = defineScene({
     },
     {
       id: 'association',
+      kind: 'limit',
       caption:
         '{infra.association.features|int} BLOCKAGES WITHIN {infra.association.toleranceMetres|int} M OF A LANDSLIDE · ASSOCIATION, NOT CAUSE',
       narration:
         '{infra.association.features|int} blockages lie within {infra.association.toleranceMetres|int} metres of a landslide. A link in space. Neither product claims a cause.',
       minHoldMs: 700,
       actions: [
+        { at: 1200, type: 'term.show', term: 'spatialAssociation' },
         { at: 0, type: 'audio.cue', cue: 'reveal' },
         {
           at: 300,
@@ -1374,7 +1572,7 @@ export const BRIDGES = defineScene({
           halo: true,
           duration: 1800,
         },
-        { at: 0, type: 'audio.cue', cue: 'hit' },
+        { at: 0, type: 'audio.cue', cue: 'tick' },
         {
           at: 300,
           type: 'camera.fly',
@@ -1463,6 +1661,7 @@ export const FACILITY_DATA = defineScene({
         'The latest official list of health facilities openly available dates from {access.lists.codCompiled|dateLong}. It is used, and labelled, as exactly that.',
       minHoldMs: 500,
       actions: [
+        { at: 900, type: 'term.show', term: 'DOHS' },
         { at: 0, type: 'audio.cue', cue: 'reveal' },
         data(
           'cod-card',
@@ -1506,6 +1705,7 @@ export const FACILITY_DATA = defineScene({
     },
     {
       id: 'no-capacity',
+      kind: 'limit',
       caption:
         'A TYPE FOR EACH · NO BEDS, STAFF OR CAPACITY · NONE IS INVENTED',
       narration:
@@ -1598,6 +1798,7 @@ export const FACILITY_MAP = defineScene({
     },
     {
       id: 'grey',
+      kind: 'meaning',
       caption: 'FRAMED IN AMBER: HOSPITALS THE ROUTING CANNOT REACH',
       narration:
         'They are framed in amber. The routing cannot reach them. That says as much about the map as about the hospitals.',
@@ -1676,7 +1877,7 @@ export const PRESSURE = defineScene({
           duration: 2600,
           holdMs: 900,
         },
-        { at: 0, type: 'audio.cue', cue: 'hit' },
+        { at: 0, type: 'audio.cue', cue: 'tick' },
         {
           at: 400,
           type: 'camera.fly',
@@ -1695,6 +1896,7 @@ export const PRESSURE = defineScene({
         '{access.pareto.length|int} districts are beaten on all three by no other. No weighting needed.',
       minHoldMs: 600,
       actions: [
+        { at: 600, type: 'term.show', term: 'Pareto' },
         {
           at: 0,
           type: 'layer.show',
@@ -1728,6 +1930,7 @@ export const PRESSURE = defineScene({
     },
     {
       id: 'weights',
+      kind: 'meaning',
       caption:
         'IN THE TOP {access.pressure.weighting.top|int} UNDER EVERY WEIGHTING: {access.stableTop|list}',
       narration:
@@ -1805,6 +2008,7 @@ export const BRIDGE_WHAT_IF = defineScene({
         'Remove only that bridge, and {access.bridges.1.peopleCut|int} people lose every mapped road to a hospital.',
       minHoldMs: 600,
       actions: [
+        { at: 600, type: 'term.show', term: 'SCENARIO' },
         {
           at: 0,
           type: 'layer.show',
@@ -1996,6 +2200,7 @@ export const LANDING_PLACES = defineScene({
     },
     {
       id: 'not-use',
+      kind: 'limit',
       caption: 'PLACES AN AIRCRAFT COULD LAND · NOT A RECORD OF ANY FLIGHT',
       narration: 'Places an aircraft could land. Not a record of any flight.',
       minHoldMs: 700,
@@ -2106,6 +2311,7 @@ export const FOUR_CLOCKS = defineScene({
     },
     {
       id: 'twelve',
+      kind: 'meaning',
       caption:
         'LAYERS PUBLISHED A MEDIAN {damage.lags.eventToPublication.median|int} DAYS AFTER THE EARTHQUAKE',
       narration:
@@ -2227,6 +2433,7 @@ export const WHAT_WE_KNOW = byClass(
   { source: 'USGS · UNOSAT · NGA · COPERNICUS', cls: 'OBSERVED' },
   ['epicentre', 'damageCentre'],
   [
+    { at: 700, type: 'term.show', term: 'OBSERVED' },
     {
       at: 1000,
       type: 'annotation.draw',
@@ -2264,6 +2471,7 @@ export const WHAT_WE_INFER = byClass(
   { source: 'THIS ANALYSIS', cls: 'DERIVED' },
   ['shakeCentre', 'kathmandu'],
   [
+    { at: 700, type: 'term.show', term: 'DERIVED' },
     {
       at: 900,
       type: 'layer.show',
@@ -2298,6 +2506,7 @@ export const WHAT_WE_SIMULATE = byClass(
   { source: 'OSM 2015 × DOHS 2010 × NGA', cls: 'SCENARIO' },
   ['accessCentre', 'district:sindhuli'],
   [
+    { at: 700, type: 'term.show', term: 'SCENARIO' },
     {
       at: 900,
       type: 'layer.show',

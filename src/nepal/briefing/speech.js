@@ -123,6 +123,25 @@ function fnv1a(text) {
   return h.toString(16).padStart(8, '0');
 }
 
+/**
+ * A beat's exact spoken length from a clip manifest: the sum of its
+ * sentences' clips in one voice, or null when any sentence has no clip (the
+ * estimate then stands). `fill` turns the beat's template into its words.
+ */
+export function manifestMeasure(manifest, voiceId, fill) {
+  const clips = manifest?.clips ?? {};
+  return (beat) => {
+    if (!beat?.narration) return 0;
+    let total = 0;
+    for (const sentence of sentencePlan(fill(beat.narration), beat.prosody)) {
+      const ms = clips[clipKey(voiceId, sentence)];
+      if (!Number.isFinite(ms)) return null;
+      total += ms;
+    }
+    return total;
+  };
+}
+
 /** What the neural voice is given for a sentence: spoken forms, lexicon, emphasis. */
 export function neuralInput(sentence) {
   return neuralText(spokenText(sentence.text), sentence.emphasis);

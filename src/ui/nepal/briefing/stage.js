@@ -14,7 +14,7 @@
 
 import * as Cesium from 'cesium';
 import { fillTemplate, formatValue } from '../../../nepal/briefing/facts.js';
-import { progress } from '../../../nepal/briefing/clock.js';
+import { ease, progress } from '../../../nepal/briefing/clock.js';
 import { interpolateView } from '../../../nepal/briefing/flight.js';
 import { DAMAGE_COLOURS, MMI_COLOURS } from '../../../nepal/story/mapModel.js';
 import { GLOSSARY } from '../../../nepal/briefing/glossary.js';
@@ -123,6 +123,15 @@ export function createBriefingStage({
   /* ------------------------------------------------------------ places */
 
   /** A value inside a fact: `{ fact: 'access.cut', path: ['baseline', 'line'] }`. */
+  /** A band's label from its bounds: [min, max) as the artefact counted it. */
+  function edgeLabel(item, { symbol = 'M', unit = '', digits = 1 } = {}) {
+    const n = (v) => formatValue(v, digits ? `dec${digits}` : 'int');
+    const u = unit ? ` ${unit}` : '';
+    return item.max === null || item.max === undefined
+      ? `${symbol} ≥ ${n(item.min)}${u}`
+      : `${n(item.min)} ≤ ${symbol} < ${n(item.max)}${u}`;
+  }
+
   function factAt({ fact, path = [] }) {
     let value = book.value(fact);
     for (const key of path) value = value?.[key];
@@ -1032,11 +1041,17 @@ export function createBriefingStage({
           )
           .slice(0, rowsFrom.limit ?? Infinity)
           .map((item) => ({
-            /* `labels` renames an artefact's keys for the screen; the values stay the artefact's. */
-            label: String(
-              rowsFrom.labels?.[item[rowsFrom.label]] ??
-                (rowsFrom.label ? item[rowsFrom.label] : item),
-            ).toUpperCase(),
+            /*
+             * `labels` renames an artefact's keys for the screen; the values
+             * stay the artefact's. `edges` writes a band from its own bounds,
+             * so the bin rule is on screen: "4.0 ≤ M < 5.0", "M ≥ 7.0".
+             */
+            label: rowsFrom.edges
+              ? edgeLabel(item, rowsFrom.edges)
+              : String(
+                  rowsFrom.labels?.[item[rowsFrom.label]] ??
+                    (rowsFrom.label ? item[rowsFrom.label] : item),
+                ).toUpperCase(),
             /* `value` may be a dotted path: 'value.median' in a map of summaries. */
             value: String(rowsFrom.value)
               .split('.')
@@ -1229,19 +1244,44 @@ export function createBriefingStage({
       onTerm(term, { holdMs: action.holdMs ?? 6500 });
     },
     /* The clock on screen, reading the events layer's timeline. */
-    'time.card': (action, instant) =>
-      overlay.timeCard({
+    /*
+     * The clock on screen. It reads the events layer's own time, or — with
+     * `days: [[ms, day], …]` — runs through those days on the briefing clock
+     * (a lag, a wait), so it pauses and speeds with everything else.
+     */
+    'time.card': (action, instant) => {
+      const resolve = (v) => (v?.fact ? factAt(v) : v);
+      const keys = (action.days ?? []).map(([ms, day]) => [ms, resolve(day)]);
+      const t0 = clock.now();
+      const dayAt = () => {
+        const t = instant ? Infinity : clock.now() - t0;
+        let day = keys[0][1];
+        for (let k = 1; k < keys.length; k += 1) {
+          const [m0, d0] = keys[k - 1];
+          const [m1, d1] = keys[k];
+          if (t >= m1) day = d1;
+          else if (t > m0) {
+            day = d0 + (d1 - d0) * ease.inOut((t - m0) / (m1 - m0));
+            break;
+          } else break;
+        }
+        return day;
+      };
+      return overlay.timeCard({
         id: action.id ?? 'timecard',
-        hourOf: () => overlay.get(action.layer ?? 'events')?.hourNow?.() ?? 0,
+        hourOf: keys.length
+          ? () => dayAt() * 24
+          : () => overlay.get(action.layer ?? 'events')?.hourNow?.() ?? 0,
         originMs,
-        spanDays: action.spanDays ?? 20,
+        spanDays: resolve(action.spanDays) ?? 20,
         ticks: (action.ticks ?? []).map((tick) => ({
           ...tick,
           day: tick.day?.fact ? factAt(tick.day) : tick.day,
         })),
         screen: action.screen ?? undefined,
         instant,
-      }),
+      });
+    },
   };
 
   /** Remember what was drawn for this beat alone. */

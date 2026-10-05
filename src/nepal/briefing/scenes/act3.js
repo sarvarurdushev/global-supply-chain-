@@ -46,6 +46,8 @@ export const COMPOSITION = defineScene({
   act: 'III',
   title: 'Damage composition',
   question: 'How severe was the observed damage?',
+  technical:
+    'UNOSAT point records of damaged structures in four classes, read from post-event imagery and not field-validated at publication. Shares are of the {damage.total|int} mapped sites: the record lists no undamaged buildings, so they are not shares of all buildings.',
   explore: 8,
   runs: ALL,
   setup: [
@@ -66,7 +68,7 @@ export const COMPOSITION = defineScene({
       caption:
         '{damage.destroyed|int} OF {damage.total|int} MAPPED SITES: DESTROYED',
       narration:
-        'The first damage assessment mapped {damage.total|int} sites. {damage.destroyed|int} were classed as destroyed.',
+        'UNOSAT mapped damage from satellite images: {damage.total|int} sites. {damage.destroyed|int} classed as destroyed.',
       minHoldMs: 500,
       actions: [
         {
@@ -101,7 +103,9 @@ export const COMPOSITION = defineScene({
           heading: 6,
           duration: 5200,
         },
-        { at: 1900, type: 'audio.cue', cue: 'reveal' },
+        /* The first damage the briefing shows: one of the score's six moments. */
+        { at: 1900, type: 'audio.cue', cue: 'damage' },
+        { at: 600, type: 'term.show', term: 'UNOSAT' },
         {
           at: 2300,
           type: 'annotation.draw',
@@ -187,10 +191,11 @@ export const COMPOSITION = defineScene({
     },
     {
       id: 'together',
+      kind: 'meaning',
       caption:
-        'DESTROYED {damage.shareDestroyed|pct1} · SEVERE {damage.shareSevere|pct1} · MODERATE {damage.shareModerate|pct1} · POSSIBLE {damage.sharePossible|pct1}',
+        'MOST MAPPED DAMAGE WAS THE WORST KIND · DESTROYED {damage.shareDestroyed|pct1} · SEVERE {damage.shareSevere|pct1}',
       narration:
-        '{damage.shareDestroyed|dec1} percent destroyed. {damage.shareSevere|dec1} percent severe.',
+        'So where analysts found damage, most of it was the worst kind.',
       minHoldMs: 900,
       actions: [
         { at: 0, type: 'chart.update', id: 'composition', op: 'revealAll' },
@@ -233,6 +238,8 @@ export const MODEL_VS_OBSERVATION = defineScene({
   act: 'III',
   title: 'Model versus observation',
   question: 'Did stronger shaking mean more severe damage?',
+  technical:
+    'Pearson χ² test of independence on the intensity-band × damage-class table of {damage.independence.total|int} sites: χ² = {damage.independence.statistic|dec1}, df = {damage.independence.df|int}, p = {damage.independence.p|sci}. Cramér’s V = √(χ² / (n·(k − 1))) = {damage.independence.cramersV|dec3}: a small effect. {damage.selectionWarning}',
   explore: 9,
   runs: ALL,
   setup: [
@@ -259,7 +266,7 @@ export const MODEL_VS_OBSERVATION = defineScene({
           duration: 2600,
           holdMs: 900,
         },
-        { at: 0, type: 'audio.cue', cue: 'hit' },
+        { at: 0, type: 'audio.cue', cue: 'tick' },
         {
           at: 400,
           type: 'layer.show',
@@ -369,6 +376,7 @@ export const MODEL_VS_OBSERVATION = defineScene({
           duration: 1600,
           tag: STAT,
         },
+        { at: 2200, type: 'term.show', term: 'cramersV' },
         { at: 3600, type: 'audio.cue', cue: 'reveal' },
         /* The chart says it too, over the bars the statistic is about. */
         {
@@ -383,12 +391,12 @@ export const MODEL_VS_OBSERVATION = defineScene({
     {
       id: 'reversal',
       caption:
-        'NOT MONOTONIC · WHERE SATELLITES LOOKED MATTERS AS MUCH AS THE SHAKING',
+        'NOT A STRAIGHT LINE · AT MMI {damage.byIntensity.1.mmi} THE DESTROYED SHARE DROPS',
       narration:
-        'And it is not a straight line. At seven and a half, the destroyed share drops. Where the satellites looked shapes this as much as the shaking.',
+        'And it is not a straight line. At seven and a half, the destroyed share drops, inside single areas too.',
       /* The three-minute run keeps the finding (real but weak) and leaves the nuance to the longer runs. */
       runs: SIX_FULL,
-      minHoldMs: 1200,
+      minHoldMs: 600,
       actions: [
         { at: 0, type: 'layer.filter', layer: 'bands', highlight: 7.5 },
         /*
@@ -404,23 +412,6 @@ export const MODEL_VS_OBSERVATION = defineScene({
           heading: 0,
           duration: 4600,
         },
-        {
-          at: 8800,
-          type: 'layer.filter',
-          layer: 'damage',
-          classes: [0, 1, 2, 3],
-          duration: 900,
-        },
-        {
-          at: 9000,
-          type: 'camera.fly',
-          to: 'district:tanahu',
-          rangeKm: 340,
-          pitch: -60,
-          heading: 4,
-          duration: 3600,
-        },
-        { at: 11200, type: 'layer.filter', layer: 'bands', highlight: null },
         { at: 0, type: 'chart.update', id: 'intensity', op: 'focus', mmi: 7.5 },
         /* The line through the destroyed shares, with the drop into 7.5 in red. */
         {
@@ -430,14 +421,6 @@ export const MODEL_VS_OBSERVATION = defineScene({
           op: 'trend',
           mmi: 7.5,
         },
-        {
-          at: 2400,
-          type: 'chart.update',
-          id: 'intensity',
-          op: 'verdict',
-          text: 'NOT A STRAIGHT LINE · WHERE SATELLITES LOOKED MATTERS',
-        },
-        { at: 0, type: 'audio.cue', cue: 'hit' },
         { at: 0, type: 'annotation.remove', id: 'chi' },
         /* The verdict and the caption carry the figure now; the callouts need the space. */
         { at: 0, type: 'annotation.remove', id: 'cramer' },
@@ -474,12 +457,88 @@ export const MODEL_VS_OBSERVATION = defineScene({
           dy: 160,
           tone: 'caveat',
         },
+      ],
+    },
+    {
+      id: 'meaning',
+      kind: 'meaning',
+      caption:
+        'SHAKING ALONE DOES NOT DECIDE THE DAMAGE · WHERE SATELLITES LOOKED SHAPES THE RECORD',
+      narration:
+        'So shaking alone does not decide the damage. Where the satellites looked shapes this record as much.',
+      runs: SIX_FULL,
+      minHoldMs: 900,
+      actions: [
         {
-          at: 5200,
+          at: 0,
+          type: 'chart.update',
+          id: 'intensity',
+          op: 'verdict',
+          text: 'NOT A STRAIGHT LINE · WHERE SATELLITES LOOKED MATTERS',
+        },
+        {
+          at: 600,
+          type: 'layer.filter',
+          layer: 'damage',
+          classes: [0, 1, 2, 3],
+          duration: 900,
+        },
+        {
+          at: 600,
+          type: 'camera.fly',
+          to: 'district:tanahu',
+          rangeKm: 340,
+          pitch: -60,
+          heading: 4,
+          duration: 4200,
+        },
+        {
+          at: 3200,
           type: 'chart.update',
           id: 'intensity',
           op: 'foot',
           text: 'SELECTION: BOTH PRODUCTS WERE TASKED WHERE DAMAGE WAS EXPECTED',
+        },
+        { at: 5200, type: 'layer.filter', layer: 'bands', highlight: null },
+      ],
+    },
+    {
+      id: 'hypotheses',
+      kind: 'limit',
+      caption:
+        'BUILDING TYPE, GROUND, DISTANCE TO THE RUPTURE: LIKELY FACTORS · HYPOTHESES, NOT TESTED HERE',
+      narration:
+        'Building type, local ground and distance to the rupture probably matter too. Those are hypotheses. This data cannot test them: it has no building or soil records.',
+      runs: [RUNS.FULL],
+      minHoldMs: 700,
+      actions: [
+        { at: 0, type: 'annotation.remove', id: 'manbu-within' },
+        { at: 0, type: 'annotation.remove', id: 'sundar-within' },
+        {
+          at: 300,
+          type: 'annotation.draw',
+          kind: 'typed',
+          id: 'hypotheses-card',
+          until: 'beat',
+          duration: 1600,
+          screen: { x: 0.6, y: 0.16 },
+          className: 'brf-typed brf-typed--data',
+          lines: [
+            'MEASURED: A WEAK LINK, NOT A STRAIGHT LINE',
+            'HYPOTHESIS: BUILDING TYPE',
+            'HYPOTHESIS: LOCAL GROUND',
+            'HYPOTHESIS: DISTANCE TO THE RUPTURE',
+            'NOT IN THIS DATA: BUILDING OR SOIL RECORDS',
+          ],
+        },
+        {
+          at: 200,
+          type: 'camera.fly',
+          to: 'damageCentre',
+          rangeKm: 380,
+          pitch: -62,
+          heading: 0,
+          duration: 6000,
         },
       ],
     },
@@ -495,6 +554,8 @@ export const CONCENTRATION = defineScene({
   act: 'III',
   title: 'Damage concentration',
   question: 'Was the mapped damage spread out, or piled up?',
+  technical:
+    'Sites binned to a {damage.grid1km.cellMetres|int} m grid: {damage.grid1km.occupiedCells|int} occupied cells. Ranked by count, {damage.gridHalf.units|int} cells hold half the sites and {damage.gridEighty.units|int} hold {damage.gridEighty.share|shareToPct}. Gini over occupied cells {damage.grid1km.concentration.gini|dec2}. This describes where damage was mapped, not where it occurred.',
   explore: 8,
   runs: SIX_FULL,
   keep: ['outline', 'mask'],
@@ -556,7 +617,8 @@ export const CONCENTRATION = defineScene({
       id: 'half',
       caption:
         'HALF OF ALL MAPPED SITES LIE IN {damage.gridHalf.units|int} OF THOSE SQUARES',
-      narration: 'Half of them lie in only {damage.gridHalf.units|int}.',
+      narration:
+        'Half of them lie in only {damage.gridHalf.units|int}. The mapped damage is piled up, not spread out.',
       minHoldMs: 600,
       actions: [
         {
@@ -566,7 +628,7 @@ export const CONCENTRATION = defineScene({
           top: { fact: 'damage.gridHalf', path: ['units'] },
         },
         { at: 0, type: 'annotation.remove', id: 'cells' },
-        { at: 0, type: 'audio.cue', cue: 'hit' },
+        { at: 0, type: 'audio.cue', cue: 'tick' },
         {
           at: 300,
           type: 'metric.count',
@@ -608,9 +670,10 @@ export const CONCENTRATION = defineScene({
     },
     {
       id: 'caveat',
+      kind: 'limit',
       caption: 'CONCENTRATED WHERE ANALYSTS LOOKED · NOT A MAP OF ALL DAMAGE',
       narration:
-        'That is where damage was mapped, and where analysts looked. It is not a map of all the damage.',
+        'But that is where analysts looked. It is not a map of all the damage.',
       runs: SIX_FULL,
       minHoldMs: 700,
       actions: [
@@ -641,6 +704,7 @@ export const CONCENTRATION = defineScene({
           ],
           tag: GRID,
         },
+        { at: 1200, type: 'term.show', term: 'gini' },
       ],
     },
   ],
@@ -652,8 +716,12 @@ export const COVERAGE_GAP = defineScene({
   act: 'III',
   title: 'Observation coverage failure',
   question: 'Where do we have no observation at all?',
+  technical:
+    'Universe: populated 1 km cells in {coverage.universe.districts|names}. Unrecorded: cells above the median population with no UNOSAT record — {coverage.unrecorded.cells|int} cells, {coverage.unrecorded.people|int} people (WorldPop). UNOSAT publishes no footprint of the areas it examined, so the absence of a record cannot be read as the absence of damage.',
   explore: 12,
   runs: ALL,
+  /* The story turns here: the record's silence. The score turns with it. */
+  music: 'gap',
   keep: ['outline', 'mask'],
   setup: [
     ...damageBase,
@@ -675,6 +743,7 @@ export const COVERAGE_GAP = defineScene({
         'Now the gap. {coverage.unrecorded.people|millionWords} people lived in the more populated squares of these districts, with no damage record at all.',
       minHoldMs: 500,
       actions: [
+        { at: 0, type: 'audio.cue', cue: 'gap' },
         {
           at: 0,
           type: 'layer.show',
@@ -737,13 +806,13 @@ export const COVERAGE_GAP = defineScene({
         },
         /* The voice is still on the gap: close in on the empty square and mark it. */
         {
-          at: 5000,
+          at: 4800,
           type: 'camera.fly',
           to: { fact: 'coverage.unrecorded', path: ['examples', 0] },
           rangeKm: 46,
           pitch: -50,
           heading: 22,
-          duration: 4600,
+          duration: 3000,
         },
         {
           at: 5600,
@@ -759,14 +828,15 @@ export const COVERAGE_GAP = defineScene({
     },
     {
       id: 'no-denominator',
+      kind: 'meaning',
       caption:
         'NO RECORD IS NOT NO DAMAGE · THE PRODUCT LISTS ONLY WHAT IT FOUND',
       narration:
-        'No record is not no damage. The product lists only what it found, and publishes no map of where it looked.',
+        'No record is not no damage. The product lists only what it found, not where it looked.',
       minHoldMs: 700,
       actions: [
         { at: 0, type: 'annotation.remove', id: 'unrecorded-count' },
-        { at: 0, type: 'audio.cue', cue: 'hit' },
+        { at: 2000, type: 'term.show', term: 'DATA_GAP' },
         {
           at: 200,
           type: 'camera.fly',
@@ -790,6 +860,49 @@ export const COVERAGE_GAP = defineScene({
             'A GAP, NOT AN ABSENCE',
             'UNOSAT RECORDS DAMAGED STRUCTURES ONLY',
             'NO EXAMINED-AREA FOOTPRINT IS PUBLISHED',
+          ],
+        },
+      ],
+    },
+    /*
+     * The one mid-run SO FAR: halfway, at the turn from what happened to
+     * whether help could reach it. Three findings, then the next question.
+     */
+    {
+      id: 'so-far',
+      kind: 'sofar',
+      caption:
+        'STRONG SHAKING · CLUSTERED DAMAGE · A BLIND SPOT · NEXT: COULD HELP GET THROUGH?',
+      narration:
+        'So far: millions in strong shaking, damage in tight clusters, and a large blind spot. Next: could help still get through?',
+      runs: [RUNS.SIX, RUNS.FULL],
+      minHoldMs: 600,
+      actions: [
+        { at: 0, type: 'annotation.remove', id: 'no-denominator-card' },
+        { at: 0, type: 'annotation.remove', id: 'no-record-pulse' },
+        {
+          at: 200,
+          type: 'camera.fly',
+          to: 'damageCentre',
+          rangeKm: 520,
+          pitch: -66,
+          heading: 0,
+          duration: 5600,
+        },
+        {
+          at: 400,
+          type: 'annotation.draw',
+          kind: 'typed',
+          id: 'so-far-card',
+          until: 'beat',
+          duration: 2400,
+          screen: { x: 0.6, y: 0.16 },
+          className: 'brf-typed brf-typed--recap',
+          lines: [
+            '{exposure.mmi6|mega2} PEOPLE IN STRONG SHAKING',
+            'HALF THE MAPPED DAMAGE IN {damage.gridHalf.units|int} KM²',
+            '{coverage.unrecorded.people|mega2} PEOPLE WITH NO DAMAGE RECORD',
+            'NEXT · COULD HELP STILL GET THROUGH?',
           ],
         },
       ],

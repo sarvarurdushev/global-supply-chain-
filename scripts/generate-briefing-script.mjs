@@ -5,10 +5,12 @@
  * committed script is out of date instead of writing it.
  */
 
-import { readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
-import { createFactBook } from '../src/nepal/briefing/facts.js';
+import { createFactBook, fillTemplate } from '../src/nepal/briefing/facts.js';
+import { manifestMeasure } from '../src/nepal/briefing/speech.js';
+import { setNarrationMeasure } from '../src/nepal/briefing/timeline.js';
 import { BRIEFING_SCENES } from '../src/nepal/briefing/scenes/index.js';
 import { renderBriefingScript } from '../src/nepal/briefing/script.js';
 
@@ -29,8 +31,29 @@ export function loadBriefingBook() {
   });
 }
 
+const MANIFEST_PATH = path.join(ROOT, 'public', 'audio', 'narration', 'manifest.json');
+
+/**
+ * Time the script by the shipped voice: each beat lasts as long as the
+ * default neural voice's clips for it, the way the briefing will play it.
+ * Without the manifest (or for a line not yet rendered) the estimate stands.
+ */
+export function useShippedVoice(book) {
+  if (!existsSync(MANIFEST_PATH)) return null;
+  const manifest = JSON.parse(readFileSync(MANIFEST_PATH, 'utf8'));
+  const voice = manifest.voices.find((v) => v.default) ?? manifest.voices[0];
+  setNarrationMeasure(manifestMeasure(manifest, voice.id, (text) => fillTemplate(text, book)));
+  return voice;
+}
+
 export function currentScript() {
-  return renderBriefingScript(loadBriefingBook(), BRIEFING_SCENES);
+  const book = loadBriefingBook();
+  const voice = useShippedVoice(book);
+  try {
+    return renderBriefingScript(book, BRIEFING_SCENES, { voice });
+  } finally {
+    setNarrationMeasure(null);
+  }
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

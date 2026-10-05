@@ -26,6 +26,8 @@ export const PEOPLE_MEET_SHAKING = defineScene({
   act: 'II',
   title: 'Population meets shaking',
   question: 'How many people were inside the strong shaking?',
+  technical:
+    'WorldPop 2015 population summed inside ShakeMap contours: at or above MMI 6, {exposure.mmi6|int}; at or above 7, {exposure.mmi7|int}; 8, {exposure.mmi8|int} — of {exposure.total|int} modelled in the area analysed. DERIVED from two models; neither is a count of people.',
   explore: 5,
   runs: ALL,
   /* In the full run, scene 09 has already drawn the population: keep it rather than draw it again. */
@@ -69,6 +71,7 @@ export const PEOPLE_MEET_SHAKING = defineScene({
           ],
           tag: WORLDPOP,
         },
+        { at: 1600, type: 'term.show', term: 'WorldPop' },
       ],
     },
     {
@@ -116,6 +119,8 @@ export const PEOPLE_MEET_SHAKING = defineScene({
           duration: 2400,
           tag: SHAKE,
         },
+        /* The three-minute run meets the population here first. */
+        { at: 1400, type: 'term.show', term: 'WorldPop' },
       ],
     },
     {
@@ -174,6 +179,8 @@ export const DENSITY_MEETS_SHAKING = defineScene({
   act: 'II',
   title: 'High density × high shaking',
   question: 'Where did the most people meet the strongest shaking?',
+  technical:
+    'High shaking: modelled MMI at or above {exposure.quadrantParams.intensityThreshold|int}. High density: at or above the {exposure.quadrantParams.densityQuantile|shareToPct} quantile of people per populated 1 km cell, which is {exposure.quadrantParams.densityCutPeoplePerCell|dec1} people, computed over {exposure.quadrantParams.populatedCells|int} populated cells. The cut comes from the data, not from a borrowed threshold.',
   explore: 6,
   runs: SIX_FULL,
   keep: ['outline', 'mask', 'population', 'bands'],
@@ -195,7 +202,7 @@ export const DENSITY_MEETS_SHAKING = defineScene({
       caption:
         '{exposure.highHigh.people|mega2} PEOPLE: STRONG SHAKING AND DENSE SETTLEMENT',
       narration:
-        'Where strong shaking met dense settlement: {exposure.highHigh.people|millionWords} people. {exposure.highHigh.shareOfPopulationPercent|int} percent of everyone here.',
+        'Where strong shaking met dense settlement: {exposure.highHigh.people|millionWords} people. {exposure.highHigh.shareOfPopulationPercent|int} percent of everyone in the area analysed.',
       minHoldMs: 500,
       actions: [
         { at: 0, type: 'layer.filter', layer: 'population', alpha: 0.3 },
@@ -232,6 +239,9 @@ export const DENSITY_MEETS_SHAKING = defineScene({
           duration: 2200,
           tag: SHAKE,
         },
+        /* The subject is the dense, strongly shaken places; everything else recedes. */
+        { at: 200, type: 'focus', on: ['population-hot', 'outline'] },
+        { at: 1600, type: 'term.show', term: 'quantile' },
       ],
     },
     {

@@ -416,6 +416,24 @@ export const FACTS = Object.freeze({
     cls: 'STATISTIC',
     record: 'seismic-magnitude-distribution',
   }),
+  /* The jump in counts at the reporting threshold: the catalogue is incomplete below it. */
+  'seq.threshold': f('seismic', ['results', 'reportingThreshold'], {
+    source: 'USGS',
+    cls: 'STATISTIC',
+    record: 'seismic-magnitude-distribution',
+  }),
+  /* What the catalogue is: its own record of the query, quoted rather than retyped. */
+  'seq.catalogue': f(
+    'seismic',
+    [
+      'methodology',
+      { find: { id: 'seismic-magnitude-distribution' } },
+      'inputs',
+      0,
+      'role',
+    ],
+    { ...USGS, record: 'seismic-magnitude-distribution' },
+  ),
   'exposure.total': f(
     'exposure',
     ['results', 'intensity', 'totalPopulationConsidered'],
@@ -783,6 +801,11 @@ export const FORMATS = Object.freeze({
   dateLong: (v) => {
     const d = new Date(v);
     return `${d.getUTCDate()} ${['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+  },
+  /** → "12 May" — for the voice. */
+  dayMonth: (v) => {
+    const d = new Date(v);
+    return `${d.getUTCDate()} ${['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][d.getUTCMonth()]}`;
   },
   /** → "06:11 UTC" */
   utcHM: (v) => `${String(v).slice(11, 16)} UTC`,

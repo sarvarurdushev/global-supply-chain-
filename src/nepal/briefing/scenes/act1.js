@@ -253,6 +253,7 @@ export const LOCATE = defineScene({
           dx: -210,
           dy: -90,
         },
+        { at: 2000, type: 'term.show', term: 'USGS' },
         {
           at: 3700,
           type: 'camera.fly',
@@ -272,8 +273,11 @@ export const MAIN_SHOCK = defineScene({
   act: 'I',
   title: 'Main shock',
   question: 'How big was it, and how deep?',
+  technical:
+    'USGS ComCat reviewed solution {quake.id|upper}: moment magnitude {quake.magnitude|dec1}, hypocentral depth {quake.depthKm|dec2} km, origin time {quake.time|raw}. Shallow-crustal depths carry several kilometres of uncertainty.',
   explore: 2,
   runs: ALL,
+  music: 'mainshock',
   keep: ['outline', 'mask', 'epi-pulse', 'ktm'],
   setup: [
     { type: 'veil', opacity: 0.12 },
@@ -315,7 +319,7 @@ export const MAIN_SHOCK = defineScene({
           heading: 12,
           duration: 2600,
         },
-        { at: 0, type: 'audio.cue', cue: 'hit' },
+        { at: 0, type: 'audio.cue', cue: 'impact' },
         {
           at: 0,
           type: 'annotation.draw',
@@ -326,6 +330,7 @@ export const MAIN_SHOCK = defineScene({
           maxPx: 140,
           count: 4,
         },
+        { at: 900, type: 'term.show', term: 'magnitude' },
         {
           at: 500,
           type: 'metric.count',
@@ -371,6 +376,7 @@ export const MAIN_SHOCK = defineScene({
           dy: 36,
           duration: 1400,
         },
+        { at: 400, type: 'term.show', term: 'depth' },
         {
           at: 900,
           type: 'annotation.draw',
@@ -409,8 +415,11 @@ export const SHAKING = defineScene({
   act: 'I',
   title: 'Shaking expands',
   question: 'Where did the ground shake, and how hard?',
+  technical:
+    "Intensity is USGS ShakeMap's modelled Modified Mercalli Intensity: recorded ground motion interpolated with ground-motion prediction equations and site amplification, then converted to intensity. The bands drawn are ShakeMap contours. MODELLED, not surveyed at each place.",
   explore: 4,
   runs: ALL,
+  music: 'mainshock',
   keep: ['outline', 'mask', 'epi-pulse', 'ktm'],
   setup: [
     { type: 'veil', opacity: 0.12 },
@@ -461,25 +470,32 @@ export const SHAKING = defineScene({
         },
         { at: 300, type: 'layer.show', layer: 'bands', duration: 5200 },
         { at: 300, type: 'audio.cue', cue: 'trace' },
+        { at: 1200, type: 'term.show', term: 'ShakeMap' },
         /* The camera follows the shaking east while the outer bands finish. */
         {
-          at: 3000,
+          at: 2900,
           type: 'camera.fly',
           to: 'shakeCentre',
           rangeKm: 1020,
           pitch: -66,
           heading: 6,
-          duration: 2700,
+          duration: 2200,
         },
       ],
     },
     {
       id: 'scale',
-      caption: 'MODELLED INTENSITY · VI STRONG · VII VERY STRONG · VIII SEVERE',
+      caption:
+        'INTENSITY, NOT MAGNITUDE · VI STRONG · VII VERY STRONG · VIII SEVERE',
+      /*
+       * The weak point of 9.1: a list of numerals. Now it says what the
+       * colours ARE (shaking at a place) and what they are not (the size of
+       * the earthquake), and each level lights as it is named.
+       */
       narration:
-        'This is modelled intensity. Six is strong. Seven, very strong. Eight, severe.',
+        'These colours are intensity: how hard the ground shook at each place. Not magnitude, which is one number for the whole earthquake. Six is strong. Eight, severe.',
       runs: SIX_FULL,
-      minHoldMs: 400,
+      minHoldMs: 500,
       actions: [
         {
           at: 0,
@@ -489,17 +505,52 @@ export const SHAKING = defineScene({
           screen: { x: 0.03, y: 0.5 },
         },
         { at: 200, type: 'chart.update', id: 'mmi-legend', op: 'revealAll' },
-        { at: 1600, type: 'layer.filter', layer: 'bands', highlight: 7 },
+        { at: 300, type: 'term.show', term: 'intensityVsMagnitude' },
+        /* The camera drifts as the definition is read, so the frame is never frozen. */
         {
-          at: 1600,
+          at: 300,
+          type: 'camera.fly',
+          to: 'shakeCentre',
+          rangeKm: 980,
+          pitch: -64,
+          heading: 2,
+          duration: 8000,
+        },
+        /* The distinction, on screen while it is said: one number, against a map of numbers. */
+        {
+          at: 3800,
+          type: 'annotation.draw',
+          kind: 'typed',
+          id: 'mag-vs-mmi',
+          until: 'beat',
+          duration: 1400,
+          screen: { x: 0.6, y: 0.17 },
+          className: 'brf-typed brf-typed--data',
+          lines: [
+            'MAGNITUDE {quake.magnitude|dec1} · ONE NUMBER FOR THE EARTHQUAKE',
+            'INTENSITY · DIFFERENT AT EVERY PLACE',
+          ],
+          tag: SHAKEMAP,
+        },
+        { at: 7100, type: 'layer.filter', layer: 'bands', highlight: 6 },
+        {
+          at: 7100,
           type: 'chart.update',
           id: 'mmi-legend',
           op: 'focus',
-          index: 2,
+          index: 4,
         },
-        { at: 3800, type: 'layer.filter', layer: 'bands', highlight: null },
+        { at: 8200, type: 'layer.filter', layer: 'bands', highlight: 8 },
         {
-          at: 3800,
+          at: 8200,
+          type: 'chart.update',
+          id: 'mmi-legend',
+          op: 'focus',
+          index: 0,
+        },
+        { at: 9900, type: 'layer.filter', layer: 'bands', highlight: null },
+        {
+          at: 9900,
           type: 'chart.update',
           id: 'mmi-legend',
           op: 'focus',
@@ -561,6 +612,7 @@ export const SHAKING = defineScene({
           dy: -100,
         },
         { at: 3100, type: 'audio.cue', cue: 'reveal' },
+        { at: 900, type: 'term.show', term: 'MMI' },
       ],
     },
   ],
@@ -593,14 +645,40 @@ const sequenceBase = [
   },
 ];
 
+/*
+ * THE CLOCK ON SCREEN. From the first aftershock to the second major shock,
+ * a card reads the events layer's own time: DAY 0 · +1 H, the date, and a
+ * ruler with day 1, one week and the second shock marked. "17 days later"
+ * is something the viewer watches pass, not a number they are told.
+ */
+const TIME_CARD = {
+  type: 'time.card',
+  id: 'timecard',
+  layer: 'events',
+  spanDays: 20,
+  screen: { x: 0.64, y: 0.05 },
+  ticks: [
+    { day: 1, label: 'DAY 1' },
+    { day: 7, label: 'ONE WEEK' },
+    {
+      day: { fact: 'seq.secondary', path: ['daysFromMainShock'] },
+      label: 'THE SECOND MAJOR SHOCK',
+      className: 'is-major',
+    },
+  ],
+};
+
 export const FIRST_HOURS = defineScene({
   id: 'first-hours',
   number: 6,
   act: 'I',
   title: 'First hours',
   question: 'What happened after the main shock?',
+  technical:
+    'Counts of catalogue events by hour and day after the main shock. Catalogue: {seq.catalogue}. No declustering is applied.',
   explore: 3,
   runs: SIX_FULL,
+  music: 'mainshock',
   keep: ['outline', 'mask', 'epi-pulse', 'ktm'],
   setup: [
     ...sequenceBase,
@@ -621,6 +699,7 @@ export const FIRST_HOURS = defineScene({
       minHoldMs: 400,
       actions: [
         { at: 0, type: 'layer.show', layer: 'events', hour: 0 },
+        { at: 0, ...TIME_CARD },
         {
           at: 0,
           type: 'timeline.seek',
@@ -629,6 +708,7 @@ export const FIRST_HOURS = defineScene({
           duration: 3200,
         },
         { at: 0, type: 'audio.cue', cue: 'pulse' },
+        { at: 1400, type: 'term.show', term: 'aftershock' },
         {
           at: 300,
           type: 'camera.fly',
@@ -667,7 +747,7 @@ export const FIRST_HOURS = defineScene({
           type: 'timeline.seek',
           layer: 'events',
           toHour: 24,
-          duration: 6000,
+          duration: 4800,
         },
         { at: 0, type: 'annotation.remove', id: 'hour-count' },
         {
@@ -677,7 +757,7 @@ export const FIRST_HOURS = defineScene({
           rangeKm: 600,
           pitch: -66,
           heading: 10,
-          duration: 6200,
+          duration: 4800,
         },
         {
           at: 600,
@@ -688,11 +768,11 @@ export const FIRST_HOURS = defineScene({
           label: 'EARTHQUAKES IN THE FIRST DAY',
           screen: { x: 0.64, y: 0.18 },
           size: 'xl',
-          duration: 5200,
+          duration: 4200,
           tag: USGS,
         },
         {
-          at: 4600,
+          at: 3800,
           type: 'annotation.draw',
           kind: 'callout',
           id: 'extent',
@@ -755,11 +835,17 @@ export const SECOND_SHOCK = defineScene({
   question: 'Was it over?',
   explore: 3,
   runs: SIX_FULL,
-  keep: ['outline', 'mask', 'epi-pulse', 'ktm', 'events'],
+  music: 'mainshock',
+  keep: ['outline', 'mask', 'epi-pulse', 'ktm', 'events', 'timecard'],
+  /*
+   * No seek here: the jump from the first day to the seventeenth happens in
+   * the beat, on screen, with the clock running. (In 9.1 the setup jumped
+   * the timeline to day 7 invisibly, and "17 days later" was only a phrase.)
+   */
   setup: [
     ...sequenceBase,
-    { type: 'layer.show', layer: 'events', hour: 168 },
-    { type: 'timeline.seek', layer: 'events', toHour: 168 },
+    { type: 'layer.show', layer: 'events', hour: 24 },
+    TIME_CARD,
     {
       type: 'camera.fly',
       to: 'shakeCentre',
@@ -772,31 +858,35 @@ export const SECOND_SHOCK = defineScene({
     {
       id: 'second',
       caption:
-        '{seq.secondary.daysFromMainShock|int} DAYS LATER · MAGNITUDE {seq.secondary.magnitude|dec1}',
+        '{seq.secondary.daysFromMainShock|int} DAYS LATER · {seq.secondary.time|dateShort} · MAGNITUDE {seq.secondary.magnitude|dec1}',
       narration:
-        'Then, a second major earthquake. {seq.secondary.daysFromMainShock|int} days later, magnitude {seq.secondary.magnitude|dec1}, east of the first.',
+        'The days pass. On {seq.secondary.time|dayMonth}, {seq.secondary.daysFromMainShock|int} days after the first, a second major earthquake: magnitude {seq.secondary.magnitude|dec1}.',
+      /* The pause lets the clock run before the date is said. */
+      prosody: { 0: { pauseAfter: 900 } },
       minHoldMs: 500,
       actions: [
+        { at: 0, type: 'annotation.remove', id: 'week-count' },
+        { at: 0, type: 'annotation.remove', id: 'day-count' },
+        { at: 0, type: 'annotation.remove', id: 'extent' },
+        /* What had happened by day 1 dims; the next sixteen days arrive bright. */
         {
           at: 0,
           type: 'timeline.seek',
           layer: 'events',
           toHour: { fact: 'seq.largest', path: [1, 'hoursFromMainShock'] },
-          duration: 2600,
-        },
-        { at: 0, type: 'annotation.remove', id: 'week-count' },
-        { at: 0, type: 'annotation.remove', id: 'extent' },
-        {
-          at: 300,
-          type: 'camera.fly',
-          to: 'secondary',
-          rangeKm: 380,
-          pitch: -60,
-          heading: -6,
           duration: 3600,
         },
         {
-          at: 2600,
+          at: 600,
+          type: 'camera.fly',
+          to: 'secondary',
+          rangeKm: 420,
+          pitch: -60,
+          heading: -6,
+          duration: 3800,
+        },
+        {
+          at: 5000,
           type: 'annotation.draw',
           kind: 'pulse',
           id: 'second-pulse',
@@ -805,9 +895,9 @@ export const SECOND_SHOCK = defineScene({
           maxPx: 120,
           count: 4,
         },
-        { at: 2600, type: 'audio.cue', cue: 'hit' },
+        { at: 5000, type: 'audio.cue', cue: 'aftershock' },
         {
-          at: 3000,
+          at: 6700,
           type: 'metric.count',
           id: 'second-mag',
           fact: 'seq.secondary',
@@ -822,7 +912,7 @@ export const SECOND_SHOCK = defineScene({
           tag: USGS,
         },
         {
-          at: 4400,
+          at: 8200,
           type: 'annotation.draw',
           kind: 'callout',
           id: 'second-where',
@@ -839,14 +929,37 @@ export const SECOND_SHOCK = defineScene({
       ],
     },
     {
+      id: 'sequence',
+      kind: 'meaning',
+      caption: 'NOT ONE EVENT · A SEQUENCE, AND IT WAS NOT OVER',
+      narration:
+        'So this was not one event. It was a sequence, and it was not over.',
+      minHoldMs: 600,
+      actions: [
+        { at: 0, type: 'annotation.remove', id: 'second-where' },
+        {
+          at: 0,
+          type: 'camera.fly',
+          to: 'shakeCentre',
+          rangeKm: 640,
+          pitch: -66,
+          heading: 4,
+          duration: 3600,
+        },
+      ],
+    },
+    {
       id: 'decay',
       caption:
         'IT RESET THE DECAY · p {omori.before.pValue|dec2} BEFORE, {omori.after.pValue|dec2} AFTER',
       narration:
-        'It reset the sequence. Before it, the aftershocks faded as the Omori law predicts. After it, far more slowly.',
+        'It also reset the decay. Before it, the aftershocks faded at the usual rate. After it, far more slowly, and the curve fits poorly. A weak fit is reported as one.',
+      technical:
+        'Daily aftershock counts fitted to the modified Omori law n(t) = K/(t + c)^p, c fixed at {omori.before.cFixedAt|raw} day, by least squares on log counts. Before the M{seq.secondary.magnitude|dec1}: p = {omori.before.pValue|dec2}, R² = {omori.before.rSquared|dec2} over {omori.before.daysFitted|int} days. After it: p = {omori.after.pValue|dec2}, R² = {omori.after.rSquared|dec2} over {omori.after.daysFitted|int} days. p near 1 is typical; R² this low means the curve describes the later sequence poorly.',
       runs: [RUNS.FULL],
       minHoldMs: 700,
       actions: [
+        { at: 0, type: 'annotation.remove', id: 'timecard' },
         {
           at: 0,
           type: 'timeline.seek',
@@ -854,7 +967,6 @@ export const SECOND_SHOCK = defineScene({
           toHour: 2200,
           duration: 6500,
         },
-        { at: 0, type: 'annotation.remove', id: 'second-where' },
         {
           at: 200,
           type: 'camera.fly',
@@ -864,6 +976,7 @@ export const SECOND_SHOCK = defineScene({
           heading: 0,
           duration: 4800,
         },
+        { at: 700, type: 'term.show', term: 'Omori' },
         {
           at: 700,
           type: 'annotation.draw',

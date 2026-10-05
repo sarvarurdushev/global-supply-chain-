@@ -507,7 +507,8 @@ export function createBriefingOverlay({
     return add({
       id,
       z,
-      kind: 'layer',
+      /* The frame, not a subject: dimming the mask would brighten everything outside. */
+      kind: 'frame',
       draw(c, project, _now, { width: W, height: H }) {
         const a = alpha * ease.out(progress(clock, t0, durationMs));
         c.beginPath();

@@ -10,6 +10,7 @@ import {
   planRun,
 } from '../timeline.js';
 import { createFactBook, fillTemplate } from '../facts.js';
+import { MUSIC_CUES } from '../music.js';
 
 const load = (name) =>
   JSON.parse(
@@ -34,6 +35,32 @@ const factAt = ({ fact, path = [] }) =>
 
 test('every scene passes the pacing and phrasing lint', () => {
   assert.deepEqual(lintTimeline(BRIEFING_SCENES), []);
+});
+
+test('every technical note resolves against the artefacts', () => {
+  for (const scene of BRIEFING_SCENES)
+    for (const note of [
+      scene.technical,
+      ...scene.beats.map((beat) => beat.technical),
+    ].filter(Boolean))
+      assert.doesNotThrow(() => fillTemplate(note, book), scene.id);
+});
+
+test('the six musical cues are played once each, at their moments, and nowhere else', () => {
+  const cues = new Map();
+  for (const scene of BRIEFING_SCENES)
+    for (const beat of scene.beats)
+      for (const action of beat.actions)
+        if (action.type === 'audio.cue' && MUSIC_CUES[action.cue])
+          cues.set(action.cue, [...(cues.get(action.cue) ?? []), `${scene.number}:${beat.id}`]);
+  assert.deepEqual(Object.fromEntries(cues), {
+    impact: ['4:magnitude'],
+    aftershock: ['8:second'],
+    damage: ['13:destroyed'],
+    gap: ['20:unrecorded'],
+    disconnect: ['32:result'],
+    close: ['40:close'],
+  });
 });
 
 test('every template in every scene resolves against the artefacts', () => {
@@ -167,6 +194,8 @@ test('when the voice says a figure, the map or a chart is already showing it', (
       a.line?.fact,
       a.keysFrom?.fact,
       a.rowsFrom?.fact,
+      /* The clock card's ruler marks its ticks from the moment it appears. */
+      ...(a.ticks ?? []).map((t) => t.day?.fact),
       ...(VISUALISES[`chart:${a.chart}`] ?? []),
       ...(VISUALISES[`layer:${a.layer}`] ?? []),
     ]

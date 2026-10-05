@@ -104,6 +104,7 @@ export const UNKNOWNS = defineScene({
     },
     {
       id: 'unmeasured',
+      kind: 'limit',
       caption:
         'NO TRAVEL TIMES · NO HOSPITAL CAPACITY · NO RECORD OF WHERE NOTHING WAS FOUND',
       narration:
@@ -434,7 +435,8 @@ export const SUMMARY = defineScene({
             'WHAT WE STILL DON’T KNOW · TRAVEL TIME · HOSPITAL CAPACITY · WHERE NOTHING WAS FOUND',
           ],
         },
-        { at: 800, type: 'audio.cue', cue: 'lock' },
+        /* The executive close: the last of the score's six moments. */
+        { at: 800, type: 'audio.cue', cue: 'close' },
       ],
     },
   ],

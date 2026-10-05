@@ -38,6 +38,8 @@ export const MAIN_NETWORK = defineScene({
   act: 'IV',
   title: 'Network before and after',
   question: 'What did the observed blockages do to the main roads?',
+  technical:
+    'Main roads: OpenStreetMap motorway to tertiary as mapped on {infra.baseline.instant|dateShort}, {infra.baseline.ways|int} ways. Connected pieces counted on the undirected graph before ({infra.baseline.components|int}) and after removing every edge an observed NGA blockage sits on ({infra.damaged.components|int}). SCENARIO: every blockage applied at once; clearance dates are unknown.',
   explore: 13,
   runs: SIX_FULL,
   keep: ['outline', 'mask', 'ktm'],
@@ -60,6 +62,7 @@ export const MAIN_NETWORK = defineScene({
       runs: [RUNS.FULL],
       minHoldMs: 400,
       actions: [
+        { at: 800, type: 'term.show', term: 'OSM' },
         {
           at: 0,
           type: 'layer.show',
@@ -101,7 +104,7 @@ export const MAIN_NETWORK = defineScene({
       caption:
         '{access.matching.blockages|int} BLOCKAGES OBSERVED · {access.matching.stage5MajorNetworkMatched|int} ON A MAIN ROAD',
       narration:
-        'In the days that followed, {access.matching.blockages|int} road blockages were observed. Only {access.matching.stage5MajorNetworkMatched|int} sit on a main road. Most were on minor roads and tracks.',
+        'In the days that followed, {access.matching.blockages|int} road blockages were observed. Only {access.matching.stage5MajorNetworkMatched|int} on a main road; most on minor roads and tracks.',
       minHoldMs: 500,
       actions: [
         { at: 0, type: 'annotation.remove', id: 'main-card' },
@@ -112,7 +115,8 @@ export const MAIN_NETWORK = defineScene({
           plain: true,
           duration: 2600,
         },
-        { at: 0, type: 'audio.cue', cue: 'hit' },
+        { at: 0, type: 'audio.cue', cue: 'tick' },
+        { at: 900, type: 'term.show', term: 'NGA' },
         {
           at: 300,
           type: 'camera.fly',
@@ -138,13 +142,13 @@ export const MAIN_NETWORK = defineScene({
         },
         /* "Most were on minor roads and tracks": down to where the markers sit off the main roads. */
         {
-          at: 5000,
+          at: 4600,
           type: 'camera.fly',
           to: 'district:sindhupalchok',
           rangeKm: 170,
           pitch: -55,
           heading: 8,
-          duration: 4000,
+          duration: 3000,
         },
       ],
     },
@@ -153,7 +157,7 @@ export const MAIN_NETWORK = defineScene({
       caption:
         'THE MAIN NETWORK SPLITS: {infra.baseline.components|int} PIECES BECOME {infra.damaged.components|int}',
       narration:
-        'Take them out, and the main network splits. {infra.baseline.components|int} pieces become {infra.damaged.components|int}.',
+        'Take them out, and the main network splits: {infra.baseline.components|int} pieces become {infra.damaged.components|int}. Some places lost their main-road link to the rest.',
       minHoldMs: 600,
       actions: [
         { at: 0, type: 'annotation.remove', id: 'on-main' },
@@ -187,6 +191,7 @@ export const MAIN_NETWORK = defineScene({
           duration: 1800,
           tag: SCENARIO,
         },
+        { at: 1400, type: 'term.show', term: 'networkPieces' },
         {
           at: 3200,
           type: 'layer.filter',
@@ -205,6 +210,8 @@ export const DISTRICT_ROUTES = defineScene({
   act: 'IV',
   title: 'Route reconstruction',
   question: 'Could Kathmandu still reach the districts by main road?',
+  technical:
+    'Shortest main-road path by length from Kathmandu to the nearest main-road node of each of {infra.routes.pairs|int} district centroids, before and after the blockages are removed from the graph. Outcomes: unchanged, a detour, or no main-road path even before.',
   explore: 14,
   runs: ALL,
   keep: ['outline', 'mask', 'ktm', 'roads'],
@@ -281,7 +288,7 @@ export const DISTRICT_ROUTES = defineScene({
       caption:
         '{infra.routes.outcomes.UNCHANGED|int} UNCHANGED · {infra.routes.outcomes.DETOUR|int} DETOUR · {infra.routes.outcomes.NOT_ROUTABLE_BASELINE|int} WITH NO MAIN-ROAD ROUTE EVEN BEFORE',
       narration:
-        '{infra.routes.outcomes.UNCHANGED|int} unchanged. {infra.routes.outcomes.DETOUR|int} detour. {infra.routes.outcomes.NOT_ROUTABLE_BASELINE|int} had no main-road route even before.',
+        '{infra.routes.outcomes.UNCHANGED|int} unchanged, {infra.routes.outcomes.DETOUR|int} detour, and {infra.routes.outcomes.NOT_ROUTABLE_BASELINE|int} with no main-road route even before. The bigger gaps were older than the earthquake.',
       minHoldMs: 600,
       actions: [
         {
@@ -290,7 +297,7 @@ export const DISTRICT_ROUTES = defineScene({
           layer: 'district-routes',
           outcomes: ['NOT_ROUTABLE_BASELINE'],
         },
-        { at: 0, type: 'audio.cue', cue: 'hit' },
+        { at: 0, type: 'audio.cue', cue: 'tick' },
         {
           at: 300,
           type: 'camera.fly',

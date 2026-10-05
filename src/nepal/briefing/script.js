@@ -7,13 +7,16 @@
  * artefacts, so the document and the product cannot drift apart. A test
  * regenerates it and compares it with the committed copy.
  *
- * Times are ESTIMATES at 1× with a voice (2.5 words a second) — the director
- * waits for narration and for animations, so the real run is never shorter
- * than this and is longer only where a camera or a voice runs slow.
+ * Times use the shipped neural voice's rendered clip lengths where the clip
+ * manifest covers a beat, and an estimate at 2.5 words a second otherwise —
+ * the director waits for narration and for animations, so the real run is
+ * never shorter than this.
  */
 
 import { FACTS, fillTemplate } from './facts.js';
+import { GLOSSARY } from './glossary.js';
 import {
+  BEAT_KINDS,
   RUNS,
   RUN_LABELS,
   entryLengthMs,
@@ -134,6 +137,21 @@ function describeAction(action, fill) {
       ];
     case 'veil':
       return ['MAP', `${at} veil ${action.opacity}`];
+    case 'focus':
+      return [
+        'MAP',
+        `${at} focus on ${(action.on ?? ['everything']).join(', ')}; the rest recedes`,
+      ];
+    case 'term.show':
+      return [
+        'TERM',
+        `${at} ${GLOSSARY[action.term]?.term ?? action.term} — ${GLOSSARY[action.term]?.plain ?? ''} (first use in a run only)`,
+      ];
+    case 'time.card':
+      return [
+        'ANNOTATION',
+        `${at} clock card ${action.id ?? 'timecard'} — ${action.days ? 'runs through set days' : `reads the ${action.layer ?? 'events'} timeline`}, ${action.spanDays?.fact ? 'span from the facts' : `${action.spanDays ?? 20}-day ruler`}`,
+      ];
     default:
       return ['OTHER', `${at} ${action.type}`];
   }
@@ -143,7 +161,7 @@ function describeAction(action, fill) {
  * @param {ReturnType<import('./facts.js').createFactBook>} book
  * @param {Array<object>} scenes
  */
-export function renderBriefingScript(book, scenes) {
+export function renderBriefingScript(book, scenes, { voice = null } = {}) {
   const fill = (text) => fillTemplate(String(text ?? ''), book);
   const out = [];
   const plans = Object.fromEntries(
@@ -166,13 +184,19 @@ export function renderBriefingScript(book, scenes) {
   );
   out.push('');
   out.push(
-    'Times are estimates at 1× with a voice (2.5 words a second). The director waits for both the',
+    voice
+      ? `Times are at 1× with the shipped neural voice (${voice.label}, Kokoro-82M): each beat lasts as long as its`
+      : 'Times are estimates at 1× with a voice (2.5 words a second). The director waits for both the',
   );
   out.push(
-    'narration and the animations, so a real run is never shorter than this. Without a voice the',
+    voice
+      ? 'rendered clips, or an estimate at 2.5 words a second for a line not yet rendered. The director waits'
+      : 'narration and the animations, so a real run is never shorter than this. Without a voice the',
   );
   out.push(
-    'caption’s reading time sets the pace instead (3.2 words a second).',
+    voice
+      ? 'for both narration and animations. Without a voice the caption’s reading time sets the pace (3.2 words a second).'
+      : 'caption’s reading time sets the pace instead (3.2 words a second).',
   );
   out.push('');
   out.push('## Runs');
@@ -225,6 +249,10 @@ export function renderBriefingScript(book, scenes) {
       out.push('');
       out.push(`*${scene.question}* — in ${runs}`);
       out.push('');
+      if (scene.technical)
+        out.push(
+          `- **TECHNICAL** (Level 2, in the technical layer): ${fill(scene.technical)}`,
+        );
       const setup = (scene.setup ?? [])
         .map((action) => describeAction(action, fill)[1])
         .join('; ');
@@ -242,8 +270,21 @@ export function renderBriefingScript(book, scenes) {
       `#### ${clock(t)} — ${beat.id} · ${seconds(length)} · ${beatRuns}`,
     );
     out.push('');
+    if (beat.kind) out.push(`- **KICKER** ${BEAT_KINDS[beat.kind]}`);
     out.push(`- **NARRATION** ${fill(beat.narration)}`);
+    if (beat.prosody)
+      out.push(
+        `- **DELIVERY** ${Object.entries(beat.prosody)
+          .map(
+            ([i, p]) =>
+              `sentence ${Number(i) + 1}: ${Object.entries(p)
+                .map(([k, v]) => `${k} ${Array.isArray(v) ? v.join(', ') : v}`)
+                .join(', ')}`,
+          )
+          .join('; ')}`,
+      );
     out.push(`- **CAPTION** ${fill(beat.caption)}`);
+    if (beat.technical) out.push(`- **TECHNICAL** ${fill(beat.technical)}`);
     const groups = {};
     for (const action of beat.actions) {
       const [group, text] = describeAction(action, fill);
@@ -253,6 +294,7 @@ export function renderBriefingScript(book, scenes) {
       'CAMERA',
       'MAP',
       'ANNOTATION',
+      'TERM',
       'CHART',
       'SOUND',
       'OTHER',
