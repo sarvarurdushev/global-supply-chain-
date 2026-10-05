@@ -113,14 +113,14 @@ export const GLOSSARY = Object.freeze({
     'CATALOGUE COMPLETENESS',
     'Completeness magnitude, Mc',
     'Below a certain size, small earthquakes stop being reliably recorded and listed. Counts below it are too low.',
-    'Mc by maximum curvature = M4.0 (a lower bound for aftershock sequences). The count jumps 20.5× at M4, the signature of a reporting threshold.',
+    'Mc estimated by maximum curvature, which is a lower bound for aftershock sequences. A sharp jump in the count at one magnitude is the signature of a reporting threshold, not of nature; the figures for this catalogue are in the technical layer.',
     'statistic',
   ),
   bValue: entry(
     'b-VALUE',
     'Gutenberg–Richter b-value',
     'How fast earthquakes get rarer as they get bigger. About 1 is typical: roughly ten times fewer for each step up in magnitude.',
-    'Fit of log10 N(≥M) = a − b·M above Mc; here b = 0.80 (R² 0.97) from 305 events ≥ M4.0. MODEL FIT.',
+    'Least-squares fit of log10 N(≥M) = a − b·M to the events above Mc; MODEL FIT, reported with its R² and the number of events used.',
     'statistic',
   ),
   Omori: entry(
@@ -134,7 +134,7 @@ export const GLOSSARY = Object.freeze({
     'AFTERSHOCK',
     'An earthquake that follows a larger one nearby',
     'Smaller earthquakes that follow the main shock in the same area, sometimes for months.',
-    'Here: catalogue events after the main shock within 300 km over one year (M ≥ 2.5). No declustering is applied.',
+    'Here: every catalogue event after the main shock; the catalogue’s own bounds are quoted in the technical layer. No declustering is applied.',
     'measure',
   ),
   quantile: entry(

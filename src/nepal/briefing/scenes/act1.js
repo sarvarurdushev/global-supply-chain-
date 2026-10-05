@@ -656,7 +656,8 @@ const TIME_CARD = {
   id: 'timecard',
   layer: 'events',
   spanDays: 20,
-  screen: { x: 0.64, y: 0.05 },
+  /* Lower left, clear of the top bar, the heading and the right-hand counters. */
+  screen: { x: 0.025, y: 0.6 },
   ticks: [
     { day: 1, label: 'DAY 1' },
     { day: 7, label: 'ONE WEEK' },
@@ -874,7 +875,7 @@ export const SECOND_SHOCK = defineScene({
           type: 'timeline.seek',
           layer: 'events',
           toHour: { fact: 'seq.largest', path: [1, 'hoursFromMainShock'] },
-          duration: 3600,
+          duration: 3000,
         },
         {
           at: 600,
@@ -976,7 +977,8 @@ export const SECOND_SHOCK = defineScene({
           heading: 0,
           duration: 4800,
         },
-        { at: 700, type: 'term.show', term: 'Omori' },
+        { at: 700, type: 'term.show', term: 'Omori', holdMs: 3700 },
+        { at: 4400, type: 'term.show', term: 'rSquared' },
         {
           at: 700,
           type: 'annotation.draw',

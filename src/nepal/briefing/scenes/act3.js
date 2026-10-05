@@ -376,7 +376,9 @@ export const MODEL_VS_OBSERVATION = defineScene({
           duration: 1600,
           tag: STAT,
         },
-        { at: 2200, type: 'term.show', term: 'cramersV' },
+        /* First what "chance cannot explain it" means, then how strong the link is. */
+        { at: 300, type: 'term.show', term: 'pValue', holdMs: 3600 },
+        { at: 4000, type: 'term.show', term: 'cramersV' },
         { at: 3600, type: 'audio.cue', cue: 'reveal' },
         /* The chart says it too, over the bars the statistic is about. */
         {

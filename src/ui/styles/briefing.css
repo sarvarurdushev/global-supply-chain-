@@ -108,11 +108,13 @@
 .brf-caption.is-visible {
   opacity: 1;
 }
-.brf-caption__text {
+.brf-caption__box {
   display: inline-block;
   padding: 10px 18px;
   background: rgba(3, 9, 11, 0.86);
   border-left: 2px solid var(--gx-green);
+}
+.brf-caption__text {
   font-size: clamp(17px, 2.5vh, 30px);
   letter-spacing: 0.12em;
   line-height: 1.45;
@@ -1167,7 +1169,9 @@
   color: #8fd8ff;
 }
 .brf-term__expansion {
-  font-size: clamp(11px, 1.4vh, 15px);
+  display: block;
+  margin-top: 1px;
+  font-size: clamp(10px, 1.3vh, 14px);
   letter-spacing: 0.08em;
   color: rgba(228, 245, 236, 0.75);
 }
@@ -1184,6 +1188,7 @@
 
 .brf-caption__kicker {
   margin-bottom: 4px;
+  text-align: left;
   font-size: clamp(11px, 1.5vh, 16px);
   letter-spacing: 0.28em;
   color: var(--gx-neon);
@@ -1195,15 +1200,15 @@
 .brf-caption[data-kind='limit'] .brf-caption__kicker {
   color: #ffc56b;
 }
-.brf-caption[data-kind='limit'] .brf-caption__text {
+.brf-caption[data-kind='limit'] .brf-caption__box {
   border-left-color: #ffc56b;
 }
 .brf-caption[data-kind='next'] .brf-caption__kicker,
 .brf-caption[data-kind='sofar'] .brf-caption__kicker {
   color: #8fd8ff;
 }
-.brf-caption[data-kind='next'] .brf-caption__text,
-.brf-caption[data-kind='sofar'] .brf-caption__text {
+.brf-caption[data-kind='next'] .brf-caption__box,
+.brf-caption[data-kind='sofar'] .brf-caption__box {
   border-left-color: #8fd8ff;
 }
 

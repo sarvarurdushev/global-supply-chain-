@@ -21,11 +21,15 @@ export function createCaptions({ container, clock }) {
   node.className = 'brf-caption';
   node.setAttribute('role', 'status');
   node.setAttribute('aria-live', 'polite');
+  /* One panel holds the kicker and the line, so the kicker never floats over the map. */
+  const box = document.createElement('div');
+  box.className = 'brf-caption__box';
   const kicker = document.createElement('div');
   kicker.className = 'brf-caption__kicker';
   const inner = document.createElement('div');
   inner.className = 'brf-caption__text';
-  node.append(kicker, inner);
+  box.append(kicker, inner);
+  node.append(box);
   container.append(node);
 
   let words = [];

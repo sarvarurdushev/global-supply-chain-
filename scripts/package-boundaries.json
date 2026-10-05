@@ -1254,6 +1254,7 @@
       "src/nepal/briefing/voices.js",
       "src/nepal/briefing/glossary.js",
       "src/nepal/briefing/music.js",
+      "src/nepal/briefing/lifecycle.js",
       "src/ui/nepal/briefing/audio.js",
       "src/ui/nepal/briefing/score.js",
       "src/nepal/analysis/terminology.js",

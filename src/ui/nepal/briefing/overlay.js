@@ -855,8 +855,9 @@ export function createBriefingOverlay({
    *   OLD     before this move began: small, dim, desaturated — context.
    *   RECENT  inside this move: full colour.
    *   NEW     the last eighth of the move: larger, with an expanding ring.
-   *   MAJOR   magnitude 6.5 or more, once reached: a white ring and a label,
-   *           "M7.3 · 12 MAY", that stays while the layer is shown.
+   *   MAJOR   magnitude 6.5 or more, once reached: a white ring. The two
+   *           shocks the story is about (M7 and above) also carry a label,
+   *           "M7.3 · 12 MAY", above-left, that stays while the layer is shown.
    */
   function events({
     id,
@@ -867,6 +868,7 @@ export function createBriefingOverlay({
     instant = false,
     originMs = null,
     majorMagnitude = 6.5,
+    labelMagnitude = 7,
   }) {
     const ecef = ground(rows.flatMap((row) => [row[0], row[1]]));
     const state = {
@@ -881,9 +883,10 @@ export function createBriefingOverlay({
     const hourNow = () =>
       state.from +
       (state.to - state.from) * progress(clock, state.at, state.ms);
+    /* Every major shock gets a ring; only the story's two (M7+) get a label, so labels never pile up. */
     const majors = rows
       .map((row, i) => ({ row, i }))
-      .filter(({ row }) => row[2] >= majorMagnitude)
+      .filter(({ row }) => row[2] >= labelMagnitude)
       .map(({ row, i }) => {
         const when =
           originMs !== null ? new Date(originMs + row[4] * 3_600_000) : null;
@@ -968,7 +971,8 @@ export function createBriefingOverlay({
           m.node.style.opacity = m.shown
             ? String((m.old ? 0.55 : 1) * fadeOut)
             : '0';
-          m.node.style.transform = `translate(${Math.round(m.x + 12)}px, ${Math.round(m.y - 10 - m.node.offsetHeight)}px)`;
+          /* Above-left of the shock: above-right is where a magnitude counter or callout sits. */
+          m.node.style.transform = `translate(${Math.round(m.x - 12 - m.node.offsetWidth)}px, ${Math.round(m.y - 10 - m.node.offsetHeight)}px)`;
         }
       },
       dispose() {
@@ -1021,8 +1025,13 @@ export function createBriefingOverlay({
       place(_project, _now, { width: W, height: H, fadeOut }) {
         const h = Math.max(0, hourOf());
         const d = Math.floor(h / 24);
+        /* The first hour in minutes, the first two days in hours, then days. */
         day.textContent =
-          h < 48 ? `DAY ${d} · +${Math.floor(h)} H` : `DAY ${d}`;
+          h < 1
+            ? `DAY 0 · +${Math.floor(h * 60)} MIN`
+            : h < 48
+              ? `DAY ${d} · +${Math.floor(h)} H`
+              : `DAY ${d}`;
         const when = new Date(originMs + h * 3_600_000);
         date.textContent = `${String(when.getUTCDate()).padStart(2, '0')} ${MONTHS[when.getUTCMonth()]} ${when.getUTCFullYear()} · ${String(when.getUTCHours()).padStart(2, '0')}:${String(when.getUTCMinutes()).padStart(2, '0')} UTC`;
         const share = Math.min(1, h / 24 / spanDays);
@@ -1513,7 +1522,12 @@ export function createBriefingOverlay({
         parseFloat(style.lineHeight) || parseFloat(style.fontSize) * 1.45;
       const pad =
         parseFloat(style.paddingTop) + parseFloat(style.paddingBottom) || 20;
-      band.push({ ...box, t: box.b - (2 * line + pad) });
+      /* The kicker (WHAT THIS MEANS …) sits in the same panel: its line is reserved too. */
+      const kicker = caption.querySelector('.brf-caption__kicker');
+      const kickerLine = kicker
+        ? (parseFloat(getComputedStyle(kicker).fontSize) || 14) * 1.4 + 4
+        : 0;
+      band.push({ ...box, t: box.b - (2 * line + pad + kickerLine) });
     }
     const controls = document.querySelector('.brf-controls');
     if (controls && controls.offsetParent !== null)

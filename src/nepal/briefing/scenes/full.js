@@ -675,7 +675,7 @@ export const EVIDENCE_ARRIVES = defineScene({
             fact: 'damage.lags',
             path: ['eventToAcquisition', 'max'],
           },
-          screen: { x: 0.62, y: 0.05 },
+          screen: { x: 0.62, y: 0.12 },
           days: [
             [0, 0],
             [

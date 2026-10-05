@@ -442,7 +442,7 @@ for both narration and animations. Without a voice the caption’s reading time 
 - **TECHNICAL** Daily aftershock counts fitted to the modified Omori law n(t) = K/(t + c)^p, c fixed at 0.1 day, by least squares on log counts. Before the M7.3: p = 1.07, R² = 0.72 over 17 days. After it: p = 0.25, R² = 0.33 over 68 days. p near 1 is typical; R² this low means the curve describes the later sequence poorly.
 - **CAMERA** +0.2 s fly to shakeCentre · 620 km · pitch -68° · heading 0° · 4.8 s
 - **ANNOTATION** +0.0 s remove timecard; +0.7 s typed — AFTERSHOCK DECAY · OMORI LAW / BEFORE: p = 1.07 · R² 0.72 / AFTER: p = 0.25 · R² 0.33 / A WEAK FIT IS REPORTED AS ONE; +5.6 s remove second-mag
-- **TERM** +0.7 s OMORI LAW — Aftershocks are most frequent right after the main shock and then fade. The p number says how fast they fade. (first use in a run only)
+- **TERM** +0.7 s OMORI LAW — Aftershocks are most frequent right after the main shock and then fade. The p number says how fast they fade. (first use in a run only); +4.4 s R² — How well a fitted curve follows the data: 1 is a perfect fit, near 0 is a poor one. (first use in a run only)
 - **OTHER** +0.0 s timeline.seek
 - **EVIDENCE** omori.after — USGS · OMORI FIT · MODEL_FIT · record `seismic-omori-decay`; omori.before — USGS · OMORI FIT · MODEL_FIT · record `seismic-omori-decay`
 - **CLASS** MODEL_FIT
@@ -807,7 +807,7 @@ for both narration and animations. Without a voice the caption’s reading time 
 - **CAPTION** DETECTABLE · BUT SMALL · CRAMÉR’S V = 0.167
 - **MAP** +0.0 s filter bands → highlight null
 - **ANNOTATION** +0.3 s typed — INDEPENDENCE TEST · χ² / χ² = 255.5 · DF 6 / P = 2.8 × 10⁻⁵² / ASSOCIATION DETECTABLE; +2.2 s count damage.independence.cramersV — CRAMÉR’S V · A SMALL EFFECT
-- **TERM** +2.2 s CRAMÉR’S V — How strong a link is, from 0 (none) to 1 (total). About 0.1–0.2 is weak. (first use in a run only)
+- **TERM** +0.3 s p-VALUE — How likely a pattern this strong would be if there were no real link. Tiny means “not chance” — not “strong”. (first use in a run only); +4.0 s CRAMÉR’S V — How strong a link is, from 0 (none) to 1 (total). About 0.1–0.2 is weak. (first use in a run only)
 - **CHART** +0.0 s intensity: focus MMI null; +4.0 s intensity: verdict
 - **SOUND** +3.6 s reveal
 - **EVIDENCE** damage.independence — UNOSAT × USGS SHAKEMAP · STATISTIC · record `damage-by-intensity`
