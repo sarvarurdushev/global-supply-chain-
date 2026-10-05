@@ -324,16 +324,16 @@ All gates below were run on the final code, after the last change.
 | `node scripts/qa-briefing-sync.mjs --run six` / `--run full` | 6 MIN: 63 figures said, 0 late · FULL: 117, 0 late — with each of the three voices' clips |
 
 Browser checks (software WebGL, headless Chromium, against `vite preview` of the production build).
-The runtime and presenter rows were measured on the build before the last two visual fixes
-(event-label corners, scene 18's plot label) and the `am_michael` re-render. None of those
-touches timing, the controls or the default voice; the re-run on the final build is
-recorded under the table.
+Runtime, presenter and the re-shot stills ran on a build of the final code. The
+`am_michael` clips in that build were still being re-rendered; these checks play only the
+default voice. The same checks on the build before the last two visual fixes gave the same
+results: 6:09.2, 2:41.5, 20/20.
 
 | Check | Result |
 | --- | --- |
 | `qa-briefing-runtime.mjs --run SIX` | **6:09.2**, inside 5:50–6:10 |
 | `qa-briefing-runtime.mjs --run THREE` | 2:41.5 |
-| `qa-briefing-presenter.mjs` (20 random NEXT/BACK presses) | **20/20** pass |
+| `qa-briefing-presenter.mjs` (20 random NEXT/BACK presses) | **20/20** pass; the picker lists the three neural voices first |
 | Final-state stills, all 40 scenes, 1280×720 | all 40 watched. Two collisions found and fixed (08 M7.3 label on KATHMANDU; 18 drop label on 38.7 %); both re-shot on the final build. 23 (14 km close-up) and 26 (detour) re-shot with a longer wait: as designed and as in 9.1 |
 | Geo-anchoring probe, four flights, 56 frames | worst drift 0.67 px |
 
